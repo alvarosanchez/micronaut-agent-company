@@ -1,0 +1,24 @@
+schema: paperclip/v1
+agents:
+  architect:
+    adapter:
+      type: codex_local
+      config:
+        model: gpt-5.4
+    inputs:
+      env:
+        GH_TOKEN:
+          kind: secret
+          requirement: optional
+  micronaut-engineer:
+    inputs:
+      env:
+        GH_TOKEN:
+          kind: secret
+          requirement: required
+  technical-writer:
+    inputs:
+      env:
+        GH_TOKEN:
+          kind: secret
+          requirement: optional
