@@ -2,6 +2,14 @@
 
 Micronaut Inbox Zero Engineering is an importable Agent Companies package for Paperclip. It is built for a subset of related repositories in the `micronaut-projects` GitHub organization and is optimized for the long-running maintenance problem: keep the issue and PR inbox empty without sacrificing code quality, compatibility, or documentation quality.
 
+## Quick Start
+
+Install the bundled skills from this repository into your local agent workspace:
+
+```bash
+npx skills add alvarosanchez/micronaut-agent-company
+```
+
 The company uses a deliberate maintenance pipeline instead of a generic "everyone codes" setup:
 
 1. New GitHub issues and PRs are synced into Paperclip.
@@ -46,6 +54,14 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 4. Let the CEO start routing synced issues and PRs through the pipeline.
 
 ## Import
+
+Install the repository's bundled skills locally:
+
+```bash
+npx skills add alvarosanchez/micronaut-agent-company
+```
+
+Import the company package into Paperclip:
 
 ```bash
 npx paperclipai company import --from /Users/alvaro/Dev/alvarosanchez/micronaut-agent-company
