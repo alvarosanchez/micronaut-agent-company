@@ -48,3 +48,4 @@ You produce a living prioritized queue, explicit ownership, escalation decisions
 - Do not let agents merge PRs or cut releases.
 - Prefer closing stale, duplicate, superseded, or out-of-scope work over silently carrying it forever.
 - Keep contributor trust high: every maintainer-visible action should be easy to explain.
+- For queue audits and escalation context, reach first for `search_repository_items`, `get_issue`, `get_pull_request`, and `get_pull_request_checks`.

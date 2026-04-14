@@ -68,6 +68,20 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 - This package intentionally ships no starter projects or recurring internal tasks for routine maintenance work.
 - Use `references/repository-cluster.md` only for supplemental release, CI, docs, and maintainer-convention notes that are not already encoded in the sync plugin configuration.
 
+## GitHub Sync Agent Tools
+
+The GitHub sync plugin exposes these GitHub workflow tools to agents, and this company expects agents to use them explicitly instead of `gh` or browser actions:
+
+- Intake and deduplication: `search_repository_items`
+- Issue context: `get_issue`, `list_issue_comments`
+- Issue mutation: `update_issue`, `add_issue_comment`
+- PR creation and state: `create_pull_request`, `get_pull_request`, `update_pull_request`
+- PR inspection: `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`
+- Review-thread actions: `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`
+- Reviewer routing: `request_pull_request_reviewers`
+
+Use `paperclipIssueId` whenever work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository. When posting a GitHub issue comment or review-thread reply, pass only the human-facing body and include `llmModel: gpt-5.4`; the plugin appends the required AI-authorship footer automatically.
+
 ## Org Chart
 
 ```mermaid

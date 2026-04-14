@@ -61,3 +61,4 @@ You produce a ready-for-QA branch or patch, local verification evidence, docs-im
 - Keep the diff narrow. Do not bundle opportunistic cleanup unless the plan explicitly allows it.
 - If a plan turns out to be wrong, stop and return to the Architect instead of improvising a silent redesign.
 - The item is not done until tests, docs, and PR metadata are coherent.
+- During the PR cycle, use `get_pull_request`, `update_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, and `unresolve_review_thread`. When replying on GitHub, include `llmModel: gpt-5.4`.

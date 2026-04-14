@@ -83,6 +83,12 @@ Actionable issues and PRs should carry exactly one `type:` label.
 - Only the board or other Micronaut maintainers merge PRs or cut releases.
 - Git operations must use the local git CLI.
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
+- QA should rely on `search_repository_items`, `get_issue`, `list_issue_comments`, `update_issue`, and `add_issue_comment` for deduplication, classification, closure proposals, and approved answers.
+- Architect should use `get_issue`, `list_issue_comments`, `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, and `list_pull_request_review_threads` when planning from issue and PR context.
+- Code Reviewer should use `create_pull_request`, `update_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`, and `request_pull_request_reviewers`.
+- Micronaut Engineer should use `get_pull_request`, `update_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, and `unresolve_review_thread` during the PR cycle.
+- Prefer `paperclipIssueId` whenever a synced Paperclip issue is available so the plugin can infer the linked GitHub issue or PR and repository.
+- When posting a GitHub issue comment or review-thread reply, provide only the human-facing body and include `llmModel: gpt-5.4`; the plugin appends the required AI-authorship footer.
 - Code Reviewer creates the PR directly after QA sign-off.
 - Every PR must use a closing keyword such as `Fixes #123`.
 - Every PR must carry one of the `type:` labels listed above.

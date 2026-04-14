@@ -54,3 +54,4 @@ You produce one thorough review pass with prioritized findings, rationale, a con
 - Focus on user impact, maintainer cost, and future change risk rather than personal style preferences.
 - Give one complete review instead of drip-feeding concerns.
 - Look especially hard at compatibility edges, configuration defaults, error handling, and test blind spots.
+- Use `create_pull_request`, `update_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`, and `request_pull_request_reviewers` explicitly. When posting a review-thread reply, include `llmModel: gpt-5.4`.

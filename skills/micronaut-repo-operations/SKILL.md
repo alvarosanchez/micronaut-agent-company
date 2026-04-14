@@ -77,10 +77,45 @@ Duplicate, stale, superseded, and out-of-scope issues may be closed without forc
 - Only the board or other Micronaut maintainers merge PRs or cut releases.
 - Agents may prepare, label, comment, close, and create PRs when their role allows it, but they do not merge or release.
 
+## GitHub Sync Agent Tools
+
+The sync plugin currently exposes this GitHub tool surface for agents:
+
+- `search_repository_items`
+- `get_issue`
+- `list_issue_comments`
+- `update_issue`
+- `add_issue_comment`
+- `create_pull_request`
+- `get_pull_request`
+- `update_pull_request`
+- `list_pull_request_files`
+- `get_pull_request_checks`
+- `list_pull_request_review_threads`
+- `reply_to_review_thread`
+- `resolve_review_thread`
+- `unresolve_review_thread`
+- `request_pull_request_reviewers`
+
+Use them by workflow stage:
+
+- QA and CEO queue work: `search_repository_items`, `get_issue`, `list_issue_comments`, `update_issue`
+- Planning and review context: `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`
+- PR creation and routing: `create_pull_request`, `update_pull_request`, `request_pull_request_reviewers`
+- Review-thread handling: `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`
+
+Important usage rules:
+
+- Prefer `paperclipIssueId` whenever you are acting from a synced Paperclip issue so the plugin can infer the linked GitHub item and repository.
+- Provide `repository` only when the plugin cannot infer it; the repository may be omitted when the current Paperclip project has exactly one mapped repository.
+- Use `update_issue` for labels, assignees, state, body, title, and milestone changes.
+- Use `update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
+- For `add_issue_comment` and `reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the mandatory AI-authorship footer.
+
 ## Tool Boundaries
 
 - Use the local git CLI for all git operations: branch creation, commits, rebases, cherry-picks, and pushes.
-- Use the sync plugin agent tools for all GitHub operations: deduplication search, release lookup, labels, comments, issue closure, PR creation, review-thread work, and PR metadata updates.
+- Use the sync plugin agent tools for all GitHub operations: deduplication search, issue reads and updates, GitHub comments, PR creation and updates, changed-file inspection, CI inspection, review-thread work, and reviewer requests.
 - Do not use `gh`, direct GitHub browser edits, or ad hoc scripts when the sync plugin tools cover the operation.
 
 ## PR Rules
