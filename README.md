@@ -8,10 +8,10 @@ This package assumes the [paperclip-github-plugin](https://github.com/alvarosanc
 
 ## Quick Start
 
-Install the bundled skills from this repository into your local agent workspace:
+Import the company package into Paperclip directly from GitHub:
 
 ```bash
-npx skills add alvarosanchez/micronaut-agent-company
+npx paperclipai company import https://github.com/alvarosanchez/micronaut-agent-company
 ```
 
 ## Runtime Defaults
@@ -176,16 +176,10 @@ These skills are included as referenced skills pinned to `micronaut-projects/mic
 
 ## Import
 
-Install the repository's bundled skills locally:
-
-```bash
-npx skills add alvarosanchez/micronaut-agent-company
-```
-
 Import the company package into Paperclip:
 
 ```bash
-npx paperclipai company import --from /Users/alvaro/Dev/alvarosanchez/micronaut-agent-company
+npx paperclipai company import https://github.com/alvarosanchez/micronaut-agent-company
 ```
 
 ## Validation
