@@ -18,8 +18,8 @@ npx skills add alvarosanchez/micronaut-agent-company
 
 All agents are configured to use `codex_local` with `gpt-5.4` and live web search enabled.
 
-- Architect: `xhigh`
-- Security Engineer: `xhigh`
+- Architect: `high`
+- Security Engineer: `high`
 - QA Engineer: `high`
 - Code Reviewer: `high`
 - CEO: `medium`
