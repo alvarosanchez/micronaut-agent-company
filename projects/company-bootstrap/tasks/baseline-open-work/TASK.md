@@ -9,6 +9,6 @@ After the repository cluster, sync defaults, and triage rubric are defined, do a
 Outcome:
 
 - every existing item is either left in `BACKLOG` for human review or has an explicit active owner and next action
-- actionable issues in `TODO` have a clear triage path toward `type:` labeling, planning, implementation, QA, and core review
+- actionable issues in `TODO` have a clear triage path toward `type:` labeling, planning, implementation, QA, and code review
 - obvious duplicates, stale items, unreproducible bugs, and out-of-scope requests have a closure-proposal path
-- the first set of ready work is queued for the Architect, Micronaut Engineer, Technical Writer, and Core Reviewer as appropriate
+- the first set of ready work is queued for the Architect, Micronaut Engineer, Technical Writer, and Code Reviewer as appropriate

@@ -13,4 +13,4 @@ Deliver:
 - documentation updates or an explicit docs-impact note
 - a clean handoff back to QA with verification evidence
 
-After QA sign-off and Core Reviewer PR creation, keep owning the PR cycle until CI is green, Sonar is satisfied, and review threads are resolved.
+After QA sign-off and Code Reviewer PR creation, keep owning the PR cycle until CI is green, Sonar is satisfied, and review threads are resolved.

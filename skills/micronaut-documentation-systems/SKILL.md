@@ -30,7 +30,7 @@ Across Micronaut repositories, documentation may live in different places and us
 - Explain both the "what changed" and the "how do I use it now."
 - Keep terminology consistent with existing Micronaut docs in the same repository cluster.
 - Do not leave screenshots, command output, or code snippets unverified when the repo offers a way to validate them.
-- Docs-only implementations still follow `Writing -> QA -> Core Reviewer` before a PR exists.
+- Docs-only implementations still follow `Writing -> QA -> Code Reviewer` before a PR exists.
 
 ## Cross-Repo Consistency
 

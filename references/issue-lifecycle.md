@@ -21,12 +21,12 @@ This file is the canonical workflow for how this company handles synced GitHub i
    - questions become board-approved answer proposals
 4. Implementation happens with Micronaut Engineer or Technical Writer.
 5. QA verifies the implementation against the plan or reproducer.
-6. Core Reviewer performs structural review and creates the GitHub PR directly when the work is approved.
+6. Code Reviewer performs structural review and creates the GitHub PR directly when the work is approved.
 7. Micronaut Engineer owns the PR cycle after PR creation, including CI, Sonar Quality Gate, and review threads.
 8. The board or other Micronaut maintainers merge the PR or cut the release.
 9. The sync plugin reflects the GitHub outcome back into Paperclip and eventually marks the item `DONE`.
 
-The implementation loop is always `Engineering or Writing -> QA -> Core Reviewer`.
+The implementation loop is always `Engineering or Writing -> QA -> Code Reviewer`.
 
 ## Type Labels
 
@@ -61,7 +61,7 @@ Actionable issues and PRs should carry exactly one `type:` label.
 ### Docs
 
 - QA assigns `type: docs` issues directly to Technical Writer.
-- Docs-only issues still go through QA and Core Reviewer before a PR is created.
+- Docs-only issues still go through QA and Code Reviewer before a PR is created.
 
 ### Questions
 
@@ -83,6 +83,6 @@ Actionable issues and PRs should carry exactly one `type:` label.
 - Only the board or other Micronaut maintainers merge PRs or cut releases.
 - Git operations must use the local git CLI.
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
-- Core Reviewer creates the PR directly after QA sign-off.
+- Code Reviewer creates the PR directly after QA sign-off.
 - Every PR must use a closing keyword such as `Fixes #123`.
 - Every PR must carry one of the `type:` labels listed above.

@@ -18,7 +18,7 @@ You are activated after the **QA Engineer** has typed and routed a `type: improv
 
 ## What you do
 
-You define the implementation strategy in enough detail that the **Micronaut Engineer**, **Technical Writer**, **Core Reviewer**, and **QA Engineer** can execute autonomously.
+You define the implementation strategy in enough detail that the **Micronaut Engineer**, **Technical Writer**, **Code Reviewer**, and **QA Engineer** can execute autonomously.
 
 For every item you plan, lock down:
 

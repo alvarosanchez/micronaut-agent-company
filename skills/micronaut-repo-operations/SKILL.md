@@ -21,7 +21,7 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 3. `qa-engineer` deduplicates, labels, and routes the issue.
 4. Implementation happens with either `micronaut-engineer` or `technical-writer`.
 5. `qa-engineer` signs the work off or rejects it.
-6. `core-reviewer` performs the structural review and creates the GitHub PR when the work is approved.
+6. `code-reviewer` performs the structural review and creates the GitHub PR when the work is approved.
 7. `micronaut-engineer` owns the PR cycle after PR creation.
 8. The board or other Micronaut maintainers merge the PR or cut the release.
 9. The sync plugin eventually reflects the GitHub outcome back into Paperclip as `DONE`.
@@ -83,12 +83,12 @@ Duplicate, stale, superseded, and out-of-scope issues may be closed without forc
 
 ## PR Rules
 
-- The implementation loop is always `Engineering or Writing -> QA -> Core Reviewer`.
-- `core-reviewer` creates the GitHub PR only after QA sign-off.
+- The implementation loop is always `Engineering or Writing -> QA -> Code Reviewer`.
+- `code-reviewer` creates the GitHub PR only after QA sign-off.
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, and resolves all review threads.
-- Any material post-PR change re-enters the same `Engineering or Writing -> QA -> Core Reviewer` loop.
+- Any material post-PR change re-enters the same `Engineering or Writing -> QA -> Code Reviewer` loop.
 
 ## Maintainer-Friendly Evidence
 

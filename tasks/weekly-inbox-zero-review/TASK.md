@@ -1,6 +1,7 @@
 ---
 name: Weekly Inbox Zero Review
 assignee: ceo
+project: inbox-zero-program
 schedule:
   timezone: Europe/Madrid
   startsAt: 2026-04-20T09:00:00+02:00

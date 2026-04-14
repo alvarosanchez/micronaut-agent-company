@@ -14,5 +14,5 @@ Use it to keep the selected Micronaut repository cluster moving through the agre
 - QA types and routes the work
 - Architect, Micronaut Engineer, and Technical Writer execute
 - QA verifies
-- Core Reviewer performs structural review and creates PRs
+- Code Reviewer performs structural review and creates PRs
 - Micronaut Engineer drives PR follow-through until maintainers merge

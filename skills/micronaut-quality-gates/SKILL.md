@@ -49,7 +49,7 @@ Before code or docs leave implementation:
 
 ## Review Gate
 
-The Core Reviewer checks for:
+The Code Reviewer checks for:
 
 - correctness beyond the happy path
 - maintainability and readability
@@ -58,7 +58,7 @@ The Core Reviewer checks for:
 - missing or weak tests
 - correct PR issue linkage and `type:` label when approving work
 
-If the work is approved, the Core Reviewer creates the PR. If not, it goes back to implementation and then re-enters QA.
+If the work is approved, the Code Reviewer creates the PR. If not, it goes back to implementation and then re-enters QA.
 
 ## QA Gate
 
@@ -70,13 +70,13 @@ The QA Engineer verifies:
 - no important acceptance criteria were silently dropped
 - unreproducible bug closures and question answers have the required board approval comment before anything is published on GitHub
 
-Work that passes QA moves to Core Reviewer. Work that fails QA goes back to the implementer.
+Work that passes QA moves to Code Reviewer. Work that fails QA goes back to the implementer.
 
 ## PR Gate
 
 Before a PR is considered healthy:
 
-- the Core Reviewer created the PR after QA sign-off
+- the Code Reviewer created the PR after QA sign-off
 - summary and rationale are coherent
 - linked issue context is accurate and uses a closing keyword
 - the PR carries exactly one `type:` label

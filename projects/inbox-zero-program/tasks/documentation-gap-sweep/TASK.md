@@ -18,4 +18,4 @@ Turn confirmed docs work into actionable follow-up items that enter the normal c
 
 - `type: docs` issues go to **Technical Writer**
 - docs impact attached to code changes stays with the original issue type and implementation plan
-- all docs work still flows through `Writing -> QA -> Core Reviewer`
+- all docs work still flows through `Writing -> QA -> Code Reviewer`

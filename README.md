@@ -22,7 +22,7 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 4. **Architect** plans `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work. Any breaking change requires explicit Architect approval.
 5. **Micronaut Engineer** or **Technical Writer** implements the work using local git CLI only.
 6. **QA Engineer** verifies the implementation against the reproducer or plan and either sends it back or signs it off.
-7. **Core Reviewer** reviews from a quality, security, best-practices, and developer-experience perspective and creates the GitHub PR directly when the work is approved.
+7. **Code Reviewer** reviews from a quality, security, best-practices, and developer-experience perspective and creates the GitHub PR directly when the work is approved.
 8. **Micronaut Engineer** owns the PR cycle after PR creation: keep CI green, address Sonar Quality Gate issues, and resolve all review threads.
 9. The board or other Micronaut maintainers merge the PR or cut the release. The sync plugin eventually marks the Paperclip item `DONE`.
 
@@ -44,8 +44,8 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 - Board approval always means a human comment in Paperclip.
 - Git operations must use the local git CLI.
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
-- The implementation loop is always `Engineering or Writing -> QA -> Core Reviewer`.
-- `Core Reviewer` creates the PR after QA sign-off, but only the board or other Micronaut maintainers may merge or cut releases.
+- The implementation loop is always `Engineering or Writing -> QA -> Code Reviewer`.
+- `Code Reviewer` creates the PR after QA sign-off, but only the board or other Micronaut maintainers may merge or cut releases.
 - Every PR must include a closing keyword such as `Fixes #123` and must carry one of the `type:` labels above.
 
 ## Org Chart
@@ -55,7 +55,7 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 | CEO | Chief Executive Officer | `null` | Queue health, board-approval visibility, repo-cluster scope, escalation |
 | Architect | Micronaut Architect | `ceo` | Release targeting, implementation plans, branch strategy, breaking-change approval |
 | QA Engineer | QA Engineer | `ceo` | Intake gate, deduplication, label classification, reproducer validation, final QA sign-off |
-| Core Reviewer | Core Reviewer | `ceo` | Structural review, PR creation, maintainer-facing quality gate |
+| Code Reviewer | Code Reviewer | `ceo` | Structural review, PR creation, maintainer-facing quality gate |
 | Micronaut Engineer | Micronaut Engineer | `architect` | Code implementation, reproducer fixes, PR-cycle execution |
 | Technical Writer | Technical Writer | `architect` | Docs-only implementation, migration notes, guide and reference quality |
 
@@ -94,6 +94,16 @@ Import the company package into Paperclip:
 ```bash
 npx paperclipai company import --from /Users/alvaro/Dev/alvarosanchez/micronaut-agent-company
 ```
+
+## Validation
+
+Run the end-to-end import verifier locally with Node 22:
+
+```bash
+npm run test:node22
+```
+
+This boots an isolated Paperclip instance, imports the company, verifies the created company, agents, projects, issues, skills, and exported extension through the Paperclip API, then tears the instance down.
 
 ## References
 

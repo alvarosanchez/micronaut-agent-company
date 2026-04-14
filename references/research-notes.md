@@ -56,6 +56,6 @@ The researched examples were strongest when agent workflows were explicit about 
 - **QA** is both the intake gate and the final sign-off gate.
 - The **Architect** is instructed to think across release lines, compatibility, and docs impact, not only code structure.
 - The **Technical Writer** is treated as a production role, not as optional cleanup after engineering.
-- The **Core Reviewer** explicitly owns hidden risk outside the acceptance criteria and creates the GitHub PR after QA sign-off.
+- The **Code Reviewer** explicitly owns hidden risk outside the acceptance criteria and creates the GitHub PR after QA sign-off.
 - Shared skills hold the operating system for Micronaut maintenance so the role prompts stay clear and reusable.
 - The board is intentionally not represented as an agent role because the requested workflow keeps approval, merge, and release authority human.

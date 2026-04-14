@@ -1,6 +1,6 @@
 ---
 name: Review Open PRs
-assignee: core-reviewer
+assignee: code-reviewer
 project: inbox-zero-program
 ---
 
@@ -14,4 +14,4 @@ Expected outcomes:
 - surface architectural concerns that should go back to the Architect
 - hand actionable PR work back to the Micronaut Engineer with a clear risk summary and next step
 
-Remember that only the board or other Micronaut maintainers merge PRs. If a ready issue has finished `Engineering -> QA -> Core Reviewer` but no PR exists yet, create it directly with the sync plugin tools.
+Remember that only the board or other Micronaut maintainers merge PRs. If a ready issue has finished `Engineering -> QA -> Code Reviewer` but no PR exists yet, create it directly with the sync plugin tools.
