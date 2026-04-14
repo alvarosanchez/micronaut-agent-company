@@ -96,8 +96,8 @@ flowchart TD
     CEO --> Architect
     CEO --> QA
     CEO --> Reviewer
-    Architect --> Engineer
-    Architect --> Writer
+    CEO --> Engineer
+    CEO --> Writer
 ```
 
 ## Role Details
@@ -108,8 +108,8 @@ flowchart TD
 | Architect | Micronaut Architect | `ceo` | Release targeting, implementation plans, branch strategy, breaking-change approval |
 | QA Engineer | QA Engineer | `ceo` | Intake gate, deduplication, label classification, reproducer validation, final QA sign-off |
 | Code Reviewer | Code Reviewer | `ceo` | Structural review, PR creation, maintainer-facing quality gate |
-| Micronaut Engineer | Micronaut Engineer | `architect` | Code implementation, reproducer fixes, PR-cycle execution |
-| Technical Writer | Technical Writer | `architect` | Docs-only implementation, migration notes, guide and reference quality |
+| Micronaut Engineer | Micronaut Engineer | `ceo` | Code implementation, reproducer fixes, PR-cycle execution |
+| Technical Writer | Technical Writer | `ceo` | Docs-only implementation, migration notes, guide and reference quality |
 
 ## Local Company Skills
 

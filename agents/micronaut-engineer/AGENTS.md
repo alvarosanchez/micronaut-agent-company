@@ -1,7 +1,7 @@
 ---
 name: Micronaut Engineer
 title: Micronaut Engineer
-reportsTo: architect
+reportsTo: ceo
 skills:
   - micronaut-repo-operations
   - micronaut-quality-gates
