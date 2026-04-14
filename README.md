@@ -63,6 +63,24 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 
 ## Org Chart
 
+```mermaid
+flowchart TD
+    CEO["CEO<br/>Chief Executive Officer"]
+    Architect["Architect<br/>Micronaut Architect"]
+    QA["QA Engineer"]
+    Reviewer["Code Reviewer"]
+    Engineer["Micronaut Engineer"]
+    Writer["Technical Writer"]
+
+    CEO --> Architect
+    CEO --> QA
+    CEO --> Reviewer
+    Architect --> Engineer
+    Architect --> Writer
+```
+
+## Role Details
+
 | Agent | Title | Reports To | Primary Responsibility |
 | --- | --- | --- | --- |
 | CEO | Chief Executive Officer | `null` | Queue health, board-approval visibility, repo-cluster scope, escalation |
