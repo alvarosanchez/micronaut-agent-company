@@ -23,10 +23,11 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 3. `qa-engineer` deduplicates, labels, and routes the issue.
 4. Implementation happens with either `micronaut-engineer` or `technical-writer`.
 5. `qa-engineer` signs the work off or rejects it.
-6. `code-reviewer` performs the structural review and creates the GitHub PR when the work is approved.
-7. `micronaut-engineer` owns the PR cycle after PR creation.
-8. The board or other Micronaut maintainers merge the PR or cut the release.
-9. The sync plugin eventually reflects the GitHub outcome back into Paperclip as `DONE`.
+6. `security-engineer` performs the dedicated security review and either passes or rejects the work.
+7. `code-reviewer` performs the structural review and creates the GitHub PR when the work is approved.
+8. `micronaut-engineer` owns the PR cycle after PR creation.
+9. The board or other Micronaut maintainers merge the PR or cut the release.
+10. The sync plugin eventually reflects the GitHub outcome back into Paperclip as `DONE`.
 
 Inbox zero does not mean "merge everything." It means every synced GitHub issue and PR is in one of these states:
 
@@ -108,6 +109,7 @@ Use them by workflow stage:
 
 - QA and CEO queue work: `search_repository_items`, `get_issue`, `list_issue_comments`, `update_issue`
 - Planning and review context: `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`
+- Security review context: `search_repository_items`, `get_issue`, `list_issue_comments`, `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`
 - PR creation and routing: `create_pull_request`, `update_pull_request`, `request_pull_request_reviewers`
 - Review-thread handling: `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`
 
@@ -127,12 +129,12 @@ Important usage rules:
 
 ## PR Rules
 
-- The implementation loop is always `Engineering or Writing -> QA -> Code Reviewer`.
-- `code-reviewer` creates the GitHub PR only after QA sign-off.
+- The implementation loop is always `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer`.
+- `code-reviewer` creates the GitHub PR only after QA and Security Engineer sign-off.
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, and resolves all review threads.
-- Any material post-PR change re-enters the same `Engineering or Writing -> QA -> Code Reviewer` loop.
+- Any material post-PR change re-enters the same `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer` loop.
 
 ## Maintainer-Friendly Evidence
 
@@ -143,6 +145,7 @@ Every non-trivial handoff should include:
 - affected repositories and branches
 - tests run or still required
 - documentation impact
+- security impact
 - compatibility or migration risk
 
 ## Communication Style

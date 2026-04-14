@@ -1,6 +1,6 @@
 ---
 name: Micronaut Agent Company
-description: Agent company for Micronaut open-source maintenance that drives a related repository cluster to zero open GitHub issues and pull requests through triage, planning, implementation, review, QA, and documentation.
+description: Agent company for Micronaut open-source maintenance that drives a related repository cluster to zero open GitHub issues and pull requests through triage, planning, implementation, QA, security review, code review, and documentation.
 slug: micronaut-agent-company
 schema: agentcompanies/v1
 version: 1.0.0
@@ -9,10 +9,10 @@ authors:
   - name: Alvaro Sanchez
 goals:
   - Keep a defined Micronaut repository cluster at inbox zero: every synced GitHub issue and pull request is either closed or actively owned with a next action.
-  - Enforce the lifecycle `BACKLOG -> TODO -> QA -> implementation -> QA -> Code Reviewer -> PR cycle -> human merge`.
+  - Enforce the lifecycle `BACKLOG -> TODO -> QA -> implementation -> QA -> Security Engineer -> Code Reviewer -> PR cycle -> human merge`.
   - Preserve Micronaut's developer experience by favoring small, well-tested, well-documented changes that fit release-branch realities.
-  - Separate triage, architecture, implementation, QA, core review, and human governance so maintainers get clear handoffs and auditable quality gates.
-  - Treat documentation, migrations, and contributor ergonomics as first-class parts of every user-facing change.
+  - Separate triage, architecture, implementation, QA, security review, code review, and human governance so maintainers get clear handoffs and auditable quality gates.
+  - Treat documentation, migrations, contributor ergonomics, and security posture as first-class parts of every user-facing change.
   - Keep merge and release authority with the board or other Micronaut maintainers; agents may prepare work but never merge or cut releases.
 tags:
   - micronaut
@@ -20,6 +20,7 @@ tags:
   - github
   - maintenance
   - open-source
+  - security
 ---
 
 Micronaut Agent Company is a lean maintenance company for Micronaut open-source development. It is designed for Paperclip companies that own a bounded cluster of related repositories inside the `micronaut-projects` GitHub organization and assumes the GitHub sync plugin is responsible for syncing GitHub issues and PRs into Paperclip and exposing GitHub operations as agent tools.
@@ -34,9 +35,10 @@ The company operates as a gated pipeline:
 4. **Architect** plans `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work, and explicitly approves any breaking change.
 5. **Micronaut Engineer** or **Technical Writer** implements the work using local git CLI only.
 6. **QA Engineer** verifies the implementation against the Architect's plan or the reproducer test and either returns it for rework or signs it off.
-7. **Code Reviewer** reviews for code quality, security, developer experience, and maintainability, then creates the GitHub PR directly when the work is approved.
-8. **Micronaut Engineer** owns the PR cycle after PR creation: CI must stay green, Sonar Quality Gate issues must be addressed, and all review threads must be resolved.
-9. The board or other Micronaut maintainers merge the PR or cut the release, and the sync plugin eventually marks the Paperclip item `DONE`.
+7. **Security Engineer** reviews the source, dependency, build, CI/CD, configuration, and documentation attack surface and either returns the work for remediation or passes it onward.
+8. **Code Reviewer** reviews for code quality, developer experience, performance, and maintainability, then creates the GitHub PR directly when the work is approved.
+9. **Micronaut Engineer** owns the PR cycle after PR creation: CI must stay green, Sonar Quality Gate issues must be addressed, and all review threads must be resolved.
+10. The board or other Micronaut maintainers merge the PR or cut the release, and the sync plugin eventually marks the Paperclip item `DONE`.
 
 The board is intentionally not modeled as an agent role. Board approval is a human comment in Paperclip, and merge or release authority remains human.
 

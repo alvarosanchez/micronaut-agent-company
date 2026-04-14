@@ -21,12 +21,13 @@ This file is the canonical workflow for how this company handles synced GitHub i
    - questions become board-approved answer proposals
 4. Implementation happens with Micronaut Engineer or Technical Writer.
 5. QA verifies the implementation against the plan or reproducer.
-6. Code Reviewer performs structural review and creates the GitHub PR directly when the work is approved.
-7. Micronaut Engineer owns the PR cycle after PR creation, including CI, Sonar Quality Gate, and review threads.
-8. The board or other Micronaut maintainers merge the PR or cut the release.
-9. The sync plugin reflects the GitHub outcome back into Paperclip and eventually marks the item `DONE`.
+6. Security Engineer performs dedicated security review and either returns the work for remediation or hands it onward.
+7. Code Reviewer performs structural review and creates the GitHub PR directly when the work is approved.
+8. Micronaut Engineer owns the PR cycle after PR creation, including CI, Sonar Quality Gate, and review threads.
+9. The board or other Micronaut maintainers merge the PR or cut the release.
+10. The sync plugin reflects the GitHub outcome back into Paperclip and eventually marks the item `DONE`.
 
-The implementation loop is always `Engineering or Writing -> QA -> Code Reviewer`.
+The implementation loop is always `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer`.
 
 ## Type Labels
 
@@ -61,7 +62,7 @@ Actionable issues and PRs should carry exactly one `type:` label.
 ### Docs
 
 - QA assigns `type: docs` issues directly to Technical Writer.
-- Docs-only issues still go through QA and Code Reviewer before a PR is created.
+- Docs-only issues still go through QA, Security Engineer, and Code Reviewer before a PR is created.
 
 ### Questions
 
@@ -85,10 +86,11 @@ Actionable issues and PRs should carry exactly one `type:` label.
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
 - QA should rely on `search_repository_items`, `get_issue`, `list_issue_comments`, `update_issue`, and `add_issue_comment` for deduplication, classification, closure proposals, and approved answers.
 - Architect should use `get_issue`, `list_issue_comments`, `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, and `list_pull_request_review_threads` when planning from issue and PR context.
+- Security Engineer should use `search_repository_items`, `get_issue`, `list_issue_comments`, `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, and `unresolve_review_thread`.
 - Code Reviewer should use `create_pull_request`, `update_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`, and `request_pull_request_reviewers`.
 - Micronaut Engineer should use `get_pull_request`, `update_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, and `unresolve_review_thread` during the PR cycle.
 - Prefer `paperclipIssueId` whenever a synced Paperclip issue is available so the plugin can infer the linked GitHub issue or PR and repository.
 - When posting a GitHub issue comment or review-thread reply, provide only the human-facing body and include `llmModel: gpt-5.4`; the plugin appends the required AI-authorship footer.
-- Code Reviewer creates the PR directly after QA sign-off.
+- Code Reviewer creates the PR directly after QA and Security Engineer sign-off.
 - Every PR must use a closing keyword such as `Fixes #123`.
 - Every PR must carry one of the `type:` labels listed above.

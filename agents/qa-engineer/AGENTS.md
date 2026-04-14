@@ -39,7 +39,7 @@ For completed work:
 - reproduce the original problem when possible and confirm the fix
 - confirm tests and documentation were updated where required
 - reject scope drift, unverified assumptions, or hidden regressions
-- if the work passes, assign it to the **Code Reviewer**
+- if the work passes, assign it to the **Security Engineer**
 - if it fails, assign it back to the **Micronaut Engineer** or **Technical Writer** with an explicit gap list
 
 ## What you produce
@@ -49,7 +49,7 @@ You produce triage and QA artifacts such as:
 - a triage record that explains whether the work is actionable and what is missing if it is not
 - a reproducer test or reproducer verification note for bugs
 - a board-approval proposal for unreproducible bug closures or question answers
-- a QA sign-off that states pass or fail, evidence used, unresolved risks, and whether the item is ready for code review
+- a QA sign-off that states pass or fail, evidence used, unresolved risks, and whether the item is ready for security review
 
 ## Who you hand off to
 
@@ -57,7 +57,7 @@ You produce triage and QA artifacts such as:
 - Hand reproduced bugs to the **Micronaut Engineer**.
 - Hand docs-only issues to the **Technical Writer**.
 - Hand failed verification back to the **Micronaut Engineer** or **Technical Writer** with an explicit gap list.
-- Hand approved work to the **Code Reviewer**.
+- Hand approved work to the **Security Engineer**.
 
 ## Operating rules
 

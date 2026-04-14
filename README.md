@@ -1,6 +1,6 @@
 # Micronaut Agent Company
 
-Micronaut Agent Company is an importable Agent Companies package for Paperclip. It is built for a subset of related repositories in the `micronaut-projects` GitHub organization and is optimized for the long-running maintenance problem: keep the issue and PR inbox empty without sacrificing code quality, compatibility, or documentation quality.
+Micronaut Agent Company is an importable Agent Companies package for Paperclip. It is built for a subset of related repositories in the `micronaut-projects` GitHub organization and is optimized for the long-running maintenance problem: keep the issue and PR inbox empty without sacrificing code quality, compatibility, security, or documentation quality.
 
 It combines company-local governance skills with referenced maintainer skills pinned to `micronaut-project-template`, so the agents reuse upstream Micronaut coding, docs, and Gradle guidance instead of vendoring those instructions here.
 
@@ -19,6 +19,7 @@ npx skills add alvarosanchez/micronaut-agent-company
 All agents are configured to use `codex_local` with `gpt-5.4` and live web search enabled.
 
 - Architect: `xhigh`
+- Security Engineer: `xhigh`
 - QA Engineer: `high`
 - Code Reviewer: `high`
 - CEO: `medium`
@@ -35,9 +36,10 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 4. **Architect** plans `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work. Any breaking change requires explicit Architect approval.
 5. **Micronaut Engineer** or **Technical Writer** implements the work using local git CLI only.
 6. **QA Engineer** verifies the implementation against the reproducer or plan and either sends it back or signs it off.
-7. **Code Reviewer** reviews from a quality, security, best-practices, and developer-experience perspective and creates the GitHub PR directly when the work is approved.
-8. **Micronaut Engineer** owns the PR cycle after PR creation: keep CI green, address Sonar Quality Gate issues, and resolve all review threads.
-9. The board or other Micronaut maintainers merge the PR or cut the release. The sync plugin eventually marks the Paperclip item `DONE`.
+7. **Security Engineer** reviews source code, build scripts, CI/CD, dependencies, secure defaults, and security-sensitive docs before the work can move on.
+8. **Code Reviewer** reviews from a code-quality, performance, best-practices, and developer-experience perspective and creates the GitHub PR directly when the work is approved.
+9. **Micronaut Engineer** owns the PR cycle after PR creation: keep CI green, address Sonar Quality Gate issues, and resolve all review threads.
+10. The board or other Micronaut maintainers merge the PR or cut the release. The sync plugin eventually marks the Paperclip item `DONE`.
 
 ## Issue Types
 
@@ -57,8 +59,8 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 - Board approval always means a human comment in Paperclip.
 - Git operations must use the local git CLI.
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
-- The implementation loop is always `Engineering or Writing -> QA -> Code Reviewer`.
-- `Code Reviewer` creates the PR after QA sign-off, but only the board or other Micronaut maintainers may merge or cut releases.
+- The implementation loop is always `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer`.
+- `Code Reviewer` creates the PR after QA and Security Engineer sign-off, but only the board or other Micronaut maintainers may merge or cut releases.
 - Every PR must include a closing keyword such as `Fixes #123` and must carry one of the `type:` labels above.
 
 ## Work Surface
@@ -89,12 +91,14 @@ flowchart TD
     CEO["CEO<br/>Chief Executive Officer"]
     Architect["Architect<br/>Micronaut Architect"]
     QA["QA Engineer"]
+    Security["Security Engineer"]
     Reviewer["Code Reviewer"]
     Engineer["Micronaut Engineer"]
     Writer["Technical Writer"]
 
     CEO --> Architect
     CEO --> QA
+    CEO --> Security
     CEO --> Reviewer
     CEO --> Engineer
     CEO --> Writer
@@ -107,7 +111,8 @@ flowchart TD
 | CEO | Chief Executive Officer | `null` | Queue health, board-approval visibility, repo-cluster scope, escalation |
 | Architect | Micronaut Architect | `ceo` | Release targeting, implementation plans, branch strategy, breaking-change approval |
 | QA Engineer | QA Engineer | `ceo` | Intake gate, deduplication, label classification, reproducer validation, final QA sign-off |
-| Code Reviewer | Code Reviewer | `ceo` | Structural review, PR creation, maintainer-facing quality gate |
+| Security Engineer | Security Engineer | `ceo` | Security review across source code, dependencies, build scripts, CI/CD, secure defaults, and security-sensitive docs |
+| Code Reviewer | Code Reviewer | `ceo` | Structural review, PR creation, maintainer-facing quality and DX gate |
 | Micronaut Engineer | Micronaut Engineer | `ceo` | Code implementation, reproducer fixes, PR-cycle execution |
 | Technical Writer | Technical Writer | `ceo` | Docs-only implementation, migration notes, guide and reference quality |
 
@@ -116,7 +121,8 @@ flowchart TD
 | Skill | Purpose |
 | --- | --- |
 | `micronaut-repo-operations` | Shared operating rules for lifecycle state, labels, SemVer targeting, PR rules, and tool boundaries |
-| `micronaut-quality-gates` | Common definition of done across triage, planning, implementation, QA, core review, and PR follow-through |
+| `micronaut-quality-gates` | Common definition of done across triage, planning, implementation, QA, security review, code review, and PR follow-through |
+| `micronaut-security-review` | Security review checklist for Micronaut source code, dependencies, build logic, CI/CD, release automation, and secure defaults |
 
 ## Referenced Upstream Skills
 
@@ -124,9 +130,9 @@ These skills are included as referenced skills pinned to `micronaut-projects/mic
 
 | Skill | Assigned To | Purpose |
 | --- | --- | --- |
-| `coding` | Architect, Micronaut Engineer, Code Reviewer | Micronaut maintainer guidance for Java implementation, API evolution, and maintainer-grade verification |
+| `coding` | Architect, Micronaut Engineer, Security Engineer, Code Reviewer | Micronaut maintainer guidance for Java implementation, API evolution, and maintainer-grade verification |
 | `docs` | Architect, Micronaut Engineer, Technical Writer, Code Reviewer | Micronaut guide-authoring conventions for Asciidoctor, `toc.yml`, macros, and docs validation |
-| `gradle` | Architect, Micronaut Engineer, QA Engineer, Code Reviewer | Micronaut maintainer Gradle workflows, compatibility checks, catalog management, and build diagnostics |
+| `gradle` | Architect, Micronaut Engineer, QA Engineer, Security Engineer, Code Reviewer | Micronaut maintainer Gradle workflows, compatibility checks, catalog management, and build diagnostics |
 | `agent-md-refactor` | Technical Writer | Progressive-disclosure refactoring for agent instruction files used to maintain this company package itself |
 | `skill-creator` | Architect | Agent-agnostic skill authoring guidance used when the company evolves its own shared skills |
 

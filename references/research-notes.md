@@ -16,15 +16,15 @@ This package was designed from a focused review of the following sources:
 
 ### 1. Keep The Company Lean And Explicit
 
-The Paperclip playbook and Company Wizard both push toward small teams with clear responsibilities rather than sprawling org charts from day one. This package stays at six agents so every role has a distinct purpose and every handoff is visible.
+The Paperclip playbook and Company Wizard both push toward small teams with clear responsibilities rather than sprawling org charts from day one. This package stays at seven agents so every role has a distinct purpose and every handoff is visible.
 
 ### 2. Use A Pipeline For Maintenance Work
 
 The strongest importable Paperclip companies, especially the more structured engineering examples, use explicit stages rather than a loose swarm. That pattern maps well to Micronaut maintenance because triage, architecture, review, and QA solve different problems and should not be blended together.
 
-### 3. Separate Acceptance From Structural Review
+### 3. Separate Acceptance, Security, And Structural Review
 
-The user intent already distinguished QA from code review. The research reinforced that this is a good split: QA checks whether the change solved the planned problem, while the reviewer checks for broader code-quality, security, performance, and maintainer-cost issues.
+The user intent already distinguished QA from code review. The research reinforced that this is a good split, and the later addition of a dedicated Security Engineer sharpened it further: QA checks whether the change solved the planned problem, Security Engineer checks whether the change expands attack surface or supply-chain risk, and Code Reviewer checks broader code-quality, performance, and maintainer-cost issues.
 
 ### 4. Make Repo Maintenance A First-Class Workflow
 
@@ -57,6 +57,7 @@ The researched examples were strongest when agent workflows were explicit about 
 - **QA** is both the intake gate and the final sign-off gate.
 - The **Architect** is instructed to think across release lines, compatibility, and docs impact, not only code structure.
 - The **Technical Writer** is treated as a production role, not as optional cleanup after engineering.
-- The **Code Reviewer** explicitly owns hidden risk outside the acceptance criteria and creates the GitHub PR after QA sign-off.
+- The **Security Engineer** explicitly owns source, dependency, build, CI/CD, and secure-default risk before work reaches final review.
+- The **Code Reviewer** explicitly owns non-security hidden risk outside the acceptance criteria and creates the GitHub PR after QA and Security Engineer sign-off.
 - Shared skills hold the operating system for Micronaut maintenance so the role prompts stay clear and reusable, with upstream Micronaut maintainer skills referenced directly from `micronaut-project-template`.
 - The board is intentionally not represented as an agent role because the requested workflow keeps approval, merge, and release authority human.

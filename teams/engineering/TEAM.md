@@ -6,15 +6,17 @@ manager: ../../agents/ceo/AGENTS.md
 includes:
   - ../../agents/architect/AGENTS.md
   - ../../agents/qa-engineer/AGENTS.md
+  - ../../agents/security-engineer/AGENTS.md
   - ../../agents/code-reviewer/AGENTS.md
   - ../../agents/micronaut-engineer/AGENTS.md
   - ../../agents/technical-writer/AGENTS.md
   - ../../skills/micronaut-repo-operations/SKILL.md
   - ../../skills/micronaut-quality-gates/SKILL.md
+  - ../../skills/micronaut-security-review/SKILL.md
 tags:
   - micronaut
   - engineering
   - maintenance
 ---
 
-The Engineering team maintains a bounded Micronaut repository cluster through a strict `BACKLOG -> TODO -> QA -> implementation -> QA -> Code Reviewer -> PR cycle` workflow, with human board approvals and merges remaining outside the agent org.
+The Engineering team maintains a bounded Micronaut repository cluster through a strict `BACKLOG -> TODO -> QA -> implementation -> QA -> Security Engineer -> Code Reviewer -> PR cycle` workflow, with human board approvals and merges remaining outside the agent org.
