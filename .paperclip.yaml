@@ -1,7 +1,44 @@
 schema: paperclip/v1
 agents:
+  ceo:
+    adapter:
+      type: codex_local
+      config:
+        model: gpt-5.4
+        model_reasoning_effort: medium
+        web_search: live
   architect:
     adapter:
       type: codex_local
       config:
         model: gpt-5.4
+        model_reasoning_effort: xhigh
+        web_search: live
+  qa-engineer:
+    adapter:
+      type: codex_local
+      config:
+        model: gpt-5.4
+        model_reasoning_effort: high
+        web_search: live
+  micronaut-engineer:
+    adapter:
+      type: codex_local
+      config:
+        model: gpt-5.4
+        model_reasoning_effort: medium
+        web_search: live
+  code-reviewer:
+    adapter:
+      type: codex_local
+      config:
+        model: gpt-5.4
+        model_reasoning_effort: high
+        web_search: live
+  technical-writer:
+    adapter:
+      type: codex_local
+      config:
+        model: gpt-5.4
+        model_reasoning_effort: medium
+        web_search: live

@@ -9,6 +9,7 @@ This package was designed from a focused review of the following sources:
 - [msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents)
 - [paperclipai/companies](https://github.com/paperclipai/companies)
 - [Clipmart](https://www.clipmart.ai/)
+- [micronaut-project-template skills](https://github.com/micronaut-projects/micronaut-project-template/tree/master/.agents/skills)
 - Official Micronaut contribution and documentation surfaces, especially repo-level contributor guidance and the `micronaut-guides` contributor workflow
 
 ## Design Principles Taken From The Research
@@ -40,7 +41,7 @@ The best examples in `paperclipai/companies` and `agency-agents` do not stop at 
 
 ### 6. Preserve Importability And Portability
 
-The package uses the standard Agent Companies directory structure, a minimal `.paperclip.yaml`, and custom local skills instead of relying on machine-local skills. That keeps the company importable into a Paperclip instance without hidden workspace dependencies.
+The package uses the standard Agent Companies directory structure, an explicit `.paperclip.yaml` that pins every role to `codex_local` and `gpt-5.4` with role-appropriate reasoning effort, and a mix of local company skills plus upstream referenced skills pinned by commit and hash. That keeps the company importable into a Paperclip instance without hidden workspace dependencies while still reusing Micronaut-maintained skill content.
 
 ### 7. Stay Micronaut-Specific Without Hardcoding The Wrong Repos
 
@@ -57,5 +58,5 @@ The researched examples were strongest when agent workflows were explicit about 
 - The **Architect** is instructed to think across release lines, compatibility, and docs impact, not only code structure.
 - The **Technical Writer** is treated as a production role, not as optional cleanup after engineering.
 - The **Code Reviewer** explicitly owns hidden risk outside the acceptance criteria and creates the GitHub PR after QA sign-off.
-- Shared skills hold the operating system for Micronaut maintenance so the role prompts stay clear and reusable.
+- Shared skills hold the operating system for Micronaut maintenance so the role prompts stay clear and reusable, with upstream Micronaut maintainer skills referenced directly from `micronaut-project-template`.
 - The board is intentionally not represented as an agent role because the requested workflow keeps approval, merge, and release authority human.

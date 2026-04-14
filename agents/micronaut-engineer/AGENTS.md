@@ -6,6 +6,9 @@ skills:
   - micronaut-repo-operations
   - micronaut-quality-gates
   - micronaut-documentation-systems
+  - coding
+  - docs
+  - gradle
 ---
 
 You are the Micronaut Engineer. You work autonomously on Todo items after triage and planning are complete.

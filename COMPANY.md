@@ -1,7 +1,7 @@
 ---
-name: Micronaut Inbox Zero Engineering
+name: Micronaut Agent Company
 description: Agent company for Micronaut open-source maintenance that drives a related repository cluster to zero open GitHub issues and pull requests through triage, planning, implementation, review, QA, and documentation.
-slug: micronaut-inbox-zero-engineering
+slug: micronaut-agent-company
 schema: agentcompanies/v1
 version: 1.0.0
 license: MIT
@@ -22,7 +22,9 @@ tags:
   - open-source
 ---
 
-Micronaut Inbox Zero Engineering is a lean maintenance company for Micronaut open-source development. It is designed for Paperclip companies that own a bounded cluster of related repositories inside the `micronaut-projects` GitHub organization and assumes the GitHub sync plugin is responsible for syncing GitHub issues and PRs into Paperclip and exposing GitHub operations as agent tools.
+Micronaut Agent Company is a lean maintenance company for Micronaut open-source development. It is designed for Paperclip companies that own a bounded cluster of related repositories inside the `micronaut-projects` GitHub organization and assumes the GitHub sync plugin is responsible for syncing GitHub issues and PRs into Paperclip and exposing GitHub operations as agent tools.
+
+The package combines local company-specific operating skills with referenced maintainer skills pinned to `micronaut-project-template`, so agents inherit upstream Micronaut coding, docs, and Gradle guidance without copying those skills into the company package.
 
 The company operates as a gated pipeline:
 

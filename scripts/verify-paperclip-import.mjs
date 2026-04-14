@@ -64,6 +64,14 @@ function normalizeSkillReference(skillReference) {
     : skillReference;
 }
 
+function normalizeSkillSourceMetadataEntry(source) {
+  return {
+    repo: source?.repo ?? null,
+    path: source?.path ?? null,
+    commit: source?.commit ?? null,
+  };
+}
+
 function getTextFile(files, relativePath) {
   const entry = files[relativePath];
   assert.equal(
@@ -157,6 +165,9 @@ async function loadSourceExpectations(rootDir) {
         slug,
         name: frontmatter.name,
         description: frontmatter.description ?? null,
+        metadataSources: (frontmatter.metadata?.sources ?? []).map(
+          normalizeSkillSourceMetadataEntry,
+        ),
         path: relativePath,
         body: normalizeText(body),
       });
@@ -606,6 +617,17 @@ async function main() {
           actualSkill.path.endsWith(`/${expectedSkill.slug}/SKILL.md`),
         `Unexpected export path for skill ${expectedSkill.slug}: ${actualSkill.path}`,
       );
+      const exportedSkillMarkdown = getTextFile(exportResult.files, actualSkill.path);
+      const { frontmatter: exportedSkillFrontmatter } = parseFrontmatterMarkdown(
+        exportedSkillMarkdown,
+      );
+      assert.deepEqual(
+        (exportedSkillFrontmatter.metadata?.sources ?? []).map(
+          normalizeSkillSourceMetadataEntry,
+        ),
+        expectedSkill.metadataSources,
+        `Source metadata mismatch for skill ${expectedSkill.slug}`,
+      );
       assertExportedBody(exportResult.files, actualSkill.path, expectedSkill.body);
     }
 
@@ -656,16 +678,20 @@ async function main() {
     const exportedExtension = YAML.parse(
       getTextFile(exportResult.files, exportResult.paperclipExtensionPath ?? ".paperclip.yaml"),
     );
-    assert.equal(
-      exportedExtension?.agents?.architect?.adapter?.type,
-      expected.extension?.agents?.architect?.adapter?.type,
-      "Architect adapter type was not preserved in the exported Paperclip extension",
+    assertStringArrayEqual(
+      Object.keys(exportedExtension?.agents ?? {}),
+      Object.keys(expected.extension?.agents ?? {}),
+      "Agent adapter entries were not preserved in the exported Paperclip extension",
     );
-    assert.equal(
-      exportedExtension?.agents?.architect?.adapter?.config?.model,
-      expected.extension?.agents?.architect?.adapter?.config?.model,
-      "Architect adapter model was not preserved in the exported Paperclip extension",
-    );
+    for (const [agentSlug, expectedAgentConfig] of Object.entries(
+      expected.extension?.agents ?? {},
+    )) {
+      assert.deepEqual(
+        exportedExtension?.agents?.[agentSlug]?.adapter ?? null,
+        expectedAgentConfig?.adapter ?? null,
+        `Adapter config was not preserved for ${agentSlug}`,
+      );
+    }
 
     console.log("Paperclip import verification passed.");
   } finally {

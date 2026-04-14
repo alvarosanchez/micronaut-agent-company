@@ -1,6 +1,8 @@
-# Micronaut Inbox Zero Engineering
+# Micronaut Agent Company
 
-Micronaut Inbox Zero Engineering is an importable Agent Companies package for Paperclip. It is built for a subset of related repositories in the `micronaut-projects` GitHub organization and is optimized for the long-running maintenance problem: keep the issue and PR inbox empty without sacrificing code quality, compatibility, or documentation quality.
+Micronaut Agent Company is an importable Agent Companies package for Paperclip. It is built for a subset of related repositories in the `micronaut-projects` GitHub organization and is optimized for the long-running maintenance problem: keep the issue and PR inbox empty without sacrificing code quality, compatibility, or documentation quality.
+
+It combines company-local governance skills with referenced maintainer skills pinned to `micronaut-project-template`, so the agents reuse upstream Micronaut coding, docs, and Gradle guidance instead of vendoring those instructions here.
 
 This package assumes the [paperclip-github-plugin](https://github.com/alvarosanchez/paperclip-github-plugin) is installed in the target Paperclip instance and is responsible for syncing GitHub issues and PRs into Paperclip and exposing GitHub operations as agent tools.
 
@@ -11,6 +13,17 @@ Install the bundled skills from this repository into your local agent workspace:
 ```bash
 npx skills add alvarosanchez/micronaut-agent-company
 ```
+
+## Runtime Defaults
+
+All agents are configured to use `codex_local` with `gpt-5.4` and live web search enabled.
+
+- Architect: `xhigh`
+- QA Engineer: `high`
+- Code Reviewer: `high`
+- CEO: `medium`
+- Micronaut Engineer: `medium`
+- Technical Writer: `medium`
 
 ## Workflow
 
@@ -59,13 +72,25 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 | Micronaut Engineer | Micronaut Engineer | `architect` | Code implementation, reproducer fixes, PR-cycle execution |
 | Technical Writer | Technical Writer | `architect` | Docs-only implementation, migration notes, guide and reference quality |
 
-## Shared Skills
+## Local Company Skills
 
 | Skill | Purpose |
 | --- | --- |
 | `micronaut-repo-operations` | Shared operating rules for lifecycle state, labels, SemVer targeting, PR rules, and tool boundaries |
 | `micronaut-quality-gates` | Common definition of done across triage, planning, implementation, QA, core review, and PR follow-through |
 | `micronaut-documentation-systems` | Micronaut-specific documentation expectations across Asciidoctor, guides, READMEs, upgrade notes, and docs-only issues |
+
+## Referenced Upstream Skills
+
+These skills are included as referenced skills pinned to `micronaut-projects/micronaut-project-template` rather than copied into this repository:
+
+| Skill | Assigned To | Purpose |
+| --- | --- | --- |
+| `coding` | Architect, Micronaut Engineer, Code Reviewer | Micronaut maintainer guidance for Java implementation, API evolution, and maintainer-grade verification |
+| `docs` | Architect, Micronaut Engineer, Technical Writer, Code Reviewer | Micronaut guide-authoring conventions for Asciidoctor, `toc.yml`, macros, and docs validation |
+| `gradle` | Architect, Micronaut Engineer, QA Engineer, Code Reviewer | Micronaut maintainer Gradle workflows, compatibility checks, catalog management, and build diagnostics |
+| `agent-md-refactor` | Technical Writer | Progressive-disclosure refactoring for agent instruction files used to maintain this company package itself |
+| `skill-creator` | Architect | Agent-agnostic skill authoring guidance used when the company evolves its own shared skills |
 
 ## Included Projects And Tasks
 
@@ -110,5 +135,6 @@ This boots an isolated Paperclip instance, imports the company, verifies the cre
 - [Agent Companies specification](https://agentcompanies.io/specification)
 - [Paperclip](https://github.com/paperclipai/paperclip)
 - [paperclipai/companies](https://github.com/paperclipai/companies)
+- [micronaut-project-template skills](https://github.com/micronaut-projects/micronaut-project-template/tree/master/.agents/skills)
 - [GitHub issue lifecycle reference](./references/issue-lifecycle.md)
 - [Research notes for this package](./references/research-notes.md)
