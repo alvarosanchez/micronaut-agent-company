@@ -2,6 +2,8 @@
 
 This file is the canonical workflow for how this company handles synced GitHub issues and PRs.
 
+The company also runs a small set of internal Paperclip routines under `company-operations`. Those routines create internal operating work items and do not replace or change the GitHub issue lifecycle described here.
+
 ## Preconditions
 
 - The GitHub sync plugin is installed and configured for the company.

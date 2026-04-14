@@ -14,7 +14,47 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - Treat the repository cluster as a maintained boundary. If work spills into unrelated Micronaut repositories, escalate to the CEO before expanding scope.
 - Do not assume all Micronaut repositories share the same branch strategy, release process, docs layout, or test commands. Read the local repo facts first.
 - This company expects the GitHub sync plugin mapping to create new Paperclip issues in `BACKLOG` assigned to `qa-engineer`.
-- The GitHub sync plugin creates the per-repository Paperclip projects. Synced GitHub issues and PRs are the normal work items; do not invent internal starter tasks for routine queue work.
+- The GitHub sync plugin creates the per-repository Paperclip projects. Synced GitHub issues and PRs are the normal delivery work items; do not invent internal starter tasks for routine queue work.
+
+## Internal Operating Routines
+
+This package intentionally keeps internal automation small. It includes one lightweight project, `company-operations`, with two recurring Paperclip routines:
+
+- `weekly-security-deep-scan`, assigned to `security-engineer`
+- `weekly-ceo-self-improvement`, assigned to `ceo`
+
+These routines are company-operating work, not substitutes for the synced GitHub backlog. They exist to keep the maintenance system healthy even when the GitHub queue is quiet.
+
+When a routine surfaces a new problem:
+
+- reuse or update an existing synced GitHub issue or PR when one already covers the work
+- otherwise, prepare a maintainer-ready Paperclip escalation instead of inventing unsupported GitHub issue-creation workflows
+
+## Reimport-Safe Runtime Overlays
+
+This company package is meant to be reimported over time. Treat the package-owned files as immutable runtime defaults unless a human explicitly asks for a package update.
+
+If the active workspace is this company package itself, do not self-edit:
+
+- `COMPANY.md`
+- `README.md`
+- `.paperclip.yaml`
+- `agents/`
+- `skills/`
+- `projects/`
+- `tasks/`
+- `teams/`
+- `references/`
+
+Instead, read and optionally maintain additive local overlays in `.company-runtime/` at the workspace root:
+
+- `.company-runtime/shared.md`
+- `.company-runtime/agents/<agent-slug>.md`
+- `.company-runtime/projects/<project-slug>.md`
+
+These files are optional and additive. If they do not exist, continue with the package defaults. If they grow unwieldy, refactor them with `agent-md-refactor`.
+
+This immutability rule applies only to this company package. In managed Micronaut repositories, repo-level `AGENTS.md` files are product artifacts and may be updated when an explicit task or routine calls for it.
 
 ## Canonical Lifecycle
 

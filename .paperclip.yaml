@@ -49,3 +49,16 @@ agents:
         model: gpt-5.4
         model_reasoning_effort: medium
         web_search: live
+routines:
+  weekly-security-deep-scan:
+    triggers:
+      - kind: schedule
+        label: Weekly security deep scan
+        cronExpression: "0 9 * * 1"
+        timezone: Europe/Madrid
+  weekly-ceo-self-improvement:
+    triggers:
+      - kind: schedule
+        label: Weekly CEO self-improvement
+        cronExpression: "0 15 * * 5"
+        timezone: Europe/Madrid

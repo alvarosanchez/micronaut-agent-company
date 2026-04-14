@@ -72,6 +72,47 @@ function normalizeSkillSourceMetadataEntry(source) {
   };
 }
 
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeRoutineTriggerEntry(trigger) {
+  if (!isPlainObject(trigger)) {
+    return null;
+  }
+  return {
+    kind: typeof trigger.kind === "string" ? trigger.kind : null,
+    label: typeof trigger.label === "string" ? trigger.label : null,
+    enabled: trigger.enabled !== false,
+    cronExpression:
+      typeof trigger.cronExpression === "string" ? trigger.cronExpression : null,
+    timezone: typeof trigger.timezone === "string" ? trigger.timezone : null,
+    signingMode:
+      typeof trigger.signingMode === "string" ? trigger.signingMode : null,
+    replayWindowSec:
+      Number.isInteger(trigger.replayWindowSec) ? trigger.replayWindowSec : null,
+  };
+}
+
+function normalizeRoutineDefinition(value) {
+  if (!isPlainObject(value)) {
+    return null;
+  }
+  return {
+    status: typeof value.status === "string" ? value.status : null,
+    priority: typeof value.priority === "string" ? value.priority : null,
+    concurrencyPolicy:
+      typeof value.concurrencyPolicy === "string" ? value.concurrencyPolicy : null,
+    catchUpPolicy:
+      typeof value.catchUpPolicy === "string" ? value.catchUpPolicy : null,
+    triggers: Array.isArray(value.triggers)
+      ? value.triggers
+          .map(normalizeRoutineTriggerEntry)
+          .filter((entry) => entry !== null)
+      : [],
+  };
+}
+
 function getTextFile(files, relativePath) {
   const entry = files[relativePath];
   assert.equal(
@@ -135,7 +176,7 @@ async function loadSourceExpectations(rootDir) {
   assert.ok(extensionYaml, "Expected .paperclip.yaml in source package");
 
   const { frontmatter: companyFrontmatter } = parseFrontmatterMarkdown(companyMarkdown);
-  const extension = YAML.parse(extensionYaml);
+  const extension = YAML.parse(extensionYaml) ?? {};
 
   const agents = new Map();
   const skills = new Map();
@@ -194,13 +235,15 @@ async function loadSourceExpectations(rootDir) {
       const isProjectTask = segments[0] === "projects";
       const slug = isProjectTask ? segments[3] : segments[1];
       const projectSlug = isProjectTask ? segments[1] : (frontmatter.project ?? null);
+      const routine = normalizeRoutineDefinition(extension?.routines?.[slug]);
       issues.set(slug, {
         slug,
         title: frontmatter.name,
         assignee: frontmatter.assignee ?? null,
         projectSlug,
-        recurring: Boolean(frontmatter.schedule),
+        recurring: Boolean(frontmatter.schedule) || frontmatter.recurring === true || routine !== null,
         timezone: frontmatter.schedule?.timezone ?? null,
+        routine,
         path: relativePath,
         body: normalizeText(body),
       });
@@ -527,6 +570,13 @@ async function main() {
       [...expected.agents.values()].map((agent) => agent.name),
       "Imported agent names did not match the source package",
     );
+    const importedAgentIdBySlug = new Map(
+      [...expected.agents.values()].map((expectedAgent) => {
+        const importedAgent = importedAgents.find((agent) => agent.name === expectedAgent.name);
+        assert.ok(importedAgent, `Missing imported agent ${expectedAgent.slug}`);
+        return [expectedAgent.slug, importedAgent.id];
+      }),
+    );
 
     const importedProjects = await apiJson(baseUrl, `/api/companies/${importedCompanyId}/projects`);
     assert.equal(importedProjects.length, expected.projects.size);
@@ -534,6 +584,15 @@ async function main() {
       importedProjects.map((project) => project.name),
       [...expected.projects.values()].map((project) => project.name),
       "Imported project names did not match the source package",
+    );
+    const importedProjectIdBySlug = new Map(
+      [...expected.projects.values()].map((expectedProject) => {
+        const importedProject = importedProjects.find(
+          (project) => project.name === expectedProject.name,
+        );
+        assert.ok(importedProject, `Missing imported project ${expectedProject.slug}`);
+        return [expectedProject.slug, importedProject.id];
+      }),
     );
 
     const expectedOpenIssues = [...expected.issues.values()].filter((issue) => !issue.recurring);
@@ -557,6 +616,43 @@ async function main() {
       expectedRoutines.map((issue) => issue.title),
       "Imported routine titles did not match the recurring task package entries",
     );
+    for (const expectedRoutine of expectedRoutines) {
+      const actualRoutine = importedRoutines.find(
+        (routine) => routine.title === expectedRoutine.title,
+      );
+      assert.ok(actualRoutine, `Missing imported routine ${expectedRoutine.slug}`);
+      const routineDetail = await apiJson(baseUrl, `/api/routines/${actualRoutine.id}`);
+      assert.equal(routineDetail.title, expectedRoutine.title);
+      assert.equal(
+        routineDetail.projectId,
+        importedProjectIdBySlug.get(expectedRoutine.projectSlug),
+        `Routine project mismatch for ${expectedRoutine.slug}`,
+      );
+      assert.equal(
+        routineDetail.assigneeAgentId,
+        importedAgentIdBySlug.get(expectedRoutine.assignee),
+        `Routine assignee mismatch for ${expectedRoutine.slug}`,
+      );
+      assert.equal(
+        normalizeText(routineDetail.description ?? ""),
+        expectedRoutine.body,
+        `Routine description mismatch for ${expectedRoutine.slug}`,
+      );
+      if (expectedRoutine.routine) {
+        assert.deepEqual(
+          routineDetail.triggers.map(normalizeRoutineTriggerEntry),
+          expectedRoutine.routine.triggers,
+          `Routine triggers mismatch for ${expectedRoutine.slug}`,
+        );
+      } else if (expectedRoutine.timezone) {
+        assert.ok(
+          routineDetail.triggers.some(
+            (trigger) => trigger.timezone === expectedRoutine.timezone,
+          ),
+          `Expected routine timezone ${expectedRoutine.timezone} for ${expectedRoutine.slug}`,
+        );
+      }
+    }
 
     console.log("Exporting the imported company through the Paperclip API for round-trip verification...");
     const exportResult = await apiJson(baseUrl, `/api/companies/${importedCompanyId}/export`, {
@@ -690,6 +786,20 @@ async function main() {
         exportedExtension?.agents?.[agentSlug]?.adapter ?? null,
         expectedAgentConfig?.adapter ?? null,
         `Adapter config was not preserved for ${agentSlug}`,
+      );
+    }
+    assertStringArrayEqual(
+      Object.keys(exportedExtension?.routines ?? {}),
+      Object.keys(expected.extension?.routines ?? {}),
+      "Routine extension entries were not preserved in the exported Paperclip extension",
+    );
+    for (const [routineSlug, expectedRoutineConfig] of Object.entries(
+      expected.extension?.routines ?? {},
+    )) {
+      assert.deepEqual(
+        normalizeRoutineDefinition(exportedExtension?.routines?.[routineSlug]),
+        normalizeRoutineDefinition(expectedRoutineConfig),
+        `Routine extension config was not preserved for ${routineSlug}`,
       );
     }
 

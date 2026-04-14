@@ -51,6 +51,14 @@ Micronaut work happens across many repositories with different branching, releas
 
 The researched examples were strongest when agent workflows were explicit about external approval boundaries. This package therefore keeps the board and Micronaut maintainers outside the agent roster: humans move issues from `BACKLOG` to `TODO`, leave approval comments in Paperclip, merge PRs, and cut releases.
 
+### 9. Use Tiny Internal Routines For Company Health
+
+The most convincing company packages kept the delivery queue grounded in real external work while still reserving a little space for internal operating cadence. This package therefore adds only two recurring internal routines: a weekly security deep scan and a weekly CEO self-improvement pass.
+
+### 10. Keep The Package Reimport-Safe
+
+Because this package is intended to be reimported repeatedly, runtime learnings should not accumulate inside the package-owned core instructions. The package now treats those files as immutable defaults and routes additive local guidance into optional `.company-runtime/` overlays instead.
+
 ## How The Research Changed The Package
 
 - The **CEO** is queue-health focused, not a generic strategist.
@@ -61,3 +69,5 @@ The researched examples were strongest when agent workflows were explicit about 
 - The **Code Reviewer** explicitly owns non-security hidden risk outside the acceptance criteria and creates the GitHub PR after QA and Security Engineer sign-off.
 - Shared skills hold the operating system for Micronaut maintenance so the role prompts stay clear and reusable, with upstream Micronaut maintainer skills referenced directly from `micronaut-project-template`.
 - The board is intentionally not represented as an agent role because the requested workflow keeps approval, merge, and release authority human.
+- A tiny `company-operations` project anchors the weekly Security Engineer and CEO routines without introducing fake delivery backlog.
+- Reimport safety is handled through optional `.company-runtime/` overlays so local runtime guidance can evolve without mutating the package-owned core instructions.

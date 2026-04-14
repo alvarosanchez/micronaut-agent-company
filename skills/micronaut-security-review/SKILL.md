@@ -37,3 +37,12 @@ Use this skill whenever work changes executable code, dependencies, build logic,
 - QA owns acceptance against the plan or reproducer.
 - Security Engineer owns the dedicated security gate.
 - Code Reviewer owns maintainability, performance, developer experience, and PR quality after security sign-off.
+
+## Weekly Deep Scan Mode
+
+When invoked by the `weekly-security-deep-scan` routine, expand the scope beyond one issue or PR:
+
+- inspect recent code changes, open PRs, default branches, dependency movement, Gradle wrapper or plugin changes, build logic, CI/CD permissions, release automation, and security-sensitive docs
+- deduplicate every finding against existing synced GitHub issues or PRs with `search_repository_items`
+- record what was inspected, what is already tracked, and what still needs follow-up
+- if a new vulnerability does not already have a synced GitHub issue or PR, prepare a maintainer-ready Paperclip escalation instead of improvising unsupported GitHub issue creation

@@ -13,6 +13,8 @@ goals:
   - Preserve Micronaut's developer experience by favoring small, well-tested, well-documented changes that fit release-branch realities.
   - Separate triage, architecture, implementation, QA, security review, code review, and human governance so maintainers get clear handoffs and auditable quality gates.
   - Treat documentation, migrations, contributor ergonomics, and security posture as first-class parts of every user-facing change.
+  - Run lightweight internal operating routines for proactive security scanning and continuous company improvement without replacing the synced GitHub work queue.
+  - Keep the package reimport-safe by treating the package-owned instruction files as immutable at runtime and routing learned local guidance into optional additive overlays.
   - Keep merge and release authority with the board or other Micronaut maintainers; agents may prepare work but never merge or cut releases.
 tags:
   - micronaut
@@ -43,3 +45,13 @@ The company operates as a gated pipeline:
 The board is intentionally not modeled as an agent role. Board approval is a human comment in Paperclip, and merge or release authority remains human.
 
 This package is intentionally generic about repository selection. The GitHub sync plugin configuration defines the actual repository set and creates the Paperclip projects and synced issues or PRs that become the real work queue. Use `references/repository-cluster.md` only for supplemental operational facts that the sync configuration does not capture well, such as release-line notes, CI commands, Sonar quirks, docs conventions, and maintainer preferences.
+
+The package also includes one lightweight internal project, `company-operations`, with two recurring Paperclip routines: a weekly **Security Engineer** deep scan and a weekly **CEO** self-improvement review. These are company-operating routines, not delivery backlog, and they exist to keep the maintenance system healthy even when the synced GitHub queue is temporarily quiet.
+
+Because this company package is expected to be reimported over time, its package-owned instruction files should be treated as immutable runtime defaults unless a human explicitly requests a package update. Agents may read optional additive overlays from `.company-runtime/` in the current workspace root, and should write learned local guidance there instead of mutating the package-owned files:
+
+- `.company-runtime/shared.md`
+- `.company-runtime/agents/<agent-slug>.md`
+- `.company-runtime/projects/<project-slug>.md`
+
+These overlay files are intentionally outside the importable package surface so local runtime learnings can survive repeated imports of newer package versions.

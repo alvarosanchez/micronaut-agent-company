@@ -1,4 +1,5 @@
 .agents/
+.company-runtime/
 node_modules/
 skills-lock.json
 .DS_Store
