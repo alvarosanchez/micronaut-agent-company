@@ -40,4 +40,4 @@ The company operates as a gated pipeline:
 
 The board is intentionally not modeled as an agent role. Board approval is a human comment in Paperclip, and merge or release authority remains human.
 
-This package is intentionally generic about repository selection. After import, complete the bootstrap project first and update `references/repository-cluster.md` with the exact repositories, branches, release facts, and operational constraints for the company instance.
+This package is intentionally generic about repository selection. The GitHub sync plugin configuration defines the actual repository set and creates the Paperclip projects and synced issues or PRs that become the real work queue. Use `references/repository-cluster.md` only for supplemental operational facts that the sync configuration does not capture well, such as release-line notes, CI commands, Sonar quirks, docs conventions, and maintainer preferences.

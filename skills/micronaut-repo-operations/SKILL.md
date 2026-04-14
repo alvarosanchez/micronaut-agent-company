@@ -9,10 +9,12 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 
 ## Preconditions
 
-- Work only inside the repositories listed in `references/repository-cluster.md`.
+- Work only inside the repositories configured in the GitHub sync plugin for this company.
+- Use `references/repository-cluster.md` as supplemental operational context, not as the authoritative source of repository membership.
 - Treat the repository cluster as a maintained boundary. If work spills into unrelated Micronaut repositories, escalate to the CEO before expanding scope.
 - Do not assume all Micronaut repositories share the same branch strategy, release process, docs layout, or test commands. Read the local repo facts first.
 - This company expects the GitHub sync plugin mapping to create new Paperclip issues in `BACKLOG` assigned to `qa-engineer`.
+- The GitHub sync plugin creates the per-repository Paperclip projects. Synced GitHub issues and PRs are the normal work items; do not invent internal starter tasks for routine queue work.
 
 ## Canonical Lifecycle
 

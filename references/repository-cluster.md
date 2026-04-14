@@ -1,10 +1,12 @@
-# Repository Cluster Charter
+# Repository Cluster Notes
 
-Update this file first after importing the company. It is the source of truth for what this Paperclip company is allowed to touch. It complements `references/issue-lifecycle.md`, which defines the company-wide workflow.
+The GitHub sync plugin configuration is the source of truth for which repositories this Paperclip company owns and which Paperclip projects get created. This file is only for supplemental operational notes that agents need during execution and that are awkward to encode in the plugin configuration itself.
+
+Keep `references/issue-lifecycle.md` as the workflow source of truth. Use this file for release, CI, docs, and maintainer-convention facts about the synced repository cluster.
 
 ## Cluster Mission
 
-Describe the repository subset this company owns and why these repositories belong together.
+Describe the plugin-configured repository subset this company owns and why these repositories belong together.
 
 Example prompts:
 
@@ -23,7 +25,7 @@ Write the concrete definition here. Suggested baseline:
 - new synced issues land in `BACKLOG` assigned to `qa-engineer`
 - only humans move items from `BACKLOG` to `TODO`
 
-## Repository Inventory
+## Operational Repository Notes
 
 | Repository | Purpose | Default Branch | Latest Stable Release | Supported Release Lines | Docs Surface | Main Verification Commands | Sonar / CI Notes | Sync Mapping Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |

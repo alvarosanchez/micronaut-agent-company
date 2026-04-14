@@ -61,6 +61,13 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 - `Code Reviewer` creates the PR after QA sign-off, but only the board or other Micronaut maintainers may merge or cut releases.
 - Every PR must include a closing keyword such as `Fixes #123` and must carry one of the `type:` labels above.
 
+## Work Surface
+
+- The GitHub sync plugin creates one Paperclip project per synced repository.
+- Synced GitHub issues and PRs are the actual work items for the company.
+- This package intentionally ships no starter projects or recurring internal tasks for routine maintenance work.
+- Use `references/repository-cluster.md` only for supplemental release, CI, docs, and maintainer-convention notes that are not already encoded in the sync plugin configuration.
+
 ## Org Chart
 
 ```mermaid
@@ -110,18 +117,12 @@ These skills are included as referenced skills pinned to `micronaut-projects/mic
 | `agent-md-refactor` | Technical Writer | Progressive-disclosure refactoring for agent instruction files used to maintain this company package itself |
 | `skill-creator` | Architect | Agent-agnostic skill authoring guidance used when the company evolves its own shared skills |
 
-## Included Projects And Tasks
-
-- `company-bootstrap`: first-run setup for defining the repository cluster, configuring sync defaults, mapping release facts, and building the initial operational backlog.
-- `inbox-zero-program`: starter tasks for issue classification, question answering, closure proposals, PR backlog review, documentation debt, and implementation.
-- `weekly-inbox-zero-review`: a recurring CEO task for queue health, board-approval visibility, and stale-work cleanup.
-
 ## First Run
 
 1. Import the company into Paperclip.
-2. Configure the GitHub sync plugin mappings so new issues land in `BACKLOG`, default assignee is `QA Engineer`, and the required `type:` labels exist in GitHub.
-3. Complete the `company-bootstrap` project before picking implementation work.
-4. Update `references/repository-cluster.md` with the exact Micronaut repositories, default branches, latest production releases, CI commands, Sonar facts, and maintainer conventions for the company instance.
+2. Configure the GitHub sync plugin so the target repositories are synced, one Paperclip project is created per repository, new issues land in `BACKLOG`, default assignee is `QA Engineer`, and the required `type:` labels exist in GitHub.
+3. Fill in `references/repository-cluster.md` only with supplemental facts the agents will need during execution, such as release-line rules, CI commands, Sonar expectations, docs layout notes, and maintainer preferences.
+4. Let the sync plugin import the live GitHub issues and PRs. Those imported items are the company backlog and active work queue.
 5. Use `references/issue-lifecycle.md` as the operational source of truth when adjusting local company policy.
 
 ## Import
@@ -146,7 +147,7 @@ Run the end-to-end import verifier locally with Node 22:
 npm run test:node22
 ```
 
-This boots an isolated Paperclip instance, imports the company, verifies the created company, agents, projects, issues, skills, and exported extension through the Paperclip API, then tears the instance down.
+This boots an isolated Paperclip instance, imports the company, verifies the created company, agents, skills, and exported extension through the Paperclip API, then tears the instance down.
 
 ## References
 

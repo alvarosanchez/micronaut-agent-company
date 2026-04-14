@@ -30,10 +30,10 @@ The user intent already distinguished QA from code review. The research reinforc
 
 Company Wizard's `repo-maintenance` preset was directly relevant. This company therefore includes:
 
-- bootstrap tasks for repository-cluster discovery
 - triage-first operating rules
-- PR backlog review as a distinct workstream
-- recurring queue review for preventing stale work accumulation
+- synced GitHub issues and PRs as the only normal work surface
+- repository-scoped Paperclip projects created by the GitHub sync plugin
+- explicit PR backlog review and queue-health ownership in role instructions
 
 ### 5. Treat Agent Instructions As Workflow Contracts
 
@@ -45,7 +45,7 @@ The package uses the standard Agent Companies directory structure, an explicit `
 
 ### 7. Stay Micronaut-Specific Without Hardcoding The Wrong Repos
 
-Micronaut work happens across many repositories with different branching, release, and documentation patterns. Instead of baking in a guessed subset, this package ships with a bootstrap file and tasks that define the company instance's actual repository cluster after import.
+Micronaut work happens across many repositories with different branching, release, and documentation patterns. Instead of baking in a guessed subset, this package lets the GitHub sync plugin define the actual repository cluster and uses `references/repository-cluster.md` only for supplemental repo facts that agents need while executing.
 
 ### 8. Keep Governance Human Where It Matters
 
