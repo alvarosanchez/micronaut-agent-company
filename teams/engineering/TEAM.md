@@ -11,7 +11,6 @@ includes:
   - ../../agents/technical-writer/AGENTS.md
   - ../../skills/micronaut-repo-operations/SKILL.md
   - ../../skills/micronaut-quality-gates/SKILL.md
-  - ../../skills/micronaut-documentation-systems/SKILL.md
 tags:
   - micronaut
   - engineering

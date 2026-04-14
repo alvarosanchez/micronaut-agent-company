@@ -59,6 +59,13 @@ Duplicate, stale, superseded, and out-of-scope issues may be closed without forc
 - `type: docs`: QA routes directly to `technical-writer`.
 - `type: question`: QA prepares an answer proposal for board approval, then publishes the approved answer on GitHub and closes or resolves the issue according to maintainer policy.
 
+## Documentation Policy
+
+- Documentation is part of the fix whenever public API, annotations, configuration properties, defaults, behavior, guides, or setup paths change.
+- If migration pain is even slightly plausible, write the migration note while change context is still fresh.
+- For code issues with documentation impact, keep the original non-docs `type:` label instead of relabeling the work as `type: docs`.
+- Before editing docs in a Micronaut repository, identify where guides, reference docs, release notes, and upgrade notes live and how examples or snippets are validated there.
+
 ## Release Targeting And Branch Rules
 
 - Confirm the correct target repository, branch, and release line before planning or coding.

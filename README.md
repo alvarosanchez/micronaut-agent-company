@@ -117,7 +117,6 @@ flowchart TD
 | --- | --- |
 | `micronaut-repo-operations` | Shared operating rules for lifecycle state, labels, SemVer targeting, PR rules, and tool boundaries |
 | `micronaut-quality-gates` | Common definition of done across triage, planning, implementation, QA, core review, and PR follow-through |
-| `micronaut-documentation-systems` | Micronaut-specific documentation expectations across Asciidoctor, guides, READMEs, upgrade notes, and docs-only issues |
 
 ## Referenced Upstream Skills
 

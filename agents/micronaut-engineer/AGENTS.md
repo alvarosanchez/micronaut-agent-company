@@ -5,7 +5,6 @@ reportsTo: ceo
 skills:
   - micronaut-repo-operations
   - micronaut-quality-gates
-  - micronaut-documentation-systems
   - coding
   - docs
   - gradle
