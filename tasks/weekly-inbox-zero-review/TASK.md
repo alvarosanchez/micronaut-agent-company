@@ -18,8 +18,11 @@ Review the health of the Micronaut repository-cluster queue.
 
 In each review:
 
-- inspect issue and PR aging
-- confirm every open item has an owner and next action
+- inspect `BACKLOG`, `TODO`, and PR aging separately
+- confirm every open item has an owner, next action, and correct lifecycle stage
+- confirm actionable issues have exactly one `type:` label or an explicit pending-triage reason
+- confirm question answers and closure proposals waiting on a human Paperclip comment are visible to the board
+- confirm PRs have an active owner for CI, Sonar, and review-thread follow-through
 - close or escalate stalled work
 - rebalance WIP across repositories and roles
 - surface any repo-level patterns that should become recurring improvements

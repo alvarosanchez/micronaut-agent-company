@@ -46,11 +46,16 @@ The package uses the standard Agent Companies directory structure, a minimal `.p
 
 Micronaut work happens across many repositories with different branching, release, and documentation patterns. Instead of baking in a guessed subset, this package ships with a bootstrap file and tasks that define the company instance's actual repository cluster after import.
 
+### 8. Keep Governance Human Where It Matters
+
+The researched examples were strongest when agent workflows were explicit about external approval boundaries. This package therefore keeps the board and Micronaut maintainers outside the agent roster: humans move issues from `BACKLOG` to `TODO`, leave approval comments in Paperclip, merge PRs, and cut releases.
+
 ## How The Research Changed The Package
 
 - The **CEO** is queue-health focused, not a generic strategist.
 - **QA** is both the intake gate and the final sign-off gate.
 - The **Architect** is instructed to think across release lines, compatibility, and docs impact, not only code structure.
 - The **Technical Writer** is treated as a production role, not as optional cleanup after engineering.
-- The **Code Reviewer** explicitly owns hidden risk outside the acceptance criteria.
+- The **Core Reviewer** explicitly owns hidden risk outside the acceptance criteria and creates the GitHub PR after QA sign-off.
 - Shared skills hold the operating system for Micronaut maintenance so the role prompts stay clear and reusable.
+- The board is intentionally not represented as an agent role because the requested workflow keeps approval, merge, and release authority human.

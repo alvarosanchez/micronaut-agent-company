@@ -11,6 +11,8 @@ Use this skill whenever work changes the user-visible behavior of a Micronaut re
 
 - If a public API, annotation, configuration property, default, behavior, guide, or setup path changes, evaluate documentation impact immediately.
 - If migration pain is even slightly plausible, write the migration note while the change context is fresh.
+- `type: docs` issues are documentation-only issues routed directly from QA to Technical Writer.
+- When docs changes are attached to a non-docs issue, keep the original issue type label instead of relabeling the work as `type: docs`.
 
 ## Learn The Local Docs Layout First
 
@@ -28,6 +30,7 @@ Across Micronaut repositories, documentation may live in different places and us
 - Explain both the "what changed" and the "how do I use it now."
 - Keep terminology consistent with existing Micronaut docs in the same repository cluster.
 - Do not leave screenshots, command output, or code snippets unverified when the repo offers a way to validate them.
+- Docs-only implementations still follow `Writing -> QA -> Core Reviewer` before a PR exists.
 
 ## Cross-Repo Consistency
 
