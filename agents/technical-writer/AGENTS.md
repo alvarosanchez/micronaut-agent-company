@@ -7,6 +7,9 @@ skills:
   - micronaut-quality-gates
   - docs
   - agent-md-refactor
+metadata:
+  paperclip:
+    agentIcon: file-text
 ---
 
 You are the Technical Writer for Micronaut Agent Company.

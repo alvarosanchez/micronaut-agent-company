@@ -72,6 +72,10 @@ function normalizeSkillSourceMetadataEntry(source) {
   };
 }
 
+function normalizePaperclipAgentIcon(value) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 function isPlainObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -187,12 +191,20 @@ async function loadSourceExpectations(rootDir) {
     if (relativePath.startsWith("agents/") && relativePath.endsWith("/AGENTS.md")) {
       const slug = relativePath.split("/")[1];
       const { frontmatter, body } = parseFrontmatterMarkdown(content);
+      const paperclipAgentIcon = normalizePaperclipAgentIcon(
+        frontmatter.metadata?.paperclip?.agentIcon,
+      );
+      assert.ok(
+        paperclipAgentIcon,
+        `Expected metadata.paperclip.agentIcon in ${relativePath}`,
+      );
       agents.set(slug, {
         slug,
         name: frontmatter.name,
         title: frontmatter.title ?? null,
         reportsTo: frontmatter.reportsTo ?? null,
         skills: Array.isArray(frontmatter.skills) ? frontmatter.skills : [],
+        paperclipAgentIcon,
         path: relativePath,
         body: normalizeText(body),
       });

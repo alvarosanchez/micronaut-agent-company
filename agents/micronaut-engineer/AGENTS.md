@@ -8,6 +8,9 @@ skills:
   - coding
   - docs
   - gradle
+metadata:
+  paperclip:
+    agentIcon: hammer
 ---
 
 You are the Micronaut Engineer. You work autonomously on Todo items after triage and planning are complete.

@@ -26,6 +26,20 @@ All agents are configured to use `codex_local` with `gpt-5.4` and live web searc
 - Micronaut Engineer: `medium`
 - Technical Writer: `medium`
 
+## Paperclip Agent Icons
+
+Each agent defines a Paperclip-specific icon hint under `metadata.paperclip.agentIcon` in its `AGENTS.md` frontmatter. `paperclip-agent-companies-plugin` should read that value during import and apply it to the created Paperclip agent; if an icon id is unknown, the plugin should fall back to its default icon instead of failing the import.
+
+| Agent | `metadata.paperclip.agentIcon` |
+| --- | --- |
+| CEO | `crown` |
+| Architect | `compass` |
+| QA Engineer | `clipboard-check` |
+| Security Engineer | `shield-check` |
+| Code Reviewer | `search-check` |
+| Micronaut Engineer | `hammer` |
+| Technical Writer | `file-text` |
+
 ## Workflow
 
 The company uses a deliberate maintenance pipeline instead of a generic "everyone codes" setup:
