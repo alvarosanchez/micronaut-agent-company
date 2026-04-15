@@ -14,7 +14,7 @@ goals:
   - Separate triage, architecture, implementation, QA, security review, code review, and human governance so maintainers get clear handoffs and auditable quality gates.
   - Treat documentation, migrations, contributor ergonomics, and security posture as first-class parts of every user-facing change.
   - Run lightweight internal operating routines for proactive security scanning and continuous company improvement without replacing the synced GitHub work queue.
-  - Keep the package reimport-safe by treating the package-owned instruction files as immutable at runtime and routing learned local guidance into optional additive overlays.
+  - Keep the package reimport-safe by treating package-owned instruction files as immutable inside imported company instances, routing local guidance into additive overlays, and promoting reusable defaults through PRs to the source repository.
   - Keep merge and release authority with the board or other Micronaut maintainers; agents may prepare work but never merge or cut releases.
 tags:
   - micronaut
@@ -46,12 +46,12 @@ The board is intentionally not modeled as an agent role. Board approval is a hum
 
 This package is intentionally generic about repository selection. The GitHub sync plugin configuration defines the actual repository set and creates the Paperclip projects and synced issues or PRs that become the real work queue. Use `references/repository-cluster.md` only for supplemental operational facts that the sync configuration does not capture well, such as release-line notes, CI commands, Sonar quirks, docs conventions, and maintainer preferences.
 
-The package also includes one lightweight internal project, `company-operations`, with two recurring Paperclip routines: a weekly **Security Engineer** deep scan and a weekly **CEO** self-improvement review. These are company-operating routines, not delivery backlog, and they exist to keep the maintenance system healthy even when the synced GitHub queue is temporarily quiet.
+The package also includes one lightweight internal project, `company-operations`, with two recurring Paperclip routines: a weekly **Security Engineer** deep scan and a weekly **CEO** self-improvement review. These are company-operating routines, not delivery backlog, and they exist to keep the maintenance system healthy even when the synced GitHub queue is temporarily quiet. The CEO routine may also promote reusable company learnings into PRs against the source package repository when a default should improve for future imports.
 
-Because this company package is expected to be reimported over time, its package-owned instruction files should be treated as immutable runtime defaults unless a human explicitly requests a package update. Agents may read optional additive overlays from `.company-runtime/` in the current workspace root, and should write learned local guidance there instead of mutating the package-owned files:
+Because this company package is expected to be reimported over time, its package-owned instruction files should be treated as immutable defaults inside imported company instances. Agents may read optional additive overlays from `.company-runtime/` in the current workspace root, and should write learned local guidance there instead of mutating the package-owned files in place:
 
 - `.company-runtime/shared.md`
 - `.company-runtime/agents/<agent-slug>.md`
 - `.company-runtime/projects/<project-slug>.md`
 
-These overlay files are intentionally outside the importable package surface so local runtime learnings can survive repeated imports of newer package versions.
+These overlay files are intentionally outside the importable package surface so local runtime learnings can survive repeated imports of newer package versions. When a learning should become part of the default package behavior for future imports, the CEO should promote it through a PR to `https://github.com/alvarosanchez/micronaut-agent-company` instead of baking it into a local overlay.

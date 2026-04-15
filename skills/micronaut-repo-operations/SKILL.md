@@ -32,9 +32,9 @@ When a routine surfaces a new problem:
 
 ## Reimport-Safe Runtime Overlays
 
-This company package is meant to be reimported over time. Treat the package-owned files as immutable runtime defaults unless a human explicitly asks for a package update.
+This company package is meant to be reimported over time. Treat the package-owned files as immutable defaults inside imported company instances. Local runtime learnings stay additive; reusable defaults for future imports belong in a PR to `https://github.com/alvarosanchez/micronaut-agent-company`.
 
-If the active workspace is this company package itself, do not self-edit:
+Normal Micronaut repository work should not self-edit this package:
 
 - `COMPANY.md`
 - `README.md`
@@ -53,6 +53,8 @@ Instead, read and optionally maintain additive local overlays in `.company-runti
 - `.company-runtime/projects/<project-slug>.md`
 
 These files are optional and additive. If they do not exist, continue with the package defaults. If they grow unwieldy, refactor them with `agent-md-refactor`.
+
+When a reusable company improvement should become a new package default, route it through the CEO and `company-package-evolution` so the change lands as a PR to the source repository instead of a local runtime mutation.
 
 This immutability rule applies only to this company package. In managed Micronaut repositories, repo-level `AGENTS.md` files are product artifacts and may be updated when an explicit task or routine calls for it.
 
