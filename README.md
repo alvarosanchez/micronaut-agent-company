@@ -203,7 +203,13 @@ npx paperclipai company import https://github.com/alvarosanchez/micronaut-agent-
 
 ## Release
 
-Push a SemVer tag such as `v1.2.3` or `1.2.3` to trigger the `Release Company` GitHub Actions workflow. The workflow derives the company version from that tag, updates `COMPANY.md`, `package.json`, and `package-lock.json`, verifies the import, and commits the version bump back to the default branch.
+Every push to `main` now triggers the `Release Company` workflow. The workflow serializes concurrent runs, skips stale ones, bumps the package to the next patch version, verifies the import, commits the updated `COMPANY.md`, `package.json`, and `package-lock.json`, then tags that commit as `vX.Y.Z` and publishes a GitHub release.
+
+You can still run `Release Company` manually from the GitHub Actions UI:
+
+- Set `release_tag` to any valid Git tag string to publish a GitHub release for the current `main` head.
+- If `release_tag` is a SemVer value such as `v1.2.3` or `1.2.3`, the workflow also syncs the company version files to that version before publishing.
+- Set `release_title` when you want a free-form GitHub release title that differs from the tag.
 
 ## Validation
 

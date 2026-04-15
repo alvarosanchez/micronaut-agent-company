@@ -2,17 +2,33 @@ name: Release Company
 
 on:
   push:
-    tags:
-      - "v*"
-      - "*.*.*"
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Git tag to publish. SemVer tags such as v1.2.3 also sync version files.
+        required: true
+        type: string
+      release_title:
+        description: Optional GitHub release title. Defaults to the release tag.
+        required: false
+        type: string
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-company-main
+  cancel-in-progress: false
+
 jobs:
   release:
+    if: github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
     steps:
       - name: Check out default branch
@@ -21,49 +37,140 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.repository.default_branch }}
 
-      - name: Fetch release tag
-        run: git fetch origin "+refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
-
-      - name: Verify tag belongs to default branch history
+      - name: Decide whether this run should release
+        id: should-release
         env:
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_SHA: ${{ github.sha }}
         run: |
-          TAG_COMMIT="$(git rev-list -n 1 "${GITHUB_REF_NAME}")"
-          if ! git merge-base --is-ancestor "${TAG_COMMIT}" HEAD; then
-            echo "Release tag ${GITHUB_REF_NAME} is not reachable from ${DEFAULT_BRANCH}." >&2
-            exit 1
+          SHOULD_RELEASE=true
+
+          if [ "${EVENT_NAME}" = "push" ]; then
+            git fetch origin "refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
+            CURRENT_HEAD="$(git rev-parse "refs/remotes/origin/${DEFAULT_BRANCH}")"
+
+            if [ "${PUSH_SHA}" != "${CURRENT_HEAD}" ]; then
+              SHOULD_RELEASE=false
+              echo "Skipping stale release run for ${PUSH_SHA}; ${CURRENT_HEAD} is newer on ${DEFAULT_BRANCH}."
+            fi
           fi
 
+          printf 'value=%s\n' "${SHOULD_RELEASE}" >> "${GITHUB_OUTPUT}"
+
       - name: Set up Node.js
+        if: steps.should-release.outputs.value == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
 
       - name: Install dependencies
+        if: steps.should-release.outputs.value == 'true'
         run: npm ci
 
-      - name: Bump company version from tag
-        id: bump-version
-        run: node scripts/set-company-version-from-tag.mjs "${GITHUB_REF_NAME}"
+      - name: Resolve manual release version
+        id: manual-release
+        if: steps.should-release.outputs.value == 'true' && github.event_name == 'workflow_dispatch'
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: node scripts/resolve-release-version.mjs "${RELEASE_TAG}"
+
+      - name: Bump patch version
+        id: auto-release
+        if: steps.should-release.outputs.value == 'true' && github.event_name == 'push'
+        run: node scripts/bump-company-patch-version.mjs
+
+      - name: Sync company version from manual SemVer tag
+        id: manual-version
+        if: steps.should-release.outputs.value == 'true' && github.event_name == 'workflow_dispatch' && steps.manual-release.outputs.has_version == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.manual-release.outputs.tag }}
+        run: node scripts/set-company-version-from-tag.mjs "${RELEASE_TAG}"
+
+      - name: Determine release metadata
+        id: release-meta
+        if: steps.should-release.outputs.value == 'true'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          AUTO_VERSION: ${{ steps.auto-release.outputs.version }}
+          MANUAL_TAG: ${{ steps.manual-release.outputs.tag }}
+          MANUAL_VERSION: ${{ steps.manual-version.outputs.version }}
+          MANUAL_HAS_VERSION: ${{ steps.manual-release.outputs.has_version }}
+          MANUAL_TITLE: ${{ inputs.release_title }}
+        run: |
+          if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
+            RELEASE_TAG="${MANUAL_TAG}"
+            RELEASE_VERSION="${MANUAL_VERSION}"
+            RELEASE_TITLE="${MANUAL_TITLE:-${MANUAL_TAG}}"
+            HAS_VERSION="${MANUAL_HAS_VERSION}"
+          else
+            RELEASE_VERSION="${AUTO_VERSION}"
+            RELEASE_TAG="v${RELEASE_VERSION}"
+            RELEASE_TITLE="${RELEASE_TAG}"
+            HAS_VERSION=true
+          fi
+
+          if [ -z "${RELEASE_TAG}" ]; then
+            echo "Release tag must not be empty." >&2
+            exit 1
+          fi
+
+          printf 'tag=%s\n' "${RELEASE_TAG}" >> "${GITHUB_OUTPUT}"
+          printf 'version=%s\n' "${RELEASE_VERSION}" >> "${GITHUB_OUTPUT}"
+          printf 'title=%s\n' "${RELEASE_TITLE}" >> "${GITHUB_OUTPUT}"
+          printf 'has_version=%s\n' "${HAS_VERSION}" >> "${GITHUB_OUTPUT}"
 
       - name: Verify Paperclip import
+        if: steps.should-release.outputs.value == 'true'
         run: npm test
         env:
           CI: "true"
 
       - name: Commit version bump
+        id: commit-version
+        if: steps.should-release.outputs.value == 'true' && steps.release-meta.outputs.has_version == 'true'
         env:
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          VERSION: ${{ steps.bump-version.outputs.version }}
+          VERSION: ${{ steps.release-meta.outputs.version }}
         run: |
           if git diff --quiet -- COMPANY.md package.json package-lock.json; then
-            echo "No version files changed."
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+            echo "Version files already match ${VERSION}."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add COMPANY.md package.json package-lock.json
-          git commit -m "chore: bump company version to ${VERSION} [skip ci]"
+          git commit -m "chore: release ${VERSION} [skip ci]"
           git push origin HEAD:${DEFAULT_BRANCH}
+          echo "changed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Verify release tag is available
+        if: steps.should-release.outputs.value == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.release-meta.outputs.tag }}
+        run: |
+          git check-ref-format "refs/tags/${RELEASE_TAG}"
+          git fetch --tags origin
+
+          if git show-ref --verify --quiet "refs/tags/${RELEASE_TAG}"; then
+            echo "Release tag ${RELEASE_TAG} already exists." >&2
+            exit 1
+          fi
+
+      - name: Create and push release tag
+        if: steps.should-release.outputs.value == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.release-meta.outputs.tag }}
+          RELEASE_TITLE: ${{ steps.release-meta.outputs.title }}
+        run: |
+          git tag -a "${RELEASE_TAG}" -m "${RELEASE_TITLE}"
+          git push origin "refs/tags/${RELEASE_TAG}"
+
+      - name: Publish GitHub release
+        if: steps.should-release.outputs.value == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release-meta.outputs.tag }}
+          RELEASE_TITLE: ${{ steps.release-meta.outputs.title }}
+        run: gh release create "${RELEASE_TAG}" --verify-tag --title "${RELEASE_TITLE}" --generate-notes
