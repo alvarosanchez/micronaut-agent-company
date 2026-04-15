@@ -64,6 +64,7 @@ In addition to the synced GitHub work queue, the package includes two weekly int
 - The implementation loop is always `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer`.
 - `Code Reviewer` creates the PR after QA and Security Engineer sign-off, but only the board or other Micronaut maintainers may merge or cut releases.
 - Every PR must include a closing keyword such as `Fixes #123` and must carry one of the `type:` labels above.
+- Imported company instances treat package-owned defaults as immutable in place; reusable default improvements should be promoted by the CEO through a PR to `alvarosanchez/micronaut-agent-company`.
 
 ## Work Surface
 
@@ -78,13 +79,13 @@ In addition to the synced GitHub work queue, the package includes two weekly int
 | Routine | Assignee | Schedule | Purpose |
 | --- | --- | --- | --- |
 | `Weekly Security Deep Scan` | Security Engineer | Mondays at 09:00 `Europe/Madrid` | Proactively inspect recent code, dependencies, build logic, CI/CD, release automation, and docs for security risk |
-| `Weekly CEO Self-Improvement` | CEO | Fridays at 15:00 `Europe/Madrid` | Review recent executions, propose high-signal skills from `skills.sh`, and keep repo-level instruction hygiene healthy |
+| `Weekly CEO Self-Improvement` | CEO | Fridays at 15:00 `Europe/Madrid` | Review recent executions, propose high-signal skills from `skills.sh`, keep repo-level instruction hygiene healthy, and promote reusable company learnings through package PRs |
 
-## Reimport-Safe Runtime Overlays
+## Reimport-Safe Runtime Overlays And Package Evolution
 
-This package is designed to be reimported repeatedly as it evolves. To avoid package drift, agents should treat the package-owned files under `agents/`, `skills/`, `projects/`, `tasks/`, `teams/`, `references/`, plus `COMPANY.md`, `README.md`, and `.paperclip.yaml`, as human-maintained defaults unless a human explicitly asks for a package change.
+This package is designed to be reimported repeatedly as it evolves. To avoid package drift, agents should treat the package-owned files under `agents/`, `skills/`, `projects/`, `tasks/`, `teams/`, `references/`, plus `COMPANY.md`, `README.md`, and `.paperclip.yaml`, as published defaults inside imported company instances.
 
-For local, additive guidance that should survive reimports, agents may read and maintain optional sidecar files in `.company-runtime/` at the workspace root:
+For local, additive guidance that should survive reimports, agents may read and maintain optional sidecar files in `.company-runtime/` at the workspace root. This is the repo-local equivalent of additive extension instructions in a live Paperclip company:
 
 ```text
 .company-runtime/
@@ -97,6 +98,8 @@ For local, additive guidance that should survive reimports, agents may read and 
 ```
 
 These files are additive, optional, and intentionally outside the portable package surface. If the current workspace is a managed Micronaut repository rather than this company package, repo-level `AGENTS.md` files remain valid product artifacts and may still be maintained when the active task or routine calls for it.
+
+When a learning should improve the default behavior of future imports, the CEO should promote it through a PR to `https://github.com/alvarosanchez/micronaut-agent-company` instead of baking it into local overlays or mutating an imported company instance in place.
 
 ## GitHub Sync Agent Tools
 
@@ -136,7 +139,7 @@ flowchart TD
 
 | Agent | Title | Reports To | Primary Responsibility |
 | --- | --- | --- | --- |
-| CEO | Chief Executive Officer | `null` | Queue health, board-approval visibility, repo-cluster scope, escalation |
+| CEO | Chief Executive Officer | `null` | Queue health, board-approval visibility, repo-cluster scope, package-evolution routing, escalation |
 | Architect | Micronaut Architect | `ceo` | Release targeting, implementation plans, branch strategy, breaking-change approval |
 | QA Engineer | QA Engineer | `ceo` | Intake gate, deduplication, label classification, reproducer validation, final QA sign-off |
 | Security Engineer | Security Engineer | `ceo` | Security review across source code, dependencies, build scripts, CI/CD, secure defaults, and security-sensitive docs |
@@ -148,6 +151,7 @@ flowchart TD
 
 | Skill | Purpose |
 | --- | --- |
+| `company-package-evolution` | CEO decision framework for keeping local learnings additive versus promoting reusable defaults into PRs against this company package's source repo |
 | `micronaut-repo-operations` | Shared operating rules for lifecycle state, labels, SemVer targeting, PR rules, tool boundaries, internal routines, and reimport-safe runtime overlays |
 | `micronaut-quality-gates` | Common definition of done across triage, planning, implementation, QA, security review, code review, and PR follow-through |
 | `micronaut-security-review` | Security review checklist for Micronaut source code, dependencies, build logic, CI/CD, release automation, secure defaults, and proactive deep scans |
@@ -168,7 +172,7 @@ These skills are included as referenced skills pinned to `micronaut-projects/mic
 
 1. Import the company into Paperclip.
 2. Configure the GitHub sync plugin so the target repositories are synced, one Paperclip project is created per repository, new issues land in `BACKLOG`, default assignee is `QA Engineer`, and the required `type:` labels exist in GitHub.
-3. If you want local, additive runtime guidance that survives package reimports, create `.company-runtime/shared.md` and any role- or project-specific overlay files you need. Keep that guidance out of the package-owned core files unless you are intentionally publishing a new package version.
+3. If you want local, additive runtime guidance that survives package reimports, create `.company-runtime/shared.md` and any role- or project-specific overlay files you need. Keep that guidance out of the package-owned core files unless you are intentionally publishing a new package version through a PR to `alvarosanchez/micronaut-agent-company`.
 4. Fill in `references/repository-cluster.md` only with supplemental facts the agents will need during execution, such as release-line rules, CI commands, Sonar expectations, docs layout notes, and maintainer preferences.
 5. Let the sync plugin import the live GitHub issues and PRs. Those imported items are the company backlog and active work queue.
 6. Expect Paperclip to import the `company-operations` recurring tasks as internal routines for the **Security Engineer** and **CEO**.
