@@ -1,14 +1,14 @@
 import process from "node:process";
+
 import {
-  deriveVersionFromTag,
+  incrementPatchVersion,
+  readPackageVersion,
   updateCompanyVersion,
   writeGithubOutput,
 } from "./company-version.mjs";
 
 async function main() {
-  const version = deriveVersionFromTag(
-    process.argv[2] ?? process.env.GITHUB_REF_NAME,
-  );
+  const version = incrementPatchVersion(await readPackageVersion());
 
   await updateCompanyVersion(version);
   await writeGithubOutput("version", version);
