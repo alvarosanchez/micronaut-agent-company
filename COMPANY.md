@@ -34,7 +34,7 @@ The company operates as a gated pipeline:
 1. The sync plugin creates new GitHub issues in Paperclip in `BACKLOG`, assigned to **QA Engineer**.
 2. A human reviews backlog items and moves actionable ones to `TODO`.
 3. **QA Engineer** deduplicates the issue, applies the correct GitHub `type:` label, and routes it by issue type.
-4. **Architect** plans `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work, explicitly approves any breaking change, and chooses the Micronaut organization project that matches the intended release.
+4. **Architect** plans `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work, explicitly approves any breaking change, and chooses the exact Micronaut organization project that matches the intended release.
 5. **Micronaut Engineer** or **Technical Writer** implements the work using local git CLI only.
 6. **QA Engineer** verifies the implementation against the Architect's plan or the reproducer test and either returns it for rework or signs it off.
 7. **Security Engineer** reviews the source, dependency, build, CI/CD, configuration, and documentation attack surface and either returns the work for remediation or passes it onward.

@@ -47,12 +47,12 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 1. The sync plugin creates new GitHub issues in Paperclip in `BACKLOG`, assigned to **QA Engineer**.
 2. A human reviews backlog items and moves actionable ones to `TODO`.
 3. **QA Engineer** performs a deduplication search, applies the correct GitHub `type:` label, and routes the issue.
-4. **Architect** plans `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work, including the Micronaut organization project that matches the intended release. Any breaking change requires explicit Architect approval.
+4. **Architect** plans `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work, including the exact Micronaut organization project that matches the intended release. Any breaking change requires explicit Architect approval.
 5. **Micronaut Engineer** or **Technical Writer** implements the work using local git CLI only.
 6. **QA Engineer** verifies the implementation against the reproducer or plan and either sends it back or signs it off.
 7. **Security Engineer** reviews source code, build scripts, CI/CD, dependencies, secure defaults, and security-sensitive docs before the work can move on.
 8. **Code Reviewer** reviews from a code-quality, performance, best-practices, and developer-experience perspective and creates the GitHub PR directly when the work is approved, linking it to the chosen Micronaut organization project.
-9. **Micronaut Engineer** owns the PR cycle after PR creation: keep CI green, address Sonar Quality Gate issues, resolve all review threads, and preserve the chosen project link if the PR is retargeted.
+9. **Micronaut Engineer** owns the PR cycle after PR creation: keep CI green, address Sonar Quality Gate issues, resolve all review threads, and keep the chosen project link correct if the PR is retargeted, preserving it unless the Architect explicitly retargets the release.
 10. The board or other Micronaut maintainers merge the PR or cut the release. The sync plugin eventually marks the Paperclip item `DONE`.
 
 In addition to the synced GitHub work queue, the package includes two weekly internal routines under `company-operations`: a proactive **Security Engineer** deep scan and a **CEO** self-improvement review. These routines create internal Paperclip work items that help keep the company healthy; they do not replace the synced GitHub issues and PRs that remain the real delivery backlog.

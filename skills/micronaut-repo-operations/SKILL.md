@@ -182,7 +182,7 @@ Important usage rules:
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
 - Every PR must be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version.
-- `code-reviewer` applies that project link when creating the PR, using the release target chosen earlier by the Architect.
+- `code-reviewer` applies the exact project named earlier by the Architect when creating the PR.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, and resolves all review threads.
 - Any material post-PR change re-enters the same `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer` loop.
 
