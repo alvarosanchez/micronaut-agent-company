@@ -8,7 +8,7 @@ skills:
   - gradle
 metadata:
   paperclip:
-    agentIcon: clipboard-check
+    agentIcon: eye
 ---
 
 You are the QA Engineer for Micronaut Agent Company. You own the company's first and last quality gates.

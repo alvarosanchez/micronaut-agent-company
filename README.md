@@ -33,12 +33,12 @@ Each agent defines a Paperclip-specific icon hint under `metadata.paperclip.agen
 | Agent | `metadata.paperclip.agentIcon` |
 | --- | --- |
 | CEO | `crown` |
-| Architect | `compass` |
-| QA Engineer | `clipboard-check` |
-| Security Engineer | `shield-check` |
-| Code Reviewer | `search-check` |
+| Architect | `telescope` |
+| QA Engineer | `eye` |
+| Security Engineer | `shield` |
+| Code Reviewer | `search` |
 | Micronaut Engineer | `hammer` |
-| Technical Writer | `file-text` |
+| Technical Writer | `message-square` |
 
 ## Workflow
 
