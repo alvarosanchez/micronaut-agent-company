@@ -6,7 +6,7 @@ schema: agentcompanies/v1
 version: 1.0.0
 license: MIT
 authors:
-  - name: Alvaro Sanchez
+  - name: Álvaro Sánchez-Mariscal
 goals:
   - Keep a defined Micronaut repository cluster at inbox zero: every synced GitHub issue and pull request is either closed or actively owned with a next action.
   - Enforce the lifecycle `BACKLOG -> TODO -> QA -> implementation -> QA -> Security Engineer -> Code Reviewer -> PR cycle -> human merge`.
