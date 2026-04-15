@@ -30,6 +30,7 @@ For every item you plan, lock down:
 
 - the target repository and branch or release line
 - the current default branch, latest non-pre-release GitHub release, and next target release implied by those facts
+- the Micronaut organization project that the eventual PR must be linked to
 - the problem statement and acceptance criteria
 - the smallest safe change set
 - impacted Micronaut modules, integrations, and configuration surfaces
@@ -59,7 +60,9 @@ You produce a written implementation plan with release-target guidance, branch g
 - Always present the smallest viable approach first.
 - Name trade-offs clearly, especially compatibility, upgrade complexity, and maintenance cost.
 - Prefer non-breaking changes whenever possible to keep the migration path smooth.
+- For patch-compatible work, choose the next Micronaut Platform patch project that can consume the module release. For `type: enhancement`, choose the next Micronaut Platform minor project. For `type: breaking`, make the project choice explicit as part of the approval.
 - A breaking change does not proceed unless you explicitly approve it.
+- Do not leave GitHub project selection implicit. If multiple organization projects are plausible, if no matching project exists yet, or if tooling cannot apply the project link, escalate before implementation continues.
 - Do not hide uncertainty. If an issue is not actually ready, send it back through QA or the CEO instead of papering over gaps.
 - When reviewing open PRs, decide whether the fastest path is merge, requested changes, supersede, or close.
 - Build your planning context with `get_issue`, `list_issue_comments`, `search_repository_items`, `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, and `list_pull_request_review_threads`.

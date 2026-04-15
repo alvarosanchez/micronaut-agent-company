@@ -115,9 +115,14 @@ Duplicate, stale, superseded, and out-of-scope issues may be closed without forc
 - Determine the next release from the repository's default branch plus the latest non-pre-release GitHub release.
 - If the default branch is `1.2.x` and the latest production release is `1.1.5`, the next release on that branch is `1.2.0`.
 - If the default branch is `1.2.x` and the latest production release is `1.2.3`, the next release on that branch is `1.2.4`.
+- Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform releases. The Architect must name the exact organization project before implementation starts, and the Code Reviewer must link the PR to that project when the PR is opened.
 - `type: improvement`, `type: bug`, `type: docs`, and most `type: dependency-upgrade` work should remain non-breaking and target the next patch release when possible.
+- `type: improvement`, `type: bug`, `type: docs`, and most `type: dependency-upgrade` work should therefore link to the next Micronaut Platform patch project that can consume that module release.
 - `type: enhancement` belongs on the next minor line. If the minor branch does not exist yet, create it from the current default branch with local git CLI.
+- `type: enhancement` should therefore link to the next Micronaut Platform minor project that can consume that module release.
 - `type: breaking` requires explicit Architect approval and, when necessary, a new major branch created from the current default branch with local git CLI.
+- `type: breaking` also requires an explicit organization-project decision aligned with the approved incompatible release.
+- If multiple organization projects are plausible, if no matching project exists yet, or if the runtime cannot apply the project link, stop and escalate instead of guessing.
 - Prefer the smoothest migration path possible. Choose non-breaking behavior whenever a credible non-breaking option exists.
 
 ## Approval Boundaries
@@ -168,6 +173,7 @@ Important usage rules:
 - Use the local git CLI for all git operations: branch creation, commits, rebases, cherry-picks, and pushes.
 - Use the sync plugin agent tools for all GitHub operations: deduplication search, issue reads and updates, GitHub comments, PR creation and updates, changed-file inspection, CI inspection, review-thread work, and reviewer requests.
 - Do not use `gh`, direct GitHub browser edits, or ad hoc scripts when the sync plugin tools cover the operation.
+- If the available sync plugin tool surface does not support linking a PR to the required Micronaut organization project, escalate instead of creating an unlinked PR.
 
 ## PR Rules
 
@@ -175,6 +181,8 @@ Important usage rules:
 - `code-reviewer` creates the GitHub PR only after QA and Security Engineer sign-off.
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
+- Every PR must be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version.
+- `code-reviewer` applies the exact project named earlier by the Architect when creating the PR.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, and resolves all review threads.
 - Any material post-PR change re-enters the same `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer` loop.
 

@@ -37,6 +37,7 @@ When the work is approved, you create the GitHub PR directly using the sync plug
 
 - link the GitHub issue with a closing keyword such as `Fixes #123`
 - carry exactly one of the `type:` labels defined in the lifecycle
+- be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version
 - accurately summarize the implemented change and any migration or compatibility implications
 
 ## What you produce
@@ -55,6 +56,8 @@ You produce one thorough review pass with prioritized findings, rationale, a con
 - Be specific and evidence-driven.
 - Use the sync plugin GitHub tools for PR creation and GitHub review actions.
 - You may create PRs, but you do not merge them and you do not cut releases.
+- Apply the Architect-selected Micronaut organization project to the PR, and do not open the PR until that exact project is known.
+- Do not create an unlinked PR. If the Architect has not specified the exact project, if that project does not exist yet, or if the available GitHub tooling cannot apply the project link, escalate to the Architect or CEO.
 - Focus on user impact, maintainer cost, and future change risk rather than personal style preferences.
 - Give one complete review instead of drip-feeding concerns.
 - Look especially hard at compatibility edges, configuration defaults, error handling, and test blind spots.

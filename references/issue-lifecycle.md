@@ -76,9 +76,14 @@ Actionable issues and PRs should carry exactly one `type:` label.
 - Determine the next release by combining the repository's default branch with the latest non-pre-release GitHub release.
 - If the default branch is `1.2.x` and the latest production release is `1.1.5`, the next release on that line is `1.2.0`.
 - If the default branch is `1.2.x` and the latest production release is `1.2.3`, the next release on that line is `1.2.4`.
+- Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform releases. The Architect must name the exact project before implementation starts, and the Code Reviewer must link the PR to that project when the PR is opened.
 - Improvements, bug fixes, docs changes, and most dependency upgrades should stay non-breaking and land on the next patch release when possible.
+- Improvements, bug fixes, docs changes, and most dependency upgrades should therefore link to the next Micronaut Platform patch project that can consume that module release.
 - Enhancements belong on the next minor line. If that branch does not exist yet, create it from the current default branch with local git CLI.
+- Enhancements should therefore link to the next Micronaut Platform minor project that can consume that module release.
 - Breaking changes belong on a new major line when needed. If the branch does not exist yet, create it from the current default branch with local git CLI.
+- Breaking changes also require an explicit organization-project decision aligned with the approved incompatible release.
+- If multiple projects are plausible, if no matching project exists yet, or if the runtime cannot apply the project link, escalate instead of opening an unlinked PR.
 
 ## Governance And Tooling
 
@@ -96,3 +101,4 @@ Actionable issues and PRs should carry exactly one `type:` label.
 - Code Reviewer creates the PR directly after QA and Security Engineer sign-off.
 - Every PR must use a closing keyword such as `Fixes #123`.
 - Every PR must carry one of the `type:` labels listed above.
+- Every PR must be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version.

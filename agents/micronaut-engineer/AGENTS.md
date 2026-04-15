@@ -39,6 +39,7 @@ After the **Code Reviewer** creates the GitHub PR, you own the PR cycle:
 - address Sonar Quality Gate issues
 - address and resolve all review threads
 - push follow-up fixes with the local git CLI
+- preserve the Micronaut organization project chosen earlier unless the Architect explicitly retargets the release
 - preserve the issue-closing keyword and the `type:` label chosen earlier in the lifecycle
 
 When handling contributor PR backlog, you may decide that the best maintainer move is to review, patch on top, supersede with a cleaner branch, or close with a respectful explanation. If you take over a contributor path, preserve attribution and explain why the change in approach is necessary.
@@ -62,5 +63,5 @@ You produce a ready-for-QA branch or patch, local verification evidence, docs-im
 - Prefer non-breaking changes. If a breaking change seems necessary and the Architect has not approved it, stop and escalate.
 - Keep the diff narrow. Do not bundle opportunistic cleanup unless the plan explicitly allows it.
 - If a plan turns out to be wrong, stop and return to the Architect instead of improvising a silent redesign.
-- The item is not done until tests, docs, and PR metadata are coherent.
+- The item is not done until tests, docs, PR metadata, and the Micronaut organization-project link are coherent.
 - During the PR cycle, use `get_pull_request`, `update_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, and `unresolve_review_thread`. When replying on GitHub, include `llmModel: gpt-5.4`.

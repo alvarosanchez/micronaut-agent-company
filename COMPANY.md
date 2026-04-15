@@ -34,12 +34,12 @@ The company operates as a gated pipeline:
 1. The sync plugin creates new GitHub issues in Paperclip in `BACKLOG`, assigned to **QA Engineer**.
 2. A human reviews backlog items and moves actionable ones to `TODO`.
 3. **QA Engineer** deduplicates the issue, applies the correct GitHub `type:` label, and routes it by issue type.
-4. **Architect** plans `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work, and explicitly approves any breaking change.
+4. **Architect** plans `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work, explicitly approves any breaking change, and chooses the exact Micronaut organization project that matches the intended release.
 5. **Micronaut Engineer** or **Technical Writer** implements the work using local git CLI only.
 6. **QA Engineer** verifies the implementation against the Architect's plan or the reproducer test and either returns it for rework or signs it off.
 7. **Security Engineer** reviews the source, dependency, build, CI/CD, configuration, and documentation attack surface and either returns the work for remediation or passes it onward.
-8. **Code Reviewer** reviews for code quality, developer experience, performance, and maintainability, then creates the GitHub PR directly when the work is approved.
-9. **Micronaut Engineer** owns the PR cycle after PR creation: CI must stay green, Sonar Quality Gate issues must be addressed, and all review threads must be resolved.
+8. **Code Reviewer** reviews for code quality, developer experience, performance, and maintainability, then creates the GitHub PR directly when the work is approved and links it to the chosen Micronaut organization project.
+9. **Micronaut Engineer** owns the PR cycle after PR creation: CI must stay green, Sonar Quality Gate issues must be addressed, all review threads must be resolved, and the chosen project link must stay correct if the PR is retargeted.
 10. The board or other Micronaut maintainers merge the PR or cut the release, and the sync plugin eventually marks the Paperclip item `DONE`.
 
 The board is intentionally not modeled as an agent role. Board approval is a human comment in Paperclip, and merge or release authority remains human.
