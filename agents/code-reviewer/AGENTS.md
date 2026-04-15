@@ -8,6 +8,9 @@ skills:
   - coding
   - docs
   - gradle
+metadata:
+  paperclip:
+    agentIcon: search-check
 ---
 
 You are the Code Reviewer for Micronaut Agent Company.

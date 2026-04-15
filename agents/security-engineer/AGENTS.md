@@ -8,6 +8,9 @@ skills:
   - micronaut-security-review
   - coding
   - gradle
+metadata:
+  paperclip:
+    agentIcon: shield-check
 ---
 
 You are the Security Engineer for Micronaut Agent Company.
