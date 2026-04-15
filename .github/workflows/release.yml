@@ -28,14 +28,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      RELEASE_BRANCH: main
 
     steps:
-      - name: Check out default branch
+      - name: Check out release branch
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.repository.default_branch }}
+          ref: ${{ env.RELEASE_BRANCH }}
 
       - name: Decide whether this run should release
         id: should-release
@@ -46,12 +46,12 @@ jobs:
           SHOULD_RELEASE=true
 
           if [ "${EVENT_NAME}" = "push" ]; then
-            git fetch origin "refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
-            CURRENT_HEAD="$(git rev-parse "refs/remotes/origin/${DEFAULT_BRANCH}")"
+            git fetch origin "refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"
+            CURRENT_HEAD="$(git rev-parse "refs/remotes/origin/${RELEASE_BRANCH}")"
 
             if [ "${PUSH_SHA}" != "${CURRENT_HEAD}" ]; then
               SHOULD_RELEASE=false
-              echo "Skipping stale release run for ${PUSH_SHA}; ${CURRENT_HEAD} is newer on ${DEFAULT_BRANCH}."
+              echo "Skipping stale release run for ${PUSH_SHA}; ${CURRENT_HEAD} is newer on ${RELEASE_BRANCH}."
             fi
           fi
 
@@ -120,6 +120,19 @@ jobs:
           printf 'title=%s\n' "${RELEASE_TITLE}" >> "${GITHUB_OUTPUT}"
           printf 'has_version=%s\n' "${HAS_VERSION}" >> "${GITHUB_OUTPUT}"
 
+      - name: Verify release tag is available
+        if: steps.should-release.outputs.value == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.release-meta.outputs.tag }}
+        run: |
+          git check-ref-format "refs/tags/${RELEASE_TAG}"
+          git fetch --tags origin
+
+          if git show-ref --verify --quiet "refs/tags/${RELEASE_TAG}"; then
+            echo "Release tag ${RELEASE_TAG} already exists." >&2
+            exit 1
+          fi
+
       - name: Verify Paperclip import
         if: steps.should-release.outputs.value == 'true'
         run: npm test
@@ -142,21 +155,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add COMPANY.md package.json package-lock.json
           git commit -m "chore: release ${VERSION} [skip ci]"
-          git push origin HEAD:${DEFAULT_BRANCH}
+          git push origin HEAD:${RELEASE_BRANCH}
           echo "changed=true" >> "${GITHUB_OUTPUT}"
-
-      - name: Verify release tag is available
-        if: steps.should-release.outputs.value == 'true'
-        env:
-          RELEASE_TAG: ${{ steps.release-meta.outputs.tag }}
-        run: |
-          git check-ref-format "refs/tags/${RELEASE_TAG}"
-          git fetch --tags origin
-
-          if git show-ref --verify --quiet "refs/tags/${RELEASE_TAG}"; then
-            echo "Release tag ${RELEASE_TAG} already exists." >&2
-            exit 1
-          fi
 
       - name: Create and push release tag
         if: steps.should-release.outputs.value == 'true'
