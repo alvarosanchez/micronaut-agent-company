@@ -29,6 +29,19 @@ const paperclipCliPath = path.join(
 
 const ROOT_PACKAGE_FILES = [".paperclip.yaml", "COMPANY.md", "README.md"];
 const ROOT_PACKAGE_DIRS = ["agents", "projects", "tasks", "skills"];
+const PACKAGE_OWNED_MARKDOWN_NOTICE = normalizeText(`
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+`);
+const PACKAGE_OWNED_MARKDOWN_FILES = ["COMPANY.md", "README.md"];
+const PACKAGE_OWNED_MARKDOWN_DIRS = [
+  "agents",
+  "projects",
+  "references",
+  "skills",
+  "tasks",
+  "teams",
+];
 
 function toPosix(relativePath) {
   return relativePath.split(path.sep).join("/");
@@ -70,6 +83,15 @@ function normalizeSkillSourceMetadataEntry(source) {
     path: source?.path ?? null,
     commit: source?.commit ?? null,
   };
+}
+
+function isReferencedSkillMarkdown(relativePath, frontmatter) {
+  if (!relativePath.startsWith("skills/") || !relativePath.endsWith("/SKILL.md")) {
+    return false;
+  }
+  return (frontmatter.metadata?.sources ?? []).some(
+    (source) => source?.usage === "referenced",
+  );
 }
 
 function isPlainObject(value) {
@@ -168,7 +190,48 @@ async function collectPortableSourceFiles(rootDir) {
   );
 }
 
+async function collectPackageOwnedMarkdownFiles(rootDir) {
+  const files = new Map();
+  for (const relativePath of PACKAGE_OWNED_MARKDOWN_FILES) {
+    const absolutePath = path.join(rootDir, relativePath);
+    if (!existsSync(absolutePath)) {
+      continue;
+    }
+    files.set(relativePath, await readFile(absolutePath, "utf8"));
+  }
+  for (const relativeDir of PACKAGE_OWNED_MARKDOWN_DIRS) {
+    const absoluteDir = path.join(rootDir, relativeDir);
+    if (!existsSync(absoluteDir)) {
+      continue;
+    }
+    for (const relativePath of await walkFiles(rootDir, relativeDir)) {
+      if (!relativePath.endsWith(".md")) {
+        continue;
+      }
+      files.set(relativePath, await readFile(path.join(rootDir, relativePath), "utf8"));
+    }
+  }
+  return Object.fromEntries(
+    [...files.entries()].sort(([left], [right]) => left.localeCompare(right)),
+  );
+}
+
+async function assertPackageOwnedMarkdownHeaders(rootDir) {
+  const markdownFiles = await collectPackageOwnedMarkdownFiles(rootDir);
+  for (const [relativePath, content] of Object.entries(markdownFiles)) {
+    const { frontmatter, body } = parseFrontmatterMarkdown(content);
+    if (isReferencedSkillMarkdown(relativePath, frontmatter)) {
+      continue;
+    }
+    assert.ok(
+      normalizeText(body).startsWith(PACKAGE_OWNED_MARKDOWN_NOTICE),
+      `Expected ${relativePath} to start with the company package ownership header`,
+    );
+  }
+}
+
 async function loadSourceExpectations(rootDir) {
+  await assertPackageOwnedMarkdownHeaders(rootDir);
   const files = await collectPortableSourceFiles(rootDir);
   const companyMarkdown = files["COMPANY.md"];
   assert.ok(companyMarkdown, "Expected COMPANY.md in source package");

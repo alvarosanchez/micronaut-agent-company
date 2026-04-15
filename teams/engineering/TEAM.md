@@ -19,4 +19,7 @@ tags:
   - maintenance
 ---
 
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 The Engineering team maintains a bounded Micronaut repository cluster through a strict `BACKLOG -> TODO -> QA -> implementation -> QA -> Security Engineer -> Code Reviewer -> PR cycle` workflow, with human board approvals and merges remaining outside the agent org.

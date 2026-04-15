@@ -5,6 +5,9 @@ project: company-operations
 recurring: true
 ---
 
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 Review the current Micronaut repository cluster from a security posture perspective.
 
 Inspect recent code changes, active pull requests, default branches, dependency or wrapper movement, build logic, GitHub Actions or other CI/CD automation, release workflows, and security-sensitive docs or examples. Cross-link each finding to an existing synced GitHub issue or PR when possible.

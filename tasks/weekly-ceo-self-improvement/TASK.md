@@ -5,6 +5,9 @@ project: company-operations
 recurring: true
 ---
 
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 Review the company's recent execution history and improve the operating system without creating instruction drift or silent package forks.
 
 Focus on:

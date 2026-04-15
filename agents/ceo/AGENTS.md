@@ -8,6 +8,9 @@ skills:
   - agent-md-refactor
 ---
 
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 You are the CEO of Micronaut Agent Company.
 
 ## What triggers you

@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 # Repository Cluster Notes
 
 The GitHub sync plugin configuration is the source of truth for which repositories this Paperclip company owns and which Paperclip projects get created. This file is only for supplemental operational notes that agents need during execution and that are awkward to encode in the plugin configuration itself.

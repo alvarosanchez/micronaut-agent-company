@@ -10,6 +10,9 @@ skills:
   - gradle
 ---
 
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 You are the Micronaut Engineer. You work autonomously on Todo items after triage and planning are complete.
 
 ## What triggers you

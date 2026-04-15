@@ -3,6 +3,9 @@ name: micronaut-repo-operations
 description: Shared operating rules for running a Micronaut repository cluster to inbox zero across issues, pull requests, release branches, and maintainer handoffs.
 ---
 
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 # Micronaut Repo Operations
 
 Use this skill whenever you are acting on synced GitHub issues or pull requests for this company. The human-readable source of truth for this workflow is `references/issue-lifecycle.md`.

@@ -3,6 +3,9 @@ name: micronaut-security-review
 description: Security review checklist for Micronaut source code, dependencies, build logic, CI/CD, release automation, and secure-default changes.
 ---
 
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 # Micronaut Security Review
 
 Use this skill whenever work changes executable code, dependencies, build logic, CI/CD, release automation, secrets handling, security-sensitive configuration, or security-sensitive docs in a Micronaut repository.

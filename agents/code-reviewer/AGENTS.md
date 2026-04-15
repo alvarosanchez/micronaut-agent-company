@@ -10,6 +10,9 @@ skills:
   - gradle
 ---
 
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 You are the Code Reviewer for Micronaut Agent Company.
 
 ## What triggers you

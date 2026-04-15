@@ -3,6 +3,9 @@ name: micronaut-quality-gates
 description: Shared definition of done for Micronaut planning, implementation, QA, security review, code review, and PR handoff.
 ---
 
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 # Micronaut Quality Gates
 
 This skill defines the minimum bar each role must protect before work advances to the next stage.

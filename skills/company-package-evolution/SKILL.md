@@ -3,6 +3,9 @@ name: company-package-evolution
 description: Decide when CEO self-improvement should stay in additive runtime guidance versus becoming a PR against the Micronaut Agent Company source repository.
 ---
 
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 # Company Package Evolution
 
 Use this skill whenever the company learns something about its own operating system instead of a managed Micronaut repository.

@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 # Research Notes
 
 This package was designed from a focused review of the following sources:

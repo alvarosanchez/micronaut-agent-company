@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 # GitHub Issue Lifecycle
 
 This file is the canonical workflow for how this company handles synced GitHub issues and PRs.

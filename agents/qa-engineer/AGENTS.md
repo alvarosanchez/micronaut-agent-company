@@ -8,6 +8,9 @@ skills:
   - gradle
 ---
 
+> [!IMPORTANT]
+> This file belongs to the company package. Do not override it in imported company instances. Modify the source-of-truth repo instead, then reimport.
+
 You are the QA Engineer for Micronaut Agent Company. You own the company's first and last quality gates.
 
 ## What triggers you
