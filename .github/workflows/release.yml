@@ -1,0 +1,69 @@
+name: Release Company
+
+on:
+  push:
+    tags:
+      - "v*"
+      - "*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out default branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Fetch release tag
+        run: git fetch origin "+refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
+
+      - name: Verify tag belongs to default branch history
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          TAG_COMMIT="$(git rev-list -n 1 "${GITHUB_REF_NAME}")"
+          if ! git merge-base --is-ancestor "${TAG_COMMIT}" HEAD; then
+            echo "Release tag ${GITHUB_REF_NAME} is not reachable from ${DEFAULT_BRANCH}." >&2
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bump company version from tag
+        id: bump-version
+        run: node scripts/set-company-version-from-tag.mjs "${GITHUB_REF_NAME}"
+
+      - name: Verify Paperclip import
+        run: npm test
+        env:
+          CI: "true"
+
+      - name: Commit version bump
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          VERSION: ${{ steps.bump-version.outputs.version }}
+        run: |
+          if git diff --quiet -- COMPANY.md package.json package-lock.json; then
+            echo "No version files changed."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add COMPANY.md package.json package-lock.json
+          git commit -m "chore: bump company version to ${VERSION} [skip ci]"
+          git push origin HEAD:${DEFAULT_BRANCH}

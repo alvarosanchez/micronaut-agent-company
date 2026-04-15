@@ -186,6 +186,10 @@ Import the company package into Paperclip:
 npx paperclipai company import https://github.com/alvarosanchez/micronaut-agent-company
 ```
 
+## Release
+
+Push a SemVer tag such as `v1.2.3` or `1.2.3` to trigger the `Release Company` GitHub Actions workflow. The workflow derives the company version from that tag, updates `COMPANY.md`, `package.json`, and `package-lock.json`, verifies the import, and commits the version bump back to the default branch.
+
 ## Validation
 
 Run the end-to-end import verifier locally with Node 22:
