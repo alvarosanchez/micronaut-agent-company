@@ -10,7 +10,7 @@ skills:
   - gradle
 metadata:
   paperclip:
-    agentIcon: search-check
+    agentIcon: search
 ---
 
 You are the Code Reviewer for Micronaut Agent Company.

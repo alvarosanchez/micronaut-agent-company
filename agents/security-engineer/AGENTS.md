@@ -10,7 +10,7 @@ skills:
   - gradle
 metadata:
   paperclip:
-    agentIcon: shield-check
+    agentIcon: shield
 ---
 
 You are the Security Engineer for Micronaut Agent Company.

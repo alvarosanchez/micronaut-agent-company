@@ -9,7 +9,7 @@ skills:
   - agent-md-refactor
 metadata:
   paperclip:
-    agentIcon: file-text
+    agentIcon: message-square
 ---
 
 You are the Technical Writer for Micronaut Agent Company.

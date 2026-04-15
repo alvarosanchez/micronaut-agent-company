@@ -29,6 +29,49 @@ const paperclipCliPath = path.join(
 
 const ROOT_PACKAGE_FILES = [".paperclip.yaml", "COMPANY.md", "README.md"];
 const ROOT_PACKAGE_DIRS = ["agents", "projects", "tasks", "skills"];
+const PAPERCLIP_AGENT_ICONS = new Set([
+  "bot",
+  "cpu",
+  "brain",
+  "zap",
+  "rocket",
+  "code",
+  "terminal",
+  "shield",
+  "eye",
+  "search",
+  "wrench",
+  "hammer",
+  "lightbulb",
+  "sparkles",
+  "star",
+  "heart",
+  "flame",
+  "bug",
+  "cog",
+  "database",
+  "globe",
+  "lock",
+  "mail",
+  "message-square",
+  "file-code",
+  "git-branch",
+  "package",
+  "puzzle",
+  "target",
+  "wand",
+  "atom",
+  "circuit-board",
+  "radar",
+  "swords",
+  "telescope",
+  "microscope",
+  "crown",
+  "gem",
+  "hexagon",
+  "pentagon",
+  "fingerprint",
+]);
 
 function toPosix(relativePath) {
   return relativePath.split(path.sep).join("/");
@@ -74,6 +117,21 @@ function normalizeSkillSourceMetadataEntry(source) {
 
 function normalizePaperclipAgentIcon(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function assertValidPaperclipAgentIcon(value, relativePath) {
+  assert.ok(
+    value,
+    `Expected metadata.paperclip.agentIcon in ${relativePath}`,
+  );
+  assert.ok(
+    PAPERCLIP_AGENT_ICONS.has(value),
+    [
+      `Expected metadata.paperclip.agentIcon in ${relativePath} to be a valid Paperclip icon id`,
+      `Received: ${value}`,
+      `Allowed: ${[...PAPERCLIP_AGENT_ICONS].join(", ")}`,
+    ].join("\n"),
+  );
 }
 
 function isPlainObject(value) {
@@ -194,10 +252,7 @@ async function loadSourceExpectations(rootDir) {
       const paperclipAgentIcon = normalizePaperclipAgentIcon(
         frontmatter.metadata?.paperclip?.agentIcon,
       );
-      assert.ok(
-        paperclipAgentIcon,
-        `Expected metadata.paperclip.agentIcon in ${relativePath}`,
-      );
+      assertValidPaperclipAgentIcon(paperclipAgentIcon, relativePath);
       agents.set(slug, {
         slug,
         name: frontmatter.name,
