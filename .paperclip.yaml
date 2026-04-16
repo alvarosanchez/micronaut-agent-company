@@ -5,50 +5,57 @@ agents:
       type: codex_local
       config:
         model: gpt-5.4
-        model_reasoning_effort: medium
-        web_search: live
+        modelReasoningEffort: medium
+        search: true
+        dangerouslyBypassApprovalsAndSandbox: true
   architect:
     adapter:
       type: codex_local
       config:
         model: gpt-5.4
-        model_reasoning_effort: high
-        web_search: live
+        modelReasoningEffort: high
+        search: true
+        dangerouslyBypassApprovalsAndSandbox: true
   qa-engineer:
     adapter:
       type: codex_local
       config:
         model: gpt-5.4
-        model_reasoning_effort: high
-        web_search: live
+        modelReasoningEffort: high
+        search: true
+        dangerouslyBypassApprovalsAndSandbox: true
   security-engineer:
     adapter:
       type: codex_local
       config:
         model: gpt-5.4
-        model_reasoning_effort: high
-        web_search: live
+        modelReasoningEffort: high
+        search: true
+        dangerouslyBypassApprovalsAndSandbox: true
   micronaut-engineer:
     adapter:
       type: codex_local
       config:
         model: gpt-5.4
-        model_reasoning_effort: medium
-        web_search: live
+        modelReasoningEffort: medium
+        search: true
+        dangerouslyBypassApprovalsAndSandbox: true
   code-reviewer:
     adapter:
       type: codex_local
       config:
         model: gpt-5.4
-        model_reasoning_effort: high
-        web_search: live
+        modelReasoningEffort: high
+        search: true
+        dangerouslyBypassApprovalsAndSandbox: true
   technical-writer:
     adapter:
       type: codex_local
       config:
         model: gpt-5.4
-        model_reasoning_effort: medium
-        web_search: live
+        modelReasoningEffort: medium
+        search: true
+        dangerouslyBypassApprovalsAndSandbox: true
 routines:
   weekly-security-deep-scan:
     triggers:
