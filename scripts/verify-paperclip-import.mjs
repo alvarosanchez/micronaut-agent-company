@@ -101,6 +101,42 @@ function assertStringArrayEqual(actual, expected, message) {
   assert.deepEqual(sortStrings(actual), sortStrings(expected), message);
 }
 
+function assertImportedCodexAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
+  assert.equal(
+    actualAgent?.adapterType ?? null,
+    expectedAdapter?.type ?? null,
+    `Adapter type mismatch for imported agent ${agentSlug}`,
+  );
+
+  if (expectedAdapter?.type !== "codex_local") {
+    return;
+  }
+
+  const actualConfig = actualAgent?.adapterConfig ?? {};
+  const expectedConfig = expectedAdapter?.config ?? {};
+
+  assert.equal(
+    actualConfig.model ?? null,
+    expectedConfig.model ?? null,
+    `Codex model mismatch for imported agent ${agentSlug}`,
+  );
+  assert.equal(
+    actualConfig.modelReasoningEffort ?? null,
+    expectedConfig.modelReasoningEffort ?? null,
+    `Codex reasoning effort mismatch for imported agent ${agentSlug}`,
+  );
+  assert.equal(
+    actualConfig.search ?? null,
+    expectedConfig.search ?? null,
+    `Codex search flag mismatch for imported agent ${agentSlug}`,
+  );
+  assert.equal(
+    actualConfig.dangerouslyBypassApprovalsAndSandbox ?? null,
+    expectedConfig.dangerouslyBypassApprovalsAndSandbox ?? null,
+    `Codex bypass flag mismatch for imported agent ${agentSlug}`,
+  );
+}
+
 function normalizeSkillReference(skillReference) {
   return skillReference.includes("/")
     ? skillReference.split("/").at(-1) ?? skillReference
@@ -259,6 +295,7 @@ async function loadSourceExpectations(rootDir) {
         title: frontmatter.title ?? null,
         reportsTo: frontmatter.reportsTo ?? null,
         skills: Array.isArray(frontmatter.skills) ? frontmatter.skills : [],
+        adapter: extension?.agents?.[slug]?.adapter ?? null,
         paperclipAgentIcon,
         path: relativePath,
         body: normalizeText(body),
@@ -639,8 +676,15 @@ async function main() {
     );
     const importedAgentIdBySlug = new Map(
       [...expected.agents.values()].map((expectedAgent) => {
-        const importedAgent = importedAgents.find((agent) => agent.name === expectedAgent.name);
+        const importedAgent = importedAgents.find(
+          (agent) => agent.name === expectedAgent.name,
+        );
         assert.ok(importedAgent, `Missing imported agent ${expectedAgent.slug}`);
+        assertImportedCodexAdapterConfig(
+          importedAgent,
+          expectedAgent.adapter,
+          expectedAgent.slug,
+        );
         return [expectedAgent.slug, importedAgent.id];
       }),
     );
