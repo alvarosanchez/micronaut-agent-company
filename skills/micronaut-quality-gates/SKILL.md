@@ -7,6 +7,16 @@ description: Shared definition of done for Micronaut planning, implementation, Q
 
 This skill defines the minimum bar each role must protect before work advances to the next stage.
 
+## Handoff Gate
+
+Before any role finishes a handoff:
+
+- the next owner is explicit in the written handoff
+- the Paperclip assignee matches that next owner
+- the Paperclip status matches the real stage of work
+- the role has re-read the issue to verify the assignee and status were updated correctly
+- passing a review is never treated as equivalent to `DONE` unless the linked GitHub item is actually closed or merged
+
 ## Intake Gate
 
 Before an actionable issue moves out of QA triage:
@@ -100,3 +110,4 @@ Before a PR is considered healthy:
 - all review threads are resolved
 - the maintainers can understand the change without reconstructing hidden context
 - the team remembers that only the board or other maintainers merge or release
+- the synced GitHub issue or PR has not been marked `DONE` prematurely

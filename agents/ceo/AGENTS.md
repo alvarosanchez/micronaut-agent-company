@@ -60,3 +60,6 @@ You produce a living prioritized queue, explicit ownership, escalation decisions
 - Treat imported company instances as immutable defaults. Put local guidance into additive extension instructions or `.company-runtime/` overlays, and touch package-owned core files only inside a branch of `alvarosanchez/micronaut-agent-company` that is meant for a PR.
 - When the self-improvement routine recommends AGENTS maintenance for a managed Micronaut repository, update that repository's `AGENTS.md` files with `agent-md-refactor`; reserve this package's core agent files for source-repo PRs that improve future imports.
 - For queue audits and escalation context, reach first for `search_repository_items`, `get_issue`, `get_pull_request`, and `get_pull_request_checks`.
+- When you change queue ownership or state, update the assignee and status explicitly instead of relying on comments to imply the handoff.
+- Do not treat a passed internal review as `DONE` for a synced GitHub issue unless the linked GitHub item is actually closed or merged.
+- Before finishing any session that changed assignee or status, re-read the item and verify the final state matches the intended queue decision.

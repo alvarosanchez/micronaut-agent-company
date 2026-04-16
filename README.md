@@ -55,6 +55,8 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 9. **Micronaut Engineer** owns the PR cycle after PR creation: keep CI green, address Sonar Quality Gate issues, resolve all review threads, and keep the chosen project link correct if the PR is retargeted, preserving it unless the Architect explicitly retargets the release.
 10. The board or other Micronaut maintainers merge the PR or cut the release. The sync plugin eventually marks the Paperclip item `DONE`.
 
+Every handoff must update the Paperclip item as well as the comment: change assignee and status together when ownership or stage changes, use `in review` for reviewer handoffs, route rework back as `TODO`, do not treat a passed review as `DONE`, and re-read the item before ending the session to verify the final state matches the intended handoff.
+
 In addition to the synced GitHub work queue, the package includes two weekly internal routines under `company-operations`: a proactive **Security Engineer** deep scan and a **CEO** self-improvement review. These routines create internal Paperclip work items that help keep the company healthy; they do not replace the synced GitHub issues and PRs that remain the real delivery backlog.
 
 Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. For already-implemented reports, QA must capture the supporting version, PR, release, or documentation evidence and wait for a human Paperclip approval comment before posting the GitHub explanation and closing the issue.
@@ -79,6 +81,7 @@ Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-im
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
 - The implementation loop is always `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer`.
 - `Code Reviewer` creates the PR after QA and Security Engineer sign-off, but only the board or other Micronaut maintainers may merge or cut releases.
+- Passing QA, Security, or Code Review is not a terminal state for a synced GitHub issue by itself. Agents must update the next assignee and status explicitly, then verify the final item state before they stop.
 - Every PR must include a closing keyword such as `Fixes #123`, must carry one of the `type:` labels above, and must be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version.
 - If multiple organization projects are plausible, if no matching project exists yet, or if the available GitHub tooling cannot apply the project link, agents must escalate instead of opening an unlinked PR.
 - Imported company instances treat package-owned defaults as immutable in place; reusable default improvements should be promoted by the CEO through a PR to `alvarosanchez/micronaut-agent-company`.

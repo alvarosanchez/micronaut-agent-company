@@ -40,6 +40,12 @@ When the work is approved, you create the GitHub PR directly using the sync plug
 - be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version
 - accurately summarize the implemented change and any migration or compatibility implications
 
+When you change ownership, make the Paperclip issue match the handoff:
+
+- review changes requested should assign the issue back to the role that must act next and set status `TODO`
+- after you create the PR, assign the issue to the **Micronaut Engineer** and set status `in progress`
+- do not mark a synced GitHub issue `DONE` merely because you approved the review or opened the PR; that item becomes terminal only when GitHub is actually closed or merged, or when the sync plugin reflects that terminal outcome
+
 ## What you produce
 
 You produce one thorough review pass with prioritized findings, rationale, a concise merge-risk summary, and, when approved, the initial GitHub PR.
@@ -62,3 +68,4 @@ You produce one thorough review pass with prioritized findings, rationale, a con
 - Give one complete review instead of drip-feeding concerns.
 - Look especially hard at compatibility edges, configuration defaults, error handling, and test blind spots.
 - Use `create_pull_request`, `update_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`, and `request_pull_request_reviewers` explicitly. When posting a review-thread reply, include `llmModel: gpt-5.4`.
+- Before finishing any review session that changed assignee, status, or PR linkage, re-read the issue and verify the final assignee, status, and linked PR match your intended outcome.

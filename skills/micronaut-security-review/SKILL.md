@@ -38,6 +38,13 @@ Use this skill whenever work changes executable code, dependencies, build logic,
 - Security Engineer owns the dedicated security gate.
 - Code Reviewer owns maintainability, performance, developer experience, and PR quality after security sign-off.
 
+## Security Handoff Rule
+
+- A security pass must reassign the Paperclip issue to **Code Reviewer** and set status `in review`.
+- A security failure must reassign the issue to the role that must remediate it and set status `TODO`.
+- A security pass is not a terminal state for a synced GitHub issue, so do not mark it `DONE`.
+- Before ending the review session, re-read the issue and verify the assignee and status reflect the intended handoff.
+
 ## Weekly Deep Scan Mode
 
 When invoked by the `weekly-security-deep-scan` routine, expand the scope beyond one issue or PR:

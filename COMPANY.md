@@ -42,6 +42,8 @@ The company operates as a gated pipeline:
 9. **Micronaut Engineer** owns the PR cycle after PR creation: CI must stay green, Sonar Quality Gate issues must be addressed, all review threads must be resolved, and the chosen project link must stay correct if the PR is retargeted.
 10. The board or other Micronaut maintainers merge the PR or cut the release, and the sync plugin eventually marks the Paperclip item `DONE`.
 
+Every agent handoff must update the Paperclip issue to match the written handoff. In practice, that means changing assignee and status together when ownership or stage changes, treating reviewer handoffs as `in review`, routing rework back as `TODO`, never treating a passed review as `DONE` by itself, and re-reading the issue before ending the session to verify the final state is correct.
+
 The board is intentionally not modeled as an agent role. Board approval is a human comment in Paperclip, and merge or release authority remains human.
 
 Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. For already-implemented reports, QA must capture the supporting version, PR, release, or documentation evidence and wait for a human Paperclip approval comment before posting the GitHub explanation and closing the issue.
