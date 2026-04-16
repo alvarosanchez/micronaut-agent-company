@@ -44,6 +44,8 @@ The company operates as a gated pipeline:
 
 The board is intentionally not modeled as an agent role. Board approval is a human comment in Paperclip, and merge or release authority remains human.
 
+Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. For already-implemented reports, QA must capture the supporting version, PR, release, or documentation evidence and wait for a human Paperclip approval comment before posting the GitHub explanation and closing the issue.
+
 This package is intentionally generic about repository selection. The GitHub sync plugin configuration defines the actual repository set and creates the Paperclip projects and synced issues or PRs that become the real work queue. Use `references/repository-cluster.md` only for supplemental operational facts that the sync configuration does not capture well, such as release-line notes, CI commands, Sonar quirks, docs conventions, and maintainer preferences.
 
 The package also includes one lightweight internal project, `company-operations`, with two recurring Paperclip routines: a weekly **Security Engineer** deep scan and a weekly **CEO** self-improvement review. These are company-operating routines, not delivery backlog, and they exist to keep the maintenance system healthy even when the synced GitHub queue is temporarily quiet. The CEO routine may also promote reusable company learnings into PRs against the source package repository when a default should improve for future imports.

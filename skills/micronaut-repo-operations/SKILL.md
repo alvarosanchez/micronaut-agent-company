@@ -93,7 +93,7 @@ Actionable issues and PRs should carry exactly one `type:` label:
 - `type: bug` for bug fixes
 - `type: question` for questions that need a board-approved answer proposal
 
-Duplicate, stale, superseded, and out-of-scope issues may be closed without forcing a `type:` label if that closure path is immediate and well documented.
+Duplicate, stale, superseded, out-of-scope, and already-implemented issues may be closed without forcing a `type:` label if that closure path is immediate and well documented.
 
 ## Type Routing
 
@@ -101,6 +101,7 @@ Duplicate, stale, superseded, and out-of-scope issues may be closed without forc
 - `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade`: QA routes to `architect` for release-targeting and implementation planning.
 - `type: docs`: QA routes directly to `technical-writer`.
 - `type: question`: QA prepares an answer proposal for board approval, then publishes the approved answer on GitHub and closes or resolves the issue according to maintainer policy.
+- `already implemented`: QA documents the version, PR, release, or docs evidence showing the requested behavior already exists, prepares a board-approved closure proposal, then publishes the approved explanation on GitHub and closes the issue without adding a `type:` label.
 
 ## Documentation Policy
 

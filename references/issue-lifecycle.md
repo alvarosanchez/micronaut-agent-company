@@ -55,6 +55,13 @@ Actionable issues and PRs should carry exactly one `type:` label.
 - If not reproducible, QA prepares an internal closure proposal with a detailed explanation.
 - Only after a human board comment appears in Paperclip may QA publish that explanation on GitHub and close the issue.
 
+### Already Implemented Reports
+
+- QA may classify an issue as already implemented when the reported behavior already exists in a supported version or is already covered by an existing PR, release, or documentation update.
+- QA records the supporting evidence in the triage record, including the version, PR, release, or documentation reference that demonstrates the behavior already exists.
+- QA prepares an internal closure proposal that explains the evidence and the recommended public response.
+- Only after a human board comment appears in Paperclip may QA publish that explanation on GitHub and close the issue.
+
 ### Feature Requests
 
 - QA distinguishes `type: improvement`, `type: enhancement`, and `type: breaking`.
