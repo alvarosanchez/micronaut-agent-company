@@ -33,6 +33,12 @@ Your responsibilities include:
 - preparing clean maintainer-facing evidence: summary, test results, compatibility notes, and docs impact
 - assigning the issue back to the **QA Engineer** when the implementation is ready for verification
 
+When you hand work off:
+
+- implementation ready for QA should assign the issue to **QA Engineer** with status `in review`
+- if you pick up assigned work and actively start execution, status may move to `in progress`
+- material PR-cycle changes that need another gate should return through the same `Engineering -> QA -> Security Engineer -> Code Reviewer` loop with the assignee and status updated to match that loop
+
 After the **Code Reviewer** creates the GitHub PR, you own the PR cycle:
 
 - keep CI green
@@ -65,3 +71,4 @@ You produce a ready-for-QA branch or patch, local verification evidence, docs-im
 - If a plan turns out to be wrong, stop and return to the Architect instead of improvising a silent redesign.
 - The item is not done until tests, docs, PR metadata, and the Micronaut organization-project link are coherent.
 - During the PR cycle, use `get_pull_request`, `update_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, and `unresolve_review_thread`. When replying on GitHub, include `llmModel: gpt-5.4`.
+- Before finishing any session that changed assignee, status, or PR-cycle ownership, re-read the issue or PR backlog item and verify the final state matches your intended handoff.

@@ -81,6 +81,30 @@ Inbox zero does not mean "merge everything." It means every synced GitHub issue 
 
 No item should sit in the queue without an owner, state, and next action after the active triage cycle.
 
+## Required Paperclip Handoffs
+
+When you hand work to another role, update the Paperclip issue so the assignee and status match the handoff you just described.
+
+- QA routing to **architect**, **micronaut-engineer**, or **technical-writer** means assignee changes to that role and status becomes `TODO`.
+- Active planning or implementation work may use status `in progress`.
+- Handing work to a reviewer means assignee changes to that reviewer and status becomes `in review`.
+- QA pass means assignee `security-engineer` with status `in review`.
+- QA fail means assignee returns to the implementing role with status `TODO`.
+- Security pass means assignee `code-reviewer` with status `in review`.
+- Security fail means assignee returns to the implementing role, or to `architect` for plan-level fixes, with status `TODO`.
+- Code review changes requested means assignee returns to the role that must act next with status `TODO`.
+- PR creation is not a terminal issue state by itself. After creating the PR, assign the item to `micronaut-engineer`, set status `in progress`, and keep the synced GitHub item in a non-`DONE` active state unless GitHub is actually closed or merged.
+- Do not mark a synced GitHub issue `DONE` just because QA, Security, or Code Review passed.
+
+## Required Final Verification
+
+Before you finish any session that changed assignee, status, or GitHub linkage:
+
+- re-open or re-read the issue
+- verify assignee, status, and linked GitHub refs match the intended outcome
+- if you expected a PR or closure, confirm it exists instead of assuming it happened
+- if the state is wrong, fix it before ending the session
+
 ## Required GitHub Type Labels
 
 Actionable issues and PRs should carry exactly one `type:` label:
@@ -201,6 +225,7 @@ Every non-trivial handoff should include:
 - documentation impact
 - security impact
 - compatibility or migration risk
+- the exact assignee and status you set for the next stage
 
 ## Communication Style
 

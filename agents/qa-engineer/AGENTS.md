@@ -47,6 +47,13 @@ For completed work:
 - if the work passes, assign it to the **Security Engineer**
 - if it fails, assign it back to the **Micronaut Engineer** or **Technical Writer** with an explicit gap list
 
+When you change ownership, make the Paperclip issue match the handoff:
+
+- triaged actionable work routed to **Architect**, **Micronaut Engineer**, or **Technical Writer** should use status `TODO`
+- a QA pass should assign the issue to **Security Engineer** with status `in review`
+- a QA failure should assign the issue back to the implementing role with status `TODO`
+- if you close an issue through an approved closure path, verify the GitHub close action happened before treating the item as terminal
+
 ## What you produce
 
 You produce triage and QA artifacts such as:
@@ -75,3 +82,4 @@ You produce triage and QA artifacts such as:
 - Do not rewrite the architecture yourself; send architectural ambiguity back upstream.
 - Protect the acceptance criteria even when the implementation is otherwise high quality.
 - For intake and closure work, use `search_repository_items`, `get_issue`, `list_issue_comments`, `update_issue`, and `add_issue_comment`. When you publish an approved GitHub comment, include `llmModel: gpt-5.4`.
+- Before finishing any session that changed routing, assignee, or status, re-read the issue and verify the final assignee and status match your intended handoff.

@@ -31,6 +31,32 @@ The company also runs a small set of internal Paperclip routines under `company-
 
 The implementation loop is always `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer`.
 
+## Paperclip Handoff Contract
+
+When an agent hands work to another role, the Paperclip issue must reflect the handoff, not only the comment text.
+
+- Sending new actionable work from QA to **Architect**, **Micronaut Engineer**, or **Technical Writer** means setting the assignee to that next owner and the status to `TODO`.
+- When **Architect**, **Micronaut Engineer**, or **Technical Writer** are actively working the item, they may use `in progress`.
+- Handing completed implementation or planning work to a reviewer means setting the assignee to that reviewer and the status to `in review`.
+- A QA pass means assignee `security-engineer` and status `in review`.
+- A QA failure means assignee returns to the implementing role and status `TODO`.
+- A Security pass means assignee `code-reviewer` and status `in review`.
+- A Security failure means assignee returns to the implementing role, or to `architect` when the issue is really plan-level, and status `TODO`.
+- Code review changes requested means assignee returns to the role that must act next and status `TODO`.
+- After Code Reviewer creates the PR, PR-cycle ownership returns to `micronaut-engineer` with status `in progress`.
+- Passing QA, passing Security, or opening a PR are not reasons to mark a synced GitHub issue `DONE`.
+- A synced GitHub issue should be marked `DONE` only when the linked GitHub issue or PR is actually closed or merged, or when the sync plugin has already reflected that terminal GitHub outcome.
+
+## Final State Verification
+
+Before finishing a session that changes assignee, status, or GitHub linkage:
+
+- re-read the Paperclip issue
+- verify the final assignee matches the intended next owner
+- verify the final status matches the intended stage
+- verify any claimed PR or GitHub closure actually exists
+- if the state is wrong, correct it before ending the session
+
 ## Type Labels
 
 | Label | Meaning | Routing |
@@ -51,7 +77,7 @@ Actionable issues and PRs should carry exactly one `type:` label.
 
 - QA checks whether sufficient information exists to reproduce the bug.
 - QA creates a reproducer test or verifies the reproducer provided by the reporter.
-- If reproduced, QA assigns the issue to Micronaut Engineer.
+- If reproduced, QA assigns the issue to Micronaut Engineer and sets status `TODO`.
 - If not reproducible, QA prepares an internal closure proposal with a detailed explanation.
 - Only after a human board comment appears in Paperclip may QA publish that explanation on GitHub and close the issue.
 
@@ -71,7 +97,7 @@ Actionable issues and PRs should carry exactly one `type:` label.
 
 ### Docs
 
-- QA assigns `type: docs` issues directly to Technical Writer.
+- QA assigns `type: docs` issues directly to Technical Writer and sets status `TODO`.
 - Docs-only issues still go through QA, Security Engineer, and Code Reviewer before a PR is created.
 
 ### Questions
@@ -106,6 +132,7 @@ Actionable issues and PRs should carry exactly one `type:` label.
 - Micronaut Engineer should use `get_pull_request`, `update_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, and `unresolve_review_thread` during the PR cycle.
 - Prefer `paperclipIssueId` whenever a synced Paperclip issue is available so the plugin can infer the linked GitHub issue or PR and repository.
 - When posting a GitHub issue comment or review-thread reply, provide only the human-facing body and include `llmModel: gpt-5.4`; the plugin appends the required AI-authorship footer.
+- When a role changes assignee or status, it should use `update_issue` so the Paperclip item matches the written handoff before the role finishes.
 - Code Reviewer creates the PR directly after QA and Security Engineer sign-off.
 - Every PR must use a closing keyword such as `Fixes #123`.
 - Every PR must carry one of the `type:` labels listed above.
