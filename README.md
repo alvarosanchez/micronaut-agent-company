@@ -57,6 +57,8 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 
 In addition to the synced GitHub work queue, the package includes two weekly internal routines under `company-operations`: a proactive **Security Engineer** deep scan and a **CEO** self-improvement review. These routines create internal Paperclip work items that help keep the company healthy; they do not replace the synced GitHub issues and PRs that remain the real delivery backlog.
 
+Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. For already-implemented reports, QA must capture the supporting version, PR, release, or documentation evidence and wait for a human Paperclip approval comment before posting the GitHub explanation and closing the issue.
+
 ## Issue Types
 
 | Label | Meaning | Default Route |

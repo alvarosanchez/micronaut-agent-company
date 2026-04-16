@@ -20,7 +20,7 @@ Write the concrete definition here. Suggested baseline:
 
 - every synced issue or PR has an owner and next action
 - no untriaged item remains after the active sweep
-- stale, duplicate, superseded, or out-of-scope work is closed with an explanation
+- stale, duplicate, superseded, out-of-scope, or already-implemented work is closed with an explanation
 - actionable items are routed through the company pipeline without bypassing QA or architecture
 - new synced issues land in `BACKLOG` assigned to `qa-engineer`
 - only humans move items from `BACKLOG` to `TODO`

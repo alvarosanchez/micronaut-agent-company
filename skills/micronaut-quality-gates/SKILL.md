@@ -16,7 +16,7 @@ Before an actionable issue moves out of QA triage:
 - the issue has the correct `type:` label
 - the next owner is explicit
 - if the issue is a bug, a reproducer test or reproducer verification note exists
-- if the issue is an unreproducible bug or a question that needs a final public answer, the board-approval path is explicit
+- if the issue is an unreproducible bug, an already-implemented closure, or a question that needs a final public answer, the board-approval path is explicit
 
 ## Planning Gate
 
