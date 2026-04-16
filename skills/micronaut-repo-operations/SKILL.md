@@ -85,7 +85,7 @@ No item should sit in the queue without an owner, state, and next action after t
 
 When you hand work to another role, update the Paperclip issue so the assignee and status match the handoff you just described.
 
-- QA routing to **architect**, **micronaut-engineer**, or **technical-writer** means assignee changes to that role and status becomes `TODO`.
+- QA routing to `architect`, `micronaut-engineer`, or `technical-writer` means assignee changes to that role and status becomes `TODO`.
 - Active planning or implementation work may use status `in progress`.
 - Handing work to a reviewer means assignee changes to that reviewer and status becomes `in review`.
 - QA pass means assignee `security-engineer` with status `in review`.
