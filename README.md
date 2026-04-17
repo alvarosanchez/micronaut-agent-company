@@ -1,6 +1,6 @@
 # Micronaut Agent Company
 
-Micronaut Agent Company is an importable Agent Companies package for Paperclip. It is built for a subset of related repositories in the `micronaut-projects` GitHub organization and is optimized for the long-running maintenance problem: keep the issue and PR inbox empty without sacrificing code quality, compatibility, security, or documentation quality.
+Micronaut Agent Company is an importable Agent Companies template package for Paperclip. It is built for a subset of related repositories in the `micronaut-projects` GitHub organization and is optimized for the long-running maintenance problem: keep the issue and PR inbox empty without sacrificing code quality, compatibility, security, or documentation quality.
 
 It combines company-local governance skills with referenced maintainer skills pinned to `micronaut-project-template`, so the agents reuse upstream Micronaut coding, docs, and Gradle guidance instead of vendoring those instructions here.
 
@@ -96,7 +96,7 @@ stateDiagram-v2
 
 After every `approved` transition, explicitly invoke the next reviewer heartbeat if you expect them to act now. For the question and approved-closure path, the linked board approval replaces the next review stage until a human resolves it.
 
-In addition to the synced GitHub work queue, the package includes one bootstrap internal issue plus two weekly internal routines under `company-operations`. The bootstrap issue, **Verify Imported Company Instance**, imports in `TODO` on the CEO queue so the imported entity set can be checked before normal operations begin. The routines create ongoing internal Paperclip work items that help keep the company healthy; they do not replace the synced GitHub issues and PRs that remain the real delivery backlog. The routines import paused by default so maintainers can finish GitHub sync and any `.company-runtime/` setup before enabling them.
+In addition to the synced GitHub work queue, the package includes one bootstrap internal issue plus two weekly internal routines under `company-operations`. The bootstrap issue, **Verify Imported Company Instance**, imports in `TODO` on the CEO queue so the imported entity set can be checked before normal operations begin. The routines create ongoing internal Paperclip work items that help keep the company healthy; they do not replace the synced GitHub issues and PRs that remain the real delivery backlog. The routines import enabled by default so those recurring maintenance checks start automatically after import.
 
 Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. For already-implemented reports, QA must capture the supporting version, PR, release, or documentation evidence and wait for the required Paperclip board approval before posting the GitHub explanation and closing the issue.
 
@@ -132,7 +132,7 @@ Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-im
 - The GitHub sync plugin creates one Paperclip project per synced repository.
 - Synced GitHub issues and PRs are the actual work items for the company.
 - This package intentionally ships no starter delivery backlog.
-- It does include one lightweight internal project, `company-operations`, whose bootstrap CEO verification task imports as a `TODO` issue and whose two recurring tasks import as paused Paperclip routines for security posture reviews and CEO self-improvement.
+- It does include one lightweight internal project, `company-operations`, whose bootstrap CEO verification task imports as a `TODO` issue and whose two recurring tasks import as active Paperclip routines for security posture reviews and CEO self-improvement.
 - Paperclip issue blockers and execution policies for synced GitHub delivery work belong in the live Paperclip instance or sync/plugin layer, because those issues are created after import rather than authored inside this package. Configure those live issues with review and approval stages that match this package's workflow.
 - Use linked Paperclip approvals for board governance. Do not depend on free-form comments or on undocumented approver semantics inside execution stages.
 - Use `.company-runtime/shared.md` or `.company-runtime/projects/<project-slug>.md` for supplemental release, CI, docs, and maintainer-convention notes that are not already encoded in the sync plugin configuration.
@@ -150,7 +150,7 @@ Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-im
 | `Weekly Security Deep Scan` | Security Engineer | Mondays at 09:00 `Europe/Madrid` | Proactively inspect recent code, dependencies, build logic, CI/CD, release automation, and docs for security risk |
 | `Weekly CEO Self-Improvement` | CEO | Fridays at 15:00 `Europe/Madrid` | Review recent executions, audit the imported company skill inventory, keep repo-level instruction hygiene healthy, and promote reusable company learnings through package PRs |
 
-These routines import paused by default. Enable them only after GitHub sync is healthy and any `.company-runtime/` overlays you need are in place.
+These routines import enabled by default.
 
 ## Reimport-Safe Runtime Overlays And Package Evolution
 
@@ -256,8 +256,9 @@ These skills are included as referenced skills pinned to `micronaut-projects/mic
 3. If you want local, additive runtime guidance that survives package reimports, create `.company-runtime/shared.md` and any role- or project-specific overlay files you need. Keep that guidance out of the package-owned core files unless you are intentionally publishing a new package version through a PR to `alvarosanchez/micronaut-agent-company`.
 4. Put any supplemental facts the agents will need during execution into `.company-runtime/shared.md` or `.company-runtime/projects/<project-slug>.md`, such as release-line rules, CI commands, Sonar expectations, docs layout notes, and maintainer preferences.
 5. Let the sync plugin import the live GitHub issues and PRs. Those imported items are the company backlog and active work queue.
-6. Expect Paperclip to import `Verify Imported Company Instance` as a `TODO` issue for the **CEO**, plus the `company-operations` recurring tasks as paused internal routines for the **Security Engineer** and **CEO**. Use the bootstrap issue to verify the imported entities before you enable the routines.
-7. Use the imported `micronaut-repo-operations` and `micronaut-quality-gates` skills as the operational source of truth when adjusting local company policy.
+6. Expect Paperclip to import `Verify Imported Company Instance` as a `TODO` issue for the **CEO**, plus the `company-operations` recurring tasks as active internal routines for the **Security Engineer** and **CEO**. Use the bootstrap issue to verify the imported entities while the routines begin their normal schedule.
+7. Importing the bootstrap issue does not automatically wake the CEO. After import, explicitly invoke the CEO heartbeat for `Verify Imported Company Instance` with the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action.
+8. Use the imported `micronaut-repo-operations` and `micronaut-quality-gates` skills as the operational source of truth when adjusting local company policy.
 
 ## Import
 

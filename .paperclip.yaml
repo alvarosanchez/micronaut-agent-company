@@ -60,14 +60,14 @@ agents:
         dangerouslyBypassApprovalsAndSandbox: true
 routines:
   weekly-security-deep-scan:
-    status: paused
+    status: active
     triggers:
       - kind: schedule
         label: Weekly security deep scan
         cronExpression: "0 9 * * 1"
         timezone: Europe/Madrid
   weekly-ceo-self-improvement:
-    status: paused
+    status: active
     triggers:
       - kind: schedule
         label: Weekly CEO self-improvement
