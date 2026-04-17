@@ -5,32 +5,34 @@ description: Shared definition of done for Micronaut planning, implementation, Q
 
 # Micronaut Quality Gates
 
-This skill defines the minimum bar each role must protect before work advances to the next stage.
+This skill defines the minimum bar each role must protect before its execution-policy stage can resolve as `approved`.
 
-## Handoff Gate
+## Shared Stage Contract
 
-Before any role finishes a handoff:
+Before any role resolves its stage:
 
-- the next owner is explicit in the written handoff
-- the Paperclip assignee matches that next owner
-- the Paperclip status matches the real stage of work
-- the role has re-read the issue to verify the assignee and status were updated correctly
-- passing a review is never treated as equivalent to `DONE` unless the linked GitHub item is actually closed or merged
+- the role has read the current execution stage, current stage participant, latest linked GitHub context, and any linked approval
+- the role has produced one durable stage artifact that explains the decision
+- the role resolves the stage with `approved` or `changes_requested` instead of routing by Paperclip handoff comment
+- if a human governance decision is required, the role creates or updates a real Paperclip approval instead of treating a comment as approval
+- if the next stage should run immediately, the role explicitly invokes the next agent heartbeat instead of assuming that adding a reviewer wakes them
+- the role re-opens the issue and verifies the execution state matches the intended outcome before finishing
 
 ## Intake Gate
 
-Before an actionable issue moves out of QA triage:
+Before an actionable issue moves out of QA intake:
 
 - a human has moved the synced issue from `BACKLOG` to `TODO`
-- deduplication has been performed
-- the issue has the correct `type:` label
-- the next owner is explicit
-- if the issue is a bug, a reproducer test or reproducer verification note exists
-- if the issue is an unreproducible bug, an already-implemented closure, or a question that needs a final public answer, the board-approval path is explicit
+- deduplication has been performed against GitHub issues in the same synced repository
+- the issue has the correct `type:` label, unless it is on a documented immediate-closure path
+- bugs have a reproducer or a precise non-reproducer record
+- the downstream execution-policy stage sequence is correct for the issue type
+- required all-of gates are modeled as separate sequential stages instead of one multi-participant stage
+- if the issue needs a public answer or approved closure, the board-approval path is explicit
 
 ## Planning Gate
 
-Before implementation starts, the plan must state:
+Before implementation starts, the plan artifact must state:
 
 - target repository and branch
 - target release or release line
@@ -40,22 +42,36 @@ Before implementation starts, the plan must state:
 - test strategy
 - documentation impact
 - whether the change must remain non-breaking
-- explicit Architect approval if the change is breaking
+- the exact Micronaut organization project the PR must use
+- explicit human approval when the change needs one
 
-If any of these are missing, the item is not ready.
+If any of these are missing, planning does not resolve as `approved`.
 
 ## Implementation Gate
 
 Before code or docs leave implementation:
 
 - the change is the smallest safe diff
-- the change follows the Architect's plan or makes the QA reproducer pass
-- tests cover the changed behavior or a reason is given when tests cannot be added
+- the change follows the approved plan or makes the QA reproducer pass
+- tests cover the changed behavior, or the implementation artifact explains why that is impossible
 - docs impact is addressed or explicitly ruled out
 - branch and release-line choices are correct
 - git work used the local git CLI
-- the implementer is handing back to QA, not skipping straight to PR creation
 - hidden cleanup has not been bundled without approval
+- the next QA stage can verify the work without reconstructing intent from scratch
+
+## QA Gate
+
+The QA Engineer verifies:
+
+- intake decisions are correct and the downstream stage sequence is correct
+- the implementation still matches the approved plan or the reproducer
+- the original issue or PR concern is actually resolved
+- tests and documentation support the claimed change
+- no important acceptance criteria were silently dropped
+- public answers and closure paths have the required Paperclip board approval before anything is published on GitHub
+
+Work that passes QA moves into the next configured review stage. Work that fails QA resolves as `changes_requested`.
 
 ## Security Gate
 
@@ -65,9 +81,9 @@ The Security Engineer checks for:
 - authentication, authorization, secret handling, serialization, filesystem, process, and network risk
 - dependency, build, CI/CD, release, and supply-chain risk
 - insecure defaults or examples that would steer users into unsafe deployment or configuration choices
-- whether blocking findings are concrete enough to justify stopping the work
+- whether blocking findings are concrete enough to justify `changes_requested`
 
-If the work is approved, it moves to Code Reviewer. If not, it goes back to implementation and then re-enters QA.
+If the work is approved, it moves to Code Reviewer. If not, it returns through the execution policy as `changes_requested`.
 
 ## Code Review Gate
 
@@ -78,30 +94,19 @@ The Code Reviewer checks for:
 - performance and regression risk
 - API, config, and developer-experience quality
 - missing or weak tests
-- correct PR issue linkage and `type:` label when approving work
+- correct PR issue linkage, `type:` label, organization project, and reviewer requests when approving work
 
-If the work is approved, the Code Reviewer creates the PR. If not, it goes back to implementation and then re-enters QA.
-
-## QA Gate
-
-The QA Engineer verifies:
-
-- the implementation still matches the Architect's plan
-- the original issue or PR concern is actually resolved
-- tests and documentation support the claimed change
-- no important acceptance criteria were silently dropped
-- unreproducible bug closures and question answers have the required board approval comment before anything is published on GitHub
-
-Work that passes QA moves to Security Engineer. Work that fails QA goes back to the implementer.
+If the work is approved, the Code Reviewer creates or verifies the PR. If not, it resolves as `changes_requested`.
 
 ## PR Gate
 
 Before a PR is considered healthy:
 
-- the Code Reviewer created the PR after QA and Security Engineer sign-off
-- summary and rationale are coherent
+- the Code Reviewer created the PR after QA and Security Engineer stages approved
+- the summary and rationale are coherent
 - linked issue context is accurate and uses a closing keyword
 - the PR carries exactly one `type:` label
+- the PR is linked to the exact Micronaut organization project chosen earlier
 - test evidence is ready to share
 - documentation or migration notes are included when needed
 - security review comments are addressed
@@ -110,4 +115,3 @@ Before a PR is considered healthy:
 - all review threads are resolved
 - the maintainers can understand the change without reconstructing hidden context
 - the team remembers that only the board or other maintainers merge or release
-- the synced GitHub issue or PR has not been marked `DONE` prematurely

@@ -29,28 +29,30 @@ Micronaut Agent Company is a lean maintenance company for Micronaut open-source 
 
 The package combines local company-specific operating skills with referenced maintainer skills pinned to `micronaut-project-template`, so agents inherit upstream Micronaut coding, docs, and Gradle guidance without copying those skills into the company package.
 
-The company operates as a gated pipeline:
+The company operates as a gated pipeline driven by Paperclip execution policies:
 
-1. The sync plugin creates new GitHub issues in Paperclip in `BACKLOG`, assigned to **QA Engineer**.
+1. The sync plugin creates new GitHub issues in Paperclip in `BACKLOG`.
 2. A human reviews backlog items and moves actionable ones to `TODO`.
-3. **QA Engineer** deduplicates the issue, applies the correct GitHub `type:` label, and routes it by issue type.
-4. **Architect** plans `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work, explicitly approves any breaking change, and chooses the exact Micronaut organization project that matches the intended release.
-5. **Micronaut Engineer** or **Technical Writer** implements the work using local git CLI only.
-6. **QA Engineer** verifies the implementation against the Architect's plan or the reproducer test and either returns it for rework or signs it off.
-7. **Security Engineer** reviews the source, dependency, build, CI/CD, configuration, and documentation attack surface and either returns the work for remediation or passes it onward.
-8. **Code Reviewer** reviews for code quality, developer experience, performance, and maintainability, then creates the GitHub PR directly when the work is approved and links it to the chosen Micronaut organization project.
-9. **Micronaut Engineer** owns the PR cycle after PR creation: CI must stay green, Sonar Quality Gate issues must be addressed, all review threads must be resolved, and the chosen project link must stay correct if the PR is retargeted.
+3. **QA Engineer** handles the intake stage, deduplicates against GitHub issues in the synced repository, applies the correct GitHub `type:` label, and chooses the correct downstream execution-policy stage sequence for that issue type.
+4. **Architect** handles the planning stage for `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work, locks the implementation plan, and chooses the exact Micronaut organization project that matches the intended release.
+5. **Micronaut Engineer** or **Technical Writer** handles the implementation stage using local git CLI only.
+6. **QA Engineer** handles the verification stage and either approves the work for security review or resolves the stage with `changes_requested`.
+7. **Security Engineer** handles the security stage and either approves the work for code review or resolves the stage with `changes_requested`.
+8. **Code Reviewer** handles the final review stage, creates the GitHub PR directly when the work is approved, and links it to the chosen Micronaut organization project.
+9. **Micronaut Engineer** handles PR follow-through after PR creation: CI must stay green, Sonar Quality Gate issues must be addressed, all review threads must be resolved, and the chosen project link must stay correct if the PR is retargeted.
 10. The board or other Micronaut maintainers merge the PR or cut the release, and the sync plugin eventually marks the Paperclip item `DONE`.
 
-Every agent handoff must update the Paperclip issue to match the written handoff. In practice, that means changing assignee and status together when ownership or stage changes, treating reviewer handoffs as `in review`, routing rework back as `TODO`, never treating a passed review as `DONE` by itself, and re-reading the issue before ending the session to verify the final state is correct.
+Each stage acts only when it is the current execution stage participant. Agents resolve stages with `approved` or `changes_requested`, request linked Paperclip approvals when a human governance decision is required, and explicitly invoke the next reviewer heartbeat when they need the next stage to act immediately. Assignee flips and Paperclip handoff comments are not the workflow mechanism.
 
-The board is intentionally not modeled as an agent role. Board approval is a human comment in Paperclip, and merge or release authority remains human.
+The board is intentionally not modeled as an agent role. Board approval is an explicit human Paperclip approval linked to the relevant issue or proposal, and merge or release authority remains human.
 
-Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. For already-implemented reports, QA must capture the supporting version, PR, release, or documentation evidence and wait for a human Paperclip approval comment before posting the GitHub explanation and closing the issue.
+Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. For already-implemented reports, QA must capture the supporting version, PR, release, or documentation evidence and wait for the required Paperclip board approval before posting the GitHub explanation and closing the issue.
 
-This package is intentionally generic about repository selection. The GitHub sync plugin configuration defines the actual repository set and creates the Paperclip projects and synced issues or PRs that become the real work queue. Use `references/repository-cluster.md` only for supplemental operational facts that the sync configuration does not capture well, such as release-line notes, CI commands, Sonar quirks, docs conventions, and maintainer preferences.
+This package is intentionally generic about repository selection. The GitHub sync plugin configuration defines the actual repository set and creates the Paperclip projects and synced issues or PRs that become the real work queue. Put supplemental operational facts that agents need at runtime, such as release-line notes, CI commands, Sonar quirks, docs conventions, and maintainer preferences, into `.company-runtime/shared.md` or `.company-runtime/projects/<project-slug>.md`.
 
-The package also includes one lightweight internal project, `company-operations`, with two recurring Paperclip routines: a weekly **Security Engineer** deep scan and a weekly **CEO** self-improvement review. These are company-operating routines, not delivery backlog, and they exist to keep the maintenance system healthy even when the synced GitHub queue is temporarily quiet. The CEO routine may also promote reusable company learnings into PRs against the source package repository when a default should improve for future imports.
+Because synced GitHub delivery issues are created by the GitHub sync plugin after import, Paperclip blocker graphs and execution policies for those items should be configured in the live Paperclip instance or sync layer rather than encoded in this portable package. In practice, that means the live system should attach review stages that match this company workflow and use linked Paperclip approvals for board governance.
+
+The package also includes one lightweight internal project, `company-operations`, with one bootstrap **CEO** verification issue plus two recurring Paperclip routines: a weekly **Security Engineer** deep scan and a weekly **CEO** self-improvement review. The bootstrap issue imports in `TODO` so the CEO can verify that the imported entities are complete before normal operations begin. The recurring routines are company-operating work, not delivery backlog, and they exist to keep the maintenance system healthy even when the synced GitHub queue is temporarily quiet. They import paused by default so maintainers can finish GitHub sync and any `.company-runtime/` setup before enabling them. The CEO routine may also promote reusable company learnings into PRs against the source package repository when a default should improve for future imports.
 
 Because this company package is expected to be reimported over time, its package-owned instruction files should be treated as immutable defaults inside imported company instances. Agents may read optional additive overlays from `.company-runtime/` in the current workspace root, and should write learned local guidance there instead of mutating the package-owned files in place:
 

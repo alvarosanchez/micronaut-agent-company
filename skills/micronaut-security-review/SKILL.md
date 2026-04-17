@@ -7,6 +7,15 @@ description: Security review checklist for Micronaut source code, dependencies, 
 
 Use this skill whenever work changes executable code, dependencies, build logic, CI/CD, release automation, secrets handling, security-sensitive configuration, or security-sensitive docs in a Micronaut repository.
 
+## Session Start
+
+Before you review:
+
+1. Open the Paperclip issue, current execution stage, latest linked GitHub context, and any prior QA or Architect artifact.
+2. Continue only if you are the current stage participant for security review, the issue returned `changes_requested` to security review, or the weekly deep-scan routine invoked you.
+3. If another stage participant or a human approval is active, stop and leave routing unchanged.
+4. Decide whether you are in issue-review mode or weekly deep-scan mode before you inspect anything.
+
 ## Review Scope
 
 - Java, Groovy, or Kotlin code paths that process untrusted input
@@ -24,13 +33,10 @@ Use this skill whenever work changes executable code, dependencies, build logic,
 - Does the dependency, build, or CI change increase supply-chain risk or grant more privilege than necessary?
 - Is there a smaller hardening change that preserves compatibility while reducing risk?
 
-## Findings Standard
+## Possible Outcomes
 
-- Block on concrete vulnerabilities, unsafe defaults, leaked secrets, excessive permissions, or plausible abuse cases.
-- Do not block on speculative concerns with no credible exploit path or maintainer action.
-- When possible, propose the smallest safe remediation.
-- If the fix requires an architectural or release-line decision, escalate to Architect.
-- Low-risk docs-only changes may be fast-passed, but still check whether they recommend insecure deployment or configuration patterns.
+- `approved`: the stage artifact explains why the work is safe enough for the next review stage to proceed.
+- `changes_requested`: the stage artifact identifies a concrete vulnerability, insecure default, leaked secret, excessive permission, or other plausible exploit path that must be fixed before the work can advance.
 
 ## Role Boundary
 
@@ -38,18 +44,21 @@ Use this skill whenever work changes executable code, dependencies, build logic,
 - Security Engineer owns the dedicated security gate.
 - Code Reviewer owns maintainability, performance, developer experience, and PR quality after security sign-off.
 
-## Security Handoff Rule
+## Finish Verification
 
-- A security pass must reassign the Paperclip issue to **Code Reviewer** and set status `in review`.
-- A security failure must reassign the issue to the role that must remediate it and set status `TODO`.
-- A security pass is not a terminal state for a synced GitHub issue, so do not mark it `DONE`.
-- Before ending the review session, re-read the issue and verify the assignee and status reflect the intended handoff.
+Before you stop:
+
+1. Re-open the issue and confirm the current execution state matches your chosen outcome.
+2. If you approved the stage, confirm the current stage participant is no longer you.
+3. If you requested changes, confirm the issue execution state shows `changes_requested` and your artifact names the exact remediation or compensating control.
+4. If the next stage should start immediately, explicitly invoke the next reviewer heartbeat instead of assuming the new reviewer was woken automatically.
+5. If you touched GitHub review threads, confirm the replies or thread state changes exist.
 
 ## Weekly Deep Scan Mode
 
-When invoked by the `weekly-security-deep-scan` routine, expand the scope beyond one issue or PR:
+When invoked by the `weekly-security-deep-scan` routine:
 
 - inspect recent code changes, open PRs, default branches, dependency movement, Gradle wrapper or plugin changes, build logic, CI/CD permissions, release automation, and security-sensitive docs
-- deduplicate every finding against existing synced GitHub issues or PRs with `search_repository_items`
+- deduplicate every finding against existing synced GitHub issues or PRs with `paperclip-github-plugin:search_repository_items`
 - record what was inspected, what is already tracked, and what still needs follow-up
 - if a new vulnerability does not already have a synced GitHub issue or PR, prepare a maintainer-ready Paperclip escalation instead of improvising unsupported GitHub issue creation

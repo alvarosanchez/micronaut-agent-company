@@ -22,7 +22,7 @@ Portable package defaults should help most future imports, not just the current 
 When the change belongs in the package core:
 
 - work only in a clone of `alvarosanchez/micronaut-agent-company`
-- make the smallest portable diff across package-owned files such as `COMPANY.md`, `README.md`, `.paperclip.yaml`, `agents/`, `skills/`, `projects/`, `tasks/`, `teams/`, or `references/`
+- make the smallest portable diff across package-owned files such as `COMPANY.md`, `README.md`, `.paperclip.yaml`, `agents/`, `skills/`, `projects/`, `tasks/`, or `teams/`
 - keep runtime-only learnings out of the diff; those still belong in additive extension instructions or `.company-runtime/`
 - update both the behavioral instructions and the human-facing docs when policy changes
 - run `npm test` or `npm run test:node22` when the environment supports it

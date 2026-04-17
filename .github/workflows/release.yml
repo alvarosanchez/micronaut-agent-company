@@ -75,7 +75,7 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: node scripts/resolve-release-version.mjs "${RELEASE_TAG}"
 
-      - name: Bump patch version
+      - name: Prepare automatic release state
         id: auto-release
         if: steps.should-release.outputs.value == 'true' && github.event_name == 'push'
         run: node scripts/bump-company-patch-version.mjs
@@ -133,13 +133,13 @@ jobs:
             exit 1
           fi
 
-      - name: Verify Paperclip import
+      - name: Run release verification
         if: steps.should-release.outputs.value == 'true'
         run: npm test
         env:
           CI: "true"
 
-      - name: Commit version bump
+      - name: Commit release state
         id: commit-version
         if: steps.should-release.outputs.value == 'true' && steps.release-meta.outputs.has_version == 'true'
         env:

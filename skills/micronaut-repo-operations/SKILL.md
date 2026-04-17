@@ -5,16 +5,162 @@ description: Shared operating rules for running a Micronaut repository cluster t
 
 # Micronaut Repo Operations
 
-Use this skill whenever you are acting on synced GitHub issues or pull requests for this company. The human-readable source of truth for this workflow is `references/issue-lifecycle.md`.
+Use this skill whenever you are acting on synced GitHub issues or pull requests for this company. Inside imported company instances, this skill plus the live issue execution policy are the runtime source of truth for the workflow.
 
 ## Preconditions
 
 - Work only inside the repositories configured in the GitHub sync plugin for this company.
-- Use `references/repository-cluster.md` as supplemental operational context, not as the authoritative source of repository membership.
+- Use the GitHub sync plugin configuration, any `.company-runtime/` overlays present in the active workspace, and repo-local docs or `AGENTS.md` files as supplemental operational context, not as the authoritative source of repository membership.
 - Treat the repository cluster as a maintained boundary. If work spills into unrelated Micronaut repositories, escalate to the CEO before expanding scope.
 - Do not assume all Micronaut repositories share the same branch strategy, release process, docs layout, or test commands. Read the local repo facts first.
-- This company expects the GitHub sync plugin mapping to create new Paperclip issues in `BACKLOG` assigned to `qa-engineer`.
 - The GitHub sync plugin creates the per-repository Paperclip projects. Synced GitHub issues and PRs are the normal delivery work items; do not invent internal starter tasks for routine queue work.
+
+## Execution-Policy-First Workflow
+
+- Synced GitHub issues should move through Paperclip with an issue `executionPolicy`, not through agent-written assignee flips or Paperclip handoff comments.
+- Use review stages for agent sign-off gates such as QA, Architect, Security Engineer, Code Reviewer, and any execution stage where one agent must do work and then explicitly release the item.
+- Use linked Paperclip approvals for human governance decisions such as board-approved answers, closure paths, and package-policy exceptions. Do not treat a free-form comment as approval.
+- The current stage participant is the routing source of truth. If the issue is waiting on another participant or a linked human approval, stop instead of improvising side-channel routing.
+- A stage ends with one of two outcomes: `approved` or `changes_requested`.
+- A stage artifact is still required: plan, reproducer, QA report, security review, review summary, or rollout note. Put the artifact in the issue output, issue document, linked approval, PR, or other durable workspace owned by the stage. The stage decision, not the note, is what routes the work.
+- If the live sync layer keeps a stable assignee for convenience, treat it as informational. The current execution stage still decides who acts next.
+- Adding a Paperclip reviewer does not wake that reviewer automatically. After you move work into a review stage and want the next reviewer to act now, explicitly invoke that agent heartbeat with the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action.
+- A review stage may list multiple participants. Invoke every reviewer you expect to engage immediately after the stage becomes active.
+- The installed `paperclipai@2026.416.0` runtime in this package still exposes `approvalsNeeded: 1` for execution stages, so do not rely on a single multi-participant stage for unanimous sign-off. If all listed reviewers must approve in order, model that as separate sequential stages.
+- Paperclip also has a separate generic approvals system for linked board approvals. Those approvals have their own lifecycle (`pending`, `approved`, `rejected`, revision request, and resubmission) and can wake the requester when they are resolved.
+
+## Recommended Stage Layouts
+
+- `type: bug`: QA intake review -> Micronaut Engineer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
+- `type: docs`: QA intake review -> Technical Writer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
+- `type: improvement`, `type: enhancement`, `type: breaking`, `type: dependency-upgrade`: QA intake review -> Architect review -> Micronaut Engineer or Technical Writer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
+- `type: question`, unreproducible bug closure, and already-implemented closure: QA intake review -> linked Paperclip board approval -> QA publish-or-close stage.
+- Weekly routines stay as internal Paperclip work and may use a shorter stage sequence when no downstream review is required.
+
+## Required Session Start
+
+Before you do any work on a synced issue or PR:
+
+1. Open the Paperclip issue, the current execution policy, the current execution state, the latest linked GitHub item, and any linked approval.
+2. Continue only if you are the current stage participant, the issue returned `changes_requested` to your stage, or the issue is one of your weekly routines.
+3. If another stage participant or a human approval is active, stop and leave the routing unchanged.
+4. Read the latest stage artifact before acting so you are responding to the actual current request, not stale queue history.
+5. Read any repo-local or `.company-runtime/` guidance that changes release-line, CI, docs, or maintainer expectations.
+6. If your work depends on deduplication, perform it against GitHub issues in the synced repository through the GitHub sync plugin, not against unrelated Paperclip issues.
+
+## Built-In Paperclip Control-Plane APIs
+
+These are built into Paperclip itself. Use them even when no plugin-specific tool is involved:
+
+- identity and inbox: `GET /api/agents/me`, `GET /api/companies/{companyId}/issues?assigneeAgentId={yourId}&status=todo,in_progress,blocked`
+- execution lock: `POST /api/issues/{issueId}/checkout`, `POST /api/issues/{issueId}/release`
+- issue context: `GET /api/issues/{issueId}`, `GET /api/issues/{issueId}/comments`
+- state updates: `PATCH /api/issues/{issueId}` with the run-id header when you need to change issue status or append a Paperclip comment in the same call
+- durable stage artifacts: `GET /api/issues/{issueId}/documents`, `GET /api/issues/{issueId}/documents/{key}`, `PUT /api/issues/{issueId}/documents/{key}`, `GET /api/issues/{issueId}/documents/{key}/revisions`
+- attachments when a file artifact matters: `POST /api/companies/{companyId}/issues/{issueId}/attachments`, `GET /api/issues/{issueId}/attachments`, `GET /api/attachments/{attachmentId}/content`
+- subtask or escalation creation: `POST /api/companies/{companyId}/issues`
+- approvals: `GET /api/companies/{companyId}/approvals?status=pending`, `POST /api/companies/{companyId}/approvals`, `GET /api/approvals/{approvalId}`, `GET /api/approvals/{approvalId}/issues`, `POST /api/approvals/{approvalId}/comments`, `POST /api/approvals/{approvalId}/resubmit`
+- reviewer wakeups: the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint or the equivalent runtime wake endpoint exposed by the installed build
+
+Default artifact policy for this package:
+
+- store plans, QA records, security reviews, and review summaries in keyed issue documents such as `plan`, `qa`, `security-review`, or `code-review`
+- use Paperclip issue comments only for human-visible progress notes, GitHub-facing explanations copied back for audit, or `@AgentName` wakeup fallback when the dedicated wake endpoint is unavailable
+- use linked approvals for board governance instead of treating comments as approvals
+
+## GitHub Sync Plugin Agent Tools
+
+These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin capability `agent.tools.register`. Use the exact runtime tool IDs below. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
+
+- `paperclip-github-plugin:search_repository_items`: repository-scoped GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup
+- `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`: GitHub issue reads, metadata updates, and maintainer-facing issue comments
+- `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:update_pull_request`: PR creation and PR metadata/state management
+- `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`: changed-file inspection and CI/check status
+- `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`: review-thread inspection and response
+- `paperclip-github-plugin:request_pull_request_reviewers`: request user or team reviewers on a GitHub PR
+- `paperclip-github-plugin:list_organization_projects`: list visible GitHub organization Projects so the agent can choose the right Micronaut release board
+- `paperclip-github-plugin:add_pull_request_to_project`: associate a GitHub pull request with the chosen organization Project
+
+Use these plugin-tool conventions exactly:
+
+- prefer `paperclipIssueId` whenever the work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository
+- provide `repository` only when the plugin cannot infer it from the mapped Paperclip project
+- for GitHub comments and review-thread replies, send only the human-facing body and always include `llmModel`
+- use `paperclip-github-plugin:search_repository_items` for deduplication and prior-art search; do not replace it with generic Paperclip issue listing
+
+## Required Outcomes
+
+Every stage must end in one of these states:
+
+- `approved`: your stage artifact is complete, the issue is ready for the next configured stage immediately, and no missing governance decision remains.
+- `changes_requested`: your stage artifact names the exact gap, risk, or missing fact that must be addressed before the issue can move forward.
+- `request_board_approval`: when public GitHub action or a policy exception needs a human decision first, create or update the linked Paperclip approval instead of using a free-form comment as the approval mechanism.
+
+## Required Final Verification
+
+Before you stop:
+
+1. Re-open the issue.
+2. Confirm the current execution state reflects the outcome you intended:
+   - after `approved`, the current stage participant is no longer you
+   - after `changes_requested`, the execution state shows `changes_requested`
+   - after `request_board_approval`, the linked approval exists and is pending or approved
+3. If you expect another agent to act immediately and they are now a current stage participant, explicitly invoke that agent heartbeat. If the stage has multiple reviewer participants, invoke each intended reviewer.
+4. If you expected a GitHub side effect such as a label change, PR creation, issue comment, review-thread reply, or closure, confirm it exists instead of assuming it happened.
+5. If the state is wrong, fix it before you finish.
+
+## Required GitHub Type Labels
+
+Actionable issues and PRs should carry exactly one `type:` label:
+
+- `type: breaking` for changes that require a new major line and explicit Architect approval
+- `type: enhancement` for new features that belong on the next minor line
+- `type: improvement` for small non-breaking product changes that fit a patch release
+- `type: docs` for documentation-only changes
+- `type: dependency-upgrade` for squad-originated version bumps that are not Dependabot work
+- `type: bug` for bug fixes
+- `type: question` for questions that need a board-approved answer proposal
+
+Duplicate, stale, superseded, out-of-scope, and already-implemented issues are immediate-closure dispositions that may be closed without forcing a `type:` label if the closure path is well documented.
+
+## Type Routing
+
+- `type: bug`: QA reproduces first. Reproduced bugs move into the Micronaut Engineer stage sequence. Unreproducible bugs require a linked Paperclip board approval before QA publishes the closure on GitHub.
+- `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade`: QA moves the item into the Architect planning stage.
+- `type: docs`: QA moves the item into the Technical Writer stage.
+- `type: question`: QA prepares the answer artifact, requests board approval, and only publishes after approval exists.
+
+## Closure Dispositions
+
+- `already-implemented` (closure disposition, not a GitHub `type:` label): QA documents the exact version, PR, release, or docs evidence, requests linked Paperclip board approval, waits for that approval, then publishes the closure on GitHub.
+
+## Documentation Policy
+
+- Documentation is part of the fix whenever public API, annotations, configuration properties, defaults, behavior, guides, or setup paths change.
+- If migration pain is even slightly plausible, write the migration note while change context is still fresh.
+- For code issues with documentation impact, keep the original non-docs `type:` label instead of relabeling the work as `type: docs`.
+- Before editing docs in a Micronaut repository, identify where guides, reference docs, release notes, and upgrade notes live and how examples or snippets are validated there.
+
+## Release Targeting And Branch Rules
+
+- Confirm the correct target repository, branch, and release line before planning or coding.
+- Determine the next release from the repository's default branch plus the latest non-pre-release GitHub release.
+- If the default branch is `1.2.x` and the latest production release is `1.1.5`, the next release on that branch is `1.2.0`.
+- If the default branch is `1.2.x` and the latest production release is `1.2.3`, the next release on that branch is `1.2.4`.
+- Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform releases. The Architect must name the exact organization project before implementation starts, and the Code Reviewer must link the PR to that project when the PR is opened.
+- `type: improvement`, `type: bug`, `type: docs`, and most `type: dependency-upgrade` work should remain non-breaking and target the next patch release when possible.
+- `type: enhancement` belongs on the next minor line. If the minor branch does not exist yet, create it from the current default branch with local git CLI.
+- `type: breaking` requires explicit Architect approval and, when necessary, a linked human approval before work proceeds.
+- If multiple organization projects are plausible, if no matching project exists yet, or if the runtime cannot apply the project link, stop and escalate instead of guessing.
+
+## Approval Boundaries
+
+- Board approval always means a real Paperclip approval linked to the relevant issue or proposal, not a free-form comment.
+- Paperclip's generic approvals API is the package's source of truth for board approvals. Treat execution-policy `approval` stages as optional live-instance sugar unless their semantics are explicitly verified in that instance.
+- QA does not publish answer proposals or closure proposals on GitHub until that approval exists.
+- Only the board or other Micronaut maintainers merge PRs or cut releases.
+- Agents may prepare, label, comment, close, and create PRs when their role allows it, but they do not merge or release.
+- Paperclip issue blockers and execution policies for synced GitHub delivery items are runtime controls. Configure them in the live Paperclip instance or sync layer rather than trying to encode them in this package.
 
 ## Internal Operating Routines
 
@@ -24,6 +170,8 @@ This package intentionally keeps internal automation small. It includes one ligh
 - `weekly-ceo-self-improvement`, assigned to `ceo`
 
 These routines are company-operating work, not substitutes for the synced GitHub backlog. They exist to keep the maintenance system healthy even when the GitHub queue is quiet.
+
+They import paused by default. Enable them only after GitHub sync and any needed `.company-runtime/` overlays are ready.
 
 When a routine surfaces a new problem:
 
@@ -44,7 +192,6 @@ Normal Micronaut repository work should not self-edit this package:
 - `projects/`
 - `tasks/`
 - `teams/`
-- `references/`
 
 Instead, read and optionally maintain additive local overlays in `.company-runtime/` at the workspace root:
 
@@ -58,143 +205,46 @@ When a reusable company improvement should become a new package default, route i
 
 This immutability rule applies only to this company package. In managed Micronaut repositories, repo-level `AGENTS.md` files are product artifacts and may be updated when an explicit task or routine calls for it.
 
-## Canonical Lifecycle
-
-1. The sync plugin creates new GitHub issues in Paperclip in `BACKLOG`, assigned to `qa-engineer`.
-2. A human reviews the backlog and moves actionable issues to `TODO`.
-3. `qa-engineer` deduplicates, labels, and routes the issue.
-4. Implementation happens with either `micronaut-engineer` or `technical-writer`.
-5. `qa-engineer` signs the work off or rejects it.
-6. `security-engineer` performs the dedicated security review and either passes or rejects the work.
-7. `code-reviewer` performs the structural review and creates the GitHub PR when the work is approved.
-8. `micronaut-engineer` owns the PR cycle after PR creation.
-9. The board or other Micronaut maintainers merge the PR or cut the release.
-10. The sync plugin eventually reflects the GitHub outcome back into Paperclip as `DONE`.
-
-Inbox zero does not mean "merge everything." It means every synced GitHub issue and PR is in one of these states:
-
-- closed or merged
-- waiting on explicit external clarification
-- waiting on explicit board approval in Paperclip
-- actively owned by a company role with a clear next action
-- intentionally deferred with a recorded reason
-
-No item should sit in the queue without an owner, state, and next action after the active triage cycle.
-
-## Required Paperclip Handoffs
-
-When you hand work to another role, update the Paperclip issue so the assignee and status match the handoff you just described.
-
-- QA routing to `architect`, `micronaut-engineer`, or `technical-writer` means assignee changes to that role and status becomes `TODO`.
-- Active planning or implementation work may use status `in progress`.
-- Handing work to a reviewer means assignee changes to that reviewer and status becomes `in review`.
-- QA pass means assignee `security-engineer` with status `in review`.
-- QA fail means assignee returns to the implementing role with status `TODO`.
-- Security pass means assignee `code-reviewer` with status `in review`.
-- Security fail means assignee returns to the implementing role, or to `architect` for plan-level fixes, with status `TODO`.
-- Code review changes requested means assignee returns to the role that must act next with status `TODO`.
-- PR creation is not a terminal issue state by itself. After creating the PR, assign the item to `micronaut-engineer`, set status `in progress`, and keep the synced GitHub item in a non-`DONE` active state unless GitHub is actually closed or merged.
-- Do not mark a synced GitHub issue `DONE` just because QA, Security, or Code Review passed.
-
-## Required Final Verification
-
-Before you finish any session that changed assignee, status, or GitHub linkage:
-
-- re-open or re-read the issue
-- verify assignee, status, and linked GitHub refs match the intended outcome
-- if you expected a PR or closure, confirm it exists instead of assuming it happened
-- if the state is wrong, fix it before ending the session
-
-## Required GitHub Type Labels
-
-Actionable issues and PRs should carry exactly one `type:` label:
-
-- `type: breaking` for changes that require a new major line and explicit Architect approval
-- `type: enhancement` for new features that belong on the next minor line
-- `type: improvement` for small non-breaking product changes that fit a patch release
-- `type: docs` for documentation-only changes
-- `type: dependency-upgrade` for squad-originated version bumps that are not Dependabot work
-- `type: bug` for bug fixes
-- `type: question` for questions that need a board-approved answer proposal
-
-Duplicate, stale, superseded, out-of-scope, and already-implemented issues are immediate-closure dispositions that may be closed without forcing a `type:` label if the closure path is well documented.
-
-## Type Routing
-
-- `type: bug`: QA reproduces first. Reproduced bugs go to `micronaut-engineer`. Unreproducible bugs require an internal closure proposal plus a human Paperclip board comment before QA comments on GitHub and closes them.
-- `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade`: QA routes to `architect` for release-targeting and implementation planning.
-- `type: docs`: QA routes directly to `technical-writer`.
-- `type: question`: QA prepares an answer proposal for board approval, then publishes the approved answer on GitHub and closes or resolves the issue according to maintainer policy.
-
-## Closure Dispositions
-
-- `already-implemented` (closure disposition, not a GitHub `type:` label): QA documents the version, PR, release, or docs evidence showing the requested behavior already exists, prepares an internal closure proposal for board approval, waits for a human Paperclip board comment approving closure, then publishes the approved explanation on GitHub and closes the issue without adding a `type:` label.
-
-## Documentation Policy
-
-- Documentation is part of the fix whenever public API, annotations, configuration properties, defaults, behavior, guides, or setup paths change.
-- If migration pain is even slightly plausible, write the migration note while change context is still fresh.
-- For code issues with documentation impact, keep the original non-docs `type:` label instead of relabeling the work as `type: docs`.
-- Before editing docs in a Micronaut repository, identify where guides, reference docs, release notes, and upgrade notes live and how examples or snippets are validated there.
-
-## Release Targeting And Branch Rules
-
-- Confirm the correct target repository, branch, and release line before planning or coding.
-- Determine the next release from the repository's default branch plus the latest non-pre-release GitHub release.
-- If the default branch is `1.2.x` and the latest production release is `1.1.5`, the next release on that branch is `1.2.0`.
-- If the default branch is `1.2.x` and the latest production release is `1.2.3`, the next release on that branch is `1.2.4`.
-- Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform releases. The Architect must name the exact organization project before implementation starts, and the Code Reviewer must link the PR to that project when the PR is opened.
-- `type: improvement`, `type: bug`, `type: docs`, and most `type: dependency-upgrade` work should remain non-breaking and target the next patch release when possible.
-- `type: improvement`, `type: bug`, `type: docs`, and most `type: dependency-upgrade` work should therefore link to the next Micronaut Platform patch project that can consume that module release.
-- `type: enhancement` belongs on the next minor line. If the minor branch does not exist yet, create it from the current default branch with local git CLI.
-- `type: enhancement` should therefore link to the next Micronaut Platform minor project that can consume that module release.
-- `type: breaking` requires explicit Architect approval and, when necessary, a new major branch created from the current default branch with local git CLI.
-- `type: breaking` also requires an explicit organization-project decision aligned with the approved incompatible release.
-- If multiple organization projects are plausible, if no matching project exists yet, or if the runtime cannot apply the project link, stop and escalate instead of guessing.
-- Prefer the smoothest migration path possible. Choose non-breaking behavior whenever a credible non-breaking option exists.
-
-## Approval Boundaries
-
-- Board approval always means a human comment in Paperclip.
-- QA does not publish answer proposals or closure proposals on GitHub until that Paperclip comment exists.
-- Only the board or other Micronaut maintainers merge PRs or cut releases.
-- Agents may prepare, label, comment, close, and create PRs when their role allows it, but they do not merge or release.
-
 ## GitHub Sync Agent Tools
 
-The sync plugin currently exposes this GitHub tool surface for agents:
+The sync plugin currently exposes this GitHub tool surface for agents, using these exact runtime IDs:
 
-- `search_repository_items`
-- `get_issue`
-- `list_issue_comments`
-- `update_issue`
-- `add_issue_comment`
-- `create_pull_request`
-- `get_pull_request`
-- `update_pull_request`
-- `list_pull_request_files`
-- `get_pull_request_checks`
-- `list_pull_request_review_threads`
-- `reply_to_review_thread`
-- `resolve_review_thread`
-- `unresolve_review_thread`
-- `request_pull_request_reviewers`
+- `paperclip-github-plugin:search_repository_items`
+- `paperclip-github-plugin:get_issue`
+- `paperclip-github-plugin:list_issue_comments`
+- `paperclip-github-plugin:update_issue`
+- `paperclip-github-plugin:add_issue_comment`
+- `paperclip-github-plugin:create_pull_request`
+- `paperclip-github-plugin:get_pull_request`
+- `paperclip-github-plugin:update_pull_request`
+- `paperclip-github-plugin:list_pull_request_files`
+- `paperclip-github-plugin:get_pull_request_checks`
+- `paperclip-github-plugin:list_pull_request_review_threads`
+- `paperclip-github-plugin:reply_to_review_thread`
+- `paperclip-github-plugin:resolve_review_thread`
+- `paperclip-github-plugin:unresolve_review_thread`
+- `paperclip-github-plugin:request_pull_request_reviewers`
+- `paperclip-github-plugin:list_organization_projects`
+- `paperclip-github-plugin:add_pull_request_to_project`
 
 Use them by workflow stage:
 
-- QA and CEO queue work: `search_repository_items`, `get_issue`, `list_issue_comments`, `update_issue`
-- Planning and review context: `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`
-- Security review context: `search_repository_items`, `get_issue`, `list_issue_comments`, `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`
-- PR creation and routing: `create_pull_request`, `update_pull_request`, `request_pull_request_reviewers`
-- Review-thread handling: `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`
+- intake and queue work: `paperclip-github-plugin:search_repository_items`, `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`
+- planning and review context: `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:list_organization_projects`
+- PR creation and routing: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:update_pull_request`, `paperclip-github-plugin:request_pull_request_reviewers`, `paperclip-github-plugin:add_pull_request_to_project`
+- review-thread handling: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
+- reviewer wakeups: the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint or the equivalent runtime wake endpoint exposed by the installed build when the live issue should move immediately to the next reviewer
 
 Important usage rules:
 
 - Prefer `paperclipIssueId` whenever you are acting from a synced Paperclip issue so the plugin can infer the linked GitHub item and repository.
 - Provide `repository` only when the plugin cannot infer it; the repository may be omitted when the current Paperclip project has exactly one mapped repository.
-- Use `update_issue` for labels, assignees, state, body, title, and milestone changes.
-- Use `update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
-- For `add_issue_comment` and `reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the mandatory AI-authorship footer.
+- Use `paperclip-github-plugin:update_issue` for labels, assignees, state, body, title, and milestone changes.
+- Use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
+- Use `paperclip-github-plugin:list_organization_projects` to resolve the exact Micronaut organization project before PR creation when the correct release board is not already certain.
+- Use `paperclip-github-plugin:add_pull_request_to_project` after PR creation so the live PR is linked to the exact organization project chosen upstream.
+- For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the mandatory AI-authorship footer.
+- For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
 
 ## Tool Boundaries
 
@@ -205,18 +255,18 @@ Important usage rules:
 
 ## PR Rules
 
-- The implementation loop is always `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer`.
-- `code-reviewer` creates the GitHub PR only after QA and Security Engineer sign-off.
+- The delivery loop is modeled by execution-policy stages, not manual Paperclip handoff comments.
+- `code-reviewer` creates the GitHub PR only after QA and Security Engineer stages are approved.
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
 - Every PR must be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version.
 - `code-reviewer` applies the exact project named earlier by the Architect when creating the PR.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, and resolves all review threads.
-- Any material post-PR change re-enters the same `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer` loop.
+- Any material post-PR change re-enters the same execution-policy-controlled loop.
 
 ## Maintainer-Friendly Evidence
 
-Every non-trivial handoff should include:
+Every non-trivial stage artifact should include:
 
 - linked issue or PR context
 - current state and next action
@@ -225,7 +275,7 @@ Every non-trivial handoff should include:
 - documentation impact
 - security impact
 - compatibility or migration risk
-- the exact assignee and status you set for the next stage
+- the exact outcome you recorded for the current stage
 
 ## Communication Style
 
