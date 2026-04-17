@@ -29,6 +29,61 @@ const paperclipCliPath = path.join(
 
 const ROOT_PACKAGE_FILES = [".paperclip.yaml", "COMPANY.md", "README.md"];
 const ROOT_PACKAGE_DIRS = ["agents", "projects", "tasks", "skills"];
+const DISALLOWED_PACKAGE_DIRS = ["references"];
+const PORTABLE_RUNTIME_FILE_PATTERNS = [
+  /^agents\/[^/]+\/AGENTS\.md$/,
+  /^skills\/[^/]+\/SKILL\.md$/,
+  /^projects\/[^/]+\/PROJECT\.md$/,
+  /^projects\/[^/]+\/tasks\/[^/]+\/TASK\.md$/,
+  /^tasks\/[^/]+\/TASK\.md$/,
+];
+const REQUIRED_AGENT_INSTRUCTION_HEADINGS = [
+  "## Session Start",
+  "## Tool Use",
+  "## Possible Outcomes",
+  "## Finish Verification",
+];
+const REQUIRED_AGENT_TOOL_USE_PATTERNS = [
+  /Paperclip built-ins:/i,
+  /GitHub sync plugin tools:/i,
+];
+const FORBIDDEN_AGENT_HANDOFF_PATTERNS = [
+  /\bassign the issue to\b/i,
+  /\breassign the (?:issue|item)\b/i,
+  /\bchange ownership\b/i,
+  /\bassignee and status\b/i,
+  /\bupdate the assignee\b/i,
+  /\bupdate the status\b/i,
+  /\bhand work off\b/i,
+  /\bhand review feedback\b/i,
+  /\bhand security-cleared work\b/i,
+];
+const REQUIRED_AGENT_EXECUTION_POLICY_PATTERNS = [
+  /\bcurrent execution stage\b/i,
+  /\bcurrent stage participant\b/i,
+];
+const FORBIDDEN_SHARED_WORKFLOW_PATTERNS = [
+  /\bchange assignee and status together\b/i,
+  /\bupdate the Paperclip issue to match the written handoff\b/i,
+  /\bevery handoff must update the Paperclip item\b/i,
+];
+const REQUIRED_WORKFLOW_DOC_PATTERNS = [
+  {
+    relativePath: "README.md",
+    pattern: /stateDiagram-v2/,
+    message: "README.md must include a Mermaid lifecycle diagram for the issue workflow.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: /heartbeat\/invoke/,
+    message: "README.md must document explicit reviewer wakeups through the Paperclip heartbeat invoke API.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern: /same synced repository/i,
+    message: "QA instructions must say that deduplication happens against GitHub issues in the same synced repository.",
+  },
+];
 const PAPERCLIP_AGENT_ICONS = new Set([
   "bot",
   "cpu",
@@ -225,6 +280,141 @@ function bodyOfMarkdown(markdown) {
   return normalizeText(parseFrontmatterMarkdown(markdown).body);
 }
 
+function isPortableRuntimeFile(relativePath) {
+  return PORTABLE_RUNTIME_FILE_PATTERNS.some((pattern) => pattern.test(relativePath));
+}
+
+function formatRuntimeReferenceViolations(violations) {
+  return violations.map(({ relativePath, match }) => `${relativePath}: ${match}`).join("\n");
+}
+
+function assertPortableRuntimeFilesAvoidUnimportedPackageReferences(files) {
+  const violations = [];
+
+  for (const [relativePath, content] of Object.entries(files)) {
+    if (!isPortableRuntimeFile(relativePath)) {
+      continue;
+    }
+
+    const matches = content.match(/\breferences\/[A-Za-z0-9._/-]+/g) ?? [];
+    for (const match of matches) {
+      violations.push({ relativePath, match });
+    }
+  }
+
+  assert.equal(
+    violations.length,
+    0,
+    [
+      "Portable runtime instruction files may not reference package files under references/, because those files are not available in imported company instances.",
+      formatRuntimeReferenceViolations(violations),
+    ].filter(Boolean).join("\n\n"),
+  );
+}
+
+function assertPortableRuntimeFilesAvoidMissingRepoFiles(files, rootDir, relativePaths) {
+  const violations = [];
+
+  for (const [relativePath, content] of Object.entries(files)) {
+    if (!isPortableRuntimeFile(relativePath)) {
+      continue;
+    }
+
+    for (const referencedPath of relativePaths) {
+      const pattern = new RegExp(`\\b${referencedPath.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`, "g");
+      const matches = content.match(pattern) ?? [];
+      if (matches.length === 0) {
+        continue;
+      }
+
+      const absoluteReferencedPath = path.join(rootDir, referencedPath);
+      if (existsSync(absoluteReferencedPath)) {
+        continue;
+      }
+
+      for (const match of matches) {
+        violations.push({ relativePath, match });
+      }
+    }
+  }
+
+  assert.equal(
+    violations.length,
+    0,
+    [
+      "Portable runtime instruction files may not reference repo-local files that are not shipped with the package.",
+      formatRuntimeReferenceViolations(violations),
+    ].filter(Boolean).join("\n\n"),
+  );
+}
+
+function assertAgentInstructionsUseExecutionPolicyWorkflow(files) {
+  const agentInstructionPaths = Object.keys(files).filter((relativePath) =>
+    /^agents\/[^/]+\/AGENTS\.md$/.test(relativePath)
+  );
+
+  for (const relativePath of agentInstructionPaths) {
+    const content = files[relativePath];
+
+    for (const heading of REQUIRED_AGENT_INSTRUCTION_HEADINGS) {
+      assert.match(
+        content,
+        new RegExp(`^${heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "m"),
+        `${relativePath} must contain the heading "${heading}"`,
+      );
+    }
+
+    for (const pattern of REQUIRED_AGENT_EXECUTION_POLICY_PATTERNS) {
+      assert.match(
+        content,
+        pattern,
+        `${relativePath} must describe the execution-policy-driven current stage contract.`,
+      );
+    }
+
+    for (const pattern of REQUIRED_AGENT_TOOL_USE_PATTERNS) {
+      assert.match(
+        content,
+        pattern,
+        `${relativePath} must include explicit Tool Use guidance for Paperclip built-ins and GitHub sync plugin tools.`,
+      );
+    }
+
+    for (const pattern of FORBIDDEN_AGENT_HANDOFF_PATTERNS) {
+      assert.doesNotMatch(
+        content,
+        pattern,
+        `${relativePath} still contains legacy assignee/comment handoff language: ${pattern}`,
+      );
+    }
+  }
+}
+
+function assertSharedWorkflowDocsAvoidLegacyHandoffLanguage(files) {
+  for (const relativePath of ["COMPANY.md", "README.md", "skills/micronaut-repo-operations/SKILL.md", "skills/micronaut-quality-gates/SKILL.md", "skills/micronaut-security-review/SKILL.md"]) {
+    const content = files[relativePath];
+    if (!content) {
+      continue;
+    }
+
+    for (const pattern of FORBIDDEN_SHARED_WORKFLOW_PATTERNS) {
+      assert.doesNotMatch(
+        content,
+        pattern,
+        `${relativePath} still contains legacy assignee/status handoff language: ${pattern}`,
+      );
+    }
+  }
+}
+
+function assertWorkflowDocsMentionCurrentRuntimeExpectations(files) {
+  for (const { relativePath, pattern, message } of REQUIRED_WORKFLOW_DOC_PATTERNS) {
+    const content = files[relativePath];
+    assert.ok(content, `Expected ${relativePath} in portable package files.`);
+    assert.match(content, pattern, message);
+  }
+}
+
 async function walkFiles(rootDir, relativeDir) {
   const absoluteDir = path.join(rootDir, relativeDir);
   const output = [];
@@ -267,7 +457,25 @@ async function collectPortableSourceFiles(rootDir) {
 }
 
 async function loadSourceExpectations(rootDir) {
+  for (const relativeDir of DISALLOWED_PACKAGE_DIRS) {
+    const absoluteDir = path.join(rootDir, relativeDir);
+    assert.equal(
+      existsSync(absoluteDir),
+      false,
+      [
+        `Portable package directory ${relativeDir}/ is not import-safe.`,
+        "Paperclip company portability only preserves company, agents, skills, projects, issues, and the Paperclip extension surface.",
+        "Move any required runtime guidance into imported files and remove this directory from the package.",
+      ].join("\n"),
+    );
+  }
+
   const files = await collectPortableSourceFiles(rootDir);
+  assertPortableRuntimeFilesAvoidUnimportedPackageReferences(files);
+  assertPortableRuntimeFilesAvoidMissingRepoFiles(files, rootDir, ["skills.sh"]);
+  assertAgentInstructionsUseExecutionPolicyWorkflow(files);
+  assertSharedWorkflowDocsAvoidLegacyHandoffLanguage(files);
+  assertWorkflowDocsMentionCurrentRuntimeExpectations(files);
   const companyMarkdown = files["COMPANY.md"];
   assert.ok(companyMarkdown, "Expected COMPANY.md in source package");
   const extensionYaml = files[".paperclip.yaml"];
@@ -339,12 +547,21 @@ async function loadSourceExpectations(rootDir) {
       const isProjectTask = segments[0] === "projects";
       const slug = isProjectTask ? segments[3] : segments[1];
       const projectSlug = isProjectTask ? segments[1] : (frontmatter.project ?? null);
+      const taskExtension = isPlainObject(extension?.tasks?.[slug])
+        ? extension.tasks[slug]
+        : null;
       const routine = normalizeRoutineDefinition(extension?.routines?.[slug]);
       issues.set(slug, {
         slug,
         title: frontmatter.name,
         assignee: frontmatter.assignee ?? null,
         projectSlug,
+        status:
+          (typeof taskExtension?.status === "string" ? taskExtension.status : null)
+          ?? (routine ? routine.status ?? null : "backlog"),
+        priority:
+          (typeof taskExtension?.priority === "string" ? taskExtension.priority : null)
+          ?? (routine ? null : "medium"),
         recurring: Boolean(frontmatter.schedule) || frontmatter.recurring === true || routine !== null,
         timezone: frontmatter.schedule?.timezone ?? null,
         routine,
@@ -716,6 +933,41 @@ async function main() {
       expectedOpenIssues.map((issue) => issue.title),
       "Imported issue titles did not match the source package",
     );
+    for (const expectedIssue of expectedOpenIssues) {
+      const actualIssue = importedIssues.find((issue) => issue.title === expectedIssue.title);
+      assert.ok(actualIssue, `Missing imported issue ${expectedIssue.slug}`);
+      const issueDetail = await apiJson(baseUrl, `/api/issues/${actualIssue.id}`);
+      assert.equal(issueDetail.title, expectedIssue.title);
+      assert.equal(
+        issueDetail.projectId ?? null,
+        expectedIssue.projectSlug ? importedProjectIdBySlug.get(expectedIssue.projectSlug) : null,
+        `Issue project mismatch for ${expectedIssue.slug}`,
+      );
+      assert.equal(
+        issueDetail.assigneeAgentId ?? null,
+        expectedIssue.assignee ? importedAgentIdBySlug.get(expectedIssue.assignee) : null,
+        `Issue assignee mismatch for ${expectedIssue.slug}`,
+      );
+      if (expectedIssue.status !== null) {
+        assert.equal(
+          issueDetail.status ?? null,
+          expectedIssue.status,
+          `Issue status mismatch for ${expectedIssue.slug}`,
+        );
+      }
+      if (expectedIssue.priority !== null) {
+        assert.equal(
+          issueDetail.priority ?? null,
+          expectedIssue.priority,
+          `Issue priority mismatch for ${expectedIssue.slug}`,
+        );
+      }
+      assert.equal(
+        normalizeText(issueDetail.description ?? ""),
+        expectedIssue.body,
+        `Issue description mismatch for ${expectedIssue.slug}`,
+      );
+    }
 
     const importedRoutines = await apiJson(
       baseUrl,
@@ -750,6 +1002,13 @@ async function main() {
         `Routine description mismatch for ${expectedRoutine.slug}`,
       );
       if (expectedRoutine.routine) {
+        if (expectedRoutine.routine.status !== null) {
+          assert.equal(
+            routineDetail.status ?? null,
+            expectedRoutine.routine.status,
+            `Routine status mismatch for ${expectedRoutine.slug}`,
+          );
+        }
         assert.deepEqual(
           routineDetail.triggers.map(normalizeRoutineTriggerEntry),
           expectedRoutine.routine.triggers,
@@ -859,6 +1118,12 @@ async function main() {
       assert.equal(actualIssue.assigneeAgentSlug ?? null, expectedIssue.assignee);
       assert.equal(actualIssue.projectSlug ?? null, expectedIssue.projectSlug);
       assert.equal(actualIssue.recurring, expectedIssue.recurring);
+      if (expectedIssue.status !== null) {
+        assert.equal(actualIssue.status ?? null, expectedIssue.status);
+      }
+      if (expectedIssue.priority !== null) {
+        assert.equal(actualIssue.priority ?? null, expectedIssue.priority);
+      }
       assert.ok(
         actualIssue.path.startsWith("tasks/") && actualIssue.path.endsWith("/TASK.md"),
         `Unexpected export path for issue ${expectedIssue.title}: ${actualIssue.path}`,

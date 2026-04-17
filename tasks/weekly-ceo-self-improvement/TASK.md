@@ -12,7 +12,7 @@ Focus on:
 - repeated blockers, stalled handoffs, and noisy queue patterns
 - QA, security, or review churn that suggests missing guidance or the wrong quality gate
 - missing or outdated repo-level `AGENTS.md` guidance in managed Micronaut repositories
-- high-signal skills from `skills.sh` that would materially improve delivery
+- gaps or upgrade opportunities in the company's imported skill inventory that would materially improve delivery
 - whether local extension instructions or `.company-runtime/` overlays should be added, simplified, or pruned
 - whether any reusable company learning should be promoted into the package core with a PR to `alvarosanchez/micronaut-agent-company`
 
