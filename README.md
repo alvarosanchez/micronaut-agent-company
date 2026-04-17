@@ -210,6 +210,8 @@ The GitHub sync plugin exposes these GitHub workflow tools to agents. Use the ex
 - PR inspection: `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`
 - Review-thread actions: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
 - Reviewer routing: `paperclip-github-plugin:request_pull_request_reviewers`
+- Organization project lookup: `paperclip-github-plugin:list_organization_projects`
+- PR project association: `paperclip-github-plugin:add_pull_request_to_project`
 
 Use `paperclipIssueId` whenever work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository. When posting a GitHub issue comment or review-thread reply through `paperclip-github-plugin:add_issue_comment` or `paperclip-github-plugin:reply_to_review_thread`, pass only the human-facing body and include `llmModel: gpt-5.4`; the plugin appends the required AI-authorship footer automatically.
 

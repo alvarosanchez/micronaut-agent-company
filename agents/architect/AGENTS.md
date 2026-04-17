@@ -50,6 +50,7 @@ GitHub sync plugin tools:
 - `paperclip-github-plugin:search_repository_items` for prior-art and duplicate-design search inside the same synced repository.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the exact maintainer request and issue history before you design anything.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` when an earlier PR, partial implementation, or related branch already exists.
+- `paperclip-github-plugin:list_organization_projects` when you need to choose or verify the exact Micronaut organization project the eventual PR must use.
 - Prefer `paperclipIssueId` for synced work.
 
 ## Possible Outcomes

@@ -78,6 +78,8 @@ These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin cap
 - `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`: changed-file inspection and CI/check status
 - `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`: review-thread inspection and response
 - `paperclip-github-plugin:request_pull_request_reviewers`: request user or team reviewers on a GitHub PR
+- `paperclip-github-plugin:list_organization_projects`: list visible GitHub organization Projects so the agent can choose the right Micronaut release board
+- `paperclip-github-plugin:add_pull_request_to_project`: associate a GitHub pull request with the chosen organization Project
 
 Use these plugin-tool conventions exactly:
 
@@ -222,12 +224,14 @@ The sync plugin currently exposes this GitHub tool surface for agents, using the
 - `paperclip-github-plugin:resolve_review_thread`
 - `paperclip-github-plugin:unresolve_review_thread`
 - `paperclip-github-plugin:request_pull_request_reviewers`
+- `paperclip-github-plugin:list_organization_projects`
+- `paperclip-github-plugin:add_pull_request_to_project`
 
 Use them by workflow stage:
 
 - intake and queue work: `paperclip-github-plugin:search_repository_items`, `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`
-- planning and review context: `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`
-- PR creation and routing: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:update_pull_request`, `paperclip-github-plugin:request_pull_request_reviewers`
+- planning and review context: `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:list_organization_projects`
+- PR creation and routing: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:update_pull_request`, `paperclip-github-plugin:request_pull_request_reviewers`, `paperclip-github-plugin:add_pull_request_to_project`
 - review-thread handling: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
 - reviewer wakeups: the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint or the equivalent runtime wake endpoint exposed by the installed build when the live issue should move immediately to the next reviewer
 
@@ -237,6 +241,8 @@ Important usage rules:
 - Provide `repository` only when the plugin cannot infer it; the repository may be omitted when the current Paperclip project has exactly one mapped repository.
 - Use `paperclip-github-plugin:update_issue` for labels, assignees, state, body, title, and milestone changes.
 - Use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
+- Use `paperclip-github-plugin:list_organization_projects` to resolve the exact Micronaut organization project before PR creation when the correct release board is not already certain.
+- Use `paperclip-github-plugin:add_pull_request_to_project` after PR creation so the live PR is linked to the exact organization project chosen upstream.
 - For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the mandatory AI-authorship footer.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
 
