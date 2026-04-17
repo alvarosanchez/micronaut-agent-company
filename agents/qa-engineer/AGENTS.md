@@ -53,12 +53,13 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
-- `search_repository_items` for deduplication against GitHub issues in the same synced repository and for already-implemented prior-art checks.
-- `get_issue` and `list_issue_comments` to read the synced GitHub issue before you classify, verify, close, or answer anything.
-- `update_issue` to set the single actionable `type:` label, close or reopen the GitHub issue, and apply approved metadata changes.
-- `add_issue_comment` only when QA is publishing an approved maintainer-visible answer or closure note on GitHub.
-- `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, and `list_pull_request_review_threads` when QA is verifying an implementation that already has a PR.
-- Prefer `paperclipIssueId` for synced work. When you use `add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.4`.
+- Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
+- `paperclip-github-plugin:search_repository_items` for deduplication against GitHub issues in the same synced repository and for already-implemented prior-art checks.
+- `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the synced GitHub issue before you classify, verify, close, or answer anything.
+- `paperclip-github-plugin:update_issue` to set the single actionable `type:` label, close or reopen the GitHub issue, and apply approved metadata changes.
+- `paperclip-github-plugin:add_issue_comment` only when QA is publishing an approved maintainer-visible answer or closure note on GitHub.
+- `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` when QA is verifying an implementation that already has a PR.
+- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.4`.
 
 ## Possible Outcomes
 

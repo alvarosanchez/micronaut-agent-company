@@ -45,11 +45,12 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
-- `search_repository_items` for deduplicating weekly deep-scan findings and checking whether the same synced repository already tracks the security concern.
-- `get_issue` and `list_issue_comments` to read the maintainer-visible issue history before you escalate or approve anything.
-- `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, and `list_pull_request_review_threads` to inspect code, build logic, CI, and existing review findings.
-- `reply_to_review_thread`, `resolve_review_thread`, and `unresolve_review_thread` when recording or rechecking PR-thread security findings.
-- Prefer `paperclipIssueId` for synced work. For review-thread replies, send only the human-facing body and set `llmModel: gpt-5.4`.
+- Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
+- `paperclip-github-plugin:search_repository_items` for deduplicating weekly deep-scan findings and checking whether the same synced repository already tracks the security concern.
+- `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the maintainer-visible issue history before you escalate or approve anything.
+- `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to inspect code, build logic, CI, and existing review findings.
+- `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` when recording or rechecking PR-thread security findings.
+- Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.4`.
 
 ## Possible Outcomes
 

@@ -46,6 +46,7 @@ const REQUIRED_AGENT_INSTRUCTION_HEADINGS = [
 const REQUIRED_AGENT_TOOL_USE_PATTERNS = [
   /Paperclip built-ins:/i,
   /GitHub sync plugin tools:/i,
+  /paperclip-github-plugin:/i,
 ];
 const FORBIDDEN_AGENT_HANDOFF_PATTERNS = [
   /\bassign the issue to\b/i,

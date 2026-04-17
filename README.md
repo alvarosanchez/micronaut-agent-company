@@ -201,21 +201,21 @@ When a learning should improve the default behavior of future imports, the CEO s
 
 ## GitHub Sync Agent Tools
 
-The GitHub sync plugin exposes these GitHub workflow tools to agents, and this company expects agents to use them explicitly instead of `gh` or browser actions:
+The GitHub sync plugin exposes these GitHub workflow tools to agents. Use the exact runtime tool IDs below, not shorthand names. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`:
 
-- Intake and deduplication: `search_repository_items`
-- Issue context: `get_issue`, `list_issue_comments`
-- Issue mutation: `update_issue`, `add_issue_comment`
-- PR creation and state: `create_pull_request`, `get_pull_request`, `update_pull_request`
-- PR inspection: `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`
-- Review-thread actions: `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`
-- Reviewer routing: `request_pull_request_reviewers`
+- Intake and deduplication: `paperclip-github-plugin:search_repository_items`
+- Issue context: `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`
+- Issue mutation: `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`
+- PR creation and state: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:update_pull_request`
+- PR inspection: `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`
+- Review-thread actions: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
+- Reviewer routing: `paperclip-github-plugin:request_pull_request_reviewers`
 
-Use `paperclipIssueId` whenever work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository. When posting a GitHub issue comment or review-thread reply, pass only the human-facing body and include `llmModel: gpt-5.4`; the plugin appends the required AI-authorship footer automatically.
+Use `paperclipIssueId` whenever work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository. When posting a GitHub issue comment or review-thread reply through `paperclip-github-plugin:add_issue_comment` or `paperclip-github-plugin:reply_to_review_thread`, pass only the human-facing body and include `llmModel: gpt-5.4`; the plugin appends the required AI-authorship footer automatically.
 
 ## Paperclip Runtime APIs
 
-Some workflow actions are Paperclip runtime concerns rather than GitHub sync concerns:
+Some workflow actions are Paperclip runtime concerns rather than GitHub sync concerns. In the current `paperclipai@2026.416.0` build, these are core APIs, not built-in agent-tool IDs:
 
 - Reviewer wakeups: use the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action after activating the next review stage.
 - Linked board approvals: create, inspect, approve, reject, request revision, resubmit, and comment on approvals through the Paperclip approvals API.

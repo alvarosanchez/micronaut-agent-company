@@ -40,11 +40,12 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
-- `search_repository_items` for backlog scans, duplicate checks, and prior-art search inside the same synced repository.
-- `get_issue` and `list_issue_comments` to read the maintainer-visible issue context before you authorize an answer, closure path, or policy correction.
-- `get_pull_request`, `list_pull_request_files`, and `get_pull_request_checks` when queue governance or package evolution depends on the live PR state.
-- `update_issue` and `add_issue_comment` only after the linked board approval exists and a maintainer-visible GitHub answer or closure must actually be published.
-- Prefer `paperclipIssueId` for synced work. When you use `add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.4`.
+- Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
+- `paperclip-github-plugin:search_repository_items` for backlog scans, duplicate checks, and prior-art search inside the same synced repository.
+- `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the maintainer-visible issue context before you authorize an answer, closure path, or policy correction.
+- `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, and `paperclip-github-plugin:get_pull_request_checks` when queue governance or package evolution depends on the live PR state.
+- `paperclip-github-plugin:update_issue` and `paperclip-github-plugin:add_issue_comment` only after the linked board approval exists and a maintainer-visible GitHub answer or closure must actually be published.
+- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.4`.
 
 ## Possible Outcomes
 

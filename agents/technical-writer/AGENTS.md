@@ -40,11 +40,12 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
-- `get_issue` and `list_issue_comments` to read the user-facing docs problem and maintainer expectations before you edit anything.
-- `get_pull_request` and `list_pull_request_files` when documentation must align with an existing code diff.
-- `get_pull_request_checks` when docs validation, docs-preview, or site checks matter.
-- `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, and `unresolve_review_thread` when docs feedback exists on an already-open PR.
-- Prefer `paperclipIssueId` for synced work. For review-thread replies, send only the human-facing body and set `llmModel: gpt-5.4`.
+- Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
+- `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the user-facing docs problem and maintainer expectations before you edit anything.
+- `paperclip-github-plugin:get_pull_request` and `paperclip-github-plugin:list_pull_request_files` when documentation must align with an existing code diff.
+- `paperclip-github-plugin:get_pull_request_checks` when docs validation, docs-preview, or site checks matter.
+- `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` when docs feedback exists on an already-open PR.
+- Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.4`.
 - Use the local git CLI for branch, commit, rebase, and push work; the GitHub sync plugin does not replace git.
 
 ## Possible Outcomes

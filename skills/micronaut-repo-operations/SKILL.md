@@ -70,21 +70,21 @@ Default artifact policy for this package:
 
 ## GitHub Sync Plugin Agent Tools
 
-These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin capability `agent.tools.register`.
+These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin capability `agent.tools.register`. Use the exact runtime tool IDs below. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 
-- `search_repository_items`: repository-scoped GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup
-- `get_issue`, `list_issue_comments`, `update_issue`, `add_issue_comment`: GitHub issue reads, metadata updates, and maintainer-facing issue comments
-- `create_pull_request`, `get_pull_request`, `update_pull_request`: PR creation and PR metadata/state management
-- `list_pull_request_files`, `get_pull_request_checks`: changed-file inspection and CI/check status
-- `list_pull_request_review_threads`, `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`: review-thread inspection and response
-- `request_pull_request_reviewers`: request user or team reviewers on a GitHub PR
+- `paperclip-github-plugin:search_repository_items`: repository-scoped GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup
+- `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`: GitHub issue reads, metadata updates, and maintainer-facing issue comments
+- `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:update_pull_request`: PR creation and PR metadata/state management
+- `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`: changed-file inspection and CI/check status
+- `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`: review-thread inspection and response
+- `paperclip-github-plugin:request_pull_request_reviewers`: request user or team reviewers on a GitHub PR
 
 Use these plugin-tool conventions exactly:
 
 - prefer `paperclipIssueId` whenever the work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository
 - provide `repository` only when the plugin cannot infer it from the mapped Paperclip project
 - for GitHub comments and review-thread replies, send only the human-facing body and always include `llmModel`
-- use `search_repository_items` for deduplication and prior-art search; do not replace it with generic Paperclip issue listing
+- use `paperclip-github-plugin:search_repository_items` for deduplication and prior-art search; do not replace it with generic Paperclip issue listing
 
 ## Required Outcomes
 
@@ -205,40 +205,40 @@ This immutability rule applies only to this company package. In managed Micronau
 
 ## GitHub Sync Agent Tools
 
-The sync plugin currently exposes this GitHub tool surface for agents:
+The sync plugin currently exposes this GitHub tool surface for agents, using these exact runtime IDs:
 
-- `search_repository_items`
-- `get_issue`
-- `list_issue_comments`
-- `update_issue`
-- `add_issue_comment`
-- `create_pull_request`
-- `get_pull_request`
-- `update_pull_request`
-- `list_pull_request_files`
-- `get_pull_request_checks`
-- `list_pull_request_review_threads`
-- `reply_to_review_thread`
-- `resolve_review_thread`
-- `unresolve_review_thread`
-- `request_pull_request_reviewers`
+- `paperclip-github-plugin:search_repository_items`
+- `paperclip-github-plugin:get_issue`
+- `paperclip-github-plugin:list_issue_comments`
+- `paperclip-github-plugin:update_issue`
+- `paperclip-github-plugin:add_issue_comment`
+- `paperclip-github-plugin:create_pull_request`
+- `paperclip-github-plugin:get_pull_request`
+- `paperclip-github-plugin:update_pull_request`
+- `paperclip-github-plugin:list_pull_request_files`
+- `paperclip-github-plugin:get_pull_request_checks`
+- `paperclip-github-plugin:list_pull_request_review_threads`
+- `paperclip-github-plugin:reply_to_review_thread`
+- `paperclip-github-plugin:resolve_review_thread`
+- `paperclip-github-plugin:unresolve_review_thread`
+- `paperclip-github-plugin:request_pull_request_reviewers`
 
 Use them by workflow stage:
 
-- intake and queue work: `search_repository_items`, `get_issue`, `list_issue_comments`, `update_issue`
-- planning and review context: `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`
-- PR creation and routing: `create_pull_request`, `update_pull_request`, `request_pull_request_reviewers`
-- review-thread handling: `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`
+- intake and queue work: `paperclip-github-plugin:search_repository_items`, `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`
+- planning and review context: `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`
+- PR creation and routing: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:update_pull_request`, `paperclip-github-plugin:request_pull_request_reviewers`
+- review-thread handling: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
 - reviewer wakeups: the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint or the equivalent runtime wake endpoint exposed by the installed build when the live issue should move immediately to the next reviewer
 
 Important usage rules:
 
 - Prefer `paperclipIssueId` whenever you are acting from a synced Paperclip issue so the plugin can infer the linked GitHub item and repository.
 - Provide `repository` only when the plugin cannot infer it; the repository may be omitted when the current Paperclip project has exactly one mapped repository.
-- Use `update_issue` for labels, assignees, state, body, title, and milestone changes.
-- Use `update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
-- For `add_issue_comment` and `reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the mandatory AI-authorship footer.
-- For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
+- Use `paperclip-github-plugin:update_issue` for labels, assignees, state, body, title, and milestone changes.
+- Use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
+- For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the mandatory AI-authorship footer.
+- For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
 
 ## Tool Boundaries
 

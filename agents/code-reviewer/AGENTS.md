@@ -42,11 +42,12 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
-- `get_issue` and `list_issue_comments` to confirm the linked GitHub issue context and maintainer expectations before you review or open a PR.
-- `create_pull_request` when QA and Security Engineer approval already exist and no PR exists yet.
-- `get_pull_request` and `update_pull_request` to verify the title, body, base branch, draft state, and closing keyword.
-- `list_pull_request_files`, `get_pull_request_checks`, and `list_pull_request_review_threads` to perform the review and confirm CI and thread state.
-- `request_pull_request_reviewers` when the PR needs GitHub reviewers after creation or after a scope change.
+- Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
+- `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to confirm the linked GitHub issue context and maintainer expectations before you review or open a PR.
+- `paperclip-github-plugin:create_pull_request` when QA and Security Engineer approval already exist and no PR exists yet.
+- `paperclip-github-plugin:get_pull_request` and `paperclip-github-plugin:update_pull_request` to verify the title, body, base branch, draft state, and closing keyword.
+- `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to perform the review and confirm CI and thread state.
+- `paperclip-github-plugin:request_pull_request_reviewers` when the PR needs GitHub reviewers after creation or after a scope change.
 - Prefer `paperclipIssueId` for synced work.
 - Use the local git CLI for branch, commit, rebase, and push work; the GitHub sync plugin does not replace git.
 
