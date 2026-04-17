@@ -9,7 +9,7 @@
     "test:node22": "npx -y node@22 scripts/verify-paperclip-import.mjs"
   },
   "devDependencies": {
-    "paperclipai": "2026.403.0",
+    "paperclipai": "2026.416.0",
     "yaml": "2.8.3"
   }
 }

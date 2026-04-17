@@ -1,4 +1,6 @@
 schema: paperclip/v1
+company:
+  requireBoardApprovalForNewAgents: false
 agents:
   ceo:
     adapter:
