@@ -78,44 +78,17 @@ Recommended live execution-policy stage layouts:
 stateDiagram-v2
     [*] --> BACKLOG
     BACKLOG --> TODO: Human promotes issue
-    TODO --> IN_REVIEW: Start QA intake / Review now QA
+    TODO --> IN_REVIEW: Review stages start
     TODO --> BLOCKED: Waiting on external clarification or dependency
     BLOCKED --> TODO: Unblocked
-
-    state "IN REVIEW" as IN_REVIEW {
-        [*] --> QA_INTAKE
-
-        QA_INTAKE --> MICRONAUT_ENGINEER: type: bug / approved
-        QA_INTAKE --> ARCHITECT: type: improvement|enhancement|breaking|dependency-upgrade / approved
-        QA_INTAKE --> TECHNICAL_WRITER: type: docs / approved
-        QA_INTAKE --> BOARD_APPROVAL: question|unreproducible|already-implemented / request board approval
-
-        ARCHITECT --> MICRONAUT_ENGINEER: approved plan
-        ARCHITECT --> TECHNICAL_WRITER: docs-first implementation
-
-        MICRONAUT_ENGINEER --> QA_VERIFY: approved
-        TECHNICAL_WRITER --> QA_VERIFY: approved
-
-        QA_VERIFY --> SECURITY_ENGINEER: approved
-        QA_VERIFY --> MICRONAUT_ENGINEER: changes requested
-        QA_VERIFY --> TECHNICAL_WRITER: changes requested
-
-        SECURITY_ENGINEER --> CODE_REVIEWER: approved
-        SECURITY_ENGINEER --> MICRONAUT_ENGINEER: changes requested
-        SECURITY_ENGINEER --> TECHNICAL_WRITER: changes requested
-
-        CODE_REVIEWER --> [*]: approved + PR created
-        CODE_REVIEWER --> MICRONAUT_ENGINEER: changes requested
-
-        BOARD_APPROVAL --> QA_PUBLISH_CLOSE: approved
-        BOARD_APPROVAL --> QA_INTAKE: revision requested
-        QA_PUBLISH_CLOSE --> [*]: GitHub answer or closure published
-    }
-
+    IN_REVIEW --> TODO: Changes requested before implementation starts
+    IN_REVIEW --> BLOCKED: Waiting on external clarification or dependency
     IN_REVIEW --> IN_PROGRESS: PR exists and engineer owns follow-through
-    IN_PROGRESS --> IN_REVIEW: Material PR change returns to QA -> Security -> Code Reviewer
-    IN_PROGRESS --> DONE: GitHub merge or close sync
+    IN_REVIEW --> DONE: Approved answer or closure syncs complete
     IN_REVIEW --> CANCELLED: duplicate|stale|out-of-scope
+    IN_PROGRESS --> IN_REVIEW: Material PR change returns item to review
+    IN_PROGRESS --> BLOCKED: Waiting on CI, dependency, or external input
+    IN_PROGRESS --> DONE: GitHub merge or close sync
 
     DONE --> [*]
     CANCELLED --> [*]
