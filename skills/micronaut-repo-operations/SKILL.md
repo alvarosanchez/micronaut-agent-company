@@ -171,7 +171,7 @@ This package intentionally keeps internal automation small. It includes one ligh
 
 These routines are company-operating work, not substitutes for the synced GitHub backlog. They exist to keep the maintenance system healthy even when the GitHub queue is quiet.
 
-They import paused by default. Enable them only after GitHub sync and any needed `.company-runtime/` overlays are ready.
+They import active by default.
 
 When a routine surfaces a new problem:
 

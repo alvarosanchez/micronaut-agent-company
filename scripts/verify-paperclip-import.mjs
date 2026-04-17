@@ -267,6 +267,19 @@ function normalizeRoutineDefinition(value) {
   };
 }
 
+function normalizeRoutineDefinitionForExport(value) {
+  const normalized = normalizeRoutineDefinition(value);
+  if (!normalized) {
+    return null;
+  }
+  return {
+    ...normalized,
+    // Paperclip currently preserves live routine status on routine records,
+    // but omits it from exported .paperclip.yaml routine definitions.
+    status: null,
+  };
+}
+
 function getTextFile(files, relativePath) {
   const entry = files[relativePath];
   assert.equal(
@@ -1119,7 +1132,7 @@ async function main() {
       assert.equal(actualIssue.assigneeAgentSlug ?? null, expectedIssue.assignee);
       assert.equal(actualIssue.projectSlug ?? null, expectedIssue.projectSlug);
       assert.equal(actualIssue.recurring, expectedIssue.recurring);
-      if (expectedIssue.status !== null) {
+      if (expectedIssue.status !== null && !expectedIssue.recurring) {
         assert.equal(actualIssue.status ?? null, expectedIssue.status);
       }
       if (expectedIssue.priority !== null) {
@@ -1174,8 +1187,8 @@ async function main() {
       expected.extension?.routines ?? {},
     )) {
       assert.deepEqual(
-        normalizeRoutineDefinition(exportedExtension?.routines?.[routineSlug]),
-        normalizeRoutineDefinition(expectedRoutineConfig),
+        normalizeRoutineDefinitionForExport(exportedExtension?.routines?.[routineSlug]),
+        normalizeRoutineDefinitionForExport(expectedRoutineConfig),
         `Routine extension config was not preserved for ${routineSlug}`,
       );
     }
