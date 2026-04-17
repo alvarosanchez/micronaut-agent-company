@@ -1,7 +1,7 @@
 import process from "node:process";
 import {
   deriveVersionFromTag,
-  updateCompanyVersion,
+  updateCompanyReleaseState,
   writeGithubOutput,
 } from "./company-version.mjs";
 
@@ -10,7 +10,7 @@ async function main() {
     process.argv[2] ?? process.env.GITHUB_REF_NAME,
   );
 
-  await updateCompanyVersion(version);
+  await updateCompanyReleaseState(version);
   await writeGithubOutput("version", version);
 
   process.stdout.write(`${version}\n`);

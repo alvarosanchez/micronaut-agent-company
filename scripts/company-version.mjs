@@ -10,6 +10,8 @@ export const repoRoot = path.resolve(__dirname, "..");
 
 const SEMVER_VERSION_SOURCE =
   "\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?";
+const SEMVER_COMPONENT_PATTERN =
+  /^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-(?<prerelease>[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+(?<build>[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
 const PATCHABLE_VERSION_PATTERN =
   /^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
 
@@ -97,7 +99,129 @@ export function incrementPatchVersion(rawVersion) {
   return `${major}.${minor}.${Number(patch) + 1}`;
 }
 
-export async function readPackageVersion() {
+export function determineNextVersion(rawVersion) {
+  return incrementPatchVersion(rawVersion);
+}
+
+function parseVersion(rawVersion) {
+  const version = normalizeVersion(rawVersion);
+  const match = version.match(SEMVER_COMPONENT_PATTERN);
+
+  if (!match?.groups) {
+    throw new Error(`Unsupported SemVer value "${version}".`);
+  }
+
+  return {
+    major: Number(match.groups.major),
+    minor: Number(match.groups.minor),
+    patch: Number(match.groups.patch),
+    prerelease: match.groups.prerelease?.split(".") ?? [],
+  };
+}
+
+function comparePrereleaseIdentifiers(left, right) {
+  const leftIsNumeric = /^\d+$/.test(left);
+  const rightIsNumeric = /^\d+$/.test(right);
+
+  if (leftIsNumeric && rightIsNumeric) {
+    return Math.sign(Number(left) - Number(right));
+  }
+
+  if (leftIsNumeric) {
+    return -1;
+  }
+
+  if (rightIsNumeric) {
+    return 1;
+  }
+
+  return Math.sign(left.localeCompare(right));
+}
+
+export function compareVersions(leftVersion, rightVersion) {
+  const left = parseVersion(leftVersion);
+  const right = parseVersion(rightVersion);
+
+  for (const field of ["major", "minor", "patch"]) {
+    const comparison = Math.sign(left[field] - right[field]);
+    if (comparison !== 0) {
+      return comparison;
+    }
+  }
+
+  if (left.prerelease.length === 0 && right.prerelease.length === 0) {
+    return 0;
+  }
+
+  if (left.prerelease.length === 0) {
+    return 1;
+  }
+
+  if (right.prerelease.length === 0) {
+    return -1;
+  }
+
+  const identifierCount = Math.max(
+    left.prerelease.length,
+    right.prerelease.length,
+  );
+
+  for (let index = 0; index < identifierCount; index += 1) {
+    const leftIdentifier = left.prerelease[index];
+    const rightIdentifier = right.prerelease[index];
+
+    if (leftIdentifier === undefined) {
+      return -1;
+    }
+
+    if (rightIdentifier === undefined) {
+      return 1;
+    }
+
+    const comparison = comparePrereleaseIdentifiers(
+      leftIdentifier,
+      rightIdentifier,
+    );
+
+    if (comparison !== 0) {
+      return comparison;
+    }
+  }
+
+  return 0;
+}
+
+export function determineAutoReleasePlan(
+  rawCurrentVersion,
+  rawConfiguredNextVersion,
+  rawLatestReleaseVersion,
+) {
+  const currentVersion = normalizeVersion(rawCurrentVersion);
+  const latestReleaseVersion = rawLatestReleaseVersion
+    ? normalizeVersion(rawLatestReleaseVersion)
+    : "";
+  const releaseBaseline =
+    latestReleaseVersion &&
+    compareVersions(latestReleaseVersion, currentVersion) > 0
+      ? latestReleaseVersion
+      : currentVersion;
+  const releaseVersion = rawConfiguredNextVersion
+    ? normalizeVersion(rawConfiguredNextVersion)
+    : determineNextVersion(releaseBaseline);
+
+  if (compareVersions(releaseVersion, releaseBaseline) <= 0) {
+    throw new Error(
+      `Configured nextVersion "${releaseVersion}" must advance past the current release line "${releaseBaseline}".`,
+    );
+  }
+
+  return {
+    releaseVersion,
+    nextDevelopmentVersion: determineNextVersion(releaseVersion),
+  };
+}
+
+export async function readPackageReleaseState() {
   const packageJsonPath = path.join(repoRoot, "package.json");
   const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8"));
 
@@ -105,14 +229,35 @@ export async function readPackageVersion() {
     throw new Error("package.json is missing a string version field.");
   }
 
-  return normalizeVersion(packageJson.version);
+  const version = normalizeVersion(packageJson.version);
+  const nextVersion =
+    typeof packageJson.nextVersion === "string"
+      ? normalizeVersion(packageJson.nextVersion)
+      : determineNextVersion(version);
+
+  return { version, nextVersion };
 }
 
-export async function updateCompanyVersion(rawVersion) {
+export async function readPackageVersion() {
+  const { version } = await readPackageReleaseState();
+  return version;
+}
+
+export async function updateCompanyReleaseState(rawVersion, rawNextVersion) {
   const version = normalizeVersion(rawVersion);
+  const nextVersion = rawNextVersion
+    ? normalizeVersion(rawNextVersion)
+    : determineNextVersion(version);
+
+  if (compareVersions(nextVersion, version) <= 0) {
+    throw new Error(
+      `Configured nextVersion "${nextVersion}" must advance past version "${version}".`,
+    );
+  }
 
   await updateJsonFile("package.json", (document) => {
     document.version = version;
+    document.nextVersion = nextVersion;
   });
 
   await updateJsonFile("package-lock.json", (document) => {
@@ -124,6 +269,11 @@ export async function updateCompanyVersion(rawVersion) {
 
   await updateCompanyMarkdown(version);
 
+  return { version, nextVersion };
+}
+
+export async function updateCompanyVersion(rawVersion) {
+  const { version } = await updateCompanyReleaseState(rawVersion);
   return version;
 }
 

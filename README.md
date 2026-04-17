@@ -296,12 +296,14 @@ npx paperclipai company import https://github.com/alvarosanchez/micronaut-agent-
 
 ## Release
 
-Every push to `main` now triggers the `Release Company` workflow. The workflow serializes concurrent runs, skips stale ones, bumps the package to the next patch version, verifies the import, commits the updated `COMPANY.md`, `package.json`, and `package-lock.json`, then tags that commit as `vX.Y.Z` and publishes a GitHub release.
+Every push to `main` now triggers the `Release Company` workflow. Keep the current released version in `package.json#version`, and keep the next automatic release target in `package.json#nextVersion`. On each push, the workflow serializes concurrent runs, skips stale runs, releases `nextVersion`, verifies the import, commits the updated `COMPANY.md`, `package.json`, and `package-lock.json`, tags that commit as `vX.Y.Z`, publishes the GitHub release, and then leaves `main` pointing at the released version with `nextVersion` advanced to the following patch.
+
+If `package.json#nextVersion` is missing, the workflow falls back to the next patch release automatically. Prefer explicit `nextVersion` bumps in PRs whenever you want the next automatic release to be a new minor or major line.
 
 You can still run `Release Company` manually from the GitHub Actions UI:
 
 - Set `release_tag` to any valid Git tag string to publish a GitHub release for the current `main` head.
-- If `release_tag` is a SemVer value such as `v1.2.3` or `1.2.3`, the workflow also syncs the company version files to that version before publishing.
+- If `release_tag` is a SemVer value such as `v1.2.3` or `1.2.3`, the workflow also syncs the company version files to that release before publishing and updates `package.json#nextVersion` to the following patch.
 - Set `release_title` when you want a free-form GitHub release title that differs from the tag.
 
 ## Validation

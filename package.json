@@ -1,12 +1,14 @@
 {
   "name": "micronaut-agent-company",
   "version": "1.0.9",
+  "nextVersion": "1.1.0",
   "private": true,
   "description": "Paperclip company package for Micronaut inbox-zero maintenance.",
   "license": "MIT",
   "scripts": {
-    "test": "node scripts/verify-paperclip-import.mjs",
-    "test:node22": "npx -y node@22 scripts/verify-paperclip-import.mjs"
+    "test": "npm run test:unit && node scripts/verify-paperclip-import.mjs",
+    "test:node22": "npx -y node@22 --test scripts/company-version.test.mjs && npx -y node@22 scripts/verify-paperclip-import.mjs",
+    "test:unit": "node --test scripts/company-version.test.mjs"
   },
   "devDependencies": {
     "paperclipai": "2026.416.0",
