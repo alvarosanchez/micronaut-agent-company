@@ -41,8 +41,9 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
-- On authenticated deployments, if `GITHUB_TOKEN` is present, use the `gh` CLI for GitHub reads and writes.
-- Otherwise, use the agent tools below.
+- On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
+- If a GitHub action depends on the Paperclip-linked `paperclipIssueId` flow, use the sync plugin agent tools below even when `GITHUB_TOKEN` is available.
+- On unauthenticated deployments, use the agent tools below.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the user-facing docs problem and maintainer expectations before you edit anything.
 - `paperclip-github-plugin:get_pull_request` and `paperclip-github-plugin:list_pull_request_files` when documentation must align with an existing code diff.

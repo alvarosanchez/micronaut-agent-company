@@ -74,8 +74,9 @@ These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin cap
 
 Authenticated deployment rule:
 
-- On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, use the `gh` CLI for GitHub reads and writes.
-- Otherwise, use the agent tools below.
+- On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes.
+- If a GitHub action depends on the Paperclip-linked `paperclipIssueId` flow, use the sync plugin agent tools below even when `GITHUB_TOKEN` is available.
+- On unauthenticated deployments, use the agent tools below.
 - Treat the plugin tool list below as the fallback surface for unauthenticated deployments and for any GitHub action that still needs the Paperclip-linked `paperclipIssueId` flow.
 
 - `paperclip-github-plugin:search_repository_items`: repository-scoped GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup

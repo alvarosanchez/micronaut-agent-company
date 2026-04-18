@@ -1,6 +1,6 @@
 ---
 name: gh-cli
-description: Reference the upstream GitHub gh CLI skill for authenticated GitHub workflows in deployments that propagate GITHUB_TOKEN to agents.
+description: Reference the upstream GitHub gh CLI skill for authenticated GitHub workflows that prefer gh when GITHUB_TOKEN is available while still using Paperclip GitHub agent tools for paperclipIssueId-linked actions.
 metadata:
   sources:
     - kind: url
