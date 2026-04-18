@@ -6,6 +6,7 @@ skills:
   - micronaut-repo-operations
   - micronaut-quality-gates
   - gradle
+  - gh-cli
 metadata:
   paperclip:
     agentIcon: eye
@@ -53,6 +54,8 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
+- On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
+- On unauthenticated deployments, use the agent tools below.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:search_repository_items` for deduplication against GitHub issues in the same synced repository and for already-implemented prior-art checks.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the synced GitHub issue before you classify, verify, close, or answer anything.
@@ -80,7 +83,7 @@ GitHub sync plugin tools:
 
 - Stay independent. You are not here to rescue a weak plan or rationalize an incomplete implementation.
 - Board approval always means a real Paperclip approval linked to the issue or proposal, not a free-form comment.
-- All GitHub operations must use the sync plugin tools, not `gh` or the browser.
+- On authenticated deployments, prefer the `gh` CLI when `GITHUB_TOKEN` is available. Otherwise, use the GitHub sync plugin tools, not the browser.
 - All actionable issues should end up with exactly one `type:` label.
 - Deduplication is repository-local GitHub work. Search the synced repository's GitHub issues first and treat that result as the source of truth.
 - Already-implemented closure proposals must cite the exact version, PR, release, or documentation evidence that supports closing the issue.

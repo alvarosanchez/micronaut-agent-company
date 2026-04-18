@@ -336,13 +336,20 @@ function assertPortableRuntimeFilesAvoidMissingRepoFiles(files, rootDir, relativ
 
     for (const referencedPath of relativePaths) {
       const pattern = new RegExp(`\\b${referencedPath.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`, "g");
-      const matches = content.match(pattern) ?? [];
-      if (matches.length === 0) {
+      const absoluteReferencedPath = path.join(rootDir, referencedPath);
+      if (existsSync(absoluteReferencedPath)) {
         continue;
       }
 
-      const absoluteReferencedPath = path.join(rootDir, referencedPath);
-      if (existsSync(absoluteReferencedPath)) {
+      const matches = [...content.matchAll(pattern)].filter((match) => {
+        const start = match.index ?? -1;
+        if (start < 0) {
+          return false;
+        }
+        const prefix = content.slice(Math.max(0, start - 3), start);
+        return prefix !== "://";
+      });
+      if (matches.length === 0) {
         continue;
       }
 
@@ -1075,7 +1082,7 @@ async function main() {
       assert.equal(actualAgent.path, expectedAgent.path);
       assertStringArrayEqual(
         (actualAgent.skills ?? []).map(normalizeSkillReference),
-        expectedAgent.skills,
+        expectedAgent.skills.map(normalizeSkillReference),
         `Skill list mismatch for agent ${expectedAgent.slug}`,
       );
       assertExportedBody(exportResult.files, actualAgent.path, expectedAgent.body);

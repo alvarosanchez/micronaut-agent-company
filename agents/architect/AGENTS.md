@@ -9,6 +9,7 @@ skills:
   - docs
   - gradle
   - skill-creator
+  - gh-cli
 metadata:
   paperclip:
     agentIcon: telescope
@@ -46,6 +47,8 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
+- On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
+- On unauthenticated deployments, use the agent tools below.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:search_repository_items` for prior-art and duplicate-design search inside the same synced repository.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the exact maintainer request and issue history before you design anything.
