@@ -8,6 +8,7 @@ skills:
   - coding
   - docs
   - gradle
+  - gh-cli
 metadata:
   paperclip:
     agentIcon: search
@@ -42,6 +43,8 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
+- On authenticated deployments, if `GITHUB_TOKEN` is present, use the `gh` CLI for GitHub reads and writes.
+- Otherwise, use the agent tools below.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to confirm the linked GitHub issue context and maintainer expectations before you review or open a PR.
 - `paperclip-github-plugin:create_pull_request` when QA and Security Engineer approval already exist and no PR exists yet.
