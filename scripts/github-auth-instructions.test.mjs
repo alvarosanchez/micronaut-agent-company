@@ -85,8 +85,16 @@ test("Local gh-cli skill points to the requested upstream skill", async () => {
     new URL("../skills/gh-cli/SKILL.md", import.meta.url),
     "utf8",
   );
+  const { frontmatter } = parseFrontmatter(markdown);
 
-  assert.match(markdown, /https:\/\/skills\.sh\/github\/awesome-copilot\/gh-cli/);
-  assert.match(markdown, /GITHUB_TOKEN/);
-  assert.match(markdown, /\bgh\b.*CLI|CLI.*\bgh\b/i);
+  assert.match(frontmatter.description, /GITHUB_TOKEN/);
+  assert.match(frontmatter.description, /\bgh\b.*CLI|CLI.*\bgh\b/i);
+  assert.deepEqual(frontmatter.metadata?.sources, [
+    {
+      kind: "url",
+      url: "https://skills.sh/github/awesome-copilot/gh-cli",
+      attribution: "awesome-copilot",
+      usage: "referenced",
+    },
+  ]);
 });
