@@ -62,10 +62,10 @@ test("GitHub-capable agents describe authenticated gh CLI fallback behavior", as
       /on unauthenticated deployments,? use the agent tools|without GITHUB_TOKEN,? use the agent tools|if GITHUB_TOKEN is not available,? use the agent tools|otherwise,? use the agent tools/i,
       `${relativePath} must tell agents to fall back to the GitHub sync agent tools when GITHUB_TOKEN is unavailable.`,
     );
-    assert.match(
+    assert.doesNotMatch(
       body,
-      /paperclip-linked `paperclipIssueId` flow|paperclip-linked paperclipIssueId flow|depends on the Paperclip-linked `paperclipIssueId` flow/i,
-      `${relativePath} must preserve the exception for actions that require the Paperclip-linked paperclipIssueId flow.`,
+      /even when `GITHUB_TOKEN` is available|even when GITHUB_TOKEN is available/i,
+      `${relativePath} must not claim the sync plugin tools are available during authenticated gh-based runs.`,
     );
   }
 });
@@ -83,9 +83,9 @@ test("Shared Micronaut repo operations explain the authenticated GitHub access s
     markdown,
     /on unauthenticated deployments,? use the agent tools|without GITHUB_TOKEN,? use the agent tools|if GITHUB_TOKEN is not available,? use the agent tools|otherwise,? use the agent tools/i,
   );
-  assert.match(
+  assert.doesNotMatch(
     markdown,
-    /paperclip-linked `paperclipIssueId` flow|paperclip-linked paperclipIssueId flow|depends on the Paperclip-linked `paperclipIssueId` flow/i,
+    /even when `GITHUB_TOKEN` is available|even when GITHUB_TOKEN is available/i,
   );
 });
 
@@ -98,7 +98,7 @@ test("Local gh-cli skill points to the requested upstream skill", async () => {
 
   assert.match(frontmatter.description, /GITHUB_TOKEN/);
   assert.match(frontmatter.description, /\bgh\b/i);
-  assert.match(frontmatter.description, /paperclipIssueId/i);
+  assert.doesNotMatch(frontmatter.description, /paperclipIssueId/i);
   assert.deepEqual(frontmatter.metadata?.sources, [
     {
       kind: "url",
