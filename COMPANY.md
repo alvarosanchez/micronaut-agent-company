@@ -3,7 +3,7 @@ name: Micronaut Agent Company
 description: Agent company for Micronaut open-source maintenance that drives a related repository cluster to zero open GitHub issues and pull requests through triage, planning, implementation, QA, security review, code review, and documentation.
 slug: micronaut-agent-company
 schema: agentcompanies/v1
-version: 1.1.4
+version: 1.1.6
 license: MIT
 authors:
   - name: Álvaro Sánchez-Mariscal
@@ -42,9 +42,9 @@ The company operates as a gated pipeline driven by Paperclip execution policies:
 9. **Micronaut Engineer** handles PR follow-through after PR creation: CI must stay green, Sonar Quality Gate issues must be addressed, all review threads must be resolved, and the chosen project link must stay correct if the PR is retargeted.
 10. The board or other Micronaut maintainers merge the PR or cut the release, and the sync plugin eventually marks the Paperclip item `DONE`.
 
-Each stage acts only when it is the current execution stage participant. Agents resolve stages with `approved`, `changes_requested`, or `request_board_approval` when a human governance decision is required, and explicitly invoke the next reviewer heartbeat when they need the next stage to act immediately. Assignee flips and Paperclip handoff comments are not the workflow mechanism.
+Each stage acts only when it is the current execution stage participant. Agents resolve stages with `approved`, `changes_requested`, or `request_board_approval` when a human governance decision is required, and explicitly invoke the next reviewer heartbeat when they need the next stage to act immediately. For synced GitHub delivery work, `approved` advances the work through the next stage or into PR follow-through; it does not mean the item is finished, and agents must not mark the Paperclip issue `DONE` themselves. Assignee flips and Paperclip handoff comments are not the workflow mechanism.
 
-The board is intentionally not modeled as an agent role. Board approval is an explicit human Paperclip approval linked to the relevant issue or proposal, and merge or release authority remains human.
+The board is intentionally not modeled as an agent role. Board approval is an explicit human Paperclip approval linked to the relevant issue or proposal, and merge or release authority remains human. When the approval is asking permission to post a maintainer-visible GitHub comment, the approval request must include the exact proposed comment body that will be posted if approved.
 
 Imported issues may already have a linked PR from an external contributor. QA evaluates that PR during intake. If it is good enough to salvage, the issue stays on the normal gates and later stages are responsible for getting that existing PR into the same mergeable condition expected of an agent-created PR. If the PR needs substantial replacement work, QA requests linked board approval to close the PR with explanation while still routing the issue itself through the normal engineering pipeline.
 
@@ -52,7 +52,7 @@ Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-im
 
 This package is intentionally generic about repository selection. The GitHub sync plugin configuration defines the actual repository set and creates the Paperclip projects and synced issues or PRs that become the real work queue. Put supplemental operational facts that agents need at runtime, such as release-line notes, CI commands, Sonar quirks, docs conventions, and maintainer preferences, into `.company-runtime/shared.md` or `.company-runtime/projects/<project-slug>.md`.
 
-Because synced GitHub delivery issues are created by the GitHub sync plugin after import, Paperclip blocker graphs and execution policies for those items should be configured in the live Paperclip instance or sync layer rather than encoded in this portable package. In practice, that means the live system should attach review stages that match this company workflow and use linked Paperclip approvals for board governance.
+Because synced GitHub delivery issues are created by the GitHub sync plugin after import, Paperclip blocker graphs and execution policies for those items should be configured in the live Paperclip instance or sync layer rather than encoded in this portable package. In practice, that means the live system should attach review stages that match this company workflow and use linked Paperclip approvals for board governance. If a linked approval is gating a maintainer-visible GitHub comment, the approval request must carry the exact proposed comment body rather than only a summary.
 
 The package also includes one lightweight internal project, `company-operations`, with one bootstrap **CEO** verification issue plus two recurring Paperclip routines: a weekly **Security Engineer** deep scan and a weekly **CEO** self-improvement review. The bootstrap issue imports in `TODO` so the CEO can verify that the imported entities are complete before normal operations begin. The recurring routines are company-operating work, not delivery backlog, and they exist to keep the maintenance system healthy even when the synced GitHub queue is temporarily quiet. They import active by default so those maintenance checks start automatically after import. The CEO routine may also promote reusable company learnings into PRs against the source package repository when a default should improve for future imports.
 

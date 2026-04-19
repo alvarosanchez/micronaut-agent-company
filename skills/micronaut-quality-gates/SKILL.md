@@ -14,6 +14,7 @@ Before any role resolves its stage:
 - the role has read the current execution stage, current stage participant, latest linked GitHub context, and any linked approval
 - the role has produced one durable stage artifact that explains the decision
 - the role resolves the stage with `approved`, `changes_requested`, or `request_board_approval` instead of routing by Paperclip handoff comment
+- for synced GitHub delivery work, `approved` advances the issue to the next stage or PR follow-through; it is not permission to mark the Paperclip item `DONE`
 - if a human governance decision is required, the role creates or updates a real Paperclip approval instead of treating a comment as approval
 - if the next stage should run immediately, the role explicitly invokes the next agent heartbeat instead of assuming that adding a reviewer wakes them
 - the role re-opens the issue and verifies the execution state matches the intended outcome before finishing
@@ -98,6 +99,7 @@ The Code Reviewer checks for:
 - API, config, and developer-experience quality
 - missing or weak tests
 - correct PR issue linkage, `type:` label, organization project, and reviewer requests when approving work
+- if `approved` is chosen, a non-draft GitHub PR exists by the end of the run in the correct repository and branch, is readable from the synced GitHub context, and includes the correct issue linkage, closing keyword, `type:` label, and organization project; if any of those are missing, the work is not yet ready to leave code review
 
 If the work is approved, the Code Reviewer creates or verifies the PR. If not, it resolves as `changes_requested`.
 
@@ -106,6 +108,7 @@ If the work is approved, the Code Reviewer creates or verifies the PR. If not, i
 Before a PR is considered healthy:
 
 - the Code Reviewer created the PR after QA and Security Engineer stages approved, or verified an acceptable already-open contributor PR after those stages approved
+- the synced Paperclip delivery item remains open until GitHub merge or an approved GitHub closure path syncs back
 - the summary and rationale are coherent
 - linked issue context is accurate and uses a closing keyword
 - the PR carries exactly one `type:` label
