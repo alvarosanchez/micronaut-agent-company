@@ -27,11 +27,14 @@ Before an actionable issue moves out of QA intake:
 - deduplication has been performed against GitHub issues in the same synced repository
 - the issue has the correct `type:` label, unless it is on a documented immediate-closure path
 - any linked contributor PR has been evaluated for whether it should stay on the normal gates or be closed through a separate board-approved explanation
+- confident questions use the documented `type: question` plus `closed: question` direct-answer path
+- clarification requests use the documented `status: awaiting feedback` path and may close after 30 days with `closed: question`
 - bugs have a reproducer or a precise non-reproducer record
-- unreproduced bugs that now point toward closure use the explicit board-approval path instead of falling back to `changes_requested`
+- unreproduced bugs that now point toward closure use the documented `closed: cannot reproduce` path instead of falling back to `changes_requested`
+- duplicates use the documented `closed: duplicate` path with a link to the superseding GitHub issue
 - the downstream execution-policy stage sequence is correct for the issue type
 - required all-of gates are modeled as separate sequential stages instead of one multi-participant stage
-- if the issue needs a public answer or approved closure, the board-approval path is explicit
+- if the issue needs a public answer or closure outside QA's direct GitHub authority, the board-approval path is explicit
 
 ## Planning Gate
 
@@ -73,9 +76,9 @@ The QA Engineer verifies:
 - the original issue or PR concern is actually resolved
 - tests and documentation support the claimed change
 - no important acceptance criteria were silently dropped
-- public answers and closure paths have the required Paperclip board approval before anything is published on GitHub
+- public answers and closure paths use the correct GitHub labels, include enough detail for the reporter, and only require Paperclip board approval when the path is outside QA's direct GitHub authority
 
-Work that passes QA moves into the next configured review stage. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
+Work that passes QA moves into the next configured review stage or completes through the allowed direct GitHub answer or closure path. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
 
 ## Security Gate
 

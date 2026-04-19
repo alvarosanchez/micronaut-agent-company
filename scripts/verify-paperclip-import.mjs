@@ -113,6 +113,41 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "QA instructions must explain that inadequate imported issue PRs require board approval before QA closes them.",
   },
   {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern:
+      /type:\s*question[\s\S]*closed:\s*question[\s\S]*close the issue|close the issue[\s\S]*type:\s*question[\s\S]*closed:\s*question/i,
+    message:
+      "QA instructions must explain that confident questions can be answered directly on GitHub with `type: question` and `closed: question` before QA closes the issue.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern:
+      /status:\s*awaiting feedback[\s\S]*30 days[\s\S]*closed:\s*question|closed:\s*question[\s\S]*30 days[\s\S]*status:\s*awaiting feedback/i,
+    message:
+      "QA instructions must explain that clarification requests use `status: awaiting feedback` and may close after 30 days with `closed: question`.",
+  },
+  {
+    relativePath: "README.md",
+    pattern:
+      /closed:\s*cannot reproduce[\s\S]*QA|QA[\s\S]*closed:\s*cannot reproduce/i,
+    message:
+      "README.md must explain that unreproducible issues can be closed by QA with `closed: cannot reproduce`.",
+  },
+  {
+    relativePath: "README.md",
+    pattern:
+      /closed:\s*duplicate[\s\S]*duplicate link|duplicate link[\s\S]*closed:\s*duplicate|link(?:ing)? the duplicate issue[\s\S]*closed:\s*duplicate/i,
+    message:
+      "README.md must explain that duplicate issues can be closed by QA with `closed: duplicate` and a duplicate link.",
+  },
+  {
+    relativePath: "README.md",
+    pattern:
+      /GitHub issue closure[\s\S]*syncs back[\s\S]*close the Paperclip item|syncs back[\s\S]*close the Paperclip item[\s\S]*GitHub issue closure|do(?:es)? not close the Paperclip issue directly[\s\S]*sync/i,
+    message:
+      "README.md must explain that GitHub issue closure syncs back to close the Paperclip item, so QA does not close the Paperclip issue directly.",
+  },
+  {
     relativePath: "COMPANY.md",
     pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
     message: "COMPANY.md must require board approvals for maintainer-visible GitHub comments to include the exact proposed comment body.",
