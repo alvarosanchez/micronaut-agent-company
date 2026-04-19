@@ -84,6 +84,26 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: /same synced repository/i,
     message: "QA instructions must say that deduplication happens against GitHub issues in the same synced repository.",
   },
+  {
+    relativePath: "COMPANY.md",
+    pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
+    message: "COMPANY.md must require board approvals for public GitHub comments to include the exact proposed comment body.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
+    message: "README.md must require board approvals for public GitHub comments to include the exact proposed comment body.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
+    message: "QA instructions must require board approvals for public GitHub comments to include the exact proposed comment body.",
+  },
+  {
+    relativePath: "agents/ceo/AGENTS.md",
+    pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
+    message: "CEO instructions must require board approvals for public GitHub comments to include the exact proposed comment body.",
+  },
 ];
 const PAPERCLIP_AGENT_ICONS = new Set([
   "bot",

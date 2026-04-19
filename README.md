@@ -71,6 +71,7 @@ Recommended live execution-policy stage layouts:
 - Paperclip review stages can have multiple participants. When you expect more than one reviewer to look at the active stage, invoke each reviewer explicitly after the stage becomes active.
 - This package models required gates as separate sequential stages. That is intentional: the installed `paperclipai@2026.416.0` runtime in this repository still exposes `approvalsNeeded: 1` for execution stages, so a single multi-participant stage should not be treated as a guaranteed unanimous gate.
 - Human governance uses linked Paperclip approvals. Those approvals are separate records linked to issues, with their own lifecycle and decision notes, and they are the package's source of truth for board approval.
+- When a linked board approval is asking permission to post a maintainer-visible GitHub comment, the approval request must include the exact proposed comment body that will be posted if approved.
 
 ## Issue Lifecycle
 
@@ -116,6 +117,7 @@ Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-im
 
 - The board is intentionally not modeled as an agent role. It remains an external human governance layer.
 - Board approval always means an explicit human Paperclip approval linked to the relevant issue or proposal, not a free-form comment.
+- Approval requests for maintainer-visible GitHub comments must include the exact proposed comment body so the board can approve the literal public response.
 - Git operations must use the local git CLI.
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
 - The implementation loop is always `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer`.
@@ -195,6 +197,7 @@ Some workflow actions are Paperclip runtime concerns rather than GitHub sync con
 - Reviewer wakeups: use the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action after activating the next review stage.
 - Linked board approvals: create, inspect, approve, reject, request revision, resubmit, and comment on approvals through the Paperclip approvals API.
 - Approval lifecycle: linked approvals are separate records from issue review stages. They start pending, carry their own decision note history, and are the package's source of truth for board approval.
+- Comment-gating approvals: when the approval is for a maintainer-visible GitHub issue comment, include the exact proposed comment body in the approval request before asking the board to approve it.
 
 ## Org Chart
 
