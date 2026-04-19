@@ -22,6 +22,7 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - Use linked Paperclip approvals for human governance decisions such as board-approved answers, closure paths, and package-policy exceptions. Do not treat a free-form comment as approval.
 - The current stage participant is the routing source of truth. If the issue is waiting on another participant or a linked human approval, stop instead of improvising side-channel routing.
 - A stage ends with one of three outcomes: `approved`, `changes_requested`, or `request_board_approval` when a linked human approval must gate the next public action.
+- For synced GitHub delivery work, `approved` only advances the execution policy. Agents do not manually mark the Paperclip item `DONE`; the GitHub sync plugin does that after merge or after an approved GitHub closure path actually lands.
 - A stage artifact is still required: plan, reproducer, QA report, security review, review summary, or rollout note. Put the artifact in the issue output, issue document, linked approval, PR, or other durable workspace owned by the stage. The stage decision, not the note, is what routes the work.
 - If the live sync layer keeps a stable assignee for convenience, treat it as informational. The current execution stage still decides who acts next.
 - Adding a Paperclip reviewer does not wake that reviewer automatically. After you move work into a review stage and want the next reviewer to act now, explicitly invoke that agent heartbeat with the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action.
@@ -111,9 +112,10 @@ Before you stop:
    - after `approved`, the current stage participant is no longer you
    - after `changes_requested`, the execution state shows `changes_requested`
    - after `request_board_approval`, the linked approval exists and is pending or approved
-3. If you expect another agent to act immediately and they are now a current stage participant, explicitly invoke that agent heartbeat. If the stage has multiple reviewer participants, invoke each intended reviewer.
-4. If you expected a GitHub side effect such as a label change, PR creation, issue comment, review-thread reply, or closure, confirm it exists instead of assuming it happened.
-5. If the state is wrong, fix it before you finish.
+3. For synced GitHub delivery work, confirm the issue was not incorrectly marked `DONE` just because a stage approved. `DONE` is reserved for sync-confirmed merge or sync-confirmed GitHub closure.
+4. If you expect another agent to act immediately and they are now a current stage participant, explicitly invoke that agent heartbeat. If the stage has multiple reviewer participants, invoke each intended reviewer.
+5. If you expected a GitHub side effect such as a label change, PR creation, issue comment, review-thread reply, or closure, confirm it exists instead of assuming it happened.
+6. If the state is wrong, fix it before you finish.
 
 ## Required GitHub Type Labels
 
@@ -166,6 +168,7 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 - QA does not publish answer proposals or closure proposals on GitHub until that approval exists.
 - Only the board or other Micronaut maintainers merge PRs or cut releases.
 - Agents may prepare, label, comment, close, and create PRs when their role allows it, but they do not merge or release.
+- For PR-based delivery work, agents do not close the synced Paperclip issue themselves. The GitHub sync plugin closes it after the linked PR merges.
 - Paperclip issue blockers and execution policies for synced GitHub delivery items are runtime controls. Configure them in the live Paperclip instance or sync layer rather than trying to encode them in this package.
 
 ## Internal Operating Routines
@@ -263,11 +266,13 @@ Important usage rules:
 
 - The delivery loop is modeled by execution-policy stages, not manual Paperclip handoff comments.
 - `code-reviewer` creates the GitHub PR only after QA and Security Engineer stages are approved.
+- `code-reviewer` must not resolve PR-based delivery work as `approved` unless a visible PR exists by the end of that run.
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
 - Every PR must be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version.
 - `code-reviewer` applies the exact project named earlier by the Architect when creating the PR.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, and resolves all review threads.
+- PR-based delivery work stays open in Paperclip until GitHub merge sync completes. Agents do not manually move those items to `DONE`.
 - Any material post-PR change re-enters the same execution-policy-controlled loop.
 
 ## Maintainer-Friendly Evidence

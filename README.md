@@ -55,7 +55,7 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 9. **Micronaut Engineer** owns PR follow-through after PR creation: keep CI green, address Sonar Quality Gate issues, resolve all review threads, and keep the chosen project link correct if the PR is retargeted, preserving it unless the Architect explicitly retargets the release.
 10. The board or other Micronaut maintainers merge the PR or cut the release. The sync plugin eventually marks the Paperclip item `DONE`.
 
-The workflow is driven by Paperclip review stages plus linked Paperclip approvals. Agents act only when they are the current execution stage participant, resolve stages with `approved`, `changes_requested`, or `request_board_approval` when a linked human decision must gate the next public action, and use linked Paperclip approvals when a human decision is required. Assignee flips and Paperclip handoff comments are not the routing mechanism.
+The workflow is driven by Paperclip review stages plus linked Paperclip approvals. Agents act only when they are the current execution stage participant, resolve stages with `approved`, `changes_requested`, or `request_board_approval` when a linked human decision must gate the next public action, and use linked Paperclip approvals when a human decision is required. For synced GitHub delivery work, `approved` only advances the workflow; it does not mean the item is complete, and agents must not mark the Paperclip issue `DONE` themselves. Assignee flips and Paperclip handoff comments are not the routing mechanism.
 
 Recommended live execution-policy stage layouts:
 
@@ -96,6 +96,8 @@ stateDiagram-v2
 
 After every `approved` transition, explicitly invoke the next reviewer heartbeat if you expect them to act now. For the question and approved-closure path, the linked board approval replaces the next review stage until a human resolves it.
 
+For PR-based delivery work, a synced Paperclip item remains open until the linked PR merges and the GitHub sync plugin reflects that merge back into Paperclip. For approved closure paths such as board-approved question answers or documented closure dispositions, the item becomes `DONE` only after the GitHub close or answer action actually syncs back. Agents should never treat a successful QA, Security Engineer, or Code Reviewer stage by itself as permission to close the Paperclip item manually.
+
 In addition to the synced GitHub work queue, the package includes one bootstrap internal issue plus two weekly internal routines under `company-operations`. The bootstrap issue, **Verify Imported Company Instance**, imports in `TODO` on the CEO queue so the imported entity set can be checked before normal operations begin. The routines create ongoing internal Paperclip work items that help keep the company healthy; they do not replace the synced GitHub issues and PRs that remain the real delivery backlog. The routines import active by default so those recurring maintenance checks start automatically after import.
 
 Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. For already-implemented reports, QA must capture the supporting version, PR, release, or documentation evidence and wait for the required Paperclip board approval before posting the GitHub explanation and closing the issue.
@@ -120,7 +122,9 @@ Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-im
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
 - The implementation loop is always `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer`.
 - `Code Reviewer` creates the PR after QA and Security Engineer sign-off, but only the board or other Micronaut maintainers may merge or cut releases.
+- `Code Reviewer` must not resolve PR-based delivery work as `approved` unless a visible PR exists by the end of that run.
 - Passing QA, Security, or Code Review is not a terminal state for a synced GitHub issue by itself. Agents must verify that the issue execution state advanced to the correct next stage before they stop.
+- For PR-based delivery work, agents never close the synced Paperclip issue themselves. The GitHub sync plugin owns the transition to `DONE` after merge.
 - If the next stage should act immediately, agents must explicitly invoke the next reviewer heartbeat. Adding a reviewer alone is not enough.
 - If you need all required reviewers to sign off, model them as separate sequential stages instead of a single multi-participant execution stage.
 - Every PR must include a closing keyword such as `Fixes #123`, must carry one of the `type:` labels above, and must be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version.
