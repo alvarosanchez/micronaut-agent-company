@@ -84,7 +84,14 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern:
       /linked PR[\s\S]*normal gates|normal gates[\s\S]*linked PR|external contributor[\s\S]*mergeable/i,
     message:
-      "README.md must explain how imported issues with linked contributor PRs either continue through the normal gates or get closed with board approval.",
+      "README.md must explain how imported issues with linked contributor PRs continue through the normal gates.",
+  },
+  {
+    relativePath: "README.md",
+    pattern:
+      /board approval[\s\S]*close the PR|close the PR[\s\S]*board approval/i,
+    message:
+      "README.md must explain that inadequate imported issue PRs require board approval before they are closed.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",

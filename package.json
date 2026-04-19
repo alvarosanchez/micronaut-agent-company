@@ -7,8 +7,8 @@
   "license": "MIT",
   "scripts": {
     "test": "npm run test:unit && node scripts/verify-paperclip-import.mjs",
-    "test:node22": "npx -y node@22 --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs && npx -y node@22 scripts/verify-paperclip-import.mjs",
-    "test:unit": "node --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs"
+    "test:node22": "npx -y node@22 --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/verify-paperclip-import-patterns.test.mjs && npx -y node@22 scripts/verify-paperclip-import.mjs",
+    "test:unit": "node --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/verify-paperclip-import-patterns.test.mjs"
   },
   "devDependencies": {
     "paperclipai": "2026.416.0",
