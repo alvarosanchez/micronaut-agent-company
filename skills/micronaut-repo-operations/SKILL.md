@@ -37,6 +37,13 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - `type: question`, unreproducible bug closure, and already-implemented closure: QA intake review -> linked Paperclip board approval -> QA publish-or-close stage.
 - Weekly routines stay as internal Paperclip work and may use a shorter stage sequence when no downstream review is required.
 
+## Imported Issues With Existing PRs
+
+- QA intake owns the first decision on any linked PR that arrived with the synced issue, including PRs opened by external contributors before import.
+- If the linked contributor PR is good enough to salvage, keep it on the normal stage layout and treat it like an agent-created PR that still has to clear every configured gate.
+- If the linked contributor PR needs substantial replacement work, QA should open a linked Paperclip board approval to close that PR with explanation, then continue routing the issue itself through the normal engineering pipeline instead of blocking on the PR closure.
+- Closing an inadequate linked PR is a separate governance action. It does not by itself turn the underlying issue into a closure path.
+
 ## Required Session Start
 
 Before you do any work on a synced issue or PR:
@@ -98,7 +105,7 @@ Use these plugin-tool conventions exactly:
 
 Every stage must end in one of these states:
 
-- `approved`: your stage artifact is complete, the issue is ready for the next configured stage immediately, and no missing governance decision remains.
+- `approved`: your stage artifact is complete, the issue is ready for the next configured stage immediately, and no missing governance decision remains for the issue route itself. A separate linked board approval to close an inadequate contributor PR may coexist with approved intake.
 - `changes_requested`: your stage artifact names the exact gap, risk, or missing fact that must be addressed before the issue can move forward.
 - `request_board_approval`: when public GitHub action or a policy exception needs a human decision first, create or update the linked Paperclip approval instead of using a free-form comment as the approval mechanism.
 
@@ -139,6 +146,7 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 ## Closure Dispositions
 
 - `already-implemented` (closure disposition, not a GitHub `type:` label): QA documents the exact version, PR, release, or docs evidence, requests linked Paperclip board approval, waits for that approval, then publishes the closure on GitHub.
+- `linked contributor PR needs replacement` (operating situation, not a GitHub `type:` label): QA documents why the imported PR is not salvageable, requests linked Paperclip board approval to close that PR with explanation, and still routes the issue through the normal implementation stages.
 
 ## Documentation Policy
 

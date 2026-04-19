@@ -25,6 +25,7 @@ Before an actionable issue moves out of QA intake:
 - a human has moved the synced issue from `BACKLOG` to `TODO`
 - deduplication has been performed against GitHub issues in the same synced repository
 - the issue has the correct `type:` label, unless it is on a documented immediate-closure path
+- any linked contributor PR has been evaluated for whether it should stay on the normal gates or be closed through a separate board-approved explanation
 - bugs have a reproducer or a precise non-reproducer record
 - unreproduced bugs that now point toward closure use the explicit board-approval path instead of falling back to `changes_requested`
 - the downstream execution-policy stage sequence is correct for the issue type
@@ -67,6 +68,7 @@ The QA Engineer verifies:
 
 - intake decisions are correct and the downstream stage sequence is correct
 - the implementation still matches the approved plan or the reproducer
+- when a linked contributor PR exists, QA has correctly decided whether it remains the implementation vehicle or should be replaced
 - the original issue or PR concern is actually resolved
 - tests and documentation support the claimed change
 - no important acceptance criteria were silently dropped
@@ -103,7 +105,7 @@ If the work is approved, the Code Reviewer creates or verifies the PR. If not, i
 
 Before a PR is considered healthy:
 
-- the Code Reviewer created the PR after QA and Security Engineer stages approved
+- the Code Reviewer created the PR after QA and Security Engineer stages approved, or verified an acceptable already-open contributor PR after those stages approved
 - the summary and rationale are coherent
 - linked issue context is accurate and uses a closing keyword
 - the PR carries exactly one `type:` label

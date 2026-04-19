@@ -80,9 +80,30 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     message: "README.md must document explicit reviewer wakeups through the Paperclip heartbeat invoke API.",
   },
   {
+    relativePath: "README.md",
+    pattern:
+      /linked PR[\s\S]*normal gates|normal gates[\s\S]*linked PR|external contributor[\s\S]*mergeable/i,
+    message:
+      "README.md must explain how imported issues with linked contributor PRs either continue through the normal gates or get closed with board approval.",
+  },
+  {
     relativePath: "agents/qa-engineer/AGENTS.md",
     pattern: /same synced repository/i,
     message: "QA instructions must say that deduplication happens against GitHub issues in the same synced repository.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern:
+      /external contributor[\s\S]*normal gates|normal gates[\s\S]*external contributor/i,
+    message:
+      "QA instructions must explain that a good imported issue PR from an external contributor moves through the normal gates.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern:
+      /board approval[\s\S]*close the PR|close the PR[\s\S]*board approval/i,
+    message:
+      "QA instructions must explain that inadequate imported issue PRs require board approval before QA closes them.",
   },
 ];
 const PAPERCLIP_AGENT_ICONS = new Set([
