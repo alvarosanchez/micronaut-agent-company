@@ -15,7 +15,7 @@ test("board approval guidance requires the exact proposed GitHub comment body", 
 
     assert.match(
       markdown,
-      /exact (?:public GitHub )?(?:comment|comment body|proposed comment body).*board approval|board approval.*exact (?:public GitHub )?(?:comment|comment body|proposed comment body)/i,
+      /exact (?:maintainer-visible GitHub )?(?:comment body|proposed comment body).*board approval|board approval.*exact (?:maintainer-visible GitHub )?(?:comment body|proposed comment body)/i,
       `${relativePath} must require board approval requests for GitHub comments to include the exact comment body that will be posted.`,
     );
   }
