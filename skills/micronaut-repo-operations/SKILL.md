@@ -21,7 +21,7 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - Use review stages for agent sign-off gates such as QA, Architect, Security Engineer, Code Reviewer, and any execution stage where one agent must do work and then explicitly release the item.
 - Use linked Paperclip approvals for human governance decisions such as board-approved answers, closure paths, and package-policy exceptions. Do not treat a free-form comment as approval.
 - The current stage participant is the routing source of truth. If the issue is waiting on another participant or a linked human approval, stop instead of improvising side-channel routing.
-- A stage ends with one of two outcomes: `approved` or `changes_requested`.
+- A stage ends with one of three outcomes: `approved`, `changes_requested`, or `request_board_approval` when a linked human approval must gate the next public action.
 - A stage artifact is still required: plan, reproducer, QA report, security review, review summary, or rollout note. Put the artifact in the issue output, issue document, linked approval, PR, or other durable workspace owned by the stage. The stage decision, not the note, is what routes the work.
 - If the live sync layer keeps a stable assignee for convenience, treat it as informational. The current execution stage still decides who acts next.
 - Adding a Paperclip reviewer does not wake that reviewer automatically. After you move work into a review stage and want the next reviewer to act now, explicitly invoke that agent heartbeat with the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action.

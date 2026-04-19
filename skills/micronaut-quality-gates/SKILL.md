@@ -13,7 +13,7 @@ Before any role resolves its stage:
 
 - the role has read the current execution stage, current stage participant, latest linked GitHub context, and any linked approval
 - the role has produced one durable stage artifact that explains the decision
-- the role resolves the stage with `approved` or `changes_requested` instead of routing by Paperclip handoff comment
+- the role resolves the stage with `approved`, `changes_requested`, or `request_board_approval` instead of routing by Paperclip handoff comment
 - if a human governance decision is required, the role creates or updates a real Paperclip approval instead of treating a comment as approval
 - if the next stage should run immediately, the role explicitly invokes the next agent heartbeat instead of assuming that adding a reviewer wakes them
 - the role re-opens the issue and verifies the execution state matches the intended outcome before finishing
@@ -26,6 +26,7 @@ Before an actionable issue moves out of QA intake:
 - deduplication has been performed against GitHub issues in the same synced repository
 - the issue has the correct `type:` label, unless it is on a documented immediate-closure path
 - bugs have a reproducer or a precise non-reproducer record
+- unreproduced bugs that now point toward closure use the explicit board-approval path instead of falling back to `changes_requested`
 - the downstream execution-policy stage sequence is correct for the issue type
 - required all-of gates are modeled as separate sequential stages instead of one multi-participant stage
 - if the issue needs a public answer or approved closure, the board-approval path is explicit
@@ -71,7 +72,7 @@ The QA Engineer verifies:
 - no important acceptance criteria were silently dropped
 - public answers and closure paths have the required Paperclip board approval before anything is published on GitHub
 
-Work that passes QA moves into the next configured review stage. Work that fails QA resolves as `changes_requested`.
+Work that passes QA moves into the next configured review stage. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
 
 ## Security Gate
 
