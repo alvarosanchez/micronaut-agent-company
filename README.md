@@ -55,7 +55,7 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 9. **Micronaut Engineer** owns PR follow-through after PR creation: keep CI green, address Sonar Quality Gate issues, resolve all review threads, and keep the chosen project link correct if the PR is retargeted, preserving it unless the Architect explicitly retargets the release.
 10. The board or other Micronaut maintainers merge the PR or cut the release. The sync plugin eventually marks the Paperclip item `DONE`.
 
-The workflow is driven by Paperclip review stages plus linked Paperclip approvals. Agents act only when they are the current execution stage participant, resolve stages with `approved`, `changes_requested`, or `request_board_approval` when a linked human decision must gate the next public action, and use linked Paperclip approvals when a human decision is required. For synced GitHub delivery work, `approved` only advances the workflow; it does not mean the item is complete, and agents must not mark the Paperclip issue `DONE` themselves. Assignee flips and Paperclip handoff comments are not the routing mechanism.
+The workflow is driven by Paperclip review stages plus linked Paperclip approvals. Agents act only when they are the current execution stage participant, resolve stages with `approved`, `changes_requested`, or `request_board_approval` when a linked human decision must gate the next public action, and use linked Paperclip approvals when a human decision is required. For synced GitHub delivery work, `approved` only advances the workflow; it does not mean the item is complete, and agents must not mark the Paperclip issue `DONE` themselves. Closing a synced GitHub issue also does not mean manually closing the Paperclip item; the GitHub sync plugin closes it on the next sync. Assignee flips and Paperclip handoff comments are not the routing mechanism.
 
 Imported issues may already have a linked PR from an external contributor. QA evaluates that PR during intake. If the linked PR is good enough to salvage, it stays on the normal gates and the later engineering, QA, security, and code-review stages bring that existing PR to the same mergeable condition expected of an agent-created PR. If the linked PR is stale, retargeted incorrectly, or otherwise needs a replacement instead of incremental follow-through, QA opens a linked board approval request to close the PR with explanation while still routing the issue itself through the normal engineering pipeline.
 
@@ -64,7 +64,8 @@ Recommended live execution-policy stage layouts:
 - `type: bug`: `QA intake -> Micronaut Engineer -> QA verification -> Security Engineer -> Code Reviewer`
 - `type: docs`: `QA intake -> Technical Writer -> QA verification -> Security Engineer -> Code Reviewer`
 - `type: improvement`, `type: enhancement`, `type: breaking`, `type: dependency-upgrade`: `QA intake -> Architect -> Micronaut Engineer or Technical Writer -> QA verification -> Security Engineer -> Code Reviewer`
-- `type: question`, unreproducible bug closure, or already-implemented closure: `QA intake -> linked board approval -> QA publish/close`
+- `type: question`, clarification wait paths, unreproducible closures, and duplicate closures: `QA intake`, with QA publishing the GitHub answer, clarification request, or closure directly and waiting for sync
+- `already-implemented` closure: `QA intake -> linked board approval -> QA publish/close`
 
 ## Reviewer Wakeups And Approvals
 
@@ -73,6 +74,7 @@ Recommended live execution-policy stage layouts:
 - Paperclip review stages can have multiple participants. When you expect more than one reviewer to look at the active stage, invoke each reviewer explicitly after the stage becomes active.
 - This package models required gates as separate sequential stages. That is intentional: the installed `paperclipai@2026.416.0` runtime in this repository still exposes `approvalsNeeded: 1` for execution stages, so a single multi-participant stage should not be treated as a guaranteed unanimous gate.
 - Human governance uses linked Paperclip approvals. Those approvals are separate records linked to issues, with their own lifecycle and decision notes, and they are the package's source of truth for board approval.
+- Routine QA GitHub issue answers and closure paths for `type: question`, `status: awaiting feedback`, `closed: question`, `closed: cannot reproduce`, and `closed: duplicate` do not need board approval.
 - When a linked board approval is asking permission to post a maintainer-visible GitHub comment, the approval request must include the exact proposed comment body that will be posted if approved.
 
 ## Issue Lifecycle
@@ -97,13 +99,13 @@ stateDiagram-v2
     CANCELLED --> [*]
 ```
 
-After every `approved` transition, explicitly invoke the next reviewer heartbeat if you expect them to act now. For the question and approved-closure path, the linked board approval replaces the next review stage until a human resolves it.
+After every `approved` transition, explicitly invoke the next reviewer heartbeat if you expect them to act now. For already-implemented closures and inadequate imported contributor PR closures, the linked board approval replaces the next review stage until a human resolves it.
 
-For PR-based delivery work, a synced Paperclip item remains open until the linked PR merges and the GitHub sync plugin reflects that merge back into Paperclip. For approved closure paths such as board-approved question answers or documented closure dispositions, the item becomes `DONE` only after the GitHub close or answer action actually syncs back. Agents should never treat a successful QA, Security Engineer, or Code Reviewer stage by itself as permission to close the Paperclip item manually.
+For PR-based delivery work, a synced Paperclip item remains open until the linked PR merges and the GitHub sync plugin reflects that merge back into Paperclip. For QA-published answers or closures, the terminal Paperclip state depends on the closure disposition after the GitHub action actually syncs back: published answers and closures such as `type: question` plus `closed: question`, timed-out `status: awaiting feedback`, `closed: cannot reproduce`, or an approved already-implemented closure become `DONE`, while disposition-based closures such as `closed: duplicate`, stale, or out-of-scope become `CANCELLED`. Agents should never treat a successful QA, Security Engineer, or Code Reviewer stage by itself as permission to close the Paperclip item manually.
 
 In addition to the synced GitHub work queue, the package includes one bootstrap internal issue plus two weekly internal routines under `company-operations`. The bootstrap issue, **Verify Imported Company Instance**, imports in `TODO` on the CEO queue so the imported entity set can be checked before normal operations begin. The routines create ongoing internal Paperclip work items that help keep the company healthy; they do not replace the synced GitHub issues and PRs that remain the real delivery backlog. The routines import active by default so those recurring maintenance checks start automatically after import.
 
-Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. For already-implemented reports, QA must capture the supporting version, PR, release, or documentation evidence and wait for the required Paperclip board approval before posting the GitHub explanation and closing the issue.
+Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. QA can answer confident questions directly on GitHub with `type: question` and `closed: question`, request clarification with `status: awaiting feedback`, and close issues that stay awaiting feedback for more than 30 days with `closed: question`. Unreproducible issues can be closed by QA with `closed: cannot reproduce`. Duplicate issues can be closed by QA with `closed: duplicate` and a duplicate link to the superseding GitHub issue. Every GitHub issue closure by QA must include a detailed comment that explains the closure clearly enough for the reporter. For already-implemented reports, QA must capture the supporting version, PR, release, or documentation evidence and wait for the required Paperclip board approval before posting the GitHub explanation and closing the issue.
 
 When the synced issue already has a linked contributor PR, closing that PR is not itself a reason to bypass normal implementation work. QA should request the board-approved closure only when significant changes would effectively replace the contributor PR, then keep the issue on the normal route so planning, implementation, QA, security review, and code review still happen on the replacement work.
 
@@ -117,12 +119,13 @@ When the synced issue already has a linked contributor PR, closing that PR is no
 | `type: docs` | Documentation-only change | Technical Writer |
 | `type: dependency-upgrade` | Squad-originated version bump, excluding Dependabot | Architect |
 | `type: bug` | Reproducible bug fix | Micronaut Engineer |
-| `type: question` | Question that needs a board-approved answer proposal | QA Engineer |
+| `type: question` | Question QA can answer directly or send back for clarification | QA Engineer |
 
 ## Governance
 
 - The board is intentionally not modeled as an agent role. It remains an external human governance layer.
 - Board approval always means an explicit human Paperclip approval linked to the relevant issue or proposal, not a free-form comment.
+- QA may answer confident questions directly on GitHub with `type: question` and `closed: question`, request clarification with `status: awaiting feedback`, and close timed-out clarification, unreproducible, or duplicate issues without separate board approval when those paths are well documented.
 - Approval requests for maintainer-visible GitHub comments must include the exact proposed comment body so the board can approve the literal public response.
 - Git operations must use the local git CLI.
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
@@ -131,6 +134,7 @@ When the synced issue already has a linked contributor PR, closing that PR is no
 - `Code Reviewer` must not resolve PR-based delivery work as `approved` unless, by the end of that run, a non-draft GitHub PR exists in the correct repository and branch, is readable through the synced GitHub context, and carries the correct issue linkage, closing keyword, `type:` label, and organization project.
 - Passing QA, Security, or Code Review is not a terminal state for a synced GitHub issue by itself. Agents must verify that the issue execution state advanced to the correct next stage before they stop.
 - For PR-based delivery work, agents never close the synced Paperclip issue themselves. The GitHub sync plugin owns the transition to `DONE` after merge.
+- When QA closes a synced GitHub issue directly, the GitHub issue closure syncs back to close the Paperclip item, so QA does not close the Paperclip issue directly.
 - If the next stage should act immediately, agents must explicitly invoke the next reviewer heartbeat. Adding a reviewer alone is not enough.
 - If you need all required reviewers to sign off, model them as separate sequential stages instead of a single multi-participant execution stage.
 - Every PR must include a closing keyword such as `Fixes #123`, must carry one of the `type:` labels above, and must be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version.
