@@ -13,7 +13,7 @@ Before any role resolves its stage:
 
 - the role has read the current execution stage, current stage participant, latest linked GitHub context, and any linked approval
 - the role has produced one durable stage artifact that explains the decision
-- the role resolves the stage with `approved` or `changes_requested` instead of routing by Paperclip handoff comment
+- the role resolves the stage with `approved`, `changes_requested`, or `request_board_approval` instead of routing by Paperclip handoff comment
 - if a human governance decision is required, the role creates or updates a real Paperclip approval instead of treating a comment as approval
 - if the next stage should run immediately, the role explicitly invokes the next agent heartbeat instead of assuming that adding a reviewer wakes them
 - the role re-opens the issue and verifies the execution state matches the intended outcome before finishing
