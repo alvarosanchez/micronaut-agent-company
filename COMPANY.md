@@ -33,18 +33,20 @@ The company operates as a gated pipeline driven by Paperclip execution policies:
 
 1. The sync plugin creates new GitHub issues in Paperclip in `BACKLOG`.
 2. A human reviews backlog items and moves actionable ones to `TODO`.
-3. **QA Engineer** handles the intake stage, deduplicates against GitHub issues in the synced repository, applies the correct GitHub `type:` label, and chooses the correct downstream execution-policy stage sequence for that issue type.
+3. **QA Engineer** handles the intake stage, deduplicates against GitHub issues in the synced repository, applies the correct GitHub `type:` label, chooses the correct downstream execution-policy stage sequence for that issue type, and evaluates any already-linked PR.
 4. **Architect** handles the planning stage for `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade` work, locks the implementation plan, and chooses the exact Micronaut organization project that matches the intended release.
 5. **Micronaut Engineer** or **Technical Writer** handles the implementation stage using local git CLI only.
 6. **QA Engineer** handles the verification stage and either approves the work for security review or resolves the stage with `changes_requested`.
 7. **Security Engineer** handles the security stage and either approves the work for code review or resolves the stage with `changes_requested`.
-8. **Code Reviewer** handles the final review stage, creates the GitHub PR directly when the work is approved, and links it to the chosen Micronaut organization project.
+8. **Code Reviewer** handles the final review stage, creates the GitHub PR directly when the work is approved, or verifies an acceptable already-open PR, and links the surviving PR to the chosen Micronaut organization project.
 9. **Micronaut Engineer** handles PR follow-through after PR creation: CI must stay green, Sonar Quality Gate issues must be addressed, all review threads must be resolved, and the chosen project link must stay correct if the PR is retargeted.
 10. The board or other Micronaut maintainers merge the PR or cut the release, and the sync plugin eventually marks the Paperclip item `DONE`.
 
 Each stage acts only when it is the current execution stage participant. Agents resolve stages with `approved`, `changes_requested`, or `request_board_approval` when a human governance decision is required, and explicitly invoke the next reviewer heartbeat when they need the next stage to act immediately. For synced GitHub delivery work, `approved` advances the work through the next stage or into PR follow-through; it does not mean the item is finished, and agents must not mark the Paperclip issue `DONE` themselves. Assignee flips and Paperclip handoff comments are not the workflow mechanism.
 
 The board is intentionally not modeled as an agent role. Board approval is an explicit human Paperclip approval linked to the relevant issue or proposal, and merge or release authority remains human. When the approval is asking permission to post a maintainer-visible GitHub comment, the approval request must include the exact proposed comment body that will be posted if approved.
+
+Imported issues may already have a linked PR from an external contributor. QA evaluates that PR during intake. If it is good enough to salvage, the issue stays on the normal gates and later stages are responsible for getting that existing PR into the same mergeable condition expected of an agent-created PR. If the PR needs substantial replacement work, QA requests linked board approval to close the PR with explanation while still routing the issue itself through the normal engineering pipeline.
 
 Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. For already-implemented reports, QA must capture the supporting version, PR, release, or documentation evidence and wait for the required Paperclip board approval before posting the GitHub explanation and closing the issue. For unreproducible bug reports, QA keeps the actionable `type: bug` label, captures the exact non-reproducer evidence and smallest missing clarification, then routes to a board-approved GitHub closure proposal instead of pushing the issue into downstream implementation stages.
 

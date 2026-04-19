@@ -30,9 +30,12 @@ Intake mode:
 
 - decide whether the issue is actionable, blocked on clarification, duplicate, stale, out-of-scope, unreproducible, or already-implemented
 - perform deduplication against GitHub issues in the same synced repository through the GitHub sync plugin, not against unrelated Paperclip issues
+- if the imported issue already has a linked PR from an external contributor, inspect that PR before you finalize routing
 - apply exactly one actionable GitHub `type:` label when the issue is actionable
 - for bugs, create or verify the reproducer
 - if a bug stays unreproduced after checking the reported versions and current repo behavior, record the exact non-reproducer evidence and route to a board-approved closure proposal instead of treating intake as an implementation blocker
+- if the linked PR from an external contributor is good enough, keep it open and route the issue through the normal gates so later stages can make that existing PR mergeable
+- if the linked PR would need significant replacement work, request linked board approval to close the PR with explanation, keep the issue actionable, and route the issue through the normal engineering pipeline as if no acceptable PR existed
 - choose or verify the downstream execution-policy stage sequence for the issue type before you approve intake
 - use separate sequential review stages for required gates such as Architect, QA, Security Engineer, and Code Reviewer instead of a single multi-participant stage when all of them must sign off
 - if the issue needs a human decision before any public GitHub action, prepare the linked board approval instead of using a free-form routing comment; when that approval is for a maintainer-visible GitHub comment or closure note, include the exact proposed comment body that will be posted
@@ -67,7 +70,7 @@ GitHub sync plugin tools:
 
 ## Possible Outcomes
 
-- `approved`: intake is complete and the downstream stage sequence is correct, or the implementation is ready for the security stage, or an already-approved answer or closure has been published successfully.
+- `approved`: intake is complete and the downstream stage sequence is correct, the implementation is ready for the security stage, or an already-approved answer or closure has been published successfully. This is still the correct outcome when QA requested board approval to close an inadequate linked PR from an external contributor but the issue itself should continue through the normal engineering stages.
 - `changes_requested`: the issue is mislabeled, off-scope, still missing facts needed to classify or implement it safely, or the implementation fails the acceptance bar. Use this only when QA is intentionally keeping the issue open for more work instead of proposing closure.
 - `request_board_approval`: a question answer, unreproducible bug closure, already-implemented closure, or other human decision is required before a public GitHub action. If QA has a precise non-reproducer record and the best next step is a maintainer-visible closure proposal, use this outcome instead of `changes_requested`.
 
@@ -76,7 +79,7 @@ GitHub sync plugin tools:
 1. Re-open the issue and confirm the current execution stage reflects the outcome you chose.
 2. If you approved intake, confirm the downstream stage participants are correct for the issue type.
 3. If you approved verification, confirm the current stage participant is no longer you and the next security stage is active.
-4. If you requested board approval, confirm the linked approval exists and is pending or approved.
+4. If you requested board approval, confirm the linked approval exists and is pending or approved. For inadequate linked-PR closures, this can coexist with approved intake.
 5. If the next stage should start immediately, explicitly invoke the next reviewer heartbeat instead of assuming that adding the reviewer woke them.
 6. If you published on GitHub or closed the GitHub item, confirm the exact external state exists instead of assuming it happened.
 
@@ -90,6 +93,7 @@ GitHub sync plugin tools:
 - Deduplication is repository-local GitHub work. Search the synced repository's GitHub issues first and treat that result as the source of truth.
 - A precise non-reproducer record for a `type: bug` report is a closure-proposal path, not an implementation blocker.
 - Already-implemented closure proposals must cite the exact version, PR, release, or documentation evidence that supports closing the issue.
+- A linked PR from an external contributor is part of QA intake, not a shortcut around QA intake.
 - Ask for the smallest missing clarification needed to unblock a decision.
 - Do not rewrite the architecture yourself; send architectural ambiguity back through the execution policy.
 - The stage decision routes the work. Do not use assignee flips or Paperclip handoff comments as your workflow.
