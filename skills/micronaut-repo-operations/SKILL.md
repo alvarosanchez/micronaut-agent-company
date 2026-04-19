@@ -112,7 +112,7 @@ Before you stop:
    - after `approved`, the current stage participant is no longer you
    - after `changes_requested`, the execution state shows `changes_requested`
    - after `request_board_approval`, the linked approval exists and is pending or approved
-3. For synced GitHub delivery work, confirm the issue was not incorrectly marked `DONE` just because a stage approved. `DONE` is reserved for sync-confirmed merge or sync-confirmed GitHub closure.
+3. For synced GitHub delivery work, confirm the issue was not incorrectly marked `DONE` just because a stage approved. `DONE` is reserved only for sync-confirmed GitHub completion: for PR-based delivery work, verify the synced context shows the linked PR as merged; for approved closure paths, verify the synced context shows the linked GitHub issue as closed with the approved disposition or answer path actually applied.
 4. If you expect another agent to act immediately and they are now a current stage participant, explicitly invoke that agent heartbeat. If the stage has multiple reviewer participants, invoke each intended reviewer.
 5. If you expected a GitHub side effect such as a label change, PR creation, issue comment, review-thread reply, or closure, confirm it exists instead of assuming it happened.
 6. If the state is wrong, fix it before you finish.
@@ -168,7 +168,7 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 - QA does not publish answer proposals or closure proposals on GitHub until that approval exists.
 - Only the board or other Micronaut maintainers merge PRs or cut releases.
 - Agents may prepare, label, comment, close, and create PRs when their role allows it, but they do not merge or release.
-- For PR-based delivery work, agents do not close the synced Paperclip issue themselves. The GitHub sync plugin closes it after the linked PR merges.
+- For PR-based delivery work, agents do not transition the synced Paperclip issue to `DONE` themselves. The GitHub sync plugin transitions it to `DONE` after the linked PR merges.
 - Paperclip issue blockers and execution policies for synced GitHub delivery items are runtime controls. Configure them in the live Paperclip instance or sync layer rather than trying to encode them in this package.
 
 ## Internal Operating Routines
@@ -266,7 +266,7 @@ Important usage rules:
 
 - The delivery loop is modeled by execution-policy stages, not manual Paperclip handoff comments.
 - `code-reviewer` creates the GitHub PR only after QA and Security Engineer stages are approved.
-- `code-reviewer` must not resolve PR-based delivery work as `approved` unless a visible PR exists by the end of that run.
+- `code-reviewer` must not resolve PR-based delivery work as `approved` unless, by the end of that run, a non-draft GitHub PR exists in the correct repository and branch, is readable through the synced GitHub context, and carries the correct issue linkage, closing keyword, `type:` label, and organization project.
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
 - Every PR must be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version.

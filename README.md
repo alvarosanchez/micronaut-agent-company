@@ -122,7 +122,7 @@ Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-im
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
 - The implementation loop is always `Engineering or Writing -> QA -> Security Engineer -> Code Reviewer`.
 - `Code Reviewer` creates the PR after QA and Security Engineer sign-off, but only the board or other Micronaut maintainers may merge or cut releases.
-- `Code Reviewer` must not resolve PR-based delivery work as `approved` unless a visible PR exists by the end of that run.
+- `Code Reviewer` must not resolve PR-based delivery work as `approved` unless, by the end of that run, a non-draft GitHub PR exists in the correct repository and branch, is readable through the synced GitHub context, and carries the correct issue linkage, closing keyword, `type:` label, and organization project.
 - Passing QA, Security, or Code Review is not a terminal state for a synced GitHub issue by itself. Agents must verify that the issue execution state advanced to the correct next stage before they stop.
 - For PR-based delivery work, agents never close the synced Paperclip issue themselves. The GitHub sync plugin owns the transition to `DONE` after merge.
 - If the next stage should act immediately, agents must explicitly invoke the next reviewer heartbeat. Adding a reviewer alone is not enough.

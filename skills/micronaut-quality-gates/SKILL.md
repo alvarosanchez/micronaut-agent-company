@@ -97,7 +97,7 @@ The Code Reviewer checks for:
 - API, config, and developer-experience quality
 - missing or weak tests
 - correct PR issue linkage, `type:` label, organization project, and reviewer requests when approving work
-- if `approved` is chosen, a visible PR exists by the end of the run; no PR means the work is not yet ready to leave code review
+- if `approved` is chosen, a non-draft GitHub PR exists by the end of the run in the correct repository and branch, is readable from the synced GitHub context, and includes the correct issue linkage, closing keyword, `type:` label, and organization project; if any of those are missing, the work is not yet ready to leave code review
 
 If the work is approved, the Code Reviewer creates or verifies the PR. If not, it resolves as `changes_requested`.
 
