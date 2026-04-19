@@ -42,7 +42,7 @@ The company operates as a gated pipeline driven by Paperclip execution policies:
 9. **Micronaut Engineer** handles PR follow-through after PR creation: CI must stay green, Sonar Quality Gate issues must be addressed, all review threads must be resolved, and the chosen project link must stay correct if the PR is retargeted.
 10. The board or other Micronaut maintainers merge the PR or cut the release, and the sync plugin eventually marks the Paperclip item `DONE`.
 
-Each stage acts only when it is the current execution stage participant. Agents resolve stages with `approved`, `changes_requested`, or `request_board_approval` when a human governance decision is required, and explicitly invoke the next reviewer heartbeat when they need the next stage to act immediately. Assignee flips and Paperclip handoff comments are not the workflow mechanism.
+Each stage acts only when it is the current execution stage participant. Agents resolve stages with `approved`, `changes_requested`, or `request_board_approval` when a human governance decision is required, and explicitly invoke the next reviewer heartbeat when they need the next stage to act immediately. For synced GitHub delivery work, `approved` advances the work through the next stage or into PR follow-through; it does not mean the item is finished, and agents must not mark the Paperclip issue `DONE` themselves. Assignee flips and Paperclip handoff comments are not the workflow mechanism.
 
 The board is intentionally not modeled as an agent role. Board approval is an explicit human Paperclip approval linked to the relevant issue or proposal, and merge or release authority remains human.
 
