@@ -28,4 +28,8 @@ test("verification rules require direct QA GitHub issue answer and closure guida
     source,
     /README\.md must explain that GitHub issue closure syncs back to close the Paperclip item, so QA does not close the Paperclip issue directly\./,
   );
+  assert.match(
+    source,
+    /README\.md must explain that QA-published GitHub answers and closures reach `DONE` or `CANCELLED` based on the closure disposition after sync\./,
+  );
 });

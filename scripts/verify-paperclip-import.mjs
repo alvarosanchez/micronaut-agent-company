@@ -148,6 +148,13 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "README.md must explain that GitHub issue closure syncs back to close the Paperclip item, so QA does not close the Paperclip issue directly.",
   },
   {
+    relativePath: "README.md",
+    pattern:
+      /DONE[\s\S]*CANCELLED[\s\S]*closure disposition[\s\S]*sync|closure disposition[\s\S]*DONE[\s\S]*CANCELLED[\s\S]*sync/i,
+    message:
+      "README.md must explain that QA-published GitHub answers and closures reach `DONE` or `CANCELLED` based on the closure disposition after sync.",
+  },
+  {
     relativePath: "COMPANY.md",
     pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
     message: "COMPANY.md must require board approvals for maintainer-visible GitHub comments to include the exact proposed comment body.",
