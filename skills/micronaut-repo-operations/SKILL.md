@@ -168,11 +168,11 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 - Determine the next release from the repository's default branch plus the latest non-pre-release GitHub release.
 - If the default branch is `1.2.x` and the latest production release is `1.1.5`, the next release on that branch is `1.2.0`.
 - If the default branch is `1.2.x` and the latest production release is `1.2.3`, the next release on that branch is `1.2.4`.
-- Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform releases. The Architect must name the exact organization project before implementation starts, and the Code Reviewer must link the PR to that project when the PR is opened.
+- Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform releases. The Architect should name the best-fit Micronaut organization project before implementation starts when the answer is clear, and the Code Reviewer should link the PR to that project when GitHub tooling can apply it.
 - `type: improvement`, `type: bug`, `type: docs`, and most `type: dependency-upgrade` work should remain non-breaking and target the next patch release when possible.
 - `type: enhancement` belongs on the next minor line. If the minor branch does not exist yet, create it from the current default branch with local git CLI.
 - `type: breaking` requires explicit Architect approval and, when necessary, a linked human approval before work proceeds.
-- If multiple organization projects are plausible, if no matching project exists yet, or if the runtime cannot apply the project link, stop and escalate instead of guessing.
+- If multiple organization projects are plausible, if no matching project exists yet, or if the runtime cannot apply the project link, record the ambiguity or tooling gap and continue without guessing. Missing organization-project linkage alone does not block PR creation or approval.
 
 ## Approval Boundaries
 
@@ -265,8 +265,8 @@ Important usage rules:
 - Provide `repository` only when the plugin cannot infer it; the repository may be omitted when the current Paperclip project has exactly one mapped repository.
 - Use `paperclip-github-plugin:update_issue` for labels, assignees, state, body, title, and milestone changes.
 - Use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
-- Use `paperclip-github-plugin:list_organization_projects` to resolve the exact Micronaut organization project before PR creation when the correct release board is not already certain.
-- Use `paperclip-github-plugin:add_pull_request_to_project` after PR creation so the live PR is linked to the exact organization project chosen upstream.
+- Use `paperclip-github-plugin:list_organization_projects` to identify the best-fit Micronaut organization project before PR creation when the correct release board is not already certain.
+- Use `paperclip-github-plugin:add_pull_request_to_project` after PR creation so the live PR is linked to the recommended organization project chosen upstream when one was identified.
 - For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the same Markdown footer automatically.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
 
@@ -275,17 +275,17 @@ Important usage rules:
 - Use the local git CLI for all git operations: branch creation, commits, rebases, cherry-picks, and pushes.
 - Use the sync plugin agent tools for GitHub operations in unauthenticated runs and in any `paperclipIssueId`-dependent flow: deduplication search, issue reads and updates, GitHub comments, PR creation and updates, changed-file inspection, CI inspection, review-thread work, and reviewer requests.
 - Do not use `gh`, direct GitHub browser edits, or ad hoc scripts when the sync plugin tools cover the operation in those unauthenticated or `paperclipIssueId`-dependent flows.
-- If the available sync plugin tool surface does not support linking a PR to the required Micronaut organization project, escalate instead of creating an unlinked PR.
+- If the available sync plugin tool surface does not support linking a PR to the recommended Micronaut organization project, record that tooling limitation in the stage artifact or PR summary and continue; do not escalate solely for that reason.
 
 ## PR Rules
 
 - The delivery loop is modeled by execution-policy stages, not manual Paperclip handoff comments.
 - `code-reviewer` creates the GitHub PR only after QA and Security Engineer stages are approved.
-- `code-reviewer` must not resolve PR-based delivery work as `approved` unless, by the end of that run, a non-draft GitHub PR exists in the correct repository and branch, is readable through the synced GitHub context, and carries the correct issue linkage, closing keyword, `type:` label, and organization project.
+- `code-reviewer` must not resolve PR-based delivery work as `approved` unless, by the end of that run, a non-draft GitHub PR exists in the correct repository and branch, is readable through the synced GitHub context, and carries the correct issue linkage, closing keyword, and `type:` label. The organization project should be linked when the target board is clear and available, but missing linkage alone does not block `approved`.
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
-- Every PR must be linked to exactly one Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version.
-- `code-reviewer` applies the exact project named earlier by the Architect when creating the PR.
+- Every PR should be linked to the Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version when that board is clear and available.
+- `code-reviewer` applies the project named earlier by the Architect when one was identified.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, and resolves all review threads.
 - PR-based delivery work stays open in Paperclip until GitHub merge sync completes. Agents do not manually move those items to `DONE`.
 - Any material post-PR change re-enters the same execution-policy-controlled loop.

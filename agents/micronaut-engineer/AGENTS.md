@@ -39,7 +39,7 @@ PR follow-through mode:
 - keep CI green
 - address Sonar Quality Gate issues
 - address and resolve all review threads
-- preserve the approved `type:` label, closing keyword, and Micronaut organization project unless an upstream stage explicitly changes them
+- preserve the approved `type:` label, closing keyword, and any chosen Micronaut organization project unless an upstream stage explicitly changes them
 - prefer the smallest safe changes that make the surviving PR mergeable instead of restarting from scratch
 
 ## Tool Use
