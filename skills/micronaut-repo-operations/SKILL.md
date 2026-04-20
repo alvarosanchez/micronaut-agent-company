@@ -83,9 +83,12 @@ These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin cap
 
 Authenticated deployment rule:
 
-- On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes.
-- On unauthenticated deployments, use the agent tools below.
-- Treat the plugin tool list below as the fallback surface for unauthenticated deployments and for any GitHub action that still needs the Paperclip-linked `paperclipIssueId` flow.
+- On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes, even when an equivalent GitHub sync plugin tool exists.
+- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
+- On unauthenticated deployments, use the agent tools below for GitHub operations they cover.
+- Do not add that footer manually when you use the GitHub sync plugin tools; they append the same footer automatically.
+- Treat the plugin tool list below as the preferred surface for unauthenticated or plugin-capable flows, and as the required surface for any GitHub action that still needs the Paperclip-linked `paperclipIssueId` flow.
+- Any later `do not use gh` boundary in this skill applies only to those unauthenticated or `paperclipIssueId`-dependent flows; it does not override the authenticated `GITHUB_TOKEN` preference above.
 
 - `paperclip-github-plugin:search_repository_items`: repository-scoped GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup
 - `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`: GitHub issue reads, metadata updates, and maintainer-facing issue comments
@@ -100,7 +103,7 @@ Use these plugin-tool conventions exactly:
 
 - prefer `paperclipIssueId` whenever the work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository
 - provide `repository` only when the plugin cannot infer it from the mapped Paperclip project
-- for GitHub comments and review-thread replies, send only the human-facing body and always include `llmModel`
+- for GitHub comments and review-thread replies, send only the human-facing body and always include `llmModel` so the plugin can append the same Markdown footer automatically
 - use `paperclip-github-plugin:search_repository_items` for deduplication and prior-art search; do not replace it with generic Paperclip issue listing
 
 ## Required Outcomes
@@ -264,14 +267,14 @@ Important usage rules:
 - Use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
 - Use `paperclip-github-plugin:list_organization_projects` to resolve the exact Micronaut organization project before PR creation when the correct release board is not already certain.
 - Use `paperclip-github-plugin:add_pull_request_to_project` after PR creation so the live PR is linked to the exact organization project chosen upstream.
-- For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the mandatory AI-authorship footer.
+- For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the same Markdown footer automatically.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
 
 ## Tool Boundaries
 
 - Use the local git CLI for all git operations: branch creation, commits, rebases, cherry-picks, and pushes.
-- Use the sync plugin agent tools for all GitHub operations: deduplication search, issue reads and updates, GitHub comments, PR creation and updates, changed-file inspection, CI inspection, review-thread work, and reviewer requests.
-- Do not use `gh`, direct GitHub browser edits, or ad hoc scripts when the sync plugin tools cover the operation.
+- Use the sync plugin agent tools for GitHub operations in unauthenticated runs and in any `paperclipIssueId`-dependent flow: deduplication search, issue reads and updates, GitHub comments, PR creation and updates, changed-file inspection, CI inspection, review-thread work, and reviewer requests.
+- Do not use `gh`, direct GitHub browser edits, or ad hoc scripts when the sync plugin tools cover the operation in those unauthenticated or `paperclipIssueId`-dependent flows.
 - If the available sync plugin tool surface does not support linking a PR to the required Micronaut organization project, escalate instead of creating an unlinked PR.
 
 ## PR Rules

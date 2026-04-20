@@ -63,14 +63,16 @@ Paperclip built-ins:
 GitHub sync plugin tools:
 
 - On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
+- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - On unauthenticated deployments, use the agent tools below.
+- Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:search_repository_items` for deduplication against GitHub issues in the same synced repository and for already-implemented prior-art checks.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the synced GitHub issue before you classify, verify, close, or answer anything.
 - `paperclip-github-plugin:update_issue` to set the single actionable `type:` label, close or reopen the GitHub issue, and apply approved metadata changes.
 - `paperclip-github-plugin:add_issue_comment` when QA is publishing a maintainer-visible answer, clarification request, or closure note on GitHub.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` when QA is verifying an implementation that already has a PR.
-- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.4`.
+- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.4`; the plugin appends the footer automatically.
 
 ## Possible Outcomes
 
@@ -92,7 +94,7 @@ GitHub sync plugin tools:
 - Stay independent. You are not here to rescue a weak plan or rationalize an incomplete implementation.
 - Board approval always means a real Paperclip approval linked to the issue or proposal, not a free-form comment.
 - Board approval requests for maintainer-visible GitHub comments must include the exact proposed comment body so approvers can review the literal text that will be posted.
-- On authenticated deployments, prefer the `gh` CLI when `GITHUB_TOKEN` is available. Otherwise, use the GitHub sync plugin tools, not the browser.
+- On authenticated deployments, prefer the `gh` CLI when `GITHUB_TOKEN` is available and add the required Markdown footer (`---` plus `###### ✨ This message was AI-generated using <exact model id>`) to any maintainer-visible GitHub body you publish directly. Otherwise, use the GitHub sync plugin tools, not the browser.
 - All actionable issues should end up with exactly one `type:` label.
 - Deduplication is repository-local GitHub work. Search the synced repository's GitHub issues first and treat that result as the source of truth.
 - Confident questions can be answered directly on GitHub with `type: question` and `closed: question` before QA closes the issue.
