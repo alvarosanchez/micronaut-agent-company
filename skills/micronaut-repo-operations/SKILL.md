@@ -83,11 +83,12 @@ These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin cap
 
 Authenticated deployment rule:
 
-- On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes.
+- On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes, even when an equivalent GitHub sync plugin tool exists.
 - When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append a footer such as `AI-generated: yes` and `Model: <exact model id>`.
-- On unauthenticated deployments, use the agent tools below.
+- On unauthenticated deployments, use the agent tools below for GitHub operations they cover.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
-- Treat the plugin tool list below as the fallback surface for unauthenticated deployments and for any GitHub action that still needs the Paperclip-linked `paperclipIssueId` flow.
+- Treat the plugin tool list below as the preferred surface for unauthenticated or plugin-capable flows, and as the required surface for any GitHub action that still needs the Paperclip-linked `paperclipIssueId` flow.
+- Any later `do not use gh` boundary in this skill applies only to those unauthenticated or `paperclipIssueId`-dependent flows; it does not override the authenticated `GITHUB_TOKEN` preference above.
 
 - `paperclip-github-plugin:search_repository_items`: repository-scoped GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup
 - `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`: GitHub issue reads, metadata updates, and maintainer-facing issue comments
@@ -272,8 +273,8 @@ Important usage rules:
 ## Tool Boundaries
 
 - Use the local git CLI for all git operations: branch creation, commits, rebases, cherry-picks, and pushes.
-- Use the sync plugin agent tools for all GitHub operations: deduplication search, issue reads and updates, GitHub comments, PR creation and updates, changed-file inspection, CI inspection, review-thread work, and reviewer requests.
-- Do not use `gh`, direct GitHub browser edits, or ad hoc scripts when the sync plugin tools cover the operation.
+- Use the sync plugin agent tools for GitHub operations in unauthenticated runs and in any `paperclipIssueId`-dependent flow: deduplication search, issue reads and updates, GitHub comments, PR creation and updates, changed-file inspection, CI inspection, review-thread work, and reviewer requests.
+- Do not use `gh`, direct GitHub browser edits, or ad hoc scripts when the sync plugin tools cover the operation in those unauthenticated or `paperclipIssueId`-dependent flows.
 - If the available sync plugin tool surface does not support linking a PR to the required Micronaut organization project, escalate instead of creating an unlinked PR.
 
 ## PR Rules
