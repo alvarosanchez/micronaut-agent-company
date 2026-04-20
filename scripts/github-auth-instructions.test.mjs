@@ -14,6 +14,28 @@ const GITHUB_AGENT_PATHS = [
   "agents/security-engineer/AGENTS.md",
   "agents/technical-writer/AGENTS.md",
 ];
+const AI_FOOTER_PATTERN = /AI-generated|AI generated/i;
+const MODEL_FOOTER_PATTERN = /Model:\s*<exact model id>|model footer|model used|AI-generated\/model footer|AI-generated\/model/i;
+const PLUGIN_AUTO_FOOTER_PATTERN =
+  /do not add that footer manually when you use the GitHub sync plugin tools|plugin appends the footer automatically|plugin appends it automatically/i;
+
+function assertDirectGithubFooterPolicy(markdown, label) {
+  assert.match(
+    markdown,
+    AI_FOOTER_PATTERN,
+    `${label} must mention that direct GitHub writes need an AI-generated footer.`,
+  );
+  assert.match(
+    markdown,
+    MODEL_FOOTER_PATTERN,
+    `${label} must mention that the footer includes the model used.`,
+  );
+  assert.match(
+    markdown,
+    PLUGIN_AUTO_FOOTER_PATTERN,
+    `${label} must explain that GitHub sync plugin tools append the footer automatically.`,
+  );
+}
 
 function parseFrontmatter(markdown) {
   const normalized = markdown.replace(/\r\n/g, "\n");
@@ -67,6 +89,10 @@ test("GitHub-capable agents describe authenticated gh CLI fallback behavior", as
       /even when `GITHUB_TOKEN` is available|even when GITHUB_TOKEN is available/i,
       `${relativePath} must not claim the sync plugin tools are available during authenticated gh-based runs.`,
     );
+    assertDirectGithubFooterPolicy(
+      body,
+      relativePath,
+    );
   }
 });
 
@@ -87,6 +113,21 @@ test("Shared Micronaut repo operations explain the authenticated GitHub access s
     markdown,
     /even when `GITHUB_TOKEN` is available|even when GITHUB_TOKEN is available/i,
   );
+  assertDirectGithubFooterPolicy(
+    markdown,
+    "skills/micronaut-repo-operations/SKILL.md",
+  );
+});
+
+test("README documents the direct GitHub footer rule and plugin exception", async () => {
+  const markdown = await readFile(
+    new URL("../README.md", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(markdown, /GITHUB_TOKEN/);
+  assert.match(markdown, /\bgh\b.*GitHub|GitHub.*\bgh\b/i);
+  assertDirectGithubFooterPolicy(markdown, "README.md");
 });
 
 test("Local gh-cli skill points to the requested upstream skill", async () => {
@@ -98,6 +139,8 @@ test("Local gh-cli skill points to the requested upstream skill", async () => {
 
   assert.match(frontmatter.description, /GITHUB_TOKEN/);
   assert.match(frontmatter.description, /\bgh\b/i);
+  assert.match(frontmatter.description, AI_FOOTER_PATTERN);
+  assert.match(frontmatter.description, /model/i);
   assert.doesNotMatch(frontmatter.description, /paperclipIssueId/i);
   assert.deepEqual(frontmatter.metadata?.sources, [
     {

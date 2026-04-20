@@ -43,13 +43,15 @@ Paperclip built-ins:
 GitHub sync plugin tools:
 
 - On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
+- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append a footer such as `AI-generated: yes` and `Model: <exact model id>`.
 - On unauthenticated deployments, use the agent tools below.
+- Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:search_repository_items` for backlog scans, duplicate checks, and prior-art search inside the same synced repository.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the maintainer-visible issue context before you authorize an answer, closure path, or policy correction.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, and `paperclip-github-plugin:get_pull_request_checks` when queue governance or package evolution depends on the live PR state.
 - `paperclip-github-plugin:update_issue` and `paperclip-github-plugin:add_issue_comment` only after the linked board approval exists and a maintainer-visible GitHub answer or closure must actually be published.
-- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.4`.
+- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.4`; the plugin appends the footer automatically.
 
 ## Possible Outcomes
 

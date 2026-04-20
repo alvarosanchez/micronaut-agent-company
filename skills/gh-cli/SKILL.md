@@ -1,6 +1,6 @@
 ---
 name: gh-cli
-description: Reference the upstream GitHub gh CLI skill for authenticated GitHub workflows that prefer gh when GITHUB_TOKEN is available.
+description: Reference the upstream GitHub gh CLI skill for authenticated GitHub workflows that prefer gh when GITHUB_TOKEN is available and require manual AI-generated/model footers on direct GitHub writes.
 metadata:
   sources:
     - kind: url

@@ -84,7 +84,9 @@ These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin cap
 Authenticated deployment rule:
 
 - On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes.
+- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append a footer such as `AI-generated: yes` and `Model: <exact model id>`.
 - On unauthenticated deployments, use the agent tools below.
+- Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Treat the plugin tool list below as the fallback surface for unauthenticated deployments and for any GitHub action that still needs the Paperclip-linked `paperclipIssueId` flow.
 
 - `paperclip-github-plugin:search_repository_items`: repository-scoped GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup
@@ -100,7 +102,7 @@ Use these plugin-tool conventions exactly:
 
 - prefer `paperclipIssueId` whenever the work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository
 - provide `repository` only when the plugin cannot infer it from the mapped Paperclip project
-- for GitHub comments and review-thread replies, send only the human-facing body and always include `llmModel`
+- for GitHub comments and review-thread replies, send only the human-facing body and always include `llmModel` so the plugin can append the footer automatically
 - use `paperclip-github-plugin:search_repository_items` for deduplication and prior-art search; do not replace it with generic Paperclip issue listing
 
 ## Required Outcomes
