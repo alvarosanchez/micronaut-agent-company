@@ -48,10 +48,10 @@ Before implementation starts, the plan artifact must state:
 - test strategy
 - documentation impact
 - whether the change must remain non-breaking
-- the exact Micronaut organization project the PR must use
+- the recommended Micronaut organization project when one is clear at planning time
 - explicit human approval when the change needs one
 
-If any of these are missing, planning does not resolve as `approved`.
+If any required items above are missing, planning does not resolve as `approved`. A recommended organization project should be recorded when one is clear, but missing organization-project guidance alone does not block planning approval.
 
 ## Implementation Gate
 
@@ -101,8 +101,8 @@ The Code Reviewer checks for:
 - performance and regression risk
 - API, config, and developer-experience quality
 - missing or weak tests
-- correct PR issue linkage, `type:` label, organization project, and reviewer requests when approving work
-- if `approved` is chosen, a non-draft GitHub PR exists by the end of the run in the correct repository and branch, is readable from the synced GitHub context, and includes the correct issue linkage, closing keyword, `type:` label, and organization project; if any of those are missing, the work is not yet ready to leave code review
+- correct PR issue linkage, `type:` label, reviewer requests, and organization-project guidance when it is available
+- if `approved` is chosen, a non-draft GitHub PR exists by the end of the run in the correct repository and branch, is readable from the synced GitHub context, and includes the correct issue linkage, closing keyword, and `type:` label; the organization project should be linked when the release board is clear and available, but missing organization-project linkage alone does not block code review approval
 
 If the work is approved, the Code Reviewer creates or verifies the PR. If not, it resolves as `changes_requested`.
 
@@ -115,7 +115,7 @@ Before a PR is considered healthy:
 - the summary and rationale are coherent
 - linked issue context is accurate and uses a closing keyword
 - the PR carries exactly one `type:` label
-- the PR is linked to the exact Micronaut organization project chosen earlier
+- the PR should be linked to the recommended Micronaut organization project chosen earlier when GitHub tooling can apply it, but missing organization-project linkage does not by itself block a healthy PR
 - test evidence is ready to share
 - documentation or migration notes are included when needed
 - security review comments are addressed
