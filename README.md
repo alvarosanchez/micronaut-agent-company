@@ -200,7 +200,14 @@ The GitHub sync plugin exposes these GitHub workflow tools to agents. Use the ex
 - Organization project lookup: `paperclip-github-plugin:list_organization_projects`
 - PR project association: `paperclip-github-plugin:add_pull_request_to_project`
 
-Use `paperclipIssueId` whenever work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository. If you publish maintainer-visible GitHub body text directly through `gh` or another `GITHUB_TOKEN`-backed write path, append a footer such as `AI-generated: yes` and `Model: <exact model id>` yourself. When you post through the GitHub sync plugin tools, do not add that footer manually; the plugin appends it automatically. For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, pass only the human-facing body and include `llmModel: gpt-5.4`.
+Use `paperclipIssueId` whenever work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository. If you publish maintainer-visible GitHub body text directly through `gh` or another `GITHUB_TOKEN`-backed write path, append this exact GitHub-flavored Markdown footer yourself:
+
+```md
+---
+###### ✨ This message was AI-generated using <exact model id>
+```
+
+When you post through the GitHub sync plugin tools, do not add that footer manually; the plugin appends the same footer automatically. For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, pass only the human-facing body and include `llmModel: gpt-5.4`.
 
 ## Paperclip Runtime APIs
 

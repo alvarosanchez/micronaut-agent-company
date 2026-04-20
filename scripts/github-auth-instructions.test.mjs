@@ -14,21 +14,27 @@ const GITHUB_AGENT_PATHS = [
   "agents/security-engineer/AGENTS.md",
   "agents/technical-writer/AGENTS.md",
 ];
-const AI_FOOTER_PATTERN = /AI-generated|AI generated/i;
-const MODEL_FOOTER_PATTERN = /Model:\s*<exact model id>|model footer|model used|AI-generated\/model footer|AI-generated\/model/i;
+const GFM_FOOTER_PATTERN = /GitHub-flavored Markdown footer|Markdown footer/i;
+const HORIZONTAL_RULE_PATTERN = /`---` on its own line|`---` plus|^---$/m;
+const AI_FOOTER_PATTERN = /######\s*✨\s*This message was AI-generated using <exact model id>/i;
 const PLUGIN_AUTO_FOOTER_PATTERN =
-  /do not add that footer manually when you use the GitHub sync plugin tools|plugin appends the footer automatically|plugin appends it automatically/i;
+  /do not add that footer manually when you use the GitHub sync plugin tools|plugin appends the same footer automatically|plugin appends the footer automatically|plugin appends it automatically/i;
 
 function assertDirectGithubFooterPolicy(markdown, label) {
   assert.match(
     markdown,
-    AI_FOOTER_PATTERN,
-    `${label} must mention that direct GitHub writes need an AI-generated footer.`,
+    GFM_FOOTER_PATTERN,
+    `${label} must mention that direct GitHub writes use a GitHub-flavored Markdown footer.`,
   );
   assert.match(
     markdown,
-    MODEL_FOOTER_PATTERN,
-    `${label} must mention that the footer includes the model used.`,
+    HORIZONTAL_RULE_PATTERN,
+    `${label} must mention the horizontal rule in the footer template.`,
+  );
+  assert.match(
+    markdown,
+    AI_FOOTER_PATTERN,
+    `${label} must mention the exact AI-generated footer text.`,
   );
   assert.match(
     markdown,
@@ -139,8 +145,9 @@ test("Local gh-cli skill points to the requested upstream skill", async () => {
 
   assert.match(frontmatter.description, /GITHUB_TOKEN/);
   assert.match(frontmatter.description, /\bgh\b/i);
+  assert.match(frontmatter.description, GFM_FOOTER_PATTERN);
+  assert.match(frontmatter.description, HORIZONTAL_RULE_PATTERN);
   assert.match(frontmatter.description, AI_FOOTER_PATTERN);
-  assert.match(frontmatter.description, /model/i);
   assert.doesNotMatch(frontmatter.description, /paperclipIssueId/i);
   assert.deepEqual(frontmatter.metadata?.sources, [
     {

@@ -63,7 +63,7 @@ Paperclip built-ins:
 GitHub sync plugin tools:
 
 - On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
-- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append a footer such as `AI-generated: yes` and `Model: <exact model id>`.
+- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - On unauthenticated deployments, use the agent tools below.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
@@ -94,7 +94,7 @@ GitHub sync plugin tools:
 - Stay independent. You are not here to rescue a weak plan or rationalize an incomplete implementation.
 - Board approval always means a real Paperclip approval linked to the issue or proposal, not a free-form comment.
 - Board approval requests for maintainer-visible GitHub comments must include the exact proposed comment body so approvers can review the literal text that will be posted.
-- On authenticated deployments, prefer the `gh` CLI when `GITHUB_TOKEN` is available and add the required AI-generated/model footer to any maintainer-visible GitHub body you publish directly. Otherwise, use the GitHub sync plugin tools, not the browser.
+- On authenticated deployments, prefer the `gh` CLI when `GITHUB_TOKEN` is available and add the required Markdown footer (`---` plus `###### ✨ This message was AI-generated using <exact model id>`) to any maintainer-visible GitHub body you publish directly. Otherwise, use the GitHub sync plugin tools, not the browser.
 - All actionable issues should end up with exactly one `type:` label.
 - Deduplication is repository-local GitHub work. Search the synced repository's GitHub issues first and treat that result as the source of truth.
 - Confident questions can be answered directly on GitHub with `type: question` and `closed: question` before QA closes the issue.
