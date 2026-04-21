@@ -88,6 +88,20 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   {
     relativePath: "README.md",
     pattern:
+      /checkout-backed[\s\S]*IN_PROGRESS[\s\S]*review stages[\s\S]*IN_REVIEW|review stages[\s\S]*IN_REVIEW[\s\S]*checkout-backed[\s\S]*IN_PROGRESS/i,
+    message:
+      "README.md must distinguish checkout-backed execution stages from review stages when describing Paperclip workflow.",
+  },
+  {
+    relativePath: "README.md",
+    pattern:
+      /parent\/sub-issue[\s\S]*structural[\s\S]*blockers|blockers[\s\S]*parent\/sub-issue[\s\S]*structural/i,
+    message:
+      "README.md must explain that parent/sub-issue links are structural and real waiting relationships should use blockers.",
+  },
+  {
+    relativePath: "README.md",
+    pattern:
       /linked PR[\s\S]*normal gates|normal gates[\s\S]*linked PR|external contributor[\s\S]*mergeable/i,
     message:
       "README.md must explain how imported issues with linked contributor PRs continue through the normal gates.",
@@ -172,6 +186,20 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       /open,\s*public Micronaut organization projects[\s\S]*is:open is:public|is:open is:public[\s\S]*open,\s*public Micronaut organization projects/i,
     message:
       "QA instructions must explain that organization-project selection is limited to open, public Micronaut projects (`is:open is:public`).",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern:
+      /execution stages[\s\S]*checkout[\s\S]*in_progress[\s\S]*review stages[\s\S]*in_review|review stages[\s\S]*in_review[\s\S]*execution stages[\s\S]*checkout[\s\S]*in_progress/i,
+    message:
+      "Repo operations must distinguish checkout-backed execution stages from review stages.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern:
+      /parent\/sub-issue[\s\S]*structural[\s\S]*blockers|blockers[\s\S]*parent\/sub-issue[\s\S]*structural/i,
+    message:
+      "Repo operations must explain that parent/sub-issue links are structural and blockers carry waiting semantics.",
   },
   {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",

@@ -84,7 +84,7 @@ The QA Engineer verifies:
 - no important acceptance criteria were silently dropped
 - public answers and closure paths use the correct GitHub labels when applicable, include enough detail for the reporter, treat evidence-backed already-implemented issues as part of QA's direct closure authority, and only require Paperclip board approval when the path is outside QA's direct GitHub authority
 
-Work that passes QA moves into the next configured review stage or completes through the allowed direct GitHub answer or closure path. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
+Work that passes QA moves into the next configured execution or review stage, or completes through the allowed direct GitHub answer or closure path. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
 
 ## Security Gate
 

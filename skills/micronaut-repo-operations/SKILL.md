@@ -18,13 +18,17 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 ## Execution-Policy-First Workflow
 
 - Synced GitHub issues should move through Paperclip with an issue `executionPolicy`, not through agent-written assignee flips or Paperclip handoff comments.
-- Use review stages for agent sign-off gates such as QA, Architect, Security Engineer, Code Reviewer, and any execution stage where one agent must do work and then explicitly release the item.
+- Use execution stages for agent-owned work that should take checkout and drive `in_progress`, such as Micronaut Engineer, Technical Writer, and PR follow-through.
+- Use review stages for sign-off or approval points where the next move belongs to a reviewer or approver, and surface `in_review` while that review work is pending, such as QA intake, Architect planning, QA verification, Security Engineer review, and Code Reviewer review.
+- If a live issue truly cannot continue until another issue changes state, model that with blockers in the live Paperclip instance. Parent/sub-issue links are structural context only and do not replace blockers.
 - Use linked Paperclip approvals for human governance decisions such as package-policy exceptions and other public GitHub actions outside QA's direct closure authority. Do not treat a free-form comment as approval.
 - The current stage participant is the routing source of truth. If the issue is waiting on another participant or a linked human approval, stop instead of improvising side-channel routing.
 - A stage ends with one of three outcomes: `approved`, `changes_requested`, or `request_board_approval` when a linked human approval must gate the next public action.
 - For synced GitHub delivery work, `approved` only advances the execution policy. Agents do not manually mark the Paperclip item `DONE`; the GitHub sync plugin does that after merge or after an approved GitHub closure path actually lands.
 - A stage artifact is still required: plan, reproducer, QA report, security review, review summary, or rollout note. Put the artifact in the issue output, issue document, linked approval, PR, or other durable workspace owned by the stage. The stage decision, not the note, is what routes the work.
 - If the live sync layer keeps a stable assignee for convenience, treat it as informational. The current execution stage still decides who acts next.
+- Agent-owned `todo` is dispatch state. Do not leave assigned work there without a wake path or an intentional resting decision after a successful run.
+- Agent-owned `in_progress` is checkout-backed active work. Take checkout before active engineering or writing work and release it when intentionally handing the issue back to review or another waiting state.
 - Adding a Paperclip reviewer does not wake that reviewer automatically. After you move work into a review stage and want the next reviewer to act now, explicitly invoke that agent heartbeat with the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action.
 - A review stage may list multiple participants. Invoke every reviewer you expect to engage immediately after the stage becomes active.
 - The installed `paperclipai@2026.416.0` runtime in this package still exposes `approvalsNeeded: 1` for execution stages, so do not rely on a single multi-participant stage for unanimous sign-off. If all listed reviewers must approve in order, model that as separate sequential stages.
@@ -32,9 +36,9 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 
 ## Recommended Stage Layouts
 
-- `type: bug`: QA intake review -> Micronaut Engineer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
-- `type: docs`: QA intake review -> Technical Writer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
-- `type: improvement`, `type: enhancement`, `type: breaking`, `type: dependency-upgrade`: QA intake review -> Architect review -> Micronaut Engineer or Technical Writer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
+- `type: bug`: QA intake review -> Micronaut Engineer execution -> QA verification review -> Security Engineer review -> Code Reviewer review.
+- `type: docs`: QA intake review -> Technical Writer execution -> QA verification review -> Security Engineer review -> Code Reviewer review.
+- `type: improvement`, `type: enhancement`, `type: breaking`, `type: dependency-upgrade`: QA intake review -> Architect review -> Micronaut Engineer or Technical Writer execution -> QA verification review -> Security Engineer review -> Code Reviewer review.
 - `type: question`, clarification wait paths, unreproducible bug closures, duplicate closures, and already-implemented closures: QA intake review, with QA publishing the GitHub answer, clarification request, or closure directly and waiting for sync.
 - Recurring internal routines stay as Paperclip company-operating work and may use a shorter stage sequence when no downstream review is required.
 
@@ -75,6 +79,11 @@ Default artifact policy for this package:
 - store plans, QA records, security reviews, and review summaries in keyed issue documents such as `plan`, `qa`, `security-review`, or `code-review`
 - use Paperclip issue comments only for human-visible progress notes, GitHub-facing explanations copied back for audit, or `@AgentName` wakeup fallback when the dedicated wake endpoint is unavailable
 - use linked approvals for board governance instead of treating comments as approvals
+
+Checkout rule:
+
+- use `POST /api/issues/{issueId}/checkout` before moving agent-owned active work into `in_progress`
+- use `POST /api/issues/{issueId}/release` when you intentionally hand the issue back to review or another waiting state
 
 Example keyed-document flow:
 
@@ -196,7 +205,7 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 - Agents may prepare, label, comment, close, and create PRs when their role allows it, but they do not merge or release.
 - For PR-based delivery work, agents do not transition the synced Paperclip issue to `DONE` themselves. The GitHub sync plugin transitions it to `DONE` after the linked PR merges.
 - When QA closes a synced GitHub issue directly, agents still do not close the Paperclip issue manually. The GitHub sync plugin transitions it after the closure sync arrives.
-- Paperclip issue blockers and execution policies for synced GitHub delivery items are runtime controls. Configure them in the live Paperclip instance or sync layer rather than trying to encode them in this package.
+- Paperclip issue blockers and execution policies for synced GitHub delivery items are runtime controls. Configure them in the live Paperclip instance or sync layer rather than trying to encode them in this package. When one live issue truly waits on another, use blockers instead of relying on parent/sub-issue structure alone.
 
 ## Internal Operating Routines
 
