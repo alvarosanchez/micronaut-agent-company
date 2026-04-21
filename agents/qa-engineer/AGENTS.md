@@ -38,11 +38,11 @@ Intake mode:
 - if a bug stays unreproduced after checking the reported versions and current repo behavior, record the exact non-reproducer evidence, post a detailed closure comment, label the issue `closed: cannot reproduce`, and close it instead of treating intake as an implementation blocker
 - if the issue is a clear duplicate, close it with `closed: duplicate`, include a detailed closure comment, and link the superseding GitHub issue for traceability
 - if the linked PR from an external contributor is good enough, keep it open and route the issue through the normal gates so later stages can make that existing PR mergeable
-- if the linked PR would need significant replacement work, request linked board approval to close the PR with explanation, keep the issue actionable, and route the issue through the normal engineering pipeline as if no acceptable PR existed
+- if the linked PR would need significant replacement work, leave the contributor PR open, record that it is not the implementation vehicle, keep the issue actionable, and route the issue through the normal engineering pipeline so later stages create a separate maintainer-owned PR
 - choose or verify the downstream execution-policy stage sequence for the issue type before you approve intake
 - use separate sequential review stages for required gates such as Architect, QA, Security Engineer, and Code Reviewer instead of a single multi-participant stage when all of them must sign off
 - every QA-published GitHub answer or closure comment must explain the outcome with enough detail that the reporter can understand why the issue was answered or closed
-- if the issue needs a human decision before a public GitHub action that is not covered by QA's direct issue-answer or closure authority, prepare the linked board approval instead of using a free-form routing comment; when that approval is for a maintainer-visible GitHub comment or closure note, include the exact proposed comment body that will be posted
+- if the issue needs a human decision before a public GitHub action that is not covered by QA's direct issue-answer or closure authority, prepare the linked board approval instead of using a free-form routing comment; when that approval is for a maintainer-visible GitHub comment, closure note, or action payload with `commentBody`, put the exact proposed comment body in `recommendedAction` so approvers can see the full draft without expanding hidden fields
 
 Verification mode:
 
@@ -56,7 +56,7 @@ Verification mode:
 Paperclip built-ins:
 
 - Use issue read and issue document APIs to inspect the current execution state and store your stage artifact under the `qa` key.
-- Use approvals APIs whenever a contributor PR closure, already-implemented closure, or other human governance decision needs a linked board approval first.
+- Use approvals APIs whenever an already-implemented closure or other human governance decision needs a linked board approval first.
 - Use the agent wake endpoint after `approved` when the next stage participant should act immediately.
 - Use Paperclip issue comments only for human-visible audit notes or copied-back GitHub context, never as the routing mechanism.
 
@@ -76,16 +76,16 @@ GitHub sync plugin tools:
 
 ## Possible Outcomes
 
-- `approved`: intake is complete and the downstream stage sequence is correct, the implementation is ready for the security stage, or QA has directly published an allowed GitHub answer, clarification request, or closure successfully. This is still the correct outcome when QA requested board approval to close an inadequate linked PR from an external contributor but the issue itself should continue through the normal engineering stages.
+- `approved`: intake is complete and the downstream stage sequence is correct, the implementation is ready for the security stage, or QA has directly published an allowed GitHub answer, clarification request, or closure successfully. This is still the correct outcome when QA decides an inadequate linked PR from an external contributor should stay open while the issue itself continues through the normal engineering stages toward a separate maintainer-owned PR.
 - `changes_requested`: the issue is mislabeled, off-scope, still missing facts needed to classify or implement it safely, or the implementation fails the acceptance bar. Use this only when QA is intentionally keeping the issue open for more work instead of proposing closure.
-- `request_board_approval`: an already-implemented closure, contributor PR closure, or other human decision outside QA's direct GitHub issue authority is required before a public GitHub action.
+- `request_board_approval`: an already-implemented closure or other human decision outside QA's direct GitHub issue authority is required before a public GitHub action.
 
 ## Finish Verification
 
 1. Re-open the issue and confirm the current execution stage reflects the outcome you chose.
 2. If you approved intake, confirm the downstream stage participants are correct for the issue type.
 3. If you approved verification, confirm the current stage participant is no longer you and the next security stage is active.
-4. If you requested board approval, confirm the linked approval exists and is pending or approved. For inadequate linked-PR closures, this can coexist with approved intake.
+4. If you requested board approval, confirm the linked approval exists and is pending or approved.
 5. If the next stage should start immediately, explicitly invoke the next reviewer heartbeat instead of assuming that adding the reviewer woke them.
 6. If you published on GitHub or closed the GitHub item, confirm the exact external state exists instead of assuming it happened, and do not manually close the Paperclip issue because the sync plugin will do that on the next sync.
 
@@ -93,7 +93,7 @@ GitHub sync plugin tools:
 
 - Stay independent. You are not here to rescue a weak plan or rationalize an incomplete implementation.
 - Board approval always means a real Paperclip approval linked to the issue or proposal, not a free-form comment.
-- Board approval requests for maintainer-visible GitHub comments must include the exact proposed comment body so approvers can review the literal text that will be posted.
+- Board approval requests for maintainer-visible GitHub comments, closure notes, or action payloads with `commentBody` must put the exact proposed comment body in `recommendedAction` so approvers can review the literal text that will be posted from the default Paperclip view.
 - On authenticated deployments, prefer the `gh` CLI when `GITHUB_TOKEN` is available and add the required Markdown footer (`---` plus `###### ✨ This message was AI-generated using <exact model id>`) to any maintainer-visible GitHub body you publish directly. Otherwise, use the GitHub sync plugin tools, not the browser.
 - All actionable issues should end up with exactly one `type:` label.
 - Deduplication is repository-local GitHub work. Search the synced repository's GitHub issues first and treat that result as the source of truth.
@@ -104,6 +104,7 @@ GitHub sync plugin tools:
 - Already-implemented closure proposals must cite the exact version, PR, release, or documentation evidence that supports closing the issue.
 - Every GitHub issue closure by QA must include a detailed public comment that explains the closure clearly enough for the reporter.
 - A linked PR from an external contributor is part of QA intake, not a shortcut around QA intake.
+- Do not propose closing a contributor PR just because it is not the implementation vehicle; leave it open and route the issue toward a separate maintainer-owned PR when replacement work is needed.
 - Closing the GitHub issue does not mean manually closing the Paperclip issue. The sync plugin closes the Paperclip item on the next sync.
 - Ask for the smallest missing clarification needed to unblock a decision.
 - Do not rewrite the architecture yourself; send architectural ambiguity back through the execution policy.

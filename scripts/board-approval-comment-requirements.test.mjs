@@ -9,14 +9,14 @@ const REQUIRED_COMMENT_APPROVAL_PATHS = [
   "agents/qa-engineer/AGENTS.md",
 ];
 
-test("board approval guidance requires the exact proposed GitHub comment body", async () => {
+test("board approval guidance requires the exact proposed GitHub comment body in recommendedAction", async () => {
   for (const relativePath of REQUIRED_COMMENT_APPROVAL_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
     assert.match(
       markdown,
-      /exact (?:maintainer-visible GitHub )?(?:comment body|proposed comment body).*board approval|board approval.*exact (?:maintainer-visible GitHub )?(?:comment body|proposed comment body)/i,
-      `${relativePath} must require board approval requests for GitHub comments to include the exact comment body that will be posted.`,
+      /recommendedAction[\s\S]*exact (?:maintainer-visible GitHub )?(?:comment body|proposed comment body)|exact (?:maintainer-visible GitHub )?(?:comment body|proposed comment body)[\s\S]*recommendedAction/i,
+      `${relativePath} must require board approval requests for GitHub comments to put the exact comment body in recommendedAction.`,
     );
   }
 });

@@ -19,7 +19,7 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 
 - Synced GitHub issues should move through Paperclip with an issue `executionPolicy`, not through agent-written assignee flips or Paperclip handoff comments.
 - Use review stages for agent sign-off gates such as QA, Architect, Security Engineer, Code Reviewer, and any execution stage where one agent must do work and then explicitly release the item.
-- Use linked Paperclip approvals for human governance decisions such as already-implemented closures, inadequate contributor PR closures, and package-policy exceptions. Do not treat a free-form comment as approval.
+- Use linked Paperclip approvals for human governance decisions such as already-implemented closures and package-policy exceptions. Do not treat a free-form comment as approval.
 - The current stage participant is the routing source of truth. If the issue is waiting on another participant or a linked human approval, stop instead of improvising side-channel routing.
 - A stage ends with one of three outcomes: `approved`, `changes_requested`, or `request_board_approval` when a linked human approval must gate the next public action.
 - For synced GitHub delivery work, `approved` only advances the execution policy. Agents do not manually mark the Paperclip item `DONE`; the GitHub sync plugin does that after merge or after an approved GitHub closure path actually lands.
@@ -43,8 +43,8 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 
 - QA intake owns the first decision on any linked PR that arrived with the synced issue, including PRs opened by external contributors before import.
 - If the linked contributor PR is good enough to salvage, keep it on the normal stage layout and treat it like an agent-created PR that still has to clear every configured gate.
-- If the linked contributor PR needs substantial replacement work, QA should open a linked Paperclip board approval to close that PR with explanation, then continue routing the issue itself through the normal engineering pipeline instead of blocking on the PR closure.
-- Closing an inadequate linked PR is a separate governance action. It does not by itself turn the underlying issue into a closure path.
+- If the linked contributor PR needs substantial replacement work, QA should leave that contributor PR open, document that it is not the implementation vehicle, and continue routing the issue itself through the normal engineering pipeline toward a separate maintainer-owned PR.
+- An inadequate linked contributor PR does not become a closure path. Leave it open and keep the underlying issue moving through the normal implementation stages.
 
 ## Required Session Start
 
@@ -110,7 +110,7 @@ Use these plugin-tool conventions exactly:
 
 Every stage must end in one of these states:
 
-- `approved`: your stage artifact is complete, the issue is ready for the next configured stage immediately, and no missing governance decision remains for the issue route itself. A separate linked board approval to close an inadequate contributor PR may coexist with approved intake.
+- `approved`: your stage artifact is complete, the issue is ready for the next configured stage immediately, and no missing governance decision remains for the issue route itself. Intake may still resolve `approved` when a linked contributor PR stays open while the issue moves toward a separate maintainer-owned PR.
 - `changes_requested`: your stage artifact names the exact gap, risk, or missing fact that must be addressed before the issue can move forward.
 - `request_board_approval`: when public GitHub action or a policy exception needs a human decision first, create or update the linked Paperclip approval instead of using a free-form comment as the approval mechanism.
 
@@ -153,7 +153,7 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 
 - `already-implemented` (closure disposition, not a GitHub `type:` label): QA documents the exact version, PR, release, or docs evidence, requests linked Paperclip board approval, waits for that approval, then publishes the closure on GitHub.
 - `duplicate` (closure disposition, not a GitHub `type:` label): QA may close the issue directly with `closed: duplicate`, a detailed closure comment, and a link to the superseding GitHub issue for traceability.
-- `linked contributor PR needs replacement` (operating situation, not a GitHub `type:` label): QA documents why the imported PR is not salvageable, requests linked Paperclip board approval to close that PR with explanation, and still routes the issue through the normal implementation stages.
+- `linked contributor PR needs replacement` (operating situation, not a GitHub `type:` label): QA documents why the imported PR is not salvageable, leaves that contributor PR open, and still routes the issue through the normal implementation stages toward a separate maintainer-owned PR.
 
 ## Documentation Policy
 
@@ -179,7 +179,8 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 - Board approval always means a real Paperclip approval linked to the relevant issue or proposal, not a free-form comment.
 - Paperclip's generic approvals API is the package's source of truth for board approvals. Treat execution-policy `approval` stages as optional live-instance sugar unless their semantics are explicitly verified in that instance.
 - QA may publish direct GitHub answers and issue closures for `type: question`, `status: awaiting feedback`, `closed: question`, `closed: cannot reproduce`, and `closed: duplicate` without separate board approval when the policy conditions are satisfied and the public comment is specific enough for the reporter.
-- QA does not publish already-implemented closures, inadequate contributor PR closures, or other policy-exception proposals on GitHub until the linked approval exists.
+- QA does not publish already-implemented closures or other policy-exception proposals on GitHub until the linked approval exists.
+- Do not create a board approval whose only purpose is to close an inadequate contributor PR. Leave contributor PRs open and continue with a separate maintainer-owned PR when replacement work is necessary.
 - Only the board or other Micronaut maintainers merge PRs or cut releases.
 - Agents may prepare, label, comment, close, and create PRs when their role allows it, but they do not merge or release.
 - For PR-based delivery work, agents do not transition the synced Paperclip issue to `DONE` themselves. The GitHub sync plugin transitions it to `DONE` after the linked PR merges.
