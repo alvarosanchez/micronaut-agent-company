@@ -68,6 +68,10 @@ const FORBIDDEN_SHARED_WORKFLOW_PATTERNS = [
   /\bupdate the Paperclip issue to match the written handoff\b/i,
   /\bevery handoff must update the Paperclip item\b/i,
 ];
+const BOARD_APPROVAL_RECOMMENDED_ACTION_PATTERN =
+  /\b(?:board approval|linked approval|approval requests?|approval request)\b[\s\S]{0,400}(?:exact (?:proposed )?(?:comment body|proposed comment body)[\s\S]{0,200}\brecommendedAction\b|\brecommendedAction\b[\s\S]{0,200}exact (?:proposed )?(?:comment body|proposed comment body))/i;
+const COMMENT_BODY_RECOMMENDED_ACTION_PATTERN =
+  /\bcommentBody\b[\s\S]{0,240}\brecommendedAction\b|\brecommendedAction\b[\s\S]{0,240}\bcommentBody\b/i;
 const ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN =
   /already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval[\s\S]*\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b|\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b[\s\S]*already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval/i;
 const REQUIRED_WORKFLOW_DOC_PATTERNS = [
@@ -91,9 +95,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   {
     relativePath: "README.md",
     pattern:
-      /board approval[\s\S]*close the PR|close the PR[\s\S]*board approval/i,
+      /leave(?:s|ing)?[\s\S]*contributor PR[\s\S]*open[\s\S]*(?:separate|replacement|maintainer-owned|new) PR|(?:separate|replacement|maintainer-owned|new) PR[\s\S]*leave(?:s|ing)?[\s\S]*contributor PR[\s\S]*open/i,
     message:
-      "README.md must explain that inadequate imported issue PRs require board approval before they are closed.",
+      "README.md must explain that inadequate imported issue PRs stay open while agents create a separate replacement PR.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -110,9 +114,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
     pattern:
-      /board approval[\s\S]*close the PR|close the PR[\s\S]*board approval/i,
+      /leave(?:s|ing)?[\s\S]*contributor PR[\s\S]*open[\s\S]*(?:separate|replacement|maintainer-owned|new) PR|(?:separate|replacement|maintainer-owned|new) PR[\s\S]*leave(?:s|ing)?[\s\S]*contributor PR[\s\S]*open/i,
     message:
-      "QA instructions must explain that inadequate imported issue PRs require board approval before QA closes them.",
+      "QA instructions must explain that inadequate imported issue PRs stay open while the pipeline creates a separate replacement PR.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -170,8 +174,13 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "COMPANY.md",
-    pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
-    message: "COMPANY.md must require board approvals for maintainer-visible GitHub comments to include the exact proposed comment body.",
+    pattern: BOARD_APPROVAL_RECOMMENDED_ACTION_PATTERN,
+    message: "COMPANY.md must require board approvals for maintainer-visible GitHub comments to put the exact proposed comment body in `recommendedAction`.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: COMMENT_BODY_RECOMMENDED_ACTION_PATTERN,
+    message: "COMPANY.md must require GitHub action commentBody proposals to surface their public text in `recommendedAction`.",
   },
   {
     relativePath: "COMPANY.md",
@@ -181,18 +190,33 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "README.md",
-    pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
-    message: "README.md must require board approvals for maintainer-visible GitHub comments to include the exact proposed comment body.",
+    pattern: BOARD_APPROVAL_RECOMMENDED_ACTION_PATTERN,
+    message: "README.md must require board approvals for maintainer-visible GitHub comments to put the exact proposed comment body in `recommendedAction`.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: COMMENT_BODY_RECOMMENDED_ACTION_PATTERN,
+    message: "README.md must require GitHub action commentBody proposals to surface their public text in `recommendedAction`.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
-    pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
-    message: "QA instructions must require board approvals for maintainer-visible GitHub comments to include the exact proposed comment body.",
+    pattern: BOARD_APPROVAL_RECOMMENDED_ACTION_PATTERN,
+    message: "QA instructions must require board approvals for maintainer-visible GitHub comments to put the exact proposed comment body in `recommendedAction`.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern: COMMENT_BODY_RECOMMENDED_ACTION_PATTERN,
+    message: "QA instructions must require GitHub action commentBody proposals to surface their public text in `recommendedAction`.",
   },
   {
     relativePath: "agents/ceo/AGENTS.md",
-    pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
-    message: "CEO instructions must require board approvals for maintainer-visible GitHub comments to include the exact proposed comment body.",
+    pattern: BOARD_APPROVAL_RECOMMENDED_ACTION_PATTERN,
+    message: "CEO instructions must require board approvals for maintainer-visible GitHub comments to put the exact proposed comment body in `recommendedAction`.",
+  },
+  {
+    relativePath: "agents/ceo/AGENTS.md",
+    pattern: COMMENT_BODY_RECOMMENDED_ACTION_PATTERN,
+    message: "CEO instructions must require GitHub action commentBody proposals to surface their public text in `recommendedAction`.",
   },
 ];
 const PAPERCLIP_AGENT_ICONS = new Set([
