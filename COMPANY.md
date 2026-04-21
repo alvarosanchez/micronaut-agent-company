@@ -3,7 +3,7 @@ name: Micronaut Agent Company
 description: Agent company for Micronaut open-source maintenance that drives a related repository cluster to zero open GitHub issues and pull requests through triage, planning, implementation, QA, security review, code review, and documentation.
 slug: micronaut-agent-company
 schema: agentcompanies/v1
-version: 1.1.10
+version: 1.1.11
 license: MIT
 authors:
   - name: Álvaro Sánchez-Mariscal
@@ -48,7 +48,7 @@ The board is intentionally not modeled as an agent role. Board approval is an ex
 
 Imported issues may already have a linked PR from an external contributor. QA evaluates that PR during intake. If it is good enough to salvage, the issue stays on the normal gates and later stages are responsible for getting that existing PR into the same mergeable condition expected of an agent-created PR. If the PR needs substantial replacement work, QA leaves the contributor PR open, records that it is not the implementation vehicle, and still routes the issue itself through the normal engineering pipeline toward a separate maintainer-owned PR.
 
-Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. QA may answer confident questions directly on GitHub with `type: question` and `closed: question`, request clarification with `status: awaiting feedback`, and close issues that stay awaiting feedback for more than 30 days with `closed: question`. QA may also close unreproducible reports with `closed: cannot reproduce` and clear duplicates with `closed: duplicate` plus a link to the superseding GitHub issue. Every such GitHub closure must include a comment with enough detail for the reporter to understand why the issue was closed. For already-implemented reports, QA must still capture the supporting version, PR, release, or documentation evidence and wait for the required Paperclip board approval before posting the GitHub explanation and closing the issue.
+Immediate closure outcomes such as duplicate, stale, out-of-scope, or already-implemented issues are handled during QA triage as documented closure dispositions rather than new `type:` labels. QA may answer confident questions directly on GitHub with `type: question` and `closed: question`, request clarification with `status: awaiting feedback`, and close issues that stay awaiting feedback for more than 30 days with `closed: question`. QA may also close unreproducible reports with `closed: cannot reproduce` and clear duplicates with `closed: duplicate` plus a link to the superseding GitHub issue. Every such GitHub closure must include a comment with enough detail for the reporter to understand why the issue was closed. For already-implemented reports, QA can close the issue directly without board approval once the closure comment cites the exact version, PR, release, or documentation evidence that shows the requested work already exists.
 
 This package is intentionally generic about repository selection. The GitHub sync plugin configuration defines the actual repository set and creates the Paperclip projects and synced issues or PRs that become the real work queue. Put supplemental operational facts that agents need at runtime, such as release-line notes, CI commands, Sonar quirks, docs conventions, and maintainer preferences, into `.company-runtime/shared.md` or `.company-runtime/projects/<project-slug>.md`.
 
