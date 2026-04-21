@@ -70,6 +70,7 @@ Recommended live routing model:
 ## Handoffs And Approvals
 
 - Deduplication during QA intake must search GitHub issues in the same synced repository through the GitHub sync plugin. Paperclip issue search is not the deduplication source of truth for delivery work.
+- Paperclip issues are single-assignee by design. Keep one live owner at a time, either an agent or a human board user. Linked Paperclip approvals are the governance mechanism when humans need to decide something; they are not a second assignee or a second assignment path.
 - Inside an active execution-policy stage, let Paperclip own the handoff: read `executionState.currentParticipant`, approve with `status: done`, and request changes with `status: in_progress` so the runtime records the decision and routes the issue automatically.
 - Adding a Paperclip reviewer does not guarantee an immediate wake. If the next reviewer should act now and the deployment did not wake them automatically, invoke that agent heartbeat explicitly with the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action after the stage has already advanced. If comment context would help and your deployment still has mention-wake bugs, add a structured `@` mention only as a fallback note, not as the routing mechanism.
 - Paperclip review stages can have multiple participants. When you expect more than one reviewer to look at the active stage, invoke each reviewer explicitly after the stage becomes active.
@@ -77,6 +78,7 @@ Recommended live routing model:
 - Human governance uses linked Paperclip approvals. Those approvals are separate records linked to issues, with their own lifecycle and decision notes, and they are the package's source of truth for board approval.
 - Routine QA GitHub issue answers and closure paths for `type: question`, `status: awaiting feedback`, `closed: question`, `closed: cannot reproduce`, `closed: duplicate`, and evidence-backed `already-implemented` closures do not need board approval.
 - When a linked board approval is asking permission to post a maintainer-visible GitHub comment, or proposes a GitHub action with a maintainer-visible `commentBody`, the approval request must put the exact proposed comment body in `recommendedAction` so the default approval card shows the literal public text without expanding hidden fields such as `proposedCommentBody` or `proposedGithubAction.commentBody`.
+- Parent/sub-issue structure is not the same thing as a dependency. Use `parentId` for structural work breakdown and rollup context, and use `blockedByIssueIds` for dependency semantics when one issue truly cannot continue until another changes state. If a parent is genuinely waiting on a child, model that wait explicitly with blockers instead of relying on the parent link alone.
 
 ## Issue Lifecycle
 
@@ -103,6 +105,8 @@ stateDiagram-v2
 ```
 
 For active execution-policy stages, trust the runtime to move the issue into `in_review`, assign the next `currentParticipant`, and preserve the decision trail. Use manual `TODO` handoffs only when a live workflow step sits outside the current execution policy, and treat any `@` mention or heartbeat invoke as a wake or context aid rather than the source of truth.
+
+`TODO` is dispatch state and may be assigned or unassigned; `IN_PROGRESS` is active owned work. For assigned agent work, move into `IN_PROGRESS` only after checkout. If your deployment exposes `checkoutRunId` and `executionRunId`, read them as execution-rights lock versus the currently live run. Assigned agent `TODO` or `IN_PROGRESS` work should either have a live wake path, be intentionally resting after a successful heartbeat, or be visibly surfaced as stranded. Let Paperclip spend its one automatic recovery wake first; if the issue is still stranded and gets moved to `BLOCKED` with a visible comment, treat that as a queue-health problem to repair, reroute, or escalate.
 
 For PR-based delivery work, a synced Paperclip item remains open until the linked PR merges and the GitHub sync plugin reflects that merge back into Paperclip. For QA-published answers or closures, the terminal Paperclip state depends on the closure disposition after the GitHub action actually syncs back: published answers and closures such as `type: question` plus `closed: question`, timed-out `status: awaiting feedback`, `closed: cannot reproduce`, or an evidence-backed already-implemented closure become `DONE`, while disposition-based closures such as `closed: duplicate`, stale, or out-of-scope become `CANCELLED`. Agents should never treat a successful QA, Security Engineer, or Code Reviewer stage by itself as permission to close the Paperclip item manually.
 

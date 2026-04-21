@@ -79,6 +79,12 @@ const BOARD_APPROVAL_RECOMMENDED_ACTION_PATTERN =
   /\b(?:board approval|linked approval|approval requests?|approval request)\b[\s\S]{0,400}(?:exact (?:proposed )?(?:comment body|proposed comment body)[\s\S]{0,200}\brecommendedAction\b|\brecommendedAction\b[\s\S]{0,200}exact (?:proposed )?(?:comment body|proposed comment body))/i;
 const COMMENT_BODY_RECOMMENDED_ACTION_PATTERN =
   /\bcommentBody\b[\s\S]{0,240}\brecommendedAction\b|\brecommendedAction\b[\s\S]{0,240}\bcommentBody\b/i;
+const SINGLE_ASSIGNEE_GOVERNANCE_PATTERN =
+  /single[- ]assignee[\s\S]{0,500}(?:linked (?:Paperclip )?approvals)[\s\S]{0,240}(?:not (?:a )?second assignee|not (?:a )?second assignment)|(?:linked (?:Paperclip )?approvals)[\s\S]{0,240}(?:not (?:a )?second assignee|not (?:a )?second assignment)[\s\S]{0,500}single[- ]assignee/i;
+const CHECKOUT_RECOVERY_PATTERN =
+  /(?:assigned agent|agent-owned)[\s\S]{0,700}in_progress[\s\S]{0,240}checkout[\s\S]{0,700}(?:automatic recovery wake|single automatic recovery wake)|(?:automatic recovery wake|single automatic recovery wake)[\s\S]{0,700}(?:assigned agent|agent-owned)[\s\S]{0,700}in_progress[\s\S]{0,240}checkout/i;
+const PARENT_BLOCKER_PATTERN =
+  /parentId[\s\S]{0,500}(?:structural|structure)[\s\S]{0,500}blockedByIssueIds[\s\S]{0,400}(?:dependency|blocker)|blockedByIssueIds[\s\S]{0,500}(?:dependency|blocker)[\s\S]{0,500}parentId[\s\S]{0,400}(?:structural|structure)/i;
 const ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN =
   /already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval[\s\S]*\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b|\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b[\s\S]*already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval/i;
 const REQUIRED_WORKFLOW_DOC_PATTERNS = [
@@ -105,6 +111,24 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       /normal `?TODO`? assignment only for non-policy owner changes|non-policy owner changes[\s\S]*`?TODO`?/i,
     message:
       "README.md must limit manual `TODO` handoffs to non-policy owner changes.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: SINGLE_ASSIGNEE_GOVERNANCE_PATTERN,
+    message:
+      "README.md must explain that Paperclip issues stay single-assignee and linked approvals are not a second assignee.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: CHECKOUT_RECOVERY_PATTERN,
+    message:
+      "README.md must explain checkout-backed agent `in_progress` work and the stranded-work recovery path.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: PARENT_BLOCKER_PATTERN,
+    message:
+      "README.md must explain that `parentId` is structural and `blockedByIssueIds` carries dependency semantics.",
   },
   {
     relativePath: "README.md",
@@ -270,6 +294,24 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "COMPANY.md",
+    pattern: SINGLE_ASSIGNEE_GOVERNANCE_PATTERN,
+    message:
+      "COMPANY.md must explain that Paperclip issues stay single-assignee and linked approvals are not a second assignee.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: CHECKOUT_RECOVERY_PATTERN,
+    message:
+      "COMPANY.md must explain checkout-backed agent `in_progress` work and the stranded-work recovery path.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: PARENT_BLOCKER_PATTERN,
+    message:
+      "COMPANY.md must explain that `parentId` is structural and `blockedByIssueIds` carries dependency semantics.",
+  },
+  {
+    relativePath: "COMPANY.md",
     pattern: COMMENT_BODY_RECOMMENDED_ACTION_PATTERN,
     message: "COMPANY.md must require GitHub action commentBody proposals to surface their public text in `recommendedAction`.",
   },
@@ -371,6 +413,24 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       /execution workspace[\s\S]*auto-start|project workspace services[\s\S]*do not auto-start|do not auto-start[\s\S]*project workspace services/i,
     message:
       "Shared repo operations guidance must explain that project and execution workspace services stay manual and are not auto-started by heartbeats.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: SINGLE_ASSIGNEE_GOVERNANCE_PATTERN,
+    message:
+      "Shared repo operations guidance must explain that issues stay single-assignee and approvals are not a second assignee.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: CHECKOUT_RECOVERY_PATTERN,
+    message:
+      "Shared repo operations guidance must explain checkout-backed agent `in_progress` work and stranded-work recovery.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: PARENT_BLOCKER_PATTERN,
+    message:
+      "Shared repo operations guidance must explain that `parentId` is structural and `blockedByIssueIds` carries dependency semantics.",
   },
   {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",
