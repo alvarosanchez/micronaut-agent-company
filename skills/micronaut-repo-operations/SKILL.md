@@ -111,7 +111,7 @@ Authenticated deployment rule:
 - `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`: changed-file inspection and CI/check status
 - `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`: review-thread inspection and response
 - `paperclip-github-plugin:request_pull_request_reviewers`: request user or team reviewers on a GitHub PR
-- `paperclip-github-plugin:list_organization_projects`: list visible GitHub organization Projects so the agent can choose the right Micronaut release board
+- `paperclip-github-plugin:list_organization_projects`: list visible open, public GitHub organization Projects (`is:open is:public`) so the agent can choose the right Micronaut release board
 - `paperclip-github-plugin:add_pull_request_to_project`: associate a GitHub pull request with the chosen organization Project
 
 Use these plugin-tool conventions exactly:
@@ -149,12 +149,12 @@ Before you stop:
 
 Actionable issues and PRs should carry exactly one `type:` label:
 
-- `type: breaking` for changes that require a new major line and explicit Architect approval
-- `type: enhancement` for new features that belong on the next minor line
-- `type: improvement` for small non-breaking product changes that fit a patch release
+- `type: breaking` for changes that would require a major module version and explicit Architect approval
+- `type: enhancement` for new non-breaking feature work that normally implies a minor module version
+- `type: improvement` for small non-breaking product changes that should fit the current default branch when improvements are allowed there
 - `type: docs` for documentation-only changes
-- `type: dependency-upgrade` for squad-originated version bumps that are not Dependabot work
-- `type: bug` for bug fixes
+- `type: dependency-upgrade` for squad-originated version bumps that are not Dependabot work; route it by actual compatibility impact, not by label alone
+- `type: bug` for bug fixes that should fit the current default branch when bugfixes are allowed there
 - `type: question` for questions QA can answer directly or route into a clarification request
 
 Duplicate, stale, superseded, out-of-scope, and already-implemented issues are immediate-closure dispositions that may be closed without forcing a `type:` label if the closure path is well documented.
@@ -182,14 +182,20 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 ## Release Targeting And Branch Rules
 
 - Confirm the correct target repository, branch, and release line before planning or coding.
-- Determine the next release from the repository's default branch plus the latest non-pre-release GitHub release.
-- If the default branch is `1.2.x` and the latest production release is `1.1.5`, the next release on that branch is `1.2.0`.
-- If the default branch is `1.2.x` and the latest production release is `1.2.3`, the next release on that branch is `1.2.4`.
-- Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform releases. The Architect should name the best-fit Micronaut organization project before implementation starts when the answer is clear, and the Code Reviewer should link the PR to that project when GitHub tooling can apply it.
-- `type: improvement`, `type: bug`, `type: docs`, and most `type: dependency-upgrade` work should remain non-breaking and target the next patch release when possible.
-- `type: enhancement` belongs on the next minor line. If the minor branch does not exist yet, create it from the current default branch with local git CLI.
+- QA intake owns release targeting and Micronaut organization-project selection. Later stages consume and verify those facts instead of reinventing them from scratch.
+- Trust the repository's actual current default branch instead of assuming a generic Micronaut branch strategy.
+- Determine the next release from the repository's default branch plus the latest stable non-pre-release GitHub release.
+- If the default branch is `1.2.x` and the latest stable release is `1.1.5`, the next release on that branch is `1.2.0`, so that default branch has not shipped yet.
+- If the default branch is `1.2.x` and the latest stable release is `1.2.3`, the next release on that branch is `1.2.4`, so that default branch is already on a patch line.
+- If the current default branch has never been released, it may accept `type: bug`, `type: improvement`, `type: enhancement`, and docs, CI, or build-only changes. If that unreleased default branch is a new major line such as `5.0.x`, it may also accept `type: breaking` work with the required approvals.
+- If the current default branch has already been released, it may accept `type: bug`, `type: improvement`, and docs, CI, or build-only changes. `type: enhancement` and `type: breaking` do not target that branch unless a human-approved release-policy exception exists.
+- `type: dependency-upgrade` follows the actual compatibility impact of the resulting repository release, not the label alone.
+- Do not invent or create another target branch during triage just to fit SemVer. If the current default branch cannot legally take the requested SemVer impact, QA records that mismatch and routes the issue into planning or governance instead of targeting a non-default branch by default.
+- Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform releases.
+- QA should choose the best-fit Micronaut organization project during intake from the open, public Micronaut organization projects (`is:open is:public`) by asking which Micronaut Platform release can first consume the repository's next release.
+- If the best-fit organization-project choice is somewhat ambiguous, including major-version upgrades that may or may not fit the next Platform minor board cleanly, still choose the best-fit project and record the ambiguity in the QA artifact so the eventual PR description can repeat it.
 - `type: breaking` requires explicit Architect approval and, when necessary, a linked human approval before work proceeds.
-- If multiple organization projects are plausible, if no matching project exists yet, or if the runtime cannot apply the project link, record the ambiguity or tooling gap and continue without guessing. Missing organization-project linkage alone does not block PR creation or approval.
+- If no matching organization project exists yet, or if the runtime cannot apply the project link, record that gap and continue. Missing organization-project linkage alone does not block PR creation or approval.
 
 ## Approval Boundaries
 
@@ -283,8 +289,8 @@ Important usage rules:
 - Provide `repository` only when the plugin cannot infer it; the repository may be omitted when the current Paperclip project has exactly one mapped repository.
 - Use `paperclip-github-plugin:update_issue` for labels, assignees, state, body, title, and milestone changes.
 - Use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
-- Use `paperclip-github-plugin:list_organization_projects` to identify the best-fit Micronaut organization project before PR creation when the correct release board is not already certain.
-- Use `paperclip-github-plugin:add_pull_request_to_project` after PR creation so the live PR is linked to the recommended organization project chosen upstream when one was identified.
+- Use `paperclip-github-plugin:list_organization_projects` during QA intake, or later verification when the upstream facts changed, to identify the best-fit Micronaut organization project for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`).
+- Use `paperclip-github-plugin:add_pull_request_to_project` after PR creation so the live PR is linked to the recommended organization project chosen during QA intake or any explicitly revised upstream decision.
 - For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the same Markdown footer automatically.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
 
@@ -299,11 +305,12 @@ Important usage rules:
 
 - The delivery loop combines normal owner assignment for intake, planning, implementation, and PR follow-through with execution-policy stages for the enforced review chain.
 - `code-reviewer` creates the GitHub PR only after QA and Security Engineer stages are approved.
-- `code-reviewer` must not resolve PR-based delivery work as `approved` unless, by the end of that run, a non-draft GitHub PR exists in the correct repository and branch, is readable through the synced GitHub context, and carries the correct issue linkage, closing keyword, and `type:` label. The organization project should be linked when the target board is clear and available, but missing linkage alone does not block `approved`.
+- `code-reviewer` must not resolve PR-based delivery work as `approved` unless, by the end of that run, a non-draft GitHub PR exists in the correct repository and branch, is readable through the synced GitHub context, and carries the correct issue linkage, closing keyword, and `type:` label. The organization project should be linked when the chosen project exists and GitHub tooling can apply it, but missing linkage due to no matching project or tooling gaps alone does not block `approved`.
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
-- Every PR should be linked to the Micronaut organization project representing the earliest Micronaut Platform release that can consume the targeted module version when that board is clear and available.
-- `code-reviewer` applies the project named earlier by the Architect when one was identified.
+- Every PR should be linked to the Micronaut organization project chosen during QA intake, representing the best-fit Micronaut Platform release that can first consume the repository's next module release.
+- If that chosen project carried ambiguity, repeat the ambiguity in the PR description instead of dropping the project link.
+- `code-reviewer` applies the project named earlier by QA intake unless an upstream artifact explicitly revised it.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, and resolves all review threads.
 - PR-based delivery work stays open in Paperclip until GitHub merge sync completes. Agents do not manually move those items to `DONE`.
 - Any material post-PR change re-enters the same execution-policy-controlled review loop after the owner has resumed the work.
