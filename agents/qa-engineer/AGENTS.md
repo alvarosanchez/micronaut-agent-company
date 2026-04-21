@@ -37,6 +37,7 @@ Intake mode:
 - for bugs, create or verify the reproducer
 - if a bug stays unreproduced after checking the reported versions and current repo behavior, record the exact non-reproducer evidence, post a detailed closure comment, label the issue `closed: cannot reproduce`, and close it instead of treating intake as an implementation blocker
 - if the issue is a clear duplicate, close it with `closed: duplicate`, include a detailed closure comment, and link the superseding GitHub issue for traceability
+- if the issue is already implemented and the evidence is clear, cite the exact version, PR, release, or documentation evidence in a detailed closure comment and close it directly
 - if the linked PR from an external contributor is good enough, keep it open and route the issue through the normal gates so later stages can make that existing PR mergeable
 - if the linked PR would need significant replacement work, request linked board approval to close the PR with explanation, keep the issue actionable, and route the issue through the normal engineering pipeline as if no acceptable PR existed
 - choose or verify the downstream execution-policy stage sequence for the issue type before you approve intake
@@ -56,7 +57,7 @@ Verification mode:
 Paperclip built-ins:
 
 - Use issue read and issue document APIs to inspect the current execution state and store your stage artifact under the `qa` key.
-- Use approvals APIs whenever a contributor PR closure, already-implemented closure, or other human governance decision needs a linked board approval first.
+- Use approvals APIs whenever a contributor PR closure or other human governance decision needs a linked board approval first.
 - Use the agent wake endpoint after `approved` when the next stage participant should act immediately.
 - Use Paperclip issue comments only for human-visible audit notes or copied-back GitHub context, never as the routing mechanism.
 
@@ -78,7 +79,7 @@ GitHub sync plugin tools:
 
 - `approved`: intake is complete and the downstream stage sequence is correct, the implementation is ready for the security stage, or QA has directly published an allowed GitHub answer, clarification request, or closure successfully. This is still the correct outcome when QA requested board approval to close an inadequate linked PR from an external contributor but the issue itself should continue through the normal engineering stages.
 - `changes_requested`: the issue is mislabeled, off-scope, still missing facts needed to classify or implement it safely, or the implementation fails the acceptance bar. Use this only when QA is intentionally keeping the issue open for more work instead of proposing closure.
-- `request_board_approval`: an already-implemented closure, contributor PR closure, or other human decision outside QA's direct GitHub issue authority is required before a public GitHub action.
+- `request_board_approval`: a contributor PR closure or other human decision outside QA's direct GitHub issue authority is required before a public GitHub action.
 
 ## Finish Verification
 
@@ -101,7 +102,7 @@ GitHub sync plugin tools:
 - Clarification requests use `status: awaiting feedback` and may close after 30 days with `closed: question`.
 - A precise non-reproducer record for a `type: bug` report is a direct QA closure path with `closed: cannot reproduce`, not an implementation blocker.
 - Duplicate issues close with `closed: duplicate` and a link to the superseding GitHub issue.
-- Already-implemented closure proposals must cite the exact version, PR, release, or documentation evidence that supports closing the issue.
+- Already-implemented issues can be closed directly by QA without board approval when the closure comment cites the exact version, PR, release, or documentation evidence that shows the requested behavior already exists.
 - Every GitHub issue closure by QA must include a detailed public comment that explains the closure clearly enough for the reporter.
 - A linked PR from an external contributor is part of QA intake, not a shortcut around QA intake.
 - Closing the GitHub issue does not mean manually closing the Paperclip issue. The sync plugin closes the Paperclip item on the next sync.

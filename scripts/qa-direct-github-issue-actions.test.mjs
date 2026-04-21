@@ -18,7 +18,19 @@ test("verification rules require direct QA GitHub issue answer and closure guida
   );
   assert.match(
     source,
+    /QA instructions must explain that already-implemented issues can be closed directly by QA without board approval when the closure cites the exact version, PR, release, or documentation evidence\./,
+  );
+  assert.match(
+    source,
     /README\.md must explain that unreproducible issues can be closed by QA with `closed: cannot reproduce`\./,
+  );
+  assert.match(
+    source,
+    /README\.md must explain that already-implemented issues can be closed by QA without board approval when the closure cites the exact version, PR, release, or documentation evidence\./,
+  );
+  assert.match(
+    source,
+    /COMPANY\.md must explain that already-implemented issues can be closed by QA without board approval when the closure cites the exact version, PR, release, or documentation evidence\./,
   );
   assert.match(
     source,

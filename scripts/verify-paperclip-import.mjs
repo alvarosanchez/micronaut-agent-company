@@ -68,6 +68,8 @@ const FORBIDDEN_SHARED_WORKFLOW_PATTERNS = [
   /\bupdate the Paperclip issue to match the written handoff\b/i,
   /\bevery handoff must update the Paperclip item\b/i,
 ];
+const ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN =
+  /already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval[\s\S]*\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b|\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b[\s\S]*already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval/i;
 const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   {
     relativePath: "README.md",
@@ -127,11 +129,23 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "QA instructions must explain that clarification requests use `status: awaiting feedback` and may close after 30 days with `closed: question`.",
   },
   {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern: ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN,
+    message:
+      "QA instructions must explain that already-implemented issues can be closed directly by QA without board approval when the closure cites the exact version, PR, release, or documentation evidence.",
+  },
+  {
     relativePath: "README.md",
     pattern:
       /closed:\s*cannot reproduce[\s\S]*QA|QA[\s\S]*closed:\s*cannot reproduce/i,
     message:
       "README.md must explain that unreproducible issues can be closed by QA with `closed: cannot reproduce`.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN,
+    message:
+      "README.md must explain that already-implemented issues can be closed by QA without board approval when the closure cites the exact version, PR, release, or documentation evidence.",
   },
   {
     relativePath: "README.md",
@@ -158,6 +172,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "COMPANY.md",
     pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
     message: "COMPANY.md must require board approvals for maintainer-visible GitHub comments to include the exact proposed comment body.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN,
+    message:
+      "COMPANY.md must explain that already-implemented issues can be closed by QA without board approval when the closure cites the exact version, PR, release, or documentation evidence.",
   },
   {
     relativePath: "README.md",

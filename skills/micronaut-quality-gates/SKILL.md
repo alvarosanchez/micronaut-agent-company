@@ -32,6 +32,7 @@ Before an actionable issue moves out of QA intake:
 - bugs have a reproducer or a precise non-reproducer record
 - unreproduced bugs that now point toward closure use the documented `closed: cannot reproduce` path instead of falling back to `changes_requested`
 - duplicates use the documented `closed: duplicate` path with a link to the superseding GitHub issue
+- already-implemented closures cite the exact version, PR, release, or documentation evidence and use QA's direct closure path
 - the downstream execution-policy stage sequence is correct for the issue type
 - required all-of gates are modeled as separate sequential stages instead of one multi-participant stage
 - if the issue needs a public answer or closure outside QA's direct GitHub authority, the board-approval path is explicit
@@ -76,7 +77,7 @@ The QA Engineer verifies:
 - the original issue or PR concern is actually resolved
 - tests and documentation support the claimed change
 - no important acceptance criteria were silently dropped
-- public answers and closure paths use the correct GitHub labels, include enough detail for the reporter, and only require Paperclip board approval when the path is outside QA's direct GitHub authority
+- public answers and closure paths use the correct GitHub labels when applicable, include enough detail for the reporter, treat evidence-backed already-implemented issues as part of QA's direct closure authority, and only require Paperclip board approval when the path is outside QA's direct GitHub authority
 
 Work that passes QA moves into the next configured review stage or completes through the allowed direct GitHub answer or closure path. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
 
