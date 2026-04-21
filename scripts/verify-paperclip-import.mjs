@@ -1153,7 +1153,16 @@ function assertExportedBody(exportFiles, relativePath, expectedBody, expectedSlu
   const actualBody = bodyOfMarkdown(exportedMarkdown);
   if (expectedSlug === "verify-imported-company-instance") {
     // Paperclip 2026.416.0 currently truncates the tail of this bootstrap task body on export.
-    // The import remains correct, so keep the source text human-readable and accept a prefix match here.
+    // The import remains correct, so keep the source text human-readable and accept a prefix match here,
+    // but still require a substantial portion of the body so empty or drastically truncated exports fail.
+    const minimumExpectedLength = Math.min(
+      expectedBody.length,
+      Math.max(200, Math.floor(expectedBody.length * 0.6)),
+    );
+    assert.ok(
+      actualBody.length >= minimumExpectedLength,
+      `Expected exported body for ${relativePath} to retain at least ${minimumExpectedLength} characters despite the current Paperclip export truncation for this bootstrap task, but found ${actualBody.length}`,
+    );
     assert.ok(
       expectedBody.startsWith(actualBody),
       `Expected exported body for ${relativePath} to remain a prefix of the source package despite the current Paperclip export truncation for this bootstrap task`,
