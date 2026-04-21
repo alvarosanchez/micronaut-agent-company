@@ -21,7 +21,7 @@ test("README keeps organization-project linkage advisory instead of blocking", a
   );
   assert.match(
     readme,
-    /should be linked to (?:the )?Micronaut organization project chosen during QA intake|best-fit Micronaut Platform release/i,
+    /should be linked to (?:(?:the )?Micronaut organization project chosen during QA intake|best-fit Micronaut Platform release)/i,
     "README should describe organization-project linkage as a recommendation tied to QA's chosen best-fit release board.",
   );
   assert.match(
@@ -48,7 +48,7 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     codeReviewer,
-    /organization project should be linked[\s\S]*when the chosen project exists|apply the best-fit project chosen upstream/i,
+    /organization project should be linked[\s\S]*(?:when the chosen project exists|apply the best-fit project chosen upstream)/i,
     "Code Reviewer guidance should still recommend linking the organization project chosen upstream when possible.",
   );
   assert.match(
