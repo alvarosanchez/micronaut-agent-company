@@ -44,4 +44,8 @@ test("verification rules require direct QA GitHub issue answer and closure guida
     source,
     /README\.md must explain that QA-published GitHub answers and closures reach `DONE` or `CANCELLED` based on the closure disposition after sync\./,
   );
+  assert.match(
+    source,
+    /QA instructions must require separate `qa-intake` and `qa-verification` issue documents for intake and verification\./,
+  );
 });

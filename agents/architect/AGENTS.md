@@ -42,8 +42,9 @@ Paperclip built-ins:
 
 - Use issue read and issue document APIs to inspect the current execution state and store the planning artifact under the `plan` key.
 - Use approvals APIs when the plan needs a linked board approval for a breaking change, release-policy exception, or scope escalation.
-- Use the agent wake endpoint after `approved` when the chosen implementation stage should start immediately.
-- Use Paperclip issue comments only for brief human-visible planning notes, never as the routing mechanism.
+- If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
+- Use the agent wake endpoint only after the stage or assignment has already advanced correctly when the chosen implementation stage should start immediately. If the deployment still has mention-wake bugs, add a structured mention only as fallback context.
+- Use Paperclip issue comments for brief human-visible planning notes, execution-policy decision notes, and any non-policy owner handoff notes.
 
 GitHub sync plugin tools:
 
@@ -66,15 +67,17 @@ GitHub sync plugin tools:
 
 ## Finish Verification
 
-1. Re-open the issue and confirm the current execution stage no longer points to you after `approved`.
-2. If you chose `changes_requested`, confirm the issue execution state shows `changes_requested` and your plan artifact names the exact missing fact or routing correction.
-3. If you requested board approval, confirm the linked approval exists and is pending before you stop.
-4. If the next stage should start immediately, explicitly invoke the next stage participant heartbeat instead of assuming the new reviewer was woken automatically.
-5. Confirm the plan artifact, linked repository, and release target all agree. If you named a Micronaut organization project, confirm it still matches the intended release board.
+1. Re-open the issue and confirm the current execution stage reflects your chosen outcome.
+2. After `approved`, confirm the current stage participant is no longer you and the issue routing matches the intended workflow: the next `currentParticipant` is correct if another review stage remains, otherwise the documented next owner is assigned for a non-policy work phase.
+3. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
+4. If you chose `changes_requested`, confirm the issue execution state shows `changes_requested` and your plan artifact names the exact missing fact or routing correction.
+5. If you requested board approval, confirm the linked approval exists and is pending before you stop.
+6. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the routing is correct instead of assuming the new reviewer was woken automatically.
+7. Confirm the plan artifact, linked repository, and release target all agree. If you named a Micronaut organization project, confirm it still matches the intended release board.
 
 ## Operating Rules
 
 - Prefer the smallest non-breaking plan that solves the real problem.
 - Do not leave GitHub project selection implicit when the best-fit board is clear. If it remains ambiguous, record that ambiguity instead of blocking the plan on it.
 - Do not silently redesign the issue during implementation. If the plan is wrong later, the work must come back through planning.
-- The stage decision routes the work. Do not use assignee flips or Paperclip handoff comments as your workflow.
+- When another agent should act next inside an active execution policy, let Paperclip route through `currentParticipant` and `returnAssignee`. Use manual `TODO` assignment only for non-policy owner changes, and do not treat `@` mentions as the routing mechanism.

@@ -12,11 +12,14 @@ This skill defines the minimum bar each role must protect before its execution-p
 Before any role resolves its stage:
 
 - the role has read the current execution stage, current stage participant, latest linked GitHub context, and any linked approval
+- the role has read `executionState.returnAssignee` when the issue is in active review
 - the role has produced one durable stage artifact that explains the decision
-- the role resolves the stage with `approved`, `changes_requested`, or `request_board_approval` instead of routing by Paperclip handoff comment
+- QA does not collapse intake and verification into one artifact; use separate durable issue documents such as `qa-intake` and `qa-verification`
+- when the role is the active execution-stage participant, it resolves `approved` with `status: done` plus a decision comment and resolves `changes_requested` with a non-`done` status, preferably `in_progress`, so Paperclip routes automatically through `currentParticipant` and `returnAssignee`
+- manual `TODO` assignment is reserved for non-policy owner changes outside the active review chain
 - for synced GitHub delivery work, `approved` advances the issue to the next stage or PR follow-through; it is not permission to mark the Paperclip item `DONE`
 - if a human governance decision is required, the role creates or updates a real Paperclip approval instead of treating a comment as approval
-- if the next stage should run immediately, the role explicitly invokes the next agent heartbeat instead of assuming that adding a reviewer wakes them
+- if the next stage or next owner should run immediately, the role explicitly invokes the next heartbeat only after the stage or assignment has already advanced correctly
 - the role re-opens the issue and verifies the execution state matches the intended outcome before finishing
 
 ## Intake Gate
@@ -79,7 +82,7 @@ The QA Engineer verifies:
 - no important acceptance criteria were silently dropped
 - public answers and closure paths use the correct GitHub labels when applicable, include enough detail for the reporter, treat evidence-backed already-implemented issues as part of QA's direct closure authority, and only require Paperclip board approval when the path is outside QA's direct GitHub authority
 
-Work that passes QA moves into the next configured review stage or completes through the allowed direct GitHub answer or closure path. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
+Work that passes QA moves into the next configured review stage or completes through the allowed direct GitHub answer or closure path. Inside an active execution-policy stage, QA should let Paperclip move the issue into the next `in_review` participant automatically. When QA is changing owners outside the active review chain, it should use a normal `TODO` assignment plus a clear next-action comment. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
 
 ## Security Gate
 

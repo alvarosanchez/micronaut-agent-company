@@ -40,8 +40,9 @@ Paperclip built-ins:
 
 - Use issue read and issue document APIs to inspect the current execution state and store your review artifact under the `code-review` key.
 - Use approvals APIs when opening or keeping the PR requires a linked board approval.
-- Use the agent wake endpoint for every reviewer or follow-through owner who should act immediately after your stage resolves.
-- Use Paperclip issue comments only for human-visible audit notes, never as the routing mechanism.
+- If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
+- Use the agent wake endpoint for every reviewer or follow-through owner who should act immediately only after the stage or assignment has already advanced correctly. If the deployment still has mention-wake bugs, add a structured mention only as fallback context.
+- Use Paperclip issue comments for human-visible audit notes, execution-policy decision notes, and any non-policy owner handoff notes.
 
 GitHub sync plugin tools:
 
@@ -69,11 +70,12 @@ GitHub sync plugin tools:
 ## Finish Verification
 
 1. Re-open the issue and confirm the current execution stage reflects your chosen outcome.
-2. After `approved`, confirm the current stage participant is no longer you and the synced Paperclip item was not incorrectly marked `DONE`.
-3. After `changes_requested`, confirm the issue execution state shows `changes_requested` and your review artifact names the exact fix list.
-4. If a PR exists, confirm the PR, labels, closing keyword, requested reviewers, checks, and review-thread state match the artifact you produced. If an organization project was linked, confirm it matches the chosen release board.
-5. If the next stage should start immediately, explicitly invoke the next agent heartbeat for every intended reviewer or follow-through owner instead of assuming the new reviewer was woken automatically.
-6. If you requested board approval, confirm the linked approval exists and is pending before you stop.
+2. After `approved`, confirm the current stage participant is no longer you, the synced Paperclip item was not incorrectly marked `DONE`, and the issue routing matches the live workflow: the next `currentParticipant` is correct if another review stage remains, otherwise the documented follow-through owner is assigned for non-policy PR work.
+3. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
+4. After `changes_requested`, confirm the issue execution state shows `changes_requested` and your review artifact names the exact fix list.
+5. If a PR exists, confirm the PR, labels, closing keyword, requested reviewers, checks, and review-thread state match the artifact you produced. If an organization project was linked, confirm it matches the chosen release board.
+6. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat for every intended reviewer or follow-through owner only after the routing is correct instead of assuming the new reviewer was woken automatically.
+7. If you requested board approval, confirm the linked approval exists and is pending before you stop.
 
 ## Operating Rules
 
@@ -83,4 +85,4 @@ GitHub sync plugin tools:
 - If QA preserved an external contributor PR, treat it as the live review surface unless an upstream stage already decided it should be replaced.
 - For PR-based delivery work, do not close or mark the synced Paperclip issue `DONE` yourself. The GitHub sync plugin does that after merge.
 - Give one complete review instead of drip-feeding concerns.
-- The stage decision routes the work. Do not use assignee flips or Paperclip handoff comments as your workflow.
+- When another agent should act next inside an active execution policy, let Paperclip route through `currentParticipant` and `returnAssignee`. Use manual `TODO` assignment only for non-policy owner changes, and do not treat `@` mentions as the routing mechanism.
