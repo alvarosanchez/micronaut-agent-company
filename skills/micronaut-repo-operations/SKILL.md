@@ -150,7 +150,7 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 
 ## Closure Dispositions
 
-- `already-implemented` (closure disposition, not a GitHub `type:` label): QA may close the issue directly once it documents the exact version, PR, release, or docs evidence in a detailed closure comment.
+- `already-implemented` (closure disposition, not a GitHub `type:` label): QA may close the issue directly once it documents the exact version, PR, release, or documentation evidence in a detailed closure comment.
 - `duplicate` (closure disposition, not a GitHub `type:` label): QA may close the issue directly with `closed: duplicate`, a detailed closure comment, and a link to the superseding GitHub issue for traceability.
 - `linked contributor PR needs replacement` (operating situation, not a GitHub `type:` label): QA documents why the imported PR is not salvageable, requests linked Paperclip board approval to close that PR with explanation, and still routes the issue through the normal implementation stages.
 

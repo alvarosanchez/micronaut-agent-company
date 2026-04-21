@@ -32,7 +32,7 @@ Before an actionable issue moves out of QA intake:
 - bugs have a reproducer or a precise non-reproducer record
 - unreproduced bugs that now point toward closure use the documented `closed: cannot reproduce` path instead of falling back to `changes_requested`
 - duplicates use the documented `closed: duplicate` path with a link to the superseding GitHub issue
-- already-implemented closures cite the exact version, PR, release, or docs evidence and use QA's direct closure path
+- already-implemented closures cite the exact version, PR, release, or documentation evidence and use QA's direct closure path
 - the downstream execution-policy stage sequence is correct for the issue type
 - required all-of gates are modeled as separate sequential stages instead of one multi-participant stage
 - if the issue needs a public answer or closure outside QA's direct GitHub authority, the board-approval path is explicit
