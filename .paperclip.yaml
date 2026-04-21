@@ -66,12 +66,12 @@ routines:
         label: Weekly security deep scan
         cronExpression: "0 9 * * 1"
         timezone: Europe/Madrid
-  weekly-ceo-self-improvement:
+  daily-ceo-self-improvement:
     status: active
     triggers:
       - kind: schedule
-        label: Weekly CEO self-improvement
-        cronExpression: "0 15 * * 5"
+        label: Daily CEO Self-Improvement
+        cronExpression: "0 15 * * *"
         timezone: Europe/Madrid
 tasks:
   verify-imported-company-instance:
