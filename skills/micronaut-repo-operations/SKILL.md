@@ -33,6 +33,14 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - The installed `paperclipai@2026.416.0` runtime in this package still exposes `approvalsNeeded: 1` for execution stages, so do not rely on a single multi-participant stage for unanimous sign-off. If all listed reviewers must approve in order, model that as separate sequential stages.
 - Paperclip also has a separate generic approvals system for linked board approvals. Those approvals have their own lifecycle (`pending`, `approved`, `rejected`, revision request, and resubmission) and can wake the requester when they are resolved.
 
+## Execution-Semantics Guardrails
+
+- Paperclip is single-assignee by design. Keep one live owner on an issue at a time, either an agent or a human board user. Linked approvals are for governance, not a second assignee.
+- `todo` is dispatch state and may be assigned or unassigned. `in_progress` is active work and requires an assignee. `blocked` is the correct state for waiting on another issue, a human decision, or an external system. `in_review` means the next move belongs to a reviewer or approver, not the current executor.
+- For agent-owned issues, checkout is required before moving the issue into `in_progress`. When your deployment exposes `checkoutRunId` and `executionRunId`, read them as execution-rights lock versus the currently live execution path.
+- Do not leave agent-assigned non-terminal work stranded. An assigned `todo` should still have a wake path or be intentionally resting after a successful heartbeat. An assigned `in_progress` should have an active run or queued continuation. If Paperclip exhausts its single automatic recovery wake and moves the issue to `blocked` with a visible comment, treat that as an operational problem to repair or escalate.
+- Use `parentId` for structure, work breakdown, and rollup context. Use `blockedByIssueIds` for dependency semantics and automatic wakeups when the blocker clears. If a parent is truly waiting on a child, model both the parent link and the blocker relationship explicitly.
+
 ## Recommended Stage Layouts
 
 - `type: bug`: QA intake review -> Micronaut Engineer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
@@ -65,11 +73,11 @@ These are built into Paperclip itself. Use them even when no plugin-specific too
 
 - identity and inbox: `GET /api/agents/me`, `GET /api/agents/me/inbox-lite`, fallback `GET /api/companies/{companyId}/issues?assigneeAgentId={yourId}&status=todo,in_progress,in_review,blocked`
 - execution lock: `POST /api/issues/{issueId}/checkout`, `POST /api/issues/{issueId}/release`
-- issue context: `GET /api/issues/{issueId}`, `GET /api/issues/{issueId}/heartbeat-context`, `GET /api/issues/{issueId}/comments`
+- issue context: `GET /api/issues/{issueId}`, `GET /api/issues/{issueId}/heartbeat-context`, `GET /api/issues/{issueId}/comments` for assignee, status, execution state, dependency context, and any exposed `parentId`, `blockedByIssueIds`, `checkoutRunId`, or `executionRunId`
 - state updates: `PATCH /api/issues/{issueId}` with the run-id header when you need to change issue status, change assignee, update `executionPolicy`, or append a Paperclip comment in the same call
 - durable stage artifacts: `GET /api/issues/{issueId}/documents`, `GET /api/issues/{issueId}/documents/{key}`, `PUT /api/issues/{issueId}/documents/{key}`, `GET /api/issues/{issueId}/documents/{key}/revisions`
 - attachments when a file artifact matters: `POST /api/companies/{companyId}/issues/{issueId}/attachments`, `GET /api/issues/{issueId}/attachments`, `GET /api/attachments/{attachmentId}/content`
-- subtask or escalation creation: `POST /api/companies/{companyId}/issues`
+- subtask or escalation creation: `POST /api/companies/{companyId}/issues`; use `parentId` for structure and `blockedByIssueIds` when the new issue is a real blocker
 - approvals: `GET /api/companies/{companyId}/approvals?status=pending`, `POST /api/companies/{companyId}/approvals`, `GET /api/approvals/{approvalId}`, `GET /api/approvals/{approvalId}/issues`, `POST /api/approvals/{approvalId}/comments`, `POST /api/approvals/{approvalId}/resubmit`
 - reviewer wakeups: the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint or the equivalent runtime wake endpoint exposed by the installed build after the stage or assignment is already correct
 
