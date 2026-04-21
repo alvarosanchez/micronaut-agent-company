@@ -129,6 +129,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 - Git operations must use the local git CLI.
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
 - QA intake owns repository release targeting: identify the actual current default branch, the latest stable non-pre-release release, the next repository release implied by that branch, whether the branch has already shipped, and the recommended Micronaut organization project for the eventual PR.
+- When QA lists Micronaut organization projects, the candidate set should be the open, public Micronaut organization projects (`is:open is:public`).
 - Trust the repository's actual current default branch instead of assuming a generic Micronaut branch strategy.
 - PRs should target the current default branch only when that branch's current release state permits the issue's SemVer impact.
 - If the current default branch has never been released, it may take `type: bug`, `type: improvement`, `type: enhancement`, and docs, CI, or build-only changes. An unreleased new major default branch may also take `type: breaking` work with the required approvals.
@@ -207,7 +208,7 @@ The GitHub sync plugin exposes these GitHub workflow tools to agents. Use the ex
 - PR inspection: `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`
 - Review-thread actions: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
 - Reviewer routing: `paperclip-github-plugin:request_pull_request_reviewers`
-- Organization project lookup: `paperclip-github-plugin:list_organization_projects`
+- Organization project lookup: `paperclip-github-plugin:list_organization_projects` against the open, public Micronaut organization projects (`is:open is:public`)
 - PR project association: `paperclip-github-plugin:add_pull_request_to_project`
 
 Use `paperclipIssueId` whenever work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository. If you publish maintainer-visible GitHub body text directly through `gh` or another `GITHUB_TOKEN`-backed write path, append this exact GitHub-flavored Markdown footer yourself:

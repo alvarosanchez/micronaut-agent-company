@@ -167,6 +167,13 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "QA instructions must explain that QA chooses the best-fit Micronaut organization project even when ambiguity remains.",
   },
   {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern:
+      /open,\s*public Micronaut organization projects[\s\S]*is:open is:public|is:open is:public[\s\S]*open,\s*public Micronaut organization projects/i,
+    message:
+      "QA instructions must explain that organization-project selection is limited to open, public Micronaut projects (`is:open is:public`).",
+  },
+  {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",
     pattern:
       /If the current default branch has never been released[\s\S]*type:\s*bug[\s\S]*type:\s*improvement[\s\S]*type:\s*enhancement/i,

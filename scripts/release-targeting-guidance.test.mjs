@@ -59,6 +59,11 @@ test("QA instructions own release facts and initial project choice", async () =>
     /choose the recommended Micronaut organization project[\s\S]*best-fit project/i,
     "QA instructions should require choosing the best-fit organization project even when ambiguity remains.",
   );
+  assert.match(
+    qa,
+    /open,\s*public Micronaut organization projects[\s\S]*is:open is:public|is:open is:public[\s\S]*open,\s*public Micronaut organization projects/i,
+    "QA instructions should restrict organization-project selection to open, public Micronaut projects.",
+  );
 });
 
 test("Architect instructions consume QA triage facts instead of recreating them", async () => {

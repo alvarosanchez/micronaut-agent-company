@@ -38,7 +38,7 @@ Intake mode:
 - decide whether the current default branch has never been released yet or is already on a patch line, and record which SemVer change classes it may still accept
 - trust the repository's actual current default branch instead of inventing an alternate target branch during triage
 - if the issue's SemVer impact does not fit the current default branch, record that mismatch explicitly and route the issue through planning or governance instead of pretending a non-default branch already exists
-- choose the recommended Micronaut organization project for the eventual PR based on the repository's next release and the earliest Micronaut Platform release that can consume it
+- choose the recommended Micronaut organization project for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`) based on the repository's next release and the earliest Micronaut Platform release that can consume it
 - if that organization-project choice is ambiguous, still choose the best-fit project and record the ambiguity so later stages can repeat it in the PR description
 - for bugs, create or verify the reproducer
 - if a bug stays unreproduced after checking the reported versions and current repo behavior, record the exact non-reproducer evidence, post a detailed closure comment, label the issue `closed: cannot reproduce`, and close it instead of treating intake as an implementation blocker
@@ -77,7 +77,7 @@ GitHub sync plugin tools:
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:search_repository_items` for deduplication against GitHub issues in the same synced repository and for already-implemented prior-art checks.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the synced GitHub issue before you classify, verify, close, or answer anything.
-- `paperclip-github-plugin:list_organization_projects` when you need to choose or verify the recommended Micronaut organization project for the eventual PR.
+- `paperclip-github-plugin:list_organization_projects` when you need to choose or verify the recommended Micronaut organization project for the eventual PR; treat the candidate set as the open, public Micronaut organization projects (`is:open is:public`).
 - `paperclip-github-plugin:update_issue` to set the single actionable `type:` label, close or reopen the GitHub issue, and apply approved metadata changes.
 - `paperclip-github-plugin:add_issue_comment` when QA is publishing a maintainer-visible answer, clarification request, or closure note on GitHub.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` when QA is verifying an implementation that already has a PR.
@@ -107,6 +107,7 @@ GitHub sync plugin tools:
 - All actionable issues should end up with exactly one `type:` label.
 - Deduplication is repository-local GitHub work. Search the synced repository's GitHub issues first and treat that result as the source of truth.
 - QA intake owns default-branch release targeting and the initial Micronaut organization-project choice for the eventual PR.
+- That organization-project choice should come from the open, public Micronaut organization projects (`is:open is:public`).
 - Trust the synced repository's actual current default branch.
 - Confident questions can be answered directly on GitHub with `type: question` and `closed: question` before QA closes the issue.
 - Clarification requests use `status: awaiting feedback` and may close after 30 days with `closed: question`.

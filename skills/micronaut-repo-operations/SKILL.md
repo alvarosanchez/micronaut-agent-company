@@ -101,7 +101,7 @@ Authenticated deployment rule:
 - `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`: changed-file inspection and CI/check status
 - `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`: review-thread inspection and response
 - `paperclip-github-plugin:request_pull_request_reviewers`: request user or team reviewers on a GitHub PR
-- `paperclip-github-plugin:list_organization_projects`: list visible GitHub organization Projects so the agent can choose the right Micronaut release board
+- `paperclip-github-plugin:list_organization_projects`: list visible open, public GitHub organization Projects (`is:open is:public`) so the agent can choose the right Micronaut release board
 - `paperclip-github-plugin:add_pull_request_to_project`: associate a GitHub pull request with the chosen organization Project
 
 Use these plugin-tool conventions exactly:
@@ -180,7 +180,7 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 - `type: dependency-upgrade` follows the actual compatibility impact of the resulting repository release, not the label alone.
 - Do not invent or create another target branch during triage just to fit SemVer. If the current default branch cannot legally take the requested SemVer impact, QA records that mismatch and routes the issue into planning or governance instead of targeting a non-default branch by default.
 - Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform releases.
-- QA should choose the best-fit Micronaut organization project during intake by asking which Micronaut Platform release can first consume the repository's next release.
+- QA should choose the best-fit Micronaut organization project during intake from the open, public Micronaut organization projects (`is:open is:public`) by asking which Micronaut Platform release can first consume the repository's next release.
 - If the best-fit organization-project choice is somewhat ambiguous, including major-version upgrades that may or may not fit the next Platform minor board cleanly, still choose the best-fit project and record the ambiguity in the QA artifact so the eventual PR description can repeat it.
 - `type: breaking` requires explicit Architect approval and, when necessary, a linked human approval before work proceeds.
 - If no matching organization project exists yet, or if the runtime cannot apply the project link, record that gap and continue. Missing organization-project linkage alone does not block PR creation or approval.
@@ -277,7 +277,7 @@ Important usage rules:
 - Provide `repository` only when the plugin cannot infer it; the repository may be omitted when the current Paperclip project has exactly one mapped repository.
 - Use `paperclip-github-plugin:update_issue` for labels, assignees, state, body, title, and milestone changes.
 - Use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
-- Use `paperclip-github-plugin:list_organization_projects` during QA intake, or later verification when the upstream facts changed, to identify the best-fit Micronaut organization project for the eventual PR.
+- Use `paperclip-github-plugin:list_organization_projects` during QA intake, or later verification when the upstream facts changed, to identify the best-fit Micronaut organization project for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`).
 - Use `paperclip-github-plugin:add_pull_request_to_project` after PR creation so the live PR is linked to the recommended organization project chosen during QA intake or any explicitly revised upstream decision.
 - For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the same Markdown footer automatically.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
