@@ -141,6 +141,62 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   {
     relativePath: "README.md",
     pattern:
+      /QA Engineer[\s\S]*default-branch and release-fact gathering[\s\S]*SemVer targeting[\s\S]*organization-project selection/i,
+    message:
+      "README.md must explain that QA intake owns default-branch release facts, SemVer targeting, and organization-project selection.",
+  },
+  {
+    relativePath: "README.md",
+    pattern:
+      /Trust the repository's actual current default branch[\s\S]*If the current default branch has never been released[\s\S]*If the current default branch has already been released/i,
+    message:
+      "README.md must explain that agents trust the live default branch and distinguish unreleased from already-released default branches.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern:
+      /actual current default branch[\s\S]*latest stable non-pre-release release[\s\S]*next release implied by that branch/i,
+    message:
+      "QA instructions must explain how to gather the current default-branch release facts.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern:
+      /choose the recommended Micronaut organization project[\s\S]*best-fit project/i,
+    message:
+      "QA instructions must explain that QA chooses the best-fit Micronaut organization project even when ambiguity remains.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern:
+      /open,\s*public Micronaut organization projects[\s\S]*is:open is:public|is:open is:public[\s\S]*open,\s*public Micronaut organization projects/i,
+    message:
+      "QA instructions must explain that organization-project selection is limited to open, public Micronaut projects (`is:open is:public`).",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern:
+      /If the current default branch has never been released[\s\S]*type:\s*bug[\s\S]*type:\s*improvement[\s\S]*type:\s*enhancement/i,
+    message:
+      "Repo operations must explain what kinds of work an unreleased default branch may accept.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern:
+      /If the current default branch has already been released[\s\S]*type:\s*bug[\s\S]*type:\s*improvement[\s\S]*docs,\s*CI,\s*or build-only/i,
+    message:
+      "Repo operations must explain what kinds of work an already-released default branch may accept.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern:
+      /Do not invent or create another target branch during triage/i,
+    message:
+      "Repo operations must forbid inventing non-default target branches during triage just to fit SemVer.",
+  },
+  {
+    relativePath: "README.md",
+    pattern:
       /closed:\s*cannot reproduce[\s\S]*QA|QA[\s\S]*closed:\s*cannot reproduce/i,
     message:
       "README.md must explain that unreproducible issues can be closed by QA with `closed: cannot reproduce`.",
