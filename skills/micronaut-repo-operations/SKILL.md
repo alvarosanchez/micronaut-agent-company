@@ -37,7 +37,7 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - `type: improvement`, `type: enhancement`, `type: breaking`, `type: dependency-upgrade`: QA intake review -> Architect review -> Micronaut Engineer or Technical Writer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
 - `type: question`, clarification wait paths, unreproducible bug closures, and duplicate closures: QA intake review, with QA publishing the GitHub answer, clarification request, or closure directly and waiting for sync.
 - `already-implemented` closure: QA intake review -> linked Paperclip board approval -> QA publish-or-close stage.
-- Weekly routines stay as internal Paperclip work and may use a shorter stage sequence when no downstream review is required.
+- Recurring internal routines stay as Paperclip company-operating work and may use a shorter stage sequence when no downstream review is required.
 
 ## Imported Issues With Existing PRs
 
@@ -51,7 +51,7 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 Before you do any work on a synced issue or PR:
 
 1. Open the Paperclip issue, the current execution policy, the current execution state, the latest linked GitHub item, and any linked approval.
-2. Continue only if you are the current stage participant, the issue returned `changes_requested` to your stage, or the issue is one of your weekly routines.
+2. Continue only if you are the current stage participant, the issue returned `changes_requested` to your stage, or the issue is one of your recurring routines.
 3. If another stage participant or a human approval is active, stop and leave the routing unchanged.
 4. Read the latest stage artifact before acting so you are responding to the actual current request, not stale queue history.
 5. Read any repo-local or `.company-runtime/` guidance that changes release-line, CI, docs, or maintainer expectations.
@@ -76,6 +76,12 @@ Default artifact policy for this package:
 - store plans, QA records, security reviews, and review summaries in keyed issue documents such as `plan`, `qa`, `security-review`, or `code-review`
 - use Paperclip issue comments only for human-visible progress notes, GitHub-facing explanations copied back for audit, or `@AgentName` wakeup fallback when the dedicated wake endpoint is unavailable
 - use linked approvals for board governance instead of treating comments as approvals
+
+Example keyed-document flow:
+
+1. Read the current artifact with `GET /api/issues/{issueId}/documents/ceo` (or another stable key such as `qa`, `plan`, or `security-review`).
+2. Write the updated artifact with `PUT /api/issues/{issueId}/documents/ceo` so the stage output stays anchored to the same durable key.
+3. Use `GET /api/issues/{issueId}/documents/ceo/revisions` when you need the audit trail for an earlier version.
 
 ## GitHub Sync Plugin Agent Tools
 
@@ -191,7 +197,7 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 This package intentionally keeps internal automation small. It includes one lightweight project, `company-operations`, with two recurring Paperclip routines:
 
 - `weekly-security-deep-scan`, assigned to `security-engineer`
-- `weekly-ceo-self-improvement`, assigned to `ceo`
+- `daily-ceo-self-improvement`, assigned to `ceo`
 
 These routines are company-operating work, not substitutes for the synced GitHub backlog. They exist to keep the maintenance system healthy even when the GitHub queue is quiet.
 
