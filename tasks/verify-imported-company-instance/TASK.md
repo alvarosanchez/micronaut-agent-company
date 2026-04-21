@@ -13,7 +13,7 @@ Check at least these points:
 - the `company-operations` project exists
 - this bootstrap issue exists in `TODO` on the CEO queue
 - `Weekly Security Deep Scan` exists as an active routine owned by `security-engineer`
-- `Weekly CEO Self-Improvement` exists as an active routine owned by `ceo`
+- `Daily CEO Self-Improvement` exists as an active routine owned by `ceo`
 - the imported package still matches the intended workflow around execution stages, reviewer wakeups, and linked approvals
 - operator-selected live company name, description, and issue prefix are allowed unless they break routing or governance
 
