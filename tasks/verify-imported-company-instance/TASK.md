@@ -14,10 +14,13 @@ Check at least these points:
 - this bootstrap issue exists in `TODO` on the CEO queue
 - `Weekly Security Deep Scan` exists as an active routine owned by `security-engineer`
 - `Daily CEO Self-Improvement` exists as an active routine owned by `ceo`
-- the imported package still matches the intended workflow around execution stages, reviewer wakeups, and linked approvals
+- the imported package still matches the intended workflow around native execution-policy routing, reviewer wake fallbacks, and linked approvals
+- when repo work depends on services or jobs, the live project workspace or execution workspace configuration is intentionally operator-owned instead of being assumed to come from this package
 - operator-selected live company name, description, and issue prefix are allowed unless they break routing or governance
 
-Produce one verification report that states:
+Produce one verification report.
+
+State at least these points:
 
 - what entities you checked
 - any mismatch you found

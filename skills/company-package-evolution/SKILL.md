@@ -14,6 +14,7 @@ Pick the smallest surface that solves the problem:
 - If the learning is local to one Paperclip company instance, one maintainer group, or one temporary operating condition, keep it additive in extension instructions or `.company-runtime/` overlays.
 - If the learning belongs to a managed Micronaut repository as a product artifact, update that repository's `AGENTS.md` guidance and keep this company package unchanged.
 - If the gap is about how to use a bundled Paperclip system skill such as `paperclip`, `paperclip-create-agent`, `paperclip-create-plugin`, or `para-memory-files`, do not propose editing that bundled skill from this package. Add company-owned guidance, examples, or a companion skill here instead.
+- If the gap is best solved by a reusable external skill or a live company-skill installation, prefer the company skill library and agent skill assignment model over copying ad hoc instructions into package core.
 - If the learning should improve the default behavior of future imports of this company, promote it into the package core with a PR to `https://github.com/alvarosanchez/micronaut-agent-company`.
 
 Portable package defaults should help most future imports, not just the current local runtime.
@@ -25,6 +26,7 @@ When the change belongs in the package core:
 - work only in a clone of `alvarosanchez/micronaut-agent-company`
 - make the smallest portable diff across package-owned files such as `COMPANY.md`, `README.md`, `.paperclip.yaml`, `agents/`, `skills/`, `projects/`, `tasks/`, or `teams/`
 - keep runtime-only learnings out of the diff; those still belong in additive extension instructions or `.company-runtime/`
+- keep skills compatible with the Agent Skills model and prefer portable shortname references instead of machine-local skill wiring
 - update both the behavioral instructions and the human-facing docs when policy changes
 - run `npm test` or `npm run test:node22` when the environment supports it
 - create or update a PR to `https://github.com/alvarosanchez/micronaut-agent-company`

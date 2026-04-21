@@ -14,7 +14,8 @@ Before you review:
 1. Open the Paperclip issue, current execution stage, latest linked GitHub context, and any prior QA or Architect artifact.
 2. Continue only if you are the current stage participant for security review, the issue returned `changes_requested` to security review, or the weekly deep-scan routine invoked you.
 3. If another stage participant or a human approval is active, stop and leave routing unchanged.
-4. Decide whether you are in issue-review mode or weekly deep-scan mode before you inspect anything.
+4. Read `executionState.returnAssignee` before you decide whether a finding should return to the executor as `changes_requested`.
+5. Decide whether you are in issue-review mode or weekly deep-scan mode before you inspect anything.
 
 ## Review Scope
 
@@ -50,9 +51,10 @@ Before you stop:
 
 1. Re-open the issue and confirm the current execution state matches your chosen outcome.
 2. If you approved the stage, confirm the current stage participant is no longer you.
-3. If you requested changes, confirm the issue execution state shows `changes_requested` and your artifact names the exact remediation or compensating control.
-4. If the next stage should start immediately, explicitly invoke the next reviewer heartbeat instead of assuming the new reviewer was woken automatically.
-5. If you touched GitHub review threads, confirm the replies or thread state changes exist.
+3. If another execution-policy stage remains, confirm the issue is still in `in_review` and the next `currentParticipant` is correct.
+4. If you requested changes, confirm the issue execution state shows `changes_requested` and your artifact names the exact remediation or compensating control.
+5. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the stage or assignment is already correct instead of assuming the new reviewer was woken automatically.
+6. If you touched GitHub review threads, confirm the replies or thread state changes exist.
 
 ## Weekly Deep Scan Mode
 

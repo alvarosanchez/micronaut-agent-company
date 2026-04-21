@@ -10,8 +10,10 @@ Review the company's recent execution history and improve the operating system w
 Focus on:
 
 - repeated blockers, stalled handoffs, and noisy queue patterns
+- broken handoffs where issue status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, and the expected next owner do not agree
 - QA, security, or review churn that suggests missing guidance or the wrong quality gate
 - missing or outdated repo-level `AGENTS.md` guidance in managed Micronaut repositories
+- live workspace or runtime-service gaps where repo work keeps stalling because jobs or services were assumed to auto-start
 - gaps or upgrade opportunities in the company's imported skill inventory that would materially improve delivery and can be turned into a concrete approval or implementation step now
 - whether local extension instructions or `.company-runtime/` overlays should be added, simplified, or pruned
 - whether any reusable company learning should be promoted into the package core with a PR to `alvarosanchez/micronaut-agent-company`
@@ -22,6 +24,7 @@ Produce one Paperclip report that includes:
 - zero to three concrete improvement candidates and the exact next action for each one
 - any linked board approval request you opened, including the exact change it authorizes, the target surface (`.company-runtime/`, company-owned skill/docs, or package-core PR), and the implementation path after approval
 - any approved change you implemented immediately instead of re-reporting it as a proposal
+- any stale handoff you corrected by aligning issue status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, and any required next-action comment or wake
 - any repo-level `AGENTS.md` updates to make using `agent-md-refactor`
 - any proposed additive extension-instruction or `.company-runtime/` changes
 - any package-core PR you opened for `alvarosanchez/micronaut-agent-company`
