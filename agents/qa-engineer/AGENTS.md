@@ -34,6 +34,12 @@ Intake mode:
 - if a question can be answered with confidence, post the answer on GitHub, label the issue `type: question` and `closed: question`, and close the issue
 - if the issue needs clarification, post a request-for-comments message on GitHub, label the issue `status: awaiting feedback`, and if that state lasts more than 30 days, close it with `closed: question`
 - apply exactly one actionable GitHub `type:` label when the issue is actionable
+- identify the repository's actual current default branch, the latest stable non-pre-release release, and the next release implied by that branch
+- decide whether the current default branch has never been released yet or is already on a patch line, and record which SemVer change classes it may still accept
+- trust the repository's actual current default branch instead of inventing an alternate target branch during triage
+- if the issue's SemVer impact does not fit the current default branch, record that mismatch explicitly and route the issue through planning or governance instead of pretending a non-default branch already exists
+- choose the recommended Micronaut organization project for the eventual PR based on the repository's next release and the earliest Micronaut Platform release that can consume it
+- if that organization-project choice is ambiguous, still choose the best-fit project and record the ambiguity so later stages can repeat it in the PR description
 - for bugs, create or verify the reproducer
 - if a bug stays unreproduced after checking the reported versions and current repo behavior, record the exact non-reproducer evidence, post a detailed closure comment, label the issue `closed: cannot reproduce`, and close it instead of treating intake as an implementation blocker
 - if the issue is a clear duplicate, close it with `closed: duplicate`, include a detailed closure comment, and link the superseding GitHub issue for traceability
@@ -64,12 +70,14 @@ Paperclip built-ins:
 GitHub sync plugin tools:
 
 - On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
+- Use authenticated GitHub reads such as `gh repo view` and `gh release list` or equivalent API-backed commands to determine the live default branch and latest stable release before you finalize release targeting.
 - When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - On unauthenticated deployments, use the agent tools below.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:search_repository_items` for deduplication against GitHub issues in the same synced repository and for already-implemented prior-art checks.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the synced GitHub issue before you classify, verify, close, or answer anything.
+- `paperclip-github-plugin:list_organization_projects` when you need to choose or verify the recommended Micronaut organization project for the eventual PR.
 - `paperclip-github-plugin:update_issue` to set the single actionable `type:` label, close or reopen the GitHub issue, and apply approved metadata changes.
 - `paperclip-github-plugin:add_issue_comment` when QA is publishing a maintainer-visible answer, clarification request, or closure note on GitHub.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` when QA is verifying an implementation that already has a PR.
@@ -84,7 +92,7 @@ GitHub sync plugin tools:
 ## Finish Verification
 
 1. Re-open the issue and confirm the current execution stage reflects the outcome you chose.
-2. If you approved intake, confirm the downstream stage participants are correct for the issue type.
+2. If you approved intake, confirm the downstream stage participants are correct for the issue type and the release-targeting facts are recorded clearly enough for later stages to consume.
 3. If you approved verification, confirm the current stage participant is no longer you and the next security stage is active.
 4. If you requested board approval, confirm the linked approval exists and is pending or approved.
 5. If the next stage should start immediately, explicitly invoke the next reviewer heartbeat instead of assuming that adding the reviewer woke them.
@@ -98,12 +106,17 @@ GitHub sync plugin tools:
 - On authenticated deployments, prefer the `gh` CLI when `GITHUB_TOKEN` is available and add the required Markdown footer (`---` plus `###### ✨ This message was AI-generated using <exact model id>`) to any maintainer-visible GitHub body you publish directly. Otherwise, use the GitHub sync plugin tools, not the browser.
 - All actionable issues should end up with exactly one `type:` label.
 - Deduplication is repository-local GitHub work. Search the synced repository's GitHub issues first and treat that result as the source of truth.
+- QA intake owns default-branch release targeting and the initial Micronaut organization-project choice for the eventual PR.
+- Trust the synced repository's actual current default branch.
 - Confident questions can be answered directly on GitHub with `type: question` and `closed: question` before QA closes the issue.
 - Clarification requests use `status: awaiting feedback` and may close after 30 days with `closed: question`.
 - A precise non-reproducer record for a `type: bug` report is a direct QA closure path with `closed: cannot reproduce`, not an implementation blocker.
 - Duplicate issues close with `closed: duplicate` and a link to the superseding GitHub issue.
 - Already-implemented issues can be closed directly by QA without board approval when the closure comment cites the exact version, PR, release, or documentation evidence that shows the requested behavior already exists.
 - Every GitHub issue closure by QA must include a detailed public comment that explains the closure clearly enough for the reporter.
+- If the current default branch has never been released, it may take bugs, improvements, enhancements, and docs, CI, or build-only changes. An unreleased new major default branch may also take breaking changes with the required approvals.
+- If the current default branch has already been released, it may take bugs, improvements, and docs, CI, or build-only changes. Enhancements and breaking changes stay off that branch unless a human-approved release-policy exception exists.
+- If the organization-project choice is ambiguous, keep the best-fit project anyway and preserve the ambiguity note for the eventual PR description.
 - A linked PR from an external contributor is part of QA intake, not a shortcut around QA intake.
 - Do not propose closing a contributor PR just because it is not the implementation vehicle; leave it open and route the issue toward a separate maintainer-owned PR when replacement work is needed.
 - Closing the GitHub issue does not mean manually closing the Paperclip issue. The sync plugin closes the Paperclip item on the next sync.

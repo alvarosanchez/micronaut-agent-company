@@ -21,13 +21,18 @@ test("README keeps organization-project linkage advisory instead of blocking", a
   );
   assert.match(
     readme,
-    /should be linked to (?:the )?Micronaut organization project[\s\S]*when (?:that board is )?(?:clear|known|available)/i,
-    "README should describe organization-project linkage as a recommendation when the right board is clear and available.",
+    /should be linked to (?:the )?Micronaut organization project chosen during QA intake|best-fit Micronaut Platform release/i,
+    "README should describe organization-project linkage as a recommendation tied to QA's chosen best-fit release board.",
   );
   assert.match(
     readme,
     /does not by itself block (?:PR creation|an? `approved` outcome)|continue instead of escalating solely for that reason/i,
     "README should say that missing organization-project linkage alone is not a blocking condition.",
+  );
+  assert.match(
+    readme,
+    /keep the chosen project and record the ambiguity|record the ambiguity in the stage artifact or PR summary/i,
+    "README should require ambiguous project choices to keep the best-fit selection and document the ambiguity.",
   );
 });
 
@@ -43,13 +48,18 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     codeReviewer,
-    /organization project should be linked[\s\S]*when (?:the target board is )?(?:clear|known|available)/i,
-    "Code Reviewer guidance should still recommend linking the organization project when possible.",
+    /organization project should be linked[\s\S]*when the chosen project exists|apply the best-fit project chosen upstream/i,
+    "Code Reviewer guidance should still recommend linking the organization project chosen upstream when possible.",
   );
   assert.match(
     codeReviewer,
-    /do not request board approval solely because the organization project is unknown or unavailable|continue with the PR and record/i,
+    /record the gap and continue|continue with the PR and record/i,
     "Code Reviewer guidance should say missing organization-project linkage alone does not justify board approval.",
+  );
+  assert.match(
+    codeReviewer,
+    /keep the ambiguity note in the PR summary|make sure the PR description records it/i,
+    "Code Reviewer guidance should preserve ambiguity notes instead of dropping the chosen project.",
   );
 
   assert.doesNotMatch(
@@ -59,8 +69,8 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     qualityGates,
-    /recommended Micronaut organization project[\s\S]*when (?:one is )?(?:clear|known|available)/i,
-    "Quality gates should describe the organization project as recommended planning metadata when known.",
+    /QA-selected Micronaut organization project|organization-project selection from QA intake/i,
+    "Quality gates should describe the organization project as QA-selected upstream metadata.",
   );
   assert.match(
     qualityGates,
@@ -75,12 +85,12 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     repoOperations,
-    /should name the best-fit Micronaut organization project[\s\S]*when (?:the answer is )?(?:clear|known|available)/i,
-    "Repo operations should keep organization-project selection as best-effort planning guidance.",
+    /QA should choose the best-fit Micronaut organization project during intake|chosen during QA intake/i,
+    "Repo operations should make QA own organization-project selection.",
   );
   assert.match(
     repoOperations,
-    /record the ambiguity or tooling gap and continue|should be linked[\s\S]*but missing linkage alone does not block/i,
-    "Repo operations should require documentation of missing organization-project linkage instead of blocking on it.",
+    /record the ambiguity|record that gap and continue|missing linkage due to no matching project or tooling gaps/i,
+    "Repo operations should require documentation of project ambiguity or linkage gaps instead of blocking on them.",
   );
 });
