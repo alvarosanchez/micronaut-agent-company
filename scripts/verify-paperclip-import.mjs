@@ -127,11 +127,25 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "QA instructions must explain that clarification requests use `status: awaiting feedback` and may close after 30 days with `closed: question`.",
   },
   {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern:
+      /already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval[\s\S]*(?:version|PR|release|documentation)|(?:version|PR|release|documentation)[\s\S]*already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval/i,
+    message:
+      "QA instructions must explain that already-implemented issues can be closed directly by QA without board approval when the closure cites the exact version, PR, release, or documentation evidence.",
+  },
+  {
     relativePath: "README.md",
     pattern:
       /closed:\s*cannot reproduce[\s\S]*QA|QA[\s\S]*closed:\s*cannot reproduce/i,
     message:
       "README.md must explain that unreproducible issues can be closed by QA with `closed: cannot reproduce`.",
+  },
+  {
+    relativePath: "README.md",
+    pattern:
+      /already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval[\s\S]*(?:version|PR|release|documentation)|(?:version|PR|release|documentation)[\s\S]*already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval/i,
+    message:
+      "README.md must explain that already-implemented issues can be closed by QA without board approval when the closure cites the exact version, PR, release, or documentation evidence.",
   },
   {
     relativePath: "README.md",
@@ -158,6 +172,13 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "COMPANY.md",
     pattern: /board approval.*exact (?:proposed )?comment body|exact (?:proposed )?comment body.*board approval/i,
     message: "COMPANY.md must require board approvals for maintainer-visible GitHub comments to include the exact proposed comment body.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern:
+      /already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval[\s\S]*(?:version|PR|release|documentation)|(?:version|PR|release|documentation)[\s\S]*already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval/i,
+    message:
+      "COMPANY.md must explain that already-implemented issues can be closed by QA without board approval when the closure cites the exact version, PR, release, or documentation evidence.",
   },
   {
     relativePath: "README.md",
