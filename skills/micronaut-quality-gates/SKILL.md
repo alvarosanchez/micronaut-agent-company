@@ -110,8 +110,8 @@ The Code Reviewer checks for:
 - performance and regression risk
 - API, config, and developer-experience quality
 - missing or weak tests
-- correct PR issue linkage, `type:` label, reviewer requests, and organization-project guidance chosen during QA intake
-- if `approved` is chosen, a non-draft GitHub PR exists by the end of the run in the correct repository and branch, is readable from the synced GitHub context, and includes the correct issue linkage, closing keyword, and `type:` label; the organization project should be linked when the chosen project exists and GitHub tooling can apply it, but missing organization-project linkage due to no matching project or tooling gaps alone does not block code review approval
+- correct PR issue linkage, `type:` label, reviewer requests, and the live organization-project association chosen during QA intake
+- if `approved` is chosen, a non-draft GitHub PR exists by the end of the run in the correct repository and branch, is readable from the synced GitHub context, and includes the correct issue linkage, closing keyword, and `type:` label; the organization project should be linked when the chosen project exists and GitHub tooling can apply it, and prose alone is not a substitute for that live association, but missing organization-project linkage due to no matching project or tooling gaps alone does not block code review approval
 
 If the work is approved, the Code Reviewer creates or verifies the PR. If not, it resolves as `changes_requested`.
 
@@ -124,7 +124,7 @@ Before a PR is considered healthy:
 - the summary and rationale are coherent
 - linked issue context is accurate and uses a closing keyword
 - the PR carries exactly one `type:` label
-- the PR should be linked to the Micronaut organization project chosen during QA intake when GitHub tooling can apply it; if that choice carried ambiguity, the PR description repeats it; missing organization-project linkage due to no matching project or tooling gaps does not by itself block a healthy PR
+- the PR should be linked to the Micronaut organization project chosen during QA intake when GitHub tooling can apply it; if that choice carried ambiguity, the PR description repeats it; naming the board in prose is not a substitute for the live association; missing organization-project linkage due to no matching project or tooling gaps does not by itself block a healthy PR
 - test evidence is ready to share
 - documentation or migration notes are included when needed
 - security review comments are addressed

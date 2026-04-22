@@ -138,7 +138,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 - QA may answer confident questions directly on GitHub with `type: question` and `closed: question`, request clarification with `status: awaiting feedback`, and close timed-out clarification, unreproducible, duplicate, or evidence-backed already-implemented issues without separate board approval when those paths are well documented.
 - Approval requests for maintainer-visible GitHub comments, including action payloads with `commentBody`, must put the exact proposed comment body in `recommendedAction` so the board can approve the literal public response from the default Paperclip view.
 - Git operations must use the local git CLI.
-- GitHub operations must use the GitHub agent tools provided by the sync plugin.
+- GitHub operations must use the GitHub agent tools provided by the sync plugin on unauthenticated Paperclip runs and in plugin-tool flows. On authenticated `gh`-enabled runs, use `gh` with the `GITHUB_TOKEN` propagated by the sync plugin for direct GitHub work, including Micronaut organization-project lookup and PR project association.
 - QA intake owns repository release targeting: identify the actual current default branch, the latest stable non-pre-release release, the next repository release implied by that branch, whether the branch has already shipped, and the recommended Micronaut organization project for the eventual PR.
 - GitHub prereleases, including milestones (`-M<number>`) and release candidates (`-RC<number>`), are early-testing releases and do not count as the default branch having already shipped.
 - When QA lists Micronaut organization projects, the candidate set should be the open, public Micronaut organization projects (`is:open is:public`).
@@ -156,6 +156,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 - If the next stage or next owner should act immediately, first let the execution-policy stage advance or record the manual owner change, then explicitly invoke the next heartbeat if needed. Adding a reviewer alone is not enough.
 - If you need all required reviewers to sign off, model them as separate sequential stages instead of a single multi-participant execution stage.
 - Every PR must include a closing keyword such as `Fixes #123`, must carry one of the `type:` labels above, and should be linked to the Micronaut organization project chosen during QA intake, representing the best-fit Micronaut Platform release that can first consume the repository's next module release.
+- When that chosen organization project exists and GitHub tooling can apply it, agents should use live GitHub tooling so the PR carries the association instead of only naming the intended board in a comment or PR description: `gh` on authenticated runs with the propagated `GITHUB_TOKEN`, or `paperclip-github-plugin:add_pull_request_to_project` on unauthenticated runs.
 - If that best-fit organization-project choice is ambiguous, including major-version upgrades that may or may not fit the next Platform minor board cleanly, agents should keep the chosen project and record the ambiguity in the stage artifact or PR summary instead of dropping the link.
 - If no matching organization project exists yet, or if the available GitHub tooling cannot apply the project link, agents should record the gap and continue instead of escalating solely for that reason.
 - Imported company instances treat package-owned defaults as immutable in place; reusable default improvements should be promoted by the CEO through a PR to `alvarosanchez/micronaut-agent-company`.
@@ -228,6 +229,8 @@ The GitHub sync plugin exposes these GitHub workflow tools to agents. Use the ex
 - PR project association: `paperclip-github-plugin:add_pull_request_to_project`
 
 Use `paperclipIssueId` whenever work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository. If you publish maintainer-visible GitHub body text directly through `gh` or another `GITHUB_TOKEN`-backed write path, append this exact GitHub-flavored Markdown footer yourself:
+
+Only unauthenticated Paperclip instances can call the sync plugin agent tools directly. On authenticated `gh`-enabled runs, use `gh` with the `GITHUB_TOKEN` propagated by the sync plugin for Micronaut organization-project lookup and PR project association. On unauthenticated runs, use `paperclip-github-plugin:list_organization_projects` and `paperclip-github-plugin:add_pull_request_to_project` so the live PR association exists in GitHub rather than only in comments or summaries.
 
 ```md
 ---
