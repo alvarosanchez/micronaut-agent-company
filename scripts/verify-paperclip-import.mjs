@@ -205,6 +205,13 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "README.md must explain that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
   },
   {
+    relativePath: "COMPANY.md",
+    pattern:
+      /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
+    message:
+      "COMPANY.md must explain that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
+  },
+  {
     relativePath: "agents/qa-engineer/AGENTS.md",
     pattern:
       /actual current default branch[\s\S]*latest stable non-pre-release release[\s\S]*next release implied by that branch/i,
@@ -259,6 +266,13 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
     message:
       "Repo operations must explain that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
+  },
+  {
+    relativePath: "skills/micronaut-quality-gates/SKILL.md",
+    pattern:
+      /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
+    message:
+      "Quality gates must explain that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
   },
   {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",
