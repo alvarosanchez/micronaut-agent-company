@@ -47,7 +47,7 @@ Paperclip built-ins:
 GitHub sync plugin tools:
 
 - On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
-- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
+- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - On unauthenticated deployments, use the agent tools below.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
@@ -73,7 +73,7 @@ GitHub sync plugin tools:
 2. After `approved`, confirm the current stage participant is no longer you, the synced Paperclip item was not incorrectly marked `DONE`, and the issue routing matches the live workflow: the next `currentParticipant` is correct if another review stage remains, otherwise the documented follow-through owner is assigned for non-policy PR work.
 3. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
 4. After `changes_requested`, confirm the issue execution state shows `changes_requested` and your review artifact names the exact fix list.
-5. If a PR exists, confirm the PR, labels, closing keyword, requested reviewers, checks, and review-thread state match the artifact you produced. If an organization project was linked, confirm it matches the chosen release board and any ambiguity note in the PR summary still matches reality.
+5. If a PR exists, confirm the PR, labels, closing keyword, requested reviewers, checks, and review-thread replies and state match the artifact you produced. If an organization project was linked, confirm it matches the chosen release board and any ambiguity note in the PR summary still matches reality.
 6. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat for every intended reviewer or follow-through owner only after the routing is correct instead of assuming the new reviewer was woken automatically.
 7. If you requested board approval, confirm the linked approval exists and is pending before you stop.
 
