@@ -36,6 +36,7 @@ Intake mode:
 - apply exactly one actionable GitHub `type:` label when the issue is actionable
 - identify the repository's actual current default branch, the latest stable non-pre-release release, and the next release implied by that branch
 - decide whether the current default branch has never been released yet or is already on a patch line, and record which SemVer change classes it may still accept
+- treat GitHub prereleases, including milestones (`-M<number>`) and release candidates (`-RC<number>`), as early-testing releases that do not count as the default branch having already shipped
 - trust the repository's actual current default branch instead of inventing an alternate target branch during triage
 - if the issue's SemVer impact does not fit the current default branch, record that mismatch explicitly and route the issue through planning or governance instead of pretending a non-default branch already exists
 - choose the recommended Micronaut organization project for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`) based on the repository's next release and the earliest Micronaut Platform release that can consume it
@@ -71,7 +72,7 @@ Paperclip built-ins:
 GitHub sync plugin tools:
 
 - On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
-- Use authenticated GitHub reads such as `gh repo view` and `gh release list` or equivalent API-backed commands to determine the live default branch and latest stable release before you finalize release targeting.
+- Use authenticated GitHub reads such as `gh repo view` and `gh release list` or equivalent API-backed commands to determine the live default branch and latest stable non-pre-release release before you finalize release targeting.
 - When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - On unauthenticated deployments, use the agent tools below.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
@@ -117,6 +118,7 @@ GitHub sync plugin tools:
 - Duplicate issues close with `closed: duplicate` and a link to the superseding GitHub issue.
 - Already-implemented issues can be closed directly by QA without board approval when the closure comment cites the exact version, PR, release, or documentation evidence that shows the requested behavior already exists.
 - Every GitHub issue closure by QA must include a detailed public comment that explains the closure clearly enough for the reporter.
+- GitHub prereleases, including milestones (`-M<number>`) and release candidates (`-RC<number>`), are early-testing releases and do not count as the default branch having already shipped.
 - If the current default branch has never been released, it may take bugs, improvements, enhancements, and docs, CI, or build-only changes. An unreleased new major default branch may also take breaking changes with the required approvals.
 - If the current default branch has already been released, it may take bugs, improvements, and docs, CI, or build-only changes. Enhancements and breaking changes stay off that branch unless a human-approved release-policy exception exists.
 - If the organization-project choice is ambiguous, keep the best-fit project anyway and preserve the ambiguity note for the eventual PR description.
