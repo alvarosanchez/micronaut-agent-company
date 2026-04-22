@@ -29,7 +29,7 @@ Before an actionable issue moves out of QA intake:
 - a human has moved the synced issue from `BACKLOG` to `TODO`
 - deduplication has been performed against GitHub issues in the same synced repository
 - the issue has the correct `type:` label, unless it is on a documented immediate-closure path
-- QA has identified the repository's actual current default branch, the latest stable non-pre-release release, the next release implied by that branch, and whether that branch has already shipped
+- QA has identified the repository's actual current default branch, the latest stable non-pre-release release, the next release implied by that branch, and whether that branch has already shipped; GitHub prereleases such as milestones (`-M<number>`) and release candidates (`-RC<number>`) do not count as shipped-branch evidence
 - QA has decided whether the issue's SemVer impact fits the current default branch and recorded any mismatch instead of inventing a non-default target branch
 - QA has chosen the best-fit Micronaut organization project for the eventual PR, or recorded that no matching project exists yet or tooling cannot apply it
 - any linked contributor PR has been evaluated for whether it should stay on the normal gates or be replaced by a separate maintainer-owned PR while staying open

@@ -193,8 +193,9 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 - QA intake owns release targeting and Micronaut organization-project selection. Later stages consume and verify those facts instead of reinventing them from scratch.
 - Trust the repository's actual current default branch instead of assuming a generic Micronaut branch strategy.
 - Determine the next release from the repository's default branch plus the latest stable non-pre-release GitHub release.
-- If the default branch is `1.2.x` and the latest stable release is `1.1.5`, the next release on that branch is `1.2.0`, so that default branch has not shipped yet.
-- If the default branch is `1.2.x` and the latest stable release is `1.2.3`, the next release on that branch is `1.2.4`, so that default branch is already on a patch line.
+- GitHub prereleases, including milestones such as `4.0.0-M1` and release candidates such as `4.0.0-RC1`, are early-testing releases and do not count as the default branch having already shipped.
+- If the default branch is `1.2.x` and the latest stable non-pre-release release is `1.1.5`, the next release on that branch is `1.2.0`, so that default branch has not shipped yet.
+- If the default branch is `1.2.x` and the latest stable non-pre-release release is `1.2.3`, the next release on that branch is `1.2.4`, so that default branch is already on a patch line.
 - If the current default branch has never been released, it may accept `type: bug`, `type: improvement`, `type: enhancement`, and docs, CI, or build-only changes. If that unreleased default branch is a new major line such as `5.0.x`, it may also accept `type: breaking` work with the required approvals.
 - If the current default branch has already been released, it may accept `type: bug`, `type: improvement`, and docs, CI, or build-only changes. `type: enhancement` and `type: breaking` do not target that branch unless a human-approved release-policy exception exists.
 - `type: dependency-upgrade` follows the actual compatibility impact of the resulting repository release, not the label alone.

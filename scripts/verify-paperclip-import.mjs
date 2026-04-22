@@ -198,6 +198,13 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "README.md must explain that agents trust the live default branch and distinguish unreleased from already-released default branches.",
   },
   {
+    relativePath: "README.md",
+    pattern:
+      /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
+    message:
+      "README.md must explain that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
+  },
+  {
     relativePath: "agents/qa-engineer/AGENTS.md",
     pattern:
       /actual current default branch[\s\S]*latest stable non-pre-release release[\s\S]*next release implied by that branch/i,
@@ -207,9 +214,23 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
     pattern:
+      /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
+    message:
+      "QA instructions must explain that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern:
       /choose the recommended Micronaut organization project[\s\S]*best-fit project/i,
     message:
       "QA instructions must explain that QA chooses the best-fit Micronaut organization project even when ambiguity remains.",
+  },
+  {
+    relativePath: "agents/architect/AGENTS.md",
+    pattern:
+      /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
+    message:
+      "Architect instructions must preserve the rule that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -231,6 +252,13 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       /If the current default branch has already been released[\s\S]*type:\s*bug[\s\S]*type:\s*improvement[\s\S]*docs,\s*CI,\s*or build-only/i,
     message:
       "Repo operations must explain what kinds of work an already-released default branch may accept.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern:
+      /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
+    message:
+      "Repo operations must explain that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
   },
   {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",

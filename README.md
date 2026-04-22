@@ -137,6 +137,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 - Git operations must use the local git CLI.
 - GitHub operations must use the GitHub agent tools provided by the sync plugin.
 - QA intake owns repository release targeting: identify the actual current default branch, the latest stable non-pre-release release, the next repository release implied by that branch, whether the branch has already shipped, and the recommended Micronaut organization project for the eventual PR.
+- GitHub prereleases, including milestones (`-M<number>`) and release candidates (`-RC<number>`), are early-testing releases and do not count as the default branch having already shipped.
 - When QA lists Micronaut organization projects, the candidate set should be the open, public Micronaut organization projects (`is:open is:public`).
 - Trust the repository's actual current default branch instead of assuming a generic Micronaut branch strategy.
 - PRs should target the current default branch only when that branch's current release state permits the issue's SemVer impact.

@@ -33,6 +33,7 @@ Run with the strongest available frontier model and the highest reasoning settin
 - Lock down the problem statement, acceptance criteria, smallest safe diff, impacted modules, test strategy, docs impact, compatibility or migration risk, security-sensitive surfaces, and rollback path.
 - Consume QA's release-targeting facts and only revise them when new evidence forces a correction.
 - Preserve QA's recommended Micronaut organization project and any ambiguity note unless the plan explicitly justifies a revision.
+- Treat GitHub prereleases, including milestones (`-M<number>`) and release candidates (`-RC<number>`), as early-testing releases that do not count as the default branch having already shipped.
 - State whether the change must remain non-breaking.
 - If the current default branch cannot legally take the requested SemVer impact, say so explicitly and do not invent another target branch without a human-approved release-policy exception.
 - Decide whether the next execution stage belongs to `micronaut-engineer` or `technical-writer`.

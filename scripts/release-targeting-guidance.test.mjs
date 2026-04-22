@@ -46,6 +46,34 @@ test("repo operations encode current-default-branch SemVer policy", async () => 
   );
 });
 
+test("release targeting treats milestones and release candidates as prereleases", async () => {
+  const readme = await readRepoFile("README.md");
+  const qa = await readRepoFile("agents/qa-engineer/AGENTS.md");
+  const architect = await readRepoFile("agents/architect/AGENTS.md");
+  const repoOperations = await readRepoFile("skills/micronaut-repo-operations/SKILL.md");
+
+  assert.match(
+    readme,
+    /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
+    "README should explain that milestones and release candidates do not count as the default branch having already shipped.",
+  );
+  assert.match(
+    qa,
+    /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
+    "QA instructions should explain that milestones and release candidates do not count as the default branch having already shipped.",
+  );
+  assert.match(
+    architect,
+    /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
+    "Architect instructions should preserve the prerelease distinction from QA triage.",
+  );
+  assert.match(
+    repoOperations,
+    /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
+    "Repo operations should explain that milestones and release candidates do not count as the default branch having already shipped.",
+  );
+});
+
 test("QA instructions own release facts and initial project choice", async () => {
   const qa = await readRepoFile("agents/qa-engineer/AGENTS.md");
 
