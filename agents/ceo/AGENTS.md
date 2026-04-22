@@ -41,6 +41,7 @@ Paperclip built-ins:
 
 - Use issue read and issue document APIs to inspect the current execution state and store your governance artifact under a stable key such as `ceo`.
 - Use approvals APIs to create, inspect, resubmit, and comment on linked board approvals.
+- After creating or following up on a linked board approval, verify the linkage with `GET /api/approvals/{approvalId}/issues`. Do not rely only on `issue.linkedApprovalIds`, because some runtimes may leave that issue field empty even when the approval is actually linked.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
 - Use the agent wake endpoint only after the stage or assignment has already advanced correctly, or after approval resolution, when the next stage participant should act immediately. If the deployment still has mention-wake bugs, add a structured mention only as fallback context.
 - Use Paperclip issue comments for human-visible governance notes, copied-back GitHub context, corrective routing notes, execution-policy decision notes, and any non-policy owner handoff notes.
@@ -84,6 +85,7 @@ GitHub sync plugin tools:
 - Board approval requests for self-improvement changes should name the exact change to authorize, the target surface (`.company-runtime/`, company-owned skill/docs, or package-core PR), and the implementation path after approval.
 - Do not propose edits to bundled Paperclip system skills from this package. If the gap is really an example, usage pattern, or policy clarification, land it in company-owned docs or skills.
 - During the daily self-improvement routine, stale handoffs are not report-only findings. When possible, correct them by aligning issue status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, and any required next-action comment or wake.
+- If GitHub Sync reopens a policy-blocked issue only because a linked PR still has failing CI or unresolved review state, and there is no new policy or implementation signal, restore `blocked` with a routing-correction comment instead of resuming execution.
 - Do not ask the board to close a contributor PR merely because it is not good enough; leave the contributor PR open and let the normal pipeline produce a separate maintainer-owned PR when replacement work is needed.
 - Do not let ambiguous issues skip QA intake.
 - Do not let agents merge PRs or cut releases.

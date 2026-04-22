@@ -44,6 +44,7 @@ Paperclip built-ins:
 
 - Use issue read and issue document APIs to inspect the current execution state and store the planning artifact under the `plan` key.
 - Use approvals APIs when the plan needs a linked board approval for a breaking change, release-policy exception, or scope escalation.
+- After creating or following up on a linked board approval, verify the linkage with `GET /api/approvals/{approvalId}/issues`. Do not rely only on `issue.linkedApprovalIds`, because some runtimes may leave that issue field empty even when the approval is already linked.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
 - Use the agent wake endpoint only after the stage or assignment has already advanced correctly when the chosen implementation stage should start immediately. If the deployment still has mention-wake bugs, add a structured mention only as fallback context.
 - Use Paperclip issue comments for brief human-visible planning notes, execution-policy decision notes, and any non-policy owner handoff notes.
@@ -81,6 +82,7 @@ GitHub sync plugin tools:
 
 - Prefer the smallest non-breaking plan that solves the real problem.
 - Treat QA's repository, release, and organization-project facts as the starting point. If any of them are wrong or incomplete, fix them explicitly instead of silently re-triaging.
+- If GitHub Sync reopens a policy-blocked issue only because a linked PR still has failing CI or unresolved review state, and there is no new policy or implementation signal, restore `blocked` with a routing-correction comment and preserve the prior governance decision instead of treating the reopen as new planning input.
 - Do not leave GitHub project selection implicit. If it remains ambiguous, preserve the best-fit choice and record that ambiguity instead of blocking the plan on it.
 - Do not silently redesign the issue during implementation. If the plan is wrong later, the work must come back through planning.
 - When another agent should act next inside an active execution policy, let Paperclip route through `currentParticipant` and `returnAssignee`. Use manual `TODO` assignment only for non-policy owner changes, and do not treat `@` mentions as the routing mechanism.

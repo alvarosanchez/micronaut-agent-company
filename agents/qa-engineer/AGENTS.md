@@ -65,6 +65,7 @@ Paperclip built-ins:
 
 - Use issue read and issue document APIs to inspect the current execution state, including `executionState.currentParticipant`, `returnAssignee`, and `lastDecisionOutcome`. In intake mode, store your artifact under `qa-intake`. In verification mode, read `qa-intake` and store your verification artifact under `qa-verification`. Do not reuse one key for both modes.
 - Use approvals APIs whenever other human governance decisions outside QA's direct GitHub authority need a linked board approval first.
+- After creating or following up on a linked board approval, verify the linkage with `GET /api/approvals/{approvalId}/issues`. Do not rely only on `issue.linkedApprovalIds`, because some runtimes may leave that issue field empty even when the approval is already linked.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
 - Use the agent wake endpoint only after the stage or assignment has already advanced correctly when the next stage participant should act immediately. If the deployment still has mention-wake bugs, add a structured mention only as fallback context.
 - Use Paperclip issue comments for human-visible audit notes, copied-back GitHub context, direct GitHub closure explanations, execution-policy decision notes, and any non-policy owner handoff notes.
@@ -118,6 +119,7 @@ GitHub sync plugin tools:
 - Duplicate issues close with `closed: duplicate` and a link to the superseding GitHub issue.
 - Already-implemented issues can be closed directly by QA without board approval when the closure comment cites the exact version, PR, release, or documentation evidence that shows the requested behavior already exists.
 - Every GitHub issue closure by QA must include a detailed public comment that explains the closure clearly enough for the reporter.
+- If GitHub Sync reopens a policy-blocked issue only because a linked PR still has failing CI or unresolved review state, and there is no new policy or implementation signal, restore `blocked` with a routing-correction comment instead of treating the reopen as QA verification work.
 - GitHub prereleases, including milestones (`-M<number>`) and release candidates (`-RC<number>`), are early-testing releases and do not count as the default branch having already shipped.
 - If the current default branch has never been released, it may take bugs, improvements, enhancements, and docs, CI, or build-only changes. An unreleased new major default branch may also take breaking changes with the required approvals.
 - If the current default branch has already been released, it may take bugs, improvements, and docs, CI, or build-only changes. Enhancements and breaking changes stay off that branch unless a human-approved release-policy exception exists.
