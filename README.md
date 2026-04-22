@@ -230,6 +230,7 @@ The GitHub sync plugin exposes these GitHub workflow tools to agents. Use the ex
 Use `paperclipIssueId` whenever work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository. If you publish maintainer-visible GitHub body text directly through `gh` or another `GITHUB_TOKEN`-backed write path, separate the footer from the previous sentence with one blank line and append this exact GitHub-flavored Markdown footer yourself:
 
 ```md
+Explain the maintainer-facing result here.
 
 ---
 ###### ✨ This message was AI-generated using <exact model id>
