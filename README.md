@@ -138,7 +138,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 - QA may answer confident questions directly on GitHub with `type: question` and `closed: question`, request clarification with `status: awaiting feedback`, and close timed-out clarification, unreproducible, duplicate, or evidence-backed already-implemented issues without separate board approval when those paths are well documented.
 - Approval requests for maintainer-visible GitHub comments, including action payloads with `commentBody`, must put the exact proposed comment body in `recommendedAction` so the board can approve the literal public response from the default Paperclip view.
 - Git operations must use the local git CLI.
-- GitHub operations must use the GitHub agent tools provided by the sync plugin.
+- GitHub operations must use the GitHub agent tools provided by the sync plugin on unauthenticated Paperclip runs and in plugin-tool flows. On authenticated `gh`-enabled runs, use `gh` with the `GITHUB_TOKEN` propagated by the sync plugin for direct GitHub work, including Micronaut organization-project lookup and PR project association.
 - QA intake owns repository release targeting: identify the actual current default branch, the latest stable non-pre-release release, the next repository release implied by that branch, whether the branch has already shipped, and the recommended Micronaut organization project for the eventual PR.
 - GitHub prereleases, including milestones (`-M<number>`) and release candidates (`-RC<number>`), are early-testing releases and do not count as the default branch having already shipped.
 - When QA lists Micronaut organization projects, the candidate set should be the open, public Micronaut organization projects (`is:open is:public`).

@@ -107,8 +107,13 @@ test("GitHub-capable agents describe authenticated gh CLI fallback behavior", as
       );
       assert.match(
         body,
-        /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)|only unauthenticated Paperclip instances can call the sync plugin agent tools directly/i,
-        `${relativePath} must keep organization-project actions on gh for authenticated runs and reserve sync plugin tools for unauthenticated ones.`,
+        /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)/i,
+        `${relativePath} must keep organization-project actions on gh for authenticated runs.`,
+      );
+      assert.match(
+        body,
+        /only unauthenticated Paperclip instances can call the sync plugin agent tools directly/i,
+        `${relativePath} must reserve sync plugin tools for unauthenticated runs.`,
       );
     }
     assertDirectGithubFooterPolicy(
