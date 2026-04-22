@@ -32,6 +32,7 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - A review stage may list multiple participants. Invoke every reviewer you expect to engage immediately after the stage becomes active.
 - The installed `paperclipai@2026.416.0` runtime in this package still exposes `approvalsNeeded: 1` for execution stages, so do not rely on a single multi-participant stage for unanimous sign-off. If all listed reviewers must approve in order, model that as separate sequential stages.
 - Paperclip also has a separate generic approvals system for linked board approvals. Those approvals have their own lifecycle (`pending`, `approved`, `rejected`, revision request, and resubmission) and can wake the requester when they are resolved.
+- If GitHub Sync reopens a policy-blocked issue only because a linked PR still has failing CI or unresolved review state, and there is no new policy or implementation signal, restore `blocked` with a routing-correction comment instead of resuming execution.
 
 ## Execution-Semantics Guardrails
 
@@ -86,6 +87,7 @@ Default artifact policy for this package:
 - store plans, QA intake records, QA verification records, security reviews, and review summaries in keyed issue documents such as `plan`, `qa-intake`, `qa-verification`, `security-review`, or `code-review`
 - use Paperclip issue comments for human-visible progress notes, GitHub-facing explanations copied back for audit, execution-policy decision notes, and any non-policy owner handoff notes
 - use linked approvals for board governance instead of treating comments as approvals
+- after creating or following up on a linked approval, verify the linkage with `GET /api/approvals/{approvalId}/issues` instead of relying only on `issue.linkedApprovalIds`, because some runtimes may leave that issue field empty even when the approval is actually linked
 
 Example keyed-document flow:
 

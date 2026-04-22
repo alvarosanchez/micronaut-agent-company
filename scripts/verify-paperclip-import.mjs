@@ -85,6 +85,10 @@ const CHECKOUT_RECOVERY_PATTERN =
   /(?:assigned agent|agent-owned)[\s\S]{0,700}in_progress[\s\S]{0,240}checkout[\s\S]{0,700}(?:automatic recovery wake|single automatic recovery wake)|(?:automatic recovery wake|single automatic recovery wake)[\s\S]{0,700}(?:assigned agent|agent-owned)[\s\S]{0,700}in_progress[\s\S]{0,240}checkout/i;
 const PARENT_BLOCKER_PATTERN =
   /parentId[\s\S]{0,500}(?:structural|structure)[\s\S]{0,500}blockedByIssueIds[\s\S]{0,400}(?:dependency|blocker)|blockedByIssueIds[\s\S]{0,500}(?:dependency|blocker)[\s\S]{0,500}parentId[\s\S]{0,400}(?:structural|structure)/i;
+const APPROVAL_LINKAGE_VERIFICATION_PATTERN =
+  /approvals\/\{approvalId\}\/issues[\s\S]{0,320}(?:issue\.linkedApprovalIds|linkedApprovalIds)|(?:issue\.linkedApprovalIds|linkedApprovalIds)[\s\S]{0,320}approvals\/\{approvalId\}\/issues/i;
+const POLICY_BLOCKED_REOPEN_PATTERN =
+  /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}policy-blocked[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment|policy-blocked[\s\S]{0,500}GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment/i;
 const ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN =
   /already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval[\s\S]*\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b|\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b[\s\S]*already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval/i;
 const REQUIRED_WORKFLOW_DOC_PATTERNS = [
@@ -129,6 +133,18 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: PARENT_BLOCKER_PATTERN,
     message:
       "README.md must explain that `parentId` is structural and `blockedByIssueIds` carries dependency semantics.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    message:
+      "README.md must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    message:
+      "README.md must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
   },
   {
     relativePath: "README.md",
@@ -182,6 +198,18 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN,
     message:
       "QA instructions must explain that already-implemented issues can be closed directly by QA without board approval when the closure cites the exact version, PR, release, or documentation evidence.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    message:
+      "QA instructions must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    message:
+      "QA instructions must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
   },
   {
     relativePath: "README.md",
@@ -240,6 +268,30 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "Architect instructions must preserve the rule that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
   },
   {
+    relativePath: "agents/architect/AGENTS.md",
+    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    message:
+      "Architect instructions must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+  },
+  {
+    relativePath: "agents/architect/AGENTS.md",
+    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    message:
+      "Architect instructions must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
+  },
+  {
+    relativePath: "agents/ceo/AGENTS.md",
+    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    message:
+      "CEO instructions must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+  },
+  {
+    relativePath: "agents/ceo/AGENTS.md",
+    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    message:
+      "CEO instructions must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
+  },
+  {
     relativePath: "agents/qa-engineer/AGENTS.md",
     pattern:
       /open,\s*public Micronaut organization projects[\s\S]*is:open is:public|is:open is:public[\s\S]*open,\s*public Micronaut organization projects/i,
@@ -259,6 +311,18 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       /If the current default branch has already been released[\s\S]*type:\s*bug[\s\S]*type:\s*improvement[\s\S]*docs,\s*CI,\s*or build-only/i,
     message:
       "Repo operations must explain what kinds of work an already-released default branch may accept.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    message:
+      "Shared repo operations guidance must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    message:
+      "Shared repo operations guidance must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
   },
   {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",
@@ -351,6 +415,18 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: PARENT_BLOCKER_PATTERN,
     message:
       "COMPANY.md must explain that `parentId` is structural and `blockedByIssueIds` carries dependency semantics.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    message:
+      "COMPANY.md must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    message:
+      "COMPANY.md must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
   },
   {
     relativePath: "COMPANY.md",
