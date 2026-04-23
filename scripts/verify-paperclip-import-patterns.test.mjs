@@ -89,3 +89,39 @@ test("verification rules require decision-explaining replies on review threads",
     /Security Engineer instructions must explain that PR review threads get a decision-explaining reply before they are resolved\./,
   );
 });
+
+test("verification rules enforce import portability wording", async () => {
+  const source = await readFile(
+    new URL("./verify-paperclip-import.mjs", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(
+    source,
+    /README\.md must explain that operator-selected live company names, descriptions, and issue prefixes are valid import choices\./,
+  );
+  assert.match(
+    source,
+    /README\.md must explain that `?\.paperclip\.yaml`? references describe source-package defaults rather than required live-instance files\./,
+  );
+  assert.match(
+    source,
+    /COMPANY\.md must explain that operator-selected live company names, descriptions, and issue prefixes are valid import choices\./,
+  );
+  assert.match(
+    source,
+    /COMPANY\.md must explain that `?\.paperclip\.yaml`? references describe source-package defaults rather than required live-instance files\./,
+  );
+  assert.match(
+    source,
+    /Bootstrap verification must explain that operator-selected live company names, descriptions, and issue prefixes are valid import choices\./,
+  );
+  assert.match(
+    source,
+    /Bootstrap verification must explain that `?\.paperclip\.yaml`? references describe source-package defaults rather than required live-instance files\./,
+  );
+  assert.match(
+    source,
+    /Architect instructions must explain that `?\.paperclip\.yaml`? references describe source-package defaults rather than required live-instance files\./,
+  );
+});
