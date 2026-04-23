@@ -20,6 +20,8 @@ const ORGANIZATION_PROJECT_AGENT_PATHS = new Set([
 ]);
 const GFM_FOOTER_PATTERN = /GitHub-flavored Markdown footer|Markdown footer/i;
 const HORIZONTAL_RULE_PATTERN = /`---` on its own line|`---` plus|^---$/m;
+const BLANK_LINE_PATTERN =
+  /one blank line|blank line before the footer|separated from the previous sentence by one blank line|separate the footer from the previous sentence with one blank line/i;
 const AI_FOOTER_PATTERN = /######\s*✨\s*This message was AI-generated using <exact model id>/i;
 const PLUGIN_AUTO_FOOTER_PATTERN =
   /do not add that footer manually when you use the GitHub sync plugin tools|plugin appends the same footer automatically|plugin appends the footer automatically|plugin appends it automatically/i;
@@ -34,6 +36,11 @@ function assertDirectGithubFooterPolicy(markdown, label) {
     markdown,
     HORIZONTAL_RULE_PATTERN,
     `${label} must mention the horizontal rule in the footer template.`,
+  );
+  assert.match(
+    markdown,
+    BLANK_LINE_PATTERN,
+    `${label} must mention that the footer is separated from the previous sentence by one blank line.`,
   );
   assert.match(
     markdown,

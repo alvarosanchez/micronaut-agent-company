@@ -108,9 +108,9 @@ These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin cap
 
 Authenticated deployment rule:
 
-- On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association.
+- On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association, even when an equivalent GitHub sync plugin tool exists.
 - Only unauthenticated Paperclip instances can call the sync plugin agent tools directly. Authenticated runs should not expect those tools to be callable, even when the sync plugin propagated `GITHUB_TOKEN`.
-- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
+- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - On unauthenticated deployments, use the agent tools below for GitHub operations they cover, including organization-project lookup and PR-to-project association.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append the same footer automatically.
 - Treat the plugin tool list below as the preferred surface for unauthenticated or `paperclipIssueId`-dependent flows.
@@ -172,15 +172,15 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 
 ## Type Routing
 
-- `type: bug`: QA reproduces first. Reproduced bugs move into the Micronaut Engineer stage sequence. Unreproducible bugs may be closed directly by QA with `closed: cannot reproduce` and a detailed closure comment.
+- `type: bug`: QA reproduces first. Reproduced bugs move into the Micronaut Engineer stage sequence. Unreproducible bugs may be closed directly by QA with `closed: cannot reproduce`, GitHub's native `Close as not planned` reason instead of `Close as completed`, and a detailed, evidence-rich closure comment with the exact non-reproducer steps, versions, and observed results.
 - `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade`: QA moves the item into the Architect planning stage.
 - `type: docs`: QA moves the item into the Technical Writer stage.
-- `type: question`: QA answers directly on GitHub with `type: question` and `closed: question` when confident, or posts a request-for-comments message with `status: awaiting feedback`; issues that remain awaiting feedback for more than 30 days may be closed with `closed: question`.
+- `type: question`: QA answers directly on GitHub with `type: question` and `closed: question` when confident, or posts a request-for-comments message with `status: awaiting feedback`; issues that remain awaiting feedback for more than 30 days may be closed with `closed: question` and GitHub's native `Close as not planned` reason instead of `Close as completed`.
 
 ## Closure Dispositions
 
-- `already-implemented` (closure disposition, not a GitHub `type:` label): QA may close the issue directly once it documents the exact version, PR, release, or documentation evidence in a detailed closure comment.
-- `duplicate` (closure disposition, not a GitHub `type:` label): QA may close the issue directly with `closed: duplicate`, a detailed closure comment, and a link to the superseding GitHub issue for traceability.
+- `already-implemented` (closure disposition, not a GitHub `type:` label): QA may close the issue directly once it documents the exact version, PR, release, or documentation evidence in a detailed, evidence-rich closure comment and uses GitHub's native `Close as not planned` reason instead of `Close as completed`.
+- `duplicate` (closure disposition, not a GitHub `type:` label): QA may close the issue directly with `closed: duplicate`, GitHub's native `Close as duplicate` reason, a detailed, evidence-rich closure comment that explains why the superseding issue fully covers the report, and a link to the superseding GitHub issue for traceability.
 - `linked contributor PR needs replacement` (operating situation, not a GitHub `type:` label): QA documents why the imported PR is not salvageable, leaves that contributor PR open, and still routes the issue through the normal implementation stages toward a separate maintainer-owned PR.
 
 ## Documentation Policy
@@ -213,7 +213,8 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 
 - Board approval always means a real Paperclip approval linked to the relevant issue or proposal, not a free-form comment.
 - Paperclip's generic approvals API is the package's source of truth for board approvals. Treat execution-policy `approval` stages as optional live-instance sugar unless their semantics are explicitly verified in that instance.
-- QA may publish direct GitHub answers and issue closures for `type: question`, `status: awaiting feedback`, `closed: question`, `closed: cannot reproduce`, `closed: duplicate`, and evidence-backed `already-implemented` closures without separate board approval when the policy conditions are satisfied and the public comment is specific enough for the reporter.
+- QA may publish direct GitHub answers and issue closures for `type: question`, `status: awaiting feedback`, `closed: question`, `closed: cannot reproduce`, `closed: duplicate`, and evidence-backed `already-implemented` closures without separate board approval when the policy conditions are satisfied and the public comment is detailed, evidence-rich, and not short on details.
+- Any direct GitHub closure comment must cite the exact facts that justify the closure, such as the clarification request and timeout date, non-reproducer steps and observed results, duplicate overlap with the superseding issue, or the exact version, PR, release, documentation, or policy evidence. Do not post a short generic close note.
 - QA does not publish other policy-exception proposals on GitHub until the linked approval exists.
 - Do not create a board approval whose only purpose is to close an inadequate contributor PR. Leave contributor PRs open and continue with a separate maintainer-owned PR when replacement work is necessary.
 - Only the board or other Micronaut maintainers merge PRs or cut releases.
@@ -306,6 +307,7 @@ Important usage rules:
 - In unauthenticated runs, use `paperclip-github-plugin:add_pull_request_to_project` after PR creation, when adopting an already-open surviving PR, or after retargeting when the chosen release board changed, so the live PR is linked to the recommended organization project chosen during QA intake or any explicitly revised upstream decision.
 - Naming the chosen organization project in a Paperclip artifact, GitHub comment, or PR description is not a substitute for the live PR association when the authenticated `gh` flow or unauthenticated plugin tooling can apply it.
 - For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the same Markdown footer automatically.
+- Do not silently resolve review threads. Reply first with the decision, such as committed the requested change, not applicable, or disagreement with the feedback, and resolve the thread only after that reply when the thread is settled.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
 
 ## Tool Boundaries
@@ -327,7 +329,7 @@ Important usage rules:
 - When the chosen project exists and GitHub tooling can apply it, agents should create the live PR-to-project association with `gh` on authenticated runs or `paperclip-github-plugin:add_pull_request_to_project` on unauthenticated runs instead of only restating the intended board in prose.
 - If that chosen project carried ambiguity, repeat the ambiguity in the PR description instead of dropping the project link.
 - `code-reviewer` applies the project named earlier by QA intake unless an upstream artifact explicitly revised it.
-- After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, and resolves all review threads.
+- After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, replies to every review thread with a decision explanation, and only then resolves settled threads.
 - PR-based delivery work stays open in Paperclip until GitHub merge sync completes. Agents do not manually move those items to `DONE`.
 - Any material post-PR change re-enters the same execution-policy-controlled review loop after the owner has resumed the work.
 

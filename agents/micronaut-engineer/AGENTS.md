@@ -38,7 +38,7 @@ PR follow-through mode:
 
 - keep CI green
 - address Sonar Quality Gate issues
-- address and resolve all review threads
+- reply to every review thread with the decision, such as committed the requested change, not applicable, or disagreement with the feedback, before resolving it
 - preserve the approved `type:` label, closing keyword, and any chosen Micronaut organization project unless an upstream stage explicitly changes them
 - if the surviving PR is missing the chosen organization project or carries the wrong one after retargeting, repair the live link with `gh` on authenticated runs or `paperclip-github-plugin:add_pull_request_to_project` on unauthenticated runs when GitHub tooling can apply it instead of only noting the mismatch in comments
 - prefer the smallest safe changes that make the surviving PR mergeable instead of restarting from scratch
@@ -56,7 +56,7 @@ GitHub sync plugin tools:
 
 - On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association.
 - Only unauthenticated Paperclip instances can call the sync plugin agent tools directly. Authenticated runs should not expect those tools to be callable, even when the sync plugin propagated `GITHUB_TOKEN`.
-- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
+- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - On unauthenticated deployments, use the agent tools below.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
@@ -66,7 +66,7 @@ GitHub sync plugin tools:
 - `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to inspect the live diff, CI state, and open review feedback.
 - On unauthenticated deployments, use `paperclip-github-plugin:list_organization_projects` when the QA-selected Micronaut organization project needs re-verification because the release target changed.
 - On unauthenticated deployments, use `paperclip-github-plugin:add_pull_request_to_project` when the surviving PR is missing the chosen organization project or a retarget requires the live project link to be repaired.
-- `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` to answer reviewer feedback and keep review-thread state honest during PR follow-through.
+- `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` to answer reviewer feedback and keep review-thread state honest during PR follow-through. Do not silently resolve a thread; reply first with the decision, then resolve it only when the thread is actually settled.
 - Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.4`; the plugin appends the footer automatically.
 - Use the local git CLI for branch, commit, rebase, and push work; the GitHub sync plugin does not replace git.
 
@@ -82,7 +82,7 @@ GitHub sync plugin tools:
 3. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
 4. After `changes_requested`, confirm the issue execution state shows `changes_requested` and your implementation artifact names the exact blocker.
 5. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the routing is correct instead of assuming the new reviewer was woken automatically.
-6. If a PR exists, confirm the PR, checks, labels, project link, and review-thread state match the artifact you just produced. If QA chose an organization project and GitHub tooling can apply it, the live PR association should already be correct; otherwise record the exact no-match or tooling gap.
+6. If a PR exists, confirm the PR, checks, labels, project link, and review-thread replies and state match the artifact you just produced. If QA chose an organization project and GitHub tooling can apply it, the live PR association should already be correct; otherwise record the exact no-match or tooling gap.
 
 ## Operating Rules
 

@@ -48,14 +48,14 @@ Paperclip built-ins:
 GitHub sync plugin tools:
 
 - On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
-- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
+- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - On unauthenticated deployments, use the agent tools below.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:search_repository_items` for deduplicating weekly deep-scan findings and checking whether the same synced repository already tracks the security concern.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the maintainer-visible issue history before you escalate or approve anything.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to inspect code, build logic, CI, and existing review findings.
-- `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` when recording or rechecking PR-thread security findings.
+- `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` when recording or rechecking PR-thread security findings. Reply before resolving, and explain the decision in the reply, such as committed the requested change, not applicable, or disagreement with the feedback.
 - Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.4`; the plugin appends the footer automatically.
 
 ## Possible Outcomes
@@ -70,7 +70,7 @@ GitHub sync plugin tools:
 3. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
 4. After `changes_requested`, confirm the issue execution state shows `changes_requested` and your artifact names the exact remediation or compensating control.
 5. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the routing is correct instead of assuming the new reviewer was woken automatically.
-6. If you touched GitHub review threads or produced a deep-scan escalation, confirm those side effects exist instead of assuming they happened.
+6. If you touched GitHub review threads or produced a deep-scan escalation, confirm the review-thread replies and state changes exist instead of assuming they happened.
 
 ## Operating Rules
 

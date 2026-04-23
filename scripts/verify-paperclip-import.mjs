@@ -91,6 +91,16 @@ const POLICY_BLOCKED_REOPEN_PATTERN =
   /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}policy-blocked[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment|policy-blocked[\s\S]{0,500}GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment/i;
 const ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN =
   /already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval[\s\S]*\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b|\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b[\s\S]*already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval/i;
+const GITHUB_NOT_PLANNED_CLOSE_PATTERN =
+  /Close as not planned[\s\S]{0,240}Close as completed|Close as completed[\s\S]{0,240}Close as not planned/i;
+const GITHUB_DUPLICATE_CLOSE_PATTERN =
+  /Close as duplicate[\s\S]{0,320}(?:superseding GitHub issue|duplicate link|link(?:ing)? the duplicate issue)|(?:superseding GitHub issue|duplicate link|link(?:ing)? the duplicate issue)[\s\S]{0,320}Close as duplicate/i;
+const EVIDENCE_RICH_CLOSURE_COMMENT_PATTERN =
+  /(?:closure comment|GitHub issue closure|public comment|GitHub closure)[\s\S]{0,700}(?:detailed,?\s*evidence-rich|detailed evidence)[\s\S]{0,260}(?:not short on details|exact facts that justify the closure|short generic close note)|(?:not short on details|exact facts that justify the closure|short generic close note)[\s\S]{0,700}(?:closure comment|GitHub issue closure|public comment|GitHub closure)/i;
+const REVIEW_THREAD_REPLY_POLICY_PATTERN =
+  /review threads?[\s\S]{0,320}(?:reply(?:ing)?|repl(?:y|ied|ies))[\s\S]{0,320}(?:decision|committed the requested change|not applicable|disagreement with the feedback)[\s\S]{0,220}(?:before resolving|before the thread is resolved|before they are resolved|only then resolves|only then resolve)|(?:reply(?:ing)?|repl(?:y|ied|ies))[\s\S]{0,320}review threads?[\s\S]{0,320}(?:decision|committed the requested change|not applicable|disagreement with the feedback)[\s\S]{0,220}(?:before resolving|before the thread is resolved|before they are resolved|only then resolves|only then resolve)|(?:decision|committed the requested change|not applicable|disagreement with the feedback)[\s\S]{0,320}review threads?[\s\S]{0,320}(?:reply(?:ing)?|repl(?:y|ied|ies))/i;
+const REVIEW_THREAD_REPLY_TOOLING_PATTERN =
+  /reply_to_review_thread[\s\S]*resolve_review_thread[\s\S]*(?:reply before resolving|reply first|do not silently resolve|explain the decision)|(?:reply before resolving|reply first|do not silently resolve|explain the decision)[\s\S]*reply_to_review_thread[\s\S]*resolve_review_thread/i;
 const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   {
     relativePath: "README.md",
@@ -201,6 +211,24 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern: GITHUB_NOT_PLANNED_CLOSE_PATTERN,
+    message:
+      "QA instructions must explain that direct non-duplicate GitHub issue closures use native `Close as not planned` instead of `Close as completed`.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern: GITHUB_DUPLICATE_CLOSE_PATTERN,
+    message:
+      "QA instructions must explain that duplicate closures use native `Close as duplicate` and link the superseding GitHub issue.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern: EVIDENCE_RICH_CLOSURE_COMMENT_PATTERN,
+    message:
+      "QA instructions must require GitHub closure comments to contain detailed evidence and not be short on details.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
     pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
     message:
       "QA instructions must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
@@ -231,6 +259,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
     message:
       "README.md must explain that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: REVIEW_THREAD_REPLY_POLICY_PATTERN,
+    message:
+      "README.md must explain that review threads get a decision-explaining reply before they are resolved.",
   },
   {
     relativePath: "COMPANY.md",
@@ -340,6 +374,60 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: GITHUB_NOT_PLANNED_CLOSE_PATTERN,
+    message:
+      "Repo operations must explain that direct non-duplicate QA closures use native `Close as not planned` instead of `Close as completed`.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: GITHUB_DUPLICATE_CLOSE_PATTERN,
+    message:
+      "Repo operations must explain that duplicate closures use native `Close as duplicate` and link the superseding GitHub issue.",
+  },
+  {
+    relativePath: "skills/micronaut-quality-gates/SKILL.md",
+    pattern: GITHUB_NOT_PLANNED_CLOSE_PATTERN,
+    message:
+      "Quality gates must explain that direct non-duplicate QA closures use native `Close as not planned` instead of `Close as completed`.",
+  },
+  {
+    relativePath: "skills/micronaut-quality-gates/SKILL.md",
+    pattern: GITHUB_DUPLICATE_CLOSE_PATTERN,
+    message:
+      "Quality gates must explain that duplicate closures use native `Close as duplicate` and link the superseding GitHub issue.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: EVIDENCE_RICH_CLOSURE_COMMENT_PATTERN,
+    message:
+      "Repo operations must require GitHub closure comments to cite exact evidence and not be short generic close notes.",
+  },
+  {
+    relativePath: "skills/micronaut-quality-gates/SKILL.md",
+    pattern: EVIDENCE_RICH_CLOSURE_COMMENT_PATTERN,
+    message:
+      "Quality gates must explain that GitHub closure comments contain detailed evidence and are not short generic close notes.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: REVIEW_THREAD_REPLY_POLICY_PATTERN,
+    message:
+      "Repo operations must explain that review threads get decision-explaining replies before they are resolved.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: REVIEW_THREAD_REPLY_TOOLING_PATTERN,
+    message:
+      "Repo operations must explain that `reply_to_review_thread` is used before `resolve_review_thread` and silent resolves are not allowed.",
+  },
+  {
+    relativePath: "skills/micronaut-quality-gates/SKILL.md",
+    pattern: REVIEW_THREAD_REPLY_POLICY_PATTERN,
+    message:
+      "Quality gates must explain that review threads get decision-explaining replies before they are resolved.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
     pattern:
       /Do not invent or create another target branch during triage/i,
     message:
@@ -360,10 +448,28 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "README.md",
+    pattern: GITHUB_NOT_PLANNED_CLOSE_PATTERN,
+    message:
+      "README.md must explain that direct non-duplicate QA closures use native `Close as not planned` instead of `Close as completed`.",
+  },
+  {
+    relativePath: "README.md",
     pattern:
       /closed:\s*duplicate[\s\S]*duplicate link|duplicate link[\s\S]*closed:\s*duplicate|link(?:ing)? the duplicate issue[\s\S]*closed:\s*duplicate/i,
     message:
       "README.md must explain that duplicate issues can be closed by QA with `closed: duplicate` and a duplicate link.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: GITHUB_DUPLICATE_CLOSE_PATTERN,
+    message:
+      "README.md must explain that duplicate closures use native `Close as duplicate` and link the superseding GitHub issue.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: EVIDENCE_RICH_CLOSURE_COMMENT_PATTERN,
+    message:
+      "README.md must explain that QA GitHub closure comments are detailed, evidence-rich, and not short on details.",
   },
   {
     relativePath: "README.md",
@@ -438,6 +544,54 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN,
     message:
       "COMPANY.md must explain that already-implemented issues can be closed by QA without board approval when the closure cites the exact version, PR, release, or documentation evidence.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: GITHUB_NOT_PLANNED_CLOSE_PATTERN,
+    message:
+      "COMPANY.md must explain that direct non-duplicate QA closures use native `Close as not planned` instead of `Close as completed`.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: GITHUB_DUPLICATE_CLOSE_PATTERN,
+    message:
+      "COMPANY.md must explain that duplicate closures use native `Close as duplicate` and link the superseding GitHub issue.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: EVIDENCE_RICH_CLOSURE_COMMENT_PATTERN,
+    message:
+      "COMPANY.md must explain that QA GitHub closure comments are detailed, evidence-rich, and not short on details.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: REVIEW_THREAD_REPLY_POLICY_PATTERN,
+    message:
+      "COMPANY.md must explain that review threads get decision-explaining replies before they are resolved.",
+  },
+  {
+    relativePath: "agents/micronaut-engineer/AGENTS.md",
+    pattern: REVIEW_THREAD_REPLY_POLICY_PATTERN,
+    message:
+      "Micronaut Engineer instructions must require a decision-explaining reply before resolving review threads.",
+  },
+  {
+    relativePath: "agents/micronaut-engineer/AGENTS.md",
+    pattern: REVIEW_THREAD_REPLY_TOOLING_PATTERN,
+    message:
+      "Micronaut Engineer instructions must explain that `reply_to_review_thread` is used before `resolve_review_thread` and silent resolves are not allowed.",
+  },
+  {
+    relativePath: "agents/technical-writer/AGENTS.md",
+    pattern: REVIEW_THREAD_REPLY_TOOLING_PATTERN,
+    message:
+      "Technical Writer instructions must explain that docs review threads get a decision-explaining reply before they are resolved.",
+  },
+  {
+    relativePath: "agents/security-engineer/AGENTS.md",
+    pattern: REVIEW_THREAD_REPLY_TOOLING_PATTERN,
+    message:
+      "Security Engineer instructions must explain that PR review threads get a decision-explaining reply before they are resolved.",
   },
   {
     relativePath: "README.md",

@@ -49,3 +49,43 @@ test("verification rules enforce the execution-semantics guidance we rely on", a
     /Shared repo operations guidance must explain checkout-backed agent `in_progress` work and stranded-work recovery\./,
   );
 });
+
+test("verification rules require decision-explaining replies on review threads", async () => {
+  const source = await readFile(
+    new URL("./verify-paperclip-import.mjs", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(
+    source,
+    /README\.md must explain that review threads get a decision-explaining reply before they are resolved\./,
+  );
+  assert.match(
+    source,
+    /COMPANY\.md must explain that review threads get decision-explaining replies before they are resolved\./,
+  );
+  assert.match(
+    source,
+    /Repo operations must explain that review threads get decision-explaining replies before they are resolved\./,
+  );
+  assert.match(
+    source,
+    /Quality gates must explain that review threads get decision-explaining replies before they are resolved\./,
+  );
+  assert.match(
+    source,
+    /Micronaut Engineer instructions must require a decision-explaining reply before resolving review threads\./,
+  );
+  assert.match(
+    source,
+    /Micronaut Engineer instructions must explain that `reply_to_review_thread` is used before `resolve_review_thread` and silent resolves are not allowed\./,
+  );
+  assert.match(
+    source,
+    /Technical Writer instructions must explain that docs review threads get a decision-explaining reply before they are resolved\./,
+  );
+  assert.match(
+    source,
+    /Security Engineer instructions must explain that PR review threads get a decision-explaining reply before they are resolved\./,
+  );
+});

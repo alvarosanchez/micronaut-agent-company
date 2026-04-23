@@ -22,7 +22,19 @@ test("verification rules require direct QA GitHub issue answer and closure guida
   );
   assert.match(
     source,
+    /QA instructions must explain that direct non-duplicate GitHub issue closures use native `Close as not planned` instead of `Close as completed`\./,
+  );
+  assert.match(
+    source,
+    /QA instructions must explain that duplicate closures use native `Close as duplicate` and link the superseding GitHub issue\./,
+  );
+  assert.match(
+    source,
     /README\.md must explain that unreproducible issues can be closed by QA with `closed: cannot reproduce`\./,
+  );
+  assert.match(
+    source,
+    /QA instructions must require GitHub closure comments to contain detailed evidence and not be short on details\./,
   );
   assert.match(
     source,
@@ -35,6 +47,38 @@ test("verification rules require direct QA GitHub issue answer and closure guida
   assert.match(
     source,
     /README\.md must explain that duplicate issues can be closed by QA with `closed: duplicate` and a duplicate link\./,
+  );
+  assert.match(
+    source,
+    /README\.md must explain that direct non-duplicate QA closures use native `Close as not planned` instead of `Close as completed`\./,
+  );
+  assert.match(
+    source,
+    /README\.md must explain that duplicate closures use native `Close as duplicate` and link the superseding GitHub issue\./,
+  );
+  assert.match(
+    source,
+    /README\.md must explain that QA GitHub closure comments are detailed, evidence-rich, and not short on details\./,
+  );
+  assert.match(
+    source,
+    /COMPANY\.md must explain that direct non-duplicate QA closures use native `Close as not planned` instead of `Close as completed`\./,
+  );
+  assert.match(
+    source,
+    /COMPANY\.md must explain that duplicate closures use native `Close as duplicate` and link the superseding GitHub issue\./,
+  );
+  assert.match(
+    source,
+    /COMPANY\.md must explain that QA GitHub closure comments are detailed, evidence-rich, and not short on details\./,
+  );
+  assert.match(
+    source,
+    /Repo operations must require GitHub closure comments to cite exact evidence and not be short generic close notes\./,
+  );
+  assert.match(
+    source,
+    /Quality gates must explain that GitHub closure comments contain detailed evidence and are not short generic close notes\./,
   );
   assert.match(
     source,

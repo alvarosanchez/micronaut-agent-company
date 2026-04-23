@@ -54,7 +54,7 @@ Before you stop:
 3. If another execution-policy stage remains, confirm the issue is still in `in_review` and the next `currentParticipant` is correct.
 4. If you requested changes, confirm the issue execution state shows `changes_requested` and your artifact names the exact remediation or compensating control.
 5. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the stage or assignment is already correct instead of assuming the new reviewer was woken automatically.
-6. If you touched GitHub review threads, confirm the replies or thread state changes exist.
+6. If you touched GitHub review threads, confirm the decision-explaining replies and thread state changes exist.
 
 ## Weekly Deep Scan Mode
 
