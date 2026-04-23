@@ -21,7 +21,7 @@ const ORGANIZATION_PROJECT_AGENT_PATHS = new Set([
 const TOKEN_PRESENT_GH_PATTERN =
   /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*(?:prefer|use)[\s\S]*\bgh\b|`?GITHUB_TOKEN`?-backed runs[\s\S]*\bgh\b/i;
 const TOKEN_ABSENT_AGENT_TOOLS_PATTERN =
-  /(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available[\s\S]*(?:use the agent tools below|use the GitHub sync plugin tools|use the GitHub sync plugin agent tools|use the agent tools|must use the GitHub agent tools provided by the sync plugin)|(?:use the agent tools below|use the GitHub sync plugin tools|use the GitHub sync plugin agent tools|use the agent tools|must use the GitHub agent tools provided by the sync plugin)[\s\S]*(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available|otherwise,\s*use the GitHub sync plugin tools/i;
+  /(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available[\s\S]*(?:use the agent tools below|use the GitHub sync plugin tools|use the GitHub sync plugin agent tools|use the agent tools|must use the GitHub agent tools provided by the sync plugin)|(?:use the agent tools below|use the GitHub sync plugin tools|use the GitHub sync plugin agent tools|use the agent tools|must use the GitHub agent tools provided by the sync plugin)[\s\S]*(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available/i;
 const ENV_VAR_ONLY_PATTERN =
   /GITHUB_TOKEN[\s\S]*(environment variable|env var)|environment variable[\s\S]*GITHUB_TOKEN/i;
 const NO_FILESYSTEM_TOKEN_SEARCH_PATTERN =
