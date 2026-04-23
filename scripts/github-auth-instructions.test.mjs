@@ -36,6 +36,8 @@ const KPI_WEBHOOK_SCOPE_PATTERN =
   /do not (?:send|post|call)[\s\S]*(?:PR edits|comments|review replies|merges)|comments, review replies, or merges/i;
 const KPI_WEBHOOK_REASON_PATTERN =
   /GitHub alone cannot attribute|cannot attribute those PRs to Paperclip work|cannot attribute that PR to Paperclip work|cannot tell which pull requests came from a Paperclip company/i;
+const KPI_WEBHOOK_NO_AUTH_PATTERN =
+  /plugin webhook, not a plugin-tool call|do not need to add an agent JWT|do not add an agent JWT|do not need to add an agent JWT or board-session header|do not add an agent JWT or board-session header/i;
 const KPI_WEBHOOK_AGENT_PATHS = [
   "agents/ceo/AGENTS.md",
   "agents/code-reviewer/AGENTS.md",
@@ -99,6 +101,11 @@ function assertPullRequestMetricWebhookPolicy(markdown, label) {
     markdown,
     KPI_WEBHOOK_REASON_PATTERN,
     `${label} must explain why GitHub-side PR creation needs explicit Paperclip attribution.`,
+  );
+  assert.match(
+    markdown,
+    KPI_WEBHOOK_NO_AUTH_PATTERN,
+    `${label} must explain that the metric webhook does not need an agent JWT or board-session header.`,
   );
 }
 
