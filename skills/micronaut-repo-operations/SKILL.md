@@ -111,6 +111,7 @@ Authenticated deployment rule:
 - On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association, even when an equivalent GitHub sync plugin tool exists.
 - Only unauthenticated Paperclip instances can call the sync plugin agent tools directly. Authenticated runs should not expect those tools to be callable, even when the sync plugin propagated `GITHUB_TOKEN`.
 - When an authenticated run creates a PR with `gh` or another non-plugin GitHub client in a repository mapped to the current company, immediately `POST /api/plugins/paperclip-github-plugin/webhooks/record-company-metric-event` with `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`. Include `companyId` when the repository could map to more than one company.
+- Sign that request with the same company `GITHUB_TOKEN`: send `x-paperclip-github-sync-timestamp` and `x-paperclip-github-sync-signature`, where the signature is `sha256=<hex-hmac>` over `${timestamp}.${rawBody}` using the exact JSON payload string sent as `rawBody`.
 - Do not send that webhook when `paperclip-github-plugin:create_pull_request` created the PR; the plugin records `pull_request_created` automatically. Do not send it for PR edits, comments, review replies, or merges.
 - This webhook exists because authenticated deployments currently cannot call the plugin tools directly, and GitHub alone cannot attribute those PRs to Paperclip work.
 - This metric endpoint is a plugin webhook, not a plugin-tool call, so agents do not need to add an agent JWT or board-session header just for this request.
@@ -123,9 +124,15 @@ Authenticated deployment rule:
 Example authenticated KPI attribution call:
 
 ```bash
+payload='{"metric":"pull_request_created","repository":"owner/repo","pullRequestNumber":123}'
+timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+signature="sha256=$(printf '%s' "${timestamp}.${payload}" | openssl dgst -sha256 -hmac "${GITHUB_TOKEN}" -hex | sed 's/^.* //')"
+
 curl -fsS -X POST "${PAPERCLIP_API_URL%/}/api/plugins/paperclip-github-plugin/webhooks/record-company-metric-event" \
   -H "content-type: application/json" \
-  -d '{"metric":"pull_request_created","repository":"owner/repo","pullRequestNumber":123}'
+  -H "x-paperclip-github-sync-timestamp: ${timestamp}" \
+  -H "x-paperclip-github-sync-signature: ${signature}" \
+  -d "${payload}"
 ```
 
 - `paperclip-github-plugin:search_repository_items`: repository-scoped GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup

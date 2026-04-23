@@ -38,6 +38,14 @@ const KPI_WEBHOOK_REASON_PATTERN =
   /GitHub alone cannot attribute|cannot attribute those PRs to Paperclip work|cannot attribute that PR to Paperclip work|cannot tell which pull requests came from a Paperclip company/i;
 const KPI_WEBHOOK_NO_AUTH_PATTERN =
   /plugin webhook, not a plugin-tool call|do not need to add an agent JWT|do not add an agent JWT|do not need to add an agent JWT or board-session header|do not add an agent JWT or board-session header/i;
+const KPI_WEBHOOK_SIGNATURE_HEADER_PATTERN =
+  /x-paperclip-github-sync-timestamp|x-paperclip-github-sync-signature/i;
+const KPI_WEBHOOK_SIGNATURE_FORMAT_PATTERN =
+  /sha256=<hex-hmac>|sha256=<hex hmac>|sha256=\$|sha256=.*hmac|HMAC/i;
+const KPI_WEBHOOK_GITHUB_TOKEN_SIGNING_PATTERN =
+  /same company `?GITHUB_TOKEN`?|using .*GITHUB_TOKEN|with the same company `?GITHUB_TOKEN`?/i;
+const KPI_WEBHOOK_RAW_BODY_PATTERN =
+  /exact JSON (?:payload|string|body).*(?:rawBody)|using the exact JSON payload string sent as `rawBody`|exact JSON body you send as `rawBody`/i;
 const KPI_WEBHOOK_AGENT_PATHS = [
   "agents/ceo/AGENTS.md",
   "agents/code-reviewer/AGENTS.md",
@@ -106,6 +114,26 @@ function assertPullRequestMetricWebhookPolicy(markdown, label) {
     markdown,
     KPI_WEBHOOK_NO_AUTH_PATTERN,
     `${label} must explain that the metric webhook does not need an agent JWT or board-session header.`,
+  );
+  assert.match(
+    markdown,
+    KPI_WEBHOOK_SIGNATURE_HEADER_PATTERN,
+    `${label} must mention the timestamp and signature headers for the metric webhook.`,
+  );
+  assert.match(
+    markdown,
+    KPI_WEBHOOK_SIGNATURE_FORMAT_PATTERN,
+    `${label} must explain that the metric webhook uses an HMAC sha256 signature.`,
+  );
+  assert.match(
+    markdown,
+    KPI_WEBHOOK_GITHUB_TOKEN_SIGNING_PATTERN,
+    `${label} must explain that the metric webhook is signed with the company GITHUB_TOKEN.`,
+  );
+  assert.match(
+    markdown,
+    KPI_WEBHOOK_RAW_BODY_PATTERN,
+    `${label} must explain that the signature is computed over the exact JSON payload sent as rawBody.`,
   );
 }
 
