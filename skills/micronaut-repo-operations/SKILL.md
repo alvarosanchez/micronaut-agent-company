@@ -126,7 +126,19 @@ Example authenticated KPI attribution call:
 ```bash
 payload='{"metric":"pull_request_created","repository":"owner/repo","pullRequestNumber":123}'
 timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-signature="sha256=$(printf '%s' "${timestamp}.${payload}" | openssl dgst -sha256 -hmac "${GITHUB_TOKEN}" -hex | sed 's/^.* //')"
+signature="$(
+  PAYLOAD="${payload}" TIMESTAMP="${timestamp}" node --input-type=module -e '
+    import { createHmac } from "node:crypto";
+
+    const payload = process.env.PAYLOAD ?? "";
+    const timestamp = process.env.TIMESTAMP ?? "";
+    const token = process.env.GITHUB_TOKEN ?? "";
+
+    process.stdout.write(
+      "sha256=" + createHmac("sha256", token).update(timestamp + "." + payload).digest("hex"),
+    );
+  '
+)"
 
 curl -fsS -X POST "${PAPERCLIP_API_URL%/}/api/plugins/paperclip-github-plugin/webhooks/record-company-metric-event" \
   -H "content-type: application/json" \

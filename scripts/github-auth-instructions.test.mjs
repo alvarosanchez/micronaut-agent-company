@@ -38,8 +38,8 @@ const KPI_WEBHOOK_REASON_PATTERN =
   /GitHub alone cannot attribute|cannot attribute those PRs to Paperclip work|cannot attribute that PR to Paperclip work|cannot tell which pull requests came from a Paperclip company/i;
 const KPI_WEBHOOK_NO_AUTH_PATTERN =
   /plugin webhook, not a plugin-tool call|do not need to add an agent JWT|do not add an agent JWT|do not need to add an agent JWT or board-session header|do not add an agent JWT or board-session header/i;
-const KPI_WEBHOOK_SIGNATURE_HEADER_PATTERN =
-  /x-paperclip-github-sync-timestamp|x-paperclip-github-sync-signature/i;
+const KPI_WEBHOOK_TIMESTAMP_HEADER_PATTERN = /x-paperclip-github-sync-timestamp/i;
+const KPI_WEBHOOK_SIGNATURE_HEADER_PATTERN = /x-paperclip-github-sync-signature/i;
 const KPI_WEBHOOK_SIGNATURE_FORMAT_PATTERN =
   /sha256=<hex-hmac>|sha256=<hex hmac>|sha256=\$|sha256=.*hmac|HMAC/i;
 const KPI_WEBHOOK_GITHUB_TOKEN_SIGNING_PATTERN =
@@ -117,8 +117,13 @@ function assertPullRequestMetricWebhookPolicy(markdown, label) {
   );
   assert.match(
     markdown,
+    KPI_WEBHOOK_TIMESTAMP_HEADER_PATTERN,
+    `${label} must mention the timestamp header for the metric webhook.`,
+  );
+  assert.match(
+    markdown,
     KPI_WEBHOOK_SIGNATURE_HEADER_PATTERN,
-    `${label} must mention the timestamp and signature headers for the metric webhook.`,
+    `${label} must mention the signature header for the metric webhook.`,
   );
   assert.match(
     markdown,
