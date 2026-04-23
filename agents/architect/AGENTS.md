@@ -51,9 +51,10 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
-- On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
+- When `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
+- If `GITHUB_TOKEN` is not available, use the agent tools below.
+- By `GITHUB_TOKEN`, mean the environment variable with that exact name. Do not search the filesystem, plugin config, or other files for a token.
 - When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
-- On unauthenticated deployments, use the agent tools below.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:search_repository_items` for prior-art and duplicate-design search inside the same synced repository.

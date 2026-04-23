@@ -18,6 +18,14 @@ const ORGANIZATION_PROJECT_AGENT_PATHS = new Set([
   "agents/code-reviewer/AGENTS.md",
   "agents/micronaut-engineer/AGENTS.md",
 ]);
+const TOKEN_PRESENT_GH_PATTERN =
+  /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*(?:prefer|use)[\s\S]*\bgh\b|`?GITHUB_TOKEN`?-backed runs[\s\S]*\bgh\b/i;
+const TOKEN_ABSENT_AGENT_TOOLS_PATTERN =
+  /(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available[\s\S]*(?:use the agent tools below|use the GitHub sync plugin tools|use the GitHub sync plugin agent tools|use the agent tools|must use the GitHub agent tools provided by the sync plugin)|(?:use the agent tools below|use the GitHub sync plugin tools|use the GitHub sync plugin agent tools|use the agent tools|must use the GitHub agent tools provided by the sync plugin)[\s\S]*(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available|otherwise,\s*use the GitHub sync plugin tools/i;
+const ENV_VAR_ONLY_PATTERN =
+  /GITHUB_TOKEN[\s\S]*(environment variable|env var)|environment variable[\s\S]*GITHUB_TOKEN/i;
+const NO_FILESYSTEM_TOKEN_SEARCH_PATTERN =
+  /do not search the filesystem, plugin config, or other files for a token|must not search the filesystem, plugin config, or other files for a token/i;
 const GFM_FOOTER_PATTERN = /GitHub-flavored Markdown footer|Markdown footer/i;
 const HORIZONTAL_RULE_PATTERN = /`---` on its own line|`---` plus|^---$/m;
 const BLANK_LINE_PATTERN =
@@ -76,16 +84,11 @@ test("GitHub-capable agents include the gh CLI skill", async () => {
   }
 });
 
-test("GitHub-capable agents describe authenticated gh CLI fallback behavior", async () => {
+test("GitHub-capable agents describe GITHUB_TOKEN-based GitHub access behavior", async () => {
   for (const relativePath of GITHUB_AGENT_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { body } = parseFrontmatter(markdown);
 
-    assert.match(
-      body,
-      /authenticated deployments/i,
-      `${relativePath} must mention authenticated deployments.`,
-    );
     assert.match(
       body,
       /GITHUB_TOKEN/,
@@ -98,13 +101,23 @@ test("GitHub-capable agents describe authenticated gh CLI fallback behavior", as
     );
     assert.match(
       body,
-      /on unauthenticated deployments,? use the agent tools|without GITHUB_TOKEN,? use the agent tools|if GITHUB_TOKEN is not available,? use the agent tools|otherwise,? use the agent tools/i,
-      `${relativePath} must tell agents to fall back to the GitHub sync agent tools when GITHUB_TOKEN is unavailable.`,
+      TOKEN_PRESENT_GH_PATTERN,
+      `${relativePath} must explain that gh is used only when GITHUB_TOKEN is available.`,
     );
-    assert.doesNotMatch(
+    assert.match(
       body,
-      /even when `GITHUB_TOKEN` is available|even when GITHUB_TOKEN is available/i,
-      `${relativePath} must not claim the sync plugin tools are available during authenticated gh-based runs.`,
+      TOKEN_ABSENT_AGENT_TOOLS_PATTERN,
+      `${relativePath} must tell agents to use the GitHub sync agent tools when GITHUB_TOKEN is unavailable.`,
+    );
+    assert.match(
+      body,
+      ENV_VAR_ONLY_PATTERN,
+      `${relativePath} must clarify that GITHUB_TOKEN refers to the environment variable.`,
+    );
+    assert.match(
+      body,
+      NO_FILESYSTEM_TOKEN_SEARCH_PATTERN,
+      `${relativePath} must forbid searching the filesystem or plugin config for a token.`,
     );
     if (ORGANIZATION_PROJECT_AGENT_PATHS.has(relativePath)) {
       assert.match(
@@ -114,13 +127,13 @@ test("GitHub-capable agents describe authenticated gh CLI fallback behavior", as
       );
       assert.match(
         body,
-        /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)/i,
-        `${relativePath} must keep organization-project actions on gh for authenticated runs.`,
+        /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)|`?GITHUB_TOKEN`?-backed runs[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)/i,
+        `${relativePath} must keep organization-project actions on gh when GITHUB_TOKEN is available.`,
       );
       assert.match(
         body,
-        /only unauthenticated Paperclip instances can call the sync plugin agent tools directly/i,
-        `${relativePath} must reserve sync plugin tools for unauthenticated runs.`,
+        /(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available[\s\S]*(list_organization_projects|add_pull_request_to_project|organization project)|(?:list_organization_projects|add_pull_request_to_project)[\s\S]*(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available/i,
+        `${relativePath} must use sync plugin tools for organization-project work when GITHUB_TOKEN is unavailable.`,
       );
     }
     assertDirectGithubFooterPolicy(
@@ -130,30 +143,29 @@ test("GitHub-capable agents describe authenticated gh CLI fallback behavior", as
   }
 });
 
-test("Shared Micronaut repo operations explain the authenticated GitHub access split", async () => {
+test("Shared Micronaut repo operations explain the GITHUB_TOKEN GitHub access split", async () => {
   const markdown = await readFile(
     new URL("../skills/micronaut-repo-operations/SKILL.md", import.meta.url),
     "utf8",
   );
 
-  assert.match(markdown, /authenticated deployments/i);
   assert.match(markdown, /GITHUB_TOKEN/);
   assert.match(markdown, /\bgh\b.*CLI|CLI.*\bgh\b/i);
-  assert.match(
-    markdown,
-    /on unauthenticated deployments,? use the agent tools|without GITHUB_TOKEN,? use the agent tools|if GITHUB_TOKEN is not available,? use the agent tools|otherwise,? use the agent tools/i,
-  );
+  assert.match(markdown, TOKEN_PRESENT_GH_PATTERN);
+  assert.match(markdown, TOKEN_ABSENT_AGENT_TOOLS_PATTERN);
+  assert.match(markdown, ENV_VAR_ONLY_PATTERN);
+  assert.match(markdown, NO_FILESYSTEM_TOKEN_SEARCH_PATTERN);
   assert.doesNotMatch(
     markdown,
-    /even when `GITHUB_TOKEN` is available|even when GITHUB_TOKEN is available/i,
-  );
-  assert.match(
-    markdown,
-    /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
-  );
-  assert.match(
-    markdown,
     /only unauthenticated Paperclip instances can call the sync plugin agent tools directly|On unauthenticated deployments, use the agent tools below/i,
+  );
+  assert.match(
+    markdown,
+    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)|`?GITHUB_TOKEN`?-backed runs[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
+  );
+  assert.match(
+    markdown,
+    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available[\s\S]*(organization-project lookup|PR-to-project association|add_pull_request_to_project|list_organization_projects)/i,
   );
   assertDirectGithubFooterPolicy(
     markdown,
@@ -161,7 +173,7 @@ test("Shared Micronaut repo operations explain the authenticated GitHub access s
   );
 });
 
-test("README documents the direct GitHub footer rule and plugin exception", async () => {
+test("README documents the direct GitHub footer rule and plugin fallback", async () => {
   const markdown = await readFile(
     new URL("../README.md", import.meta.url),
     "utf8",
@@ -169,6 +181,9 @@ test("README documents the direct GitHub footer rule and plugin exception", asyn
 
   assert.match(markdown, /GITHUB_TOKEN/);
   assert.match(markdown, /\bgh\b.*GitHub|GitHub.*\bgh\b/i);
+  assert.match(markdown, TOKEN_ABSENT_AGENT_TOOLS_PATTERN);
+  assert.match(markdown, ENV_VAR_ONLY_PATTERN);
+  assert.match(markdown, NO_FILESYSTEM_TOKEN_SEARCH_PATTERN);
   assertDirectGithubFooterPolicy(markdown, "README.md");
 });
 
@@ -181,6 +196,12 @@ test("Local gh-cli skill points to the requested upstream skill", async () => {
 
   assert.match(frontmatter.description, /GITHUB_TOKEN/);
   assert.match(frontmatter.description, /\bgh\b/i);
+  assert.match(
+    frontmatter.description,
+    /If (?:`?GITHUB_TOKEN`?|that environment variable) is not available, use the GitHub sync plugin agent tools instead/i,
+  );
+  assert.match(frontmatter.description, ENV_VAR_ONLY_PATTERN);
+  assert.match(frontmatter.description, NO_FILESYSTEM_TOKEN_SEARCH_PATTERN);
   assert.match(frontmatter.description, GFM_FOOTER_PATTERN);
   assert.match(frontmatter.description, HORIZONTAL_RULE_PATTERN);
   assert.match(frontmatter.description, AI_FOOTER_PATTERN);
