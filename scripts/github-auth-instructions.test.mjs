@@ -14,6 +14,10 @@ const GITHUB_AGENT_PATHS = [
   "agents/security-engineer/AGENTS.md",
   "agents/technical-writer/AGENTS.md",
 ];
+const ORGANIZATION_PROJECT_AGENT_PATHS = new Set([
+  "agents/code-reviewer/AGENTS.md",
+  "agents/micronaut-engineer/AGENTS.md",
+]);
 const GFM_FOOTER_PATTERN = /GitHub-flavored Markdown footer|Markdown footer/i;
 const HORIZONTAL_RULE_PATTERN = /`---` on its own line|`---` plus|^---$/m;
 const BLANK_LINE_PATTERN =
@@ -102,6 +106,23 @@ test("GitHub-capable agents describe authenticated gh CLI fallback behavior", as
       /even when `GITHUB_TOKEN` is available|even when GITHUB_TOKEN is available/i,
       `${relativePath} must not claim the sync plugin tools are available during authenticated gh-based runs.`,
     );
+    if (ORGANIZATION_PROJECT_AGENT_PATHS.has(relativePath)) {
+      assert.match(
+        body,
+        /organization-project lookup|live PR association|project link/i,
+        `${relativePath} must mention organization-project lookup or linking.`,
+      );
+      assert.match(
+        body,
+        /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)/i,
+        `${relativePath} must keep organization-project actions on gh for authenticated runs.`,
+      );
+      assert.match(
+        body,
+        /only unauthenticated Paperclip instances can call the sync plugin agent tools directly/i,
+        `${relativePath} must reserve sync plugin tools for unauthenticated runs.`,
+      );
+    }
     assertDirectGithubFooterPolicy(
       body,
       relativePath,
@@ -125,6 +146,14 @@ test("Shared Micronaut repo operations explain the authenticated GitHub access s
   assert.doesNotMatch(
     markdown,
     /even when `GITHUB_TOKEN` is available|even when GITHUB_TOKEN is available/i,
+  );
+  assert.match(
+    markdown,
+    /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
+  );
+  assert.match(
+    markdown,
+    /only unauthenticated Paperclip instances can call the sync plugin agent tools directly|On unauthenticated deployments, use the agent tools below/i,
   );
   assertDirectGithubFooterPolicy(
     markdown,

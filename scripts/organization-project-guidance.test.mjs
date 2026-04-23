@@ -38,6 +38,7 @@ test("README keeps organization-project linkage advisory instead of blocking", a
 
 test("runtime instructions keep organization-project linkage best effort", async () => {
   const codeReviewer = await readRepoFile("agents/code-reviewer/AGENTS.md");
+  const micronautEngineer = await readRepoFile("agents/micronaut-engineer/AGENTS.md");
   const qualityGates = await readRepoFile("skills/micronaut-quality-gates/SKILL.md");
   const repoOperations = await readRepoFile("skills/micronaut-repo-operations/SKILL.md");
 
@@ -61,6 +62,37 @@ test("runtime instructions keep organization-project linkage best effort", async
     /keep the ambiguity note in the PR summary|make sure the PR description records it/i,
     "Code Reviewer guidance should preserve ambiguity notes instead of dropping the chosen project.",
   );
+  assert.match(
+    codeReviewer,
+    /(?:gh|add_pull_request_to_project)[\s\S]*(?:after PR creation|existing surviving PR|keeping an existing surviving PR|live PR-to-project association)/i,
+    "Code Reviewer guidance should require using live GitHub tooling for newly created and already-existing surviving PRs.",
+  );
+  assert.match(
+    codeReviewer,
+    /instead of only naming it in prose|not a substitute for applying the live PR project link/i,
+    "Code Reviewer guidance should say prose-only organization-project notes are insufficient when the live link can be applied.",
+  );
+  assert.match(
+    codeReviewer,
+    /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
+    "Code Reviewer guidance should keep organization-project lookup and linking on gh for authenticated runs.",
+  );
+
+  assert.match(
+    micronautEngineer,
+    /gh|add_pull_request_to_project/i,
+    "Micronaut Engineer guidance should include live GitHub tooling for PR follow-through repairs.",
+  );
+  assert.match(
+    micronautEngineer,
+    /missing the chosen organization project|wrong one after retargeting|repair the live link|instead of only noting the mismatch in comments/i,
+    "Micronaut Engineer guidance should repair missing or wrong PR project links instead of only commenting on them.",
+  );
+  assert.match(
+    micronautEngineer,
+    /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)/i,
+    "Micronaut Engineer guidance should keep organization-project lookup and linking on gh for authenticated runs.",
+  );
 
   assert.doesNotMatch(
     qualityGates,
@@ -77,6 +109,11 @@ test("runtime instructions keep organization-project linkage best effort", async
     /missing organization-project linkage alone does not block code review approval|does not by itself block a healthy PR/i,
     "Quality gates should state that organization-project linkage is not a blocking gate by itself.",
   );
+  assert.match(
+    qualityGates,
+    /live organization-project association|prose alone is not a substitute|naming the board in prose is not a substitute/i,
+    "Quality gates should distinguish a live PR project association from prose-only notes.",
+  );
 
   assert.doesNotMatch(
     repoOperations,
@@ -92,5 +129,20 @@ test("runtime instructions keep organization-project linkage best effort", async
     repoOperations,
     /record the ambiguity|record that gap and continue|missing linkage due to no matching project or tooling gaps/i,
     "Repo operations should require documentation of project ambiguity or linkage gaps instead of blocking on them.",
+  );
+  assert.match(
+    repoOperations,
+    /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
+    "Repo operations should keep organization-project lookup and linking on gh for authenticated runs.",
+  );
+  assert.match(
+    repoOperations,
+    /not a substitute for the live PR association|instead of only naming the target board in prose/i,
+    "Repo operations should say prose-only organization-project notes are not enough when the link can be applied.",
+  );
+  assert.match(
+    repoOperations,
+    /only unauthenticated Paperclip instances can call the sync plugin agent tools directly|On unauthenticated deployments, use the agent tools below/i,
+    "Repo operations should reserve sync plugin agent tools for unauthenticated runs.",
   );
 });
