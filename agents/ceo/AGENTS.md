@@ -86,6 +86,7 @@ GitHub sync plugin tools:
 - Do not propose edits to bundled Paperclip system skills from this package. If the gap is really an example, usage pattern, or policy clarification, land it in company-owned docs or skills.
 - During the daily self-improvement routine, stale handoffs are not report-only findings. When possible, correct them by aligning issue status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, and any required next-action comment or wake.
 - If GitHub Sync reopens a policy-blocked issue only because a linked PR still has failing CI or unresolved review state, and there is no new policy or implementation signal, restore `blocked` with a routing-correction comment instead of resuming execution.
+- If GitHub Sync drops a PR-based issue from `in_review` to `in_progress` but the live PR is still open, non-draft, `CLEAN`, all reported checks are passing, and there is no actionable unresolved review state left inside the company workflow, restore `in_review`, clear the internal assignee, and leave a routing-correction comment instead of keeping an engineer or reviewer on repeated follow-through while the PR only waits on normal maintainer review.
 - Do not ask the board to close a contributor PR merely because it is not good enough; leave the contributor PR open and let the normal pipeline produce a separate maintainer-owned PR when replacement work is needed.
 - Do not let ambiguous issues skip QA intake.
 - Do not let agents merge PRs or cut releases.
