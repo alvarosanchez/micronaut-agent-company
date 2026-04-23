@@ -25,6 +25,21 @@ const BLANK_LINE_PATTERN =
 const AI_FOOTER_PATTERN = /######\s*✨\s*This message was AI-generated using <exact model id>/i;
 const PLUGIN_AUTO_FOOTER_PATTERN =
   /do not add that footer manually when you use the GitHub sync plugin tools|plugin appends the same footer automatically|plugin appends the footer automatically|plugin appends it automatically/i;
+const KPI_WEBHOOK_ENDPOINT_PATTERN =
+  /record-company-metric-event|\/api\/plugins\/paperclip-github-plugin\/webhooks\/record-company-metric-event/i;
+const KPI_WEBHOOK_METRIC_PATTERN = /pull_request_created/i;
+const KPI_WEBHOOK_AUTH_PATTERN =
+  /authenticated (?:run|runs|deployment|deployments)[\s\S]*(?:gh|gh pr create)|(?:gh|gh pr create)[\s\S]*authenticated/i;
+const KPI_WEBHOOK_PLUGIN_EXCEPTION_PATTERN =
+  /create_pull_request[\s\S]*(?:records?|recording|automatically)|do not (?:send|post|call)[\s\S]*create_pull_request/i;
+const KPI_WEBHOOK_SCOPE_PATTERN =
+  /do not (?:send|post|call)[\s\S]*(?:PR edits|comments|review replies|merges)|comments, review replies, or merges/i;
+const KPI_WEBHOOK_REASON_PATTERN =
+  /GitHub alone cannot attribute|cannot attribute those PRs to Paperclip work|cannot attribute that PR to Paperclip work|cannot tell which pull requests came from a Paperclip company/i;
+const KPI_WEBHOOK_AGENT_PATHS = [
+  "agents/ceo/AGENTS.md",
+  "agents/code-reviewer/AGENTS.md",
+];
 
 function assertDirectGithubFooterPolicy(markdown, label) {
   assert.match(
@@ -51,6 +66,39 @@ function assertDirectGithubFooterPolicy(markdown, label) {
     markdown,
     PLUGIN_AUTO_FOOTER_PATTERN,
     `${label} must explain that GitHub sync plugin tools append the footer automatically.`,
+  );
+}
+
+function assertPullRequestMetricWebhookPolicy(markdown, label) {
+  assert.match(
+    markdown,
+    KPI_WEBHOOK_ENDPOINT_PATTERN,
+    `${label} must mention the company metric webhook endpoint.`,
+  );
+  assert.match(
+    markdown,
+    KPI_WEBHOOK_METRIC_PATTERN,
+    `${label} must mention the pull_request_created metric.`,
+  );
+  assert.match(
+    markdown,
+    KPI_WEBHOOK_AUTH_PATTERN,
+    `${label} must tie the webhook to authenticated gh-based PR creation.`,
+  );
+  assert.match(
+    markdown,
+    KPI_WEBHOOK_PLUGIN_EXCEPTION_PATTERN,
+    `${label} must explain that create_pull_request already records the metric.`,
+  );
+  assert.match(
+    markdown,
+    KPI_WEBHOOK_SCOPE_PATTERN,
+    `${label} must limit the webhook to PR creation rather than edits, comments, review replies, or merges.`,
+  );
+  assert.match(
+    markdown,
+    KPI_WEBHOOK_REASON_PATTERN,
+    `${label} must explain why GitHub-side PR creation needs explicit Paperclip attribution.`,
   );
 }
 
@@ -170,6 +218,28 @@ test("README documents the direct GitHub footer rule and plugin exception", asyn
   assert.match(markdown, /GITHUB_TOKEN/);
   assert.match(markdown, /\bgh\b.*GitHub|GitHub.*\bgh\b/i);
   assertDirectGithubFooterPolicy(markdown, "README.md");
+  assertPullRequestMetricWebhookPolicy(markdown, "README.md");
+});
+
+test("Shared Micronaut repo operations explain PR KPI webhook attribution", async () => {
+  const markdown = await readFile(
+    new URL("../skills/micronaut-repo-operations/SKILL.md", import.meta.url),
+    "utf8",
+  );
+
+  assertPullRequestMetricWebhookPolicy(
+    markdown,
+    "skills/micronaut-repo-operations/SKILL.md",
+  );
+});
+
+test("PR-creating agents explain the authenticated PR KPI webhook rule", async () => {
+  for (const relativePath of KPI_WEBHOOK_AGENT_PATHS) {
+    const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
+    const { body } = parseFrontmatter(markdown);
+
+    assertPullRequestMetricWebhookPolicy(body, relativePath);
+  }
 });
 
 test("Local gh-cli skill points to the requested upstream skill", async () => {

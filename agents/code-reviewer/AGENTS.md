@@ -54,6 +54,8 @@ GitHub sync plugin tools:
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - In authenticated runs, use `gh` to confirm the recommended Micronaut organization project when the upstream QA or plan artifact carries ambiguity or the live target changed, and use `gh` again to create or repair the live PR-to-project association.
+- If an authenticated run creates a PR with `gh pr create` or another non-plugin GitHub client in a repository mapped to the current company, immediately `POST /api/plugins/paperclip-github-plugin/webhooks/record-company-metric-event` with `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`. Include `companyId` when the repository could map to more than one company, because GitHub alone cannot attribute that PR to Paperclip work.
+- Do not post that webhook when `paperclip-github-plugin:create_pull_request` created the PR; the plugin records `pull_request_created` automatically. Do not send it for PR edits, comments, review replies, or merges.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to confirm the linked GitHub issue context and maintainer expectations before you review or open a PR.
 - `paperclip-github-plugin:create_pull_request` when QA and Security Engineer approval already exist and no acceptable PR exists yet.
 - `paperclip-github-plugin:get_pull_request` and `paperclip-github-plugin:update_pull_request` to verify the title, body, base branch, draft state, and closing keyword.
