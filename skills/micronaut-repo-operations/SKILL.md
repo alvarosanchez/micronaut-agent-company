@@ -111,10 +111,10 @@ Authenticated deployment rule:
 - On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association, even when an equivalent GitHub sync plugin tool exists.
 - Only unauthenticated Paperclip instances can call the sync plugin agent tools directly. Authenticated runs should not expect those tools to be callable, even when the sync plugin propagated `GITHUB_TOKEN`.
 - When an authenticated run creates a PR with `gh` or another non-plugin GitHub client in a repository mapped to the current company, immediately `POST /api/plugins/paperclip-github-plugin/webhooks/record-company-metric-event` with `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`. Include `companyId` when the repository could map to more than one company.
-- Sign that request with the same company `GITHUB_TOKEN`: send `x-paperclip-github-sync-timestamp` and `x-paperclip-github-sync-signature`, where the signature is `sha256=<hex-hmac>` over `${timestamp}.${rawBody}` using the exact JSON payload string sent as `rawBody`.
+- Authenticate that request with `Authorization: Bearer ${PAPERCLIP_API_KEY}`. The plugin validates the token through `GET /api/agents/me`, so the token must still be valid for the current run and belong to the target company.
 - Do not send that webhook when `paperclip-github-plugin:create_pull_request` created the PR; the plugin records `pull_request_created` automatically. Do not send it for PR edits, comments, review replies, or merges.
 - This webhook exists because authenticated deployments currently cannot call the plugin tools directly, and GitHub alone cannot attribute those PRs to Paperclip work.
-- This metric endpoint is a plugin webhook, not a plugin-tool call, so agents do not need to add an agent JWT or board-session header just for this request.
+- `PAPERCLIP_API_KEY` is already present in authenticated agent runs; do not try to sign this webhook with `GITHUB_TOKEN`.
 - When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - On unauthenticated deployments, use the agent tools below for GitHub operations they cover, including organization-project lookup and PR-to-project association.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append the same footer automatically.
@@ -125,25 +125,10 @@ Example authenticated KPI attribution call:
 
 ```bash
 payload='{"metric":"pull_request_created","repository":"owner/repo","pullRequestNumber":123}'
-timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-signature="$(
-  PAYLOAD="${payload}" TIMESTAMP="${timestamp}" node --input-type=module -e '
-    import { createHmac } from "node:crypto";
-
-    const payload = process.env.PAYLOAD ?? "";
-    const timestamp = process.env.TIMESTAMP ?? "";
-    const token = process.env.GITHUB_TOKEN ?? "";
-
-    process.stdout.write(
-      "sha256=" + createHmac("sha256", token).update(timestamp + "." + payload).digest("hex"),
-    );
-  '
-)"
 
 curl -fsS -X POST "${PAPERCLIP_API_URL%/}/api/plugins/paperclip-github-plugin/webhooks/record-company-metric-event" \
   -H "content-type: application/json" \
-  -H "x-paperclip-github-sync-timestamp: ${timestamp}" \
-  -H "x-paperclip-github-sync-signature: ${signature}" \
+  -H "authorization: Bearer ${PAPERCLIP_API_KEY}" \
   -d "${payload}"
 ```
 
