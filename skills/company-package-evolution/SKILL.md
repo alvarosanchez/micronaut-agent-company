@@ -13,11 +13,12 @@ Pick the smallest surface that solves the problem:
 
 - If the learning is local to one Paperclip company instance, one maintainer group, or one temporary operating condition, keep it additive in extension instructions or `.company-runtime/` overlays.
 - If the learning belongs to a managed Micronaut repository as a product artifact, update that repository's `AGENTS.md` guidance and keep this company package unchanged.
+- If the root cause clearly lives in a company-owned upstream dependency, such as `alvarosanchez/paperclip-github-plugin`, fix that upstream project directly instead of layering more package prose on top of it.
 - If the gap is about how to use a bundled Paperclip system skill such as `paperclip`, `paperclip-create-agent`, `paperclip-create-plugin`, or `para-memory-files`, do not propose editing that bundled skill from this package. Add company-owned guidance, examples, or a companion skill here instead.
 - If the gap is best solved by a reusable external skill or a live company-skill installation, prefer the company skill library and agent skill assignment model over copying ad hoc instructions into package core.
 - If the learning should improve the default behavior of future imports of this company, promote it into the package core with a PR to `https://github.com/alvarosanchez/micronaut-agent-company`.
 
-Portable package defaults should help most future imports, not just the current local runtime.
+Portable package defaults should help most future imports, not just the current local runtime, and root-cause fixes should land in the owning upstream when that owner is outside the package repo.
 
 ## Package-Core PR Path
 
@@ -32,6 +33,14 @@ When the change belongs in the package core:
 - create or update a PR to `https://github.com/alvarosanchez/micronaut-agent-company`
 - if the required linked board approval already exists and is approved, implement the change in the same run instead of stopping at a proposal
 - leave merge and release decisions to humans
+
+When the change belongs in a company-owned upstream dependency:
+
+- work in a clone of that upstream repository
+- make the smallest root-cause fix there instead of encoding the workaround as package guidance
+- update this package only when future imports also need a durable instruction or routing change in addition to the upstream fix
+- run the relevant tests for that upstream repository when the environment supports it
+- create or update the upstream PR in the same run when the required approval already exists
 
 ## When The Repo Or PR Path Is Unavailable
 
@@ -52,3 +61,9 @@ When you propose or send a package-core change, explain:
 - what verification you ran
 - any compatibility or migration risk
 - whether `.company-runtime/` is relevant here; when you mention it, explain plainly that it is an optional local sidecar folder outside the published package
+
+When you send an upstream dependency fix from the CEO routine, explain:
+
+- why the root cause belongs in that upstream project instead of this package
+- whether the package still needed any companion guidance change
+- what verification you ran in the upstream repository
