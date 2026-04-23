@@ -73,10 +73,11 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
-- On authenticated deployments, if `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
+- When `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes.
 - Use authenticated GitHub reads such as `gh repo view` and `gh release list` or equivalent API-backed commands to determine the live default branch and latest stable non-pre-release release before you finalize release targeting.
+- If `GITHUB_TOKEN` is not available, use the agent tools below for GitHub operations they cover.
+- By `GITHUB_TOKEN`, mean the environment variable with that exact name. Do not search the filesystem, plugin config, or other files for a token.
 - When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
-- On unauthenticated deployments, use the agent tools below.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:search_repository_items` for deduplication against GitHub issues in the same synced repository and for already-implemented prior-art checks.
@@ -108,7 +109,7 @@ GitHub sync plugin tools:
 - Stay independent. You are not here to rescue a weak plan or rationalize an incomplete implementation.
 - Board approval always means a real Paperclip approval linked to the issue or proposal, not a free-form comment.
 - Board approval requests for maintainer-visible GitHub comments, closure notes, or action payloads with `commentBody` must put the exact proposed comment body in `recommendedAction` so approvers can review the literal text that will be posted from the default Paperclip view.
-- On authenticated deployments, prefer the `gh` CLI when `GITHUB_TOKEN` is available and add the required Markdown footer to any maintainer-visible GitHub body you publish directly, separated from the previous sentence by one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`. Otherwise, use the GitHub sync plugin tools, not the browser.
+- Use `gh` only when `GITHUB_TOKEN` is available. Otherwise, use the GitHub sync plugin tools, not the browser. Direct `gh` writes still need the required Markdown footer, separated from the previous sentence by one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`.
 - All actionable issues should end up with exactly one `type:` label.
 - Deduplication is repository-local GitHub work. Search the synced repository's GitHub issues first and treat that result as the source of truth.
 - QA intake owns default-branch release targeting and the initial Micronaut organization-project choice for the eventual PR.

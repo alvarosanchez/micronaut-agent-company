@@ -33,6 +33,7 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - The installed `paperclipai@2026.416.0` runtime in this package still exposes `approvalsNeeded: 1` for execution stages, so do not rely on a single multi-participant stage for unanimous sign-off. If all listed reviewers must approve in order, model that as separate sequential stages.
 - Paperclip also has a separate generic approvals system for linked board approvals. Those approvals have their own lifecycle (`pending`, `approved`, `rejected`, revision request, and resubmission) and can wake the requester when they are resolved.
 - If GitHub Sync reopens a policy-blocked issue only because a linked PR still has failing CI or unresolved review state, and there is no new policy or implementation signal, restore `blocked` with a routing-correction comment instead of resuming execution.
+- If GitHub Sync drops a PR-based issue from `in_review` to `in_progress` but the live PR is still open, non-draft, `CLEAN`, all reported checks are passing, and there is no actionable unresolved review state left inside the company workflow, restore `in_review`, clear the internal assignee, and leave a routing-correction comment instead of keeping an engineer or reviewer on repeated follow-through while the PR only waits on normal maintainer review.
 
 ## Execution-Semantics Guardrails
 
@@ -106,15 +107,15 @@ Example keyed-document flow:
 
 These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin capability `agent.tools.register`. Use the exact runtime tool IDs below. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 
-Authenticated deployment rule:
+`GITHUB_TOKEN` GitHub access rule:
 
-- On authenticated deployments, if `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association, even when an equivalent GitHub sync plugin tool exists.
-- Only unauthenticated Paperclip instances can call the sync plugin agent tools directly. Authenticated runs should not expect those tools to be callable, even when the sync plugin propagated `GITHUB_TOKEN`.
+- When `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association, even when an equivalent GitHub sync plugin tool exists.
+- If `GITHUB_TOKEN` is not available, use the agent tools below for GitHub operations they cover, including organization-project lookup and PR-to-project association.
+- By `GITHUB_TOKEN`, mean the environment variable with that exact name. Do not search the filesystem, plugin config, or other files for a token.
 - When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
-- On unauthenticated deployments, use the agent tools below for GitHub operations they cover, including organization-project lookup and PR-to-project association.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append the same footer automatically.
-- Treat the plugin tool list below as the preferred surface for unauthenticated or `paperclipIssueId`-dependent flows.
-- Any later `do not use gh` boundary in this skill applies only to those unauthenticated or `paperclipIssueId`-dependent flows; it does not override the authenticated `GITHUB_TOKEN` preference above.
+- Treat the plugin tool list below as the required surface for no-`GITHUB_TOKEN` GitHub work.
+- Any later `do not use gh` boundary in this skill applies when `GITHUB_TOKEN` is not available; it does not override the `GITHUB_TOKEN` preference above.
 
 - `paperclip-github-plugin:search_repository_items`: repository-scoped GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup
 - `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`: GitHub issue reads, metadata updates, and maintainer-facing issue comments
@@ -302,10 +303,10 @@ Important usage rules:
 - Provide `repository` only when the plugin cannot infer it; the repository may be omitted when the current Paperclip project has exactly one mapped repository.
 - Use `paperclip-github-plugin:update_issue` for labels, assignees, state, body, title, and milestone changes.
 - Use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
-- In authenticated runs, use `gh` for Micronaut organization-project lookup and live PR association because the sync plugin agent tools are unavailable there.
-- In unauthenticated runs, use `paperclip-github-plugin:list_organization_projects` during QA intake, or later verification when the upstream facts changed, to identify the best-fit Micronaut organization project for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`).
-- In unauthenticated runs, use `paperclip-github-plugin:add_pull_request_to_project` after PR creation, when adopting an already-open surviving PR, or after retargeting when the chosen release board changed, so the live PR is linked to the recommended organization project chosen during QA intake or any explicitly revised upstream decision.
-- Naming the chosen organization project in a Paperclip artifact, GitHub comment, or PR description is not a substitute for the live PR association when the authenticated `gh` flow or unauthenticated plugin tooling can apply it.
+- When `GITHUB_TOKEN` is available, use `gh` for Micronaut organization-project lookup and live PR association.
+- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:list_organization_projects` during QA intake, or later verification when the upstream facts changed, to identify the best-fit Micronaut organization project for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`).
+- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:add_pull_request_to_project` after PR creation, when adopting an already-open surviving PR, or after retargeting when the chosen release board changed, so the live PR is linked to the recommended organization project chosen during QA intake or any explicitly revised upstream decision.
+- Naming the chosen organization project in a Paperclip artifact, GitHub comment, or PR description is not a substitute for the live PR association when the `gh` flow or no-`GITHUB_TOKEN` plugin tooling can apply it.
 - For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the same Markdown footer automatically.
 - Do not silently resolve review threads. Reply first with the decision, such as committed the requested change, not applicable, or disagreement with the feedback, and resolve the thread only after that reply when the thread is settled.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
@@ -313,9 +314,9 @@ Important usage rules:
 ## Tool Boundaries
 
 - Use the local git CLI for all git operations: branch creation, commits, rebases, cherry-picks, and pushes.
-- Use `gh` for GitHub operations on authenticated runs, including organization-project lookup and PR-to-project association, because the sync plugin agent tools are unavailable there.
-- Use the sync plugin agent tools for GitHub operations in unauthenticated runs and in any `paperclipIssueId`-dependent flow: deduplication search, issue reads and updates, GitHub comments, PR creation and updates, changed-file inspection, CI inspection, review-thread work, and reviewer requests.
-- Do not use `gh`, direct GitHub browser edits, or ad hoc scripts when the sync plugin tools cover the operation in those unauthenticated or `paperclipIssueId`-dependent flows.
+- Use `gh` for GitHub operations when `GITHUB_TOKEN` is available, including organization-project lookup and PR-to-project association.
+- Use the sync plugin agent tools for GitHub operations when `GITHUB_TOKEN` is not available: deduplication search, issue reads and updates, GitHub comments, PR creation and updates, changed-file inspection, CI inspection, review-thread work, and reviewer requests.
+- Do not use `gh`, direct GitHub browser edits, or ad hoc scripts when `GITHUB_TOKEN` is not available and the sync plugin tools cover the operation.
 - If the available sync plugin tool surface does not support linking a PR to the recommended Micronaut organization project, record that tooling limitation in the stage artifact or PR summary and continue; do not escalate solely for that reason.
 
 ## PR Rules
@@ -326,7 +327,7 @@ Important usage rules:
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
 - Every PR should be linked to the Micronaut organization project chosen during QA intake, representing the best-fit Micronaut Platform release that can first consume the repository's next module release.
-- When the chosen project exists and GitHub tooling can apply it, agents should create the live PR-to-project association with `gh` on authenticated runs or `paperclip-github-plugin:add_pull_request_to_project` on unauthenticated runs instead of only restating the intended board in prose.
+- When the chosen project exists and GitHub tooling can apply it, agents should create the live PR-to-project association with `gh` when `GITHUB_TOKEN` is available or `paperclip-github-plugin:add_pull_request_to_project` otherwise instead of only restating the intended board in prose.
 - If that chosen project carried ambiguity, repeat the ambiguity in the PR description instead of dropping the project link.
 - `code-reviewer` applies the project named earlier by QA intake unless an upstream artifact explicitly revised it.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, replies to every review thread with a decision explanation, and only then resolves settled threads.
