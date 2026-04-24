@@ -16,7 +16,8 @@ Check at least these points:
 - `Daily CEO Self-Improvement` exists as an active routine owned by `ceo`
 - the imported package still matches the intended workflow around native execution-policy routing, reviewer wake fallbacks, and linked approvals
 - when repo work depends on services or jobs, the live project workspace or execution workspace configuration is intentionally operator-owned instead of being assumed to come from this package
-- operator-selected live company name, description, and issue prefix are allowed unless they break routing or governance
+- operator-selected live company names, descriptions, and issue prefixes are valid import choices as long as they do not break routing, governance visibility, or package-owned entity mapping
+- references to `.paperclip.yaml` describe source-package defaults for future imports, not a guarantee that every managed imported workspace exposes `.paperclip.yaml` locally
 
 Produce one verification report.
 

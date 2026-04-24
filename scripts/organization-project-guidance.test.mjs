@@ -74,8 +74,8 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     codeReviewer,
-    /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
-    "Code Reviewer guidance should keep organization-project lookup and linking on gh for authenticated runs.",
+    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)|`?GITHUB_TOKEN`?-backed runs[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
+    "Code Reviewer guidance should keep organization-project lookup and linking on gh when GITHUB_TOKEN is available.",
   );
 
   assert.match(
@@ -90,8 +90,8 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     micronautEngineer,
-    /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)/i,
-    "Micronaut Engineer guidance should keep organization-project lookup and linking on gh for authenticated runs.",
+    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)|`?GITHUB_TOKEN`?-backed runs[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)/i,
+    "Micronaut Engineer guidance should keep organization-project lookup and linking on gh when GITHUB_TOKEN is available.",
   );
 
   assert.doesNotMatch(
@@ -132,8 +132,8 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     repoOperations,
-    /authenticated deployments[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
-    "Repo operations should keep organization-project lookup and linking on gh for authenticated runs.",
+    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)|`?GITHUB_TOKEN`?-backed runs[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
+    "Repo operations should keep organization-project lookup and linking on gh when GITHUB_TOKEN is available.",
   );
   assert.match(
     repoOperations,
@@ -142,7 +142,7 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     repoOperations,
-    /only unauthenticated Paperclip instances can call the sync plugin agent tools directly|On unauthenticated deployments, use the agent tools below/i,
-    "Repo operations should reserve sync plugin agent tools for unauthenticated runs.",
+    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available[\s\S]*(list_organization_projects|add_pull_request_to_project|organization-project lookup|PR-to-project association)/i,
+    "Repo operations should reserve sync plugin agent tools for runs without GITHUB_TOKEN.",
   );
 });

@@ -1,7 +1,7 @@
 {
   "name": "micronaut-agent-company",
-  "version": "1.2.5",
-  "nextVersion": "1.2.6",
+  "version": "1.2.7",
+  "nextVersion": "1.2.8",
   "private": true,
   "description": "Paperclip company package for Micronaut inbox-zero maintenance.",
   "license": "MIT",
