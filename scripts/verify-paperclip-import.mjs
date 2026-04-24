@@ -89,6 +89,10 @@ const APPROVAL_LINKAGE_VERIFICATION_PATTERN =
   /approvals\/\{approvalId\}\/issues[\s\S]{0,320}(?:issue\.linkedApprovalIds|linkedApprovalIds)|(?:issue\.linkedApprovalIds|linkedApprovalIds)[\s\S]{0,320}approvals\/\{approvalId\}\/issues/i;
 const POLICY_BLOCKED_REOPEN_PATTERN =
   /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}policy-blocked[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment|policy-blocked[\s\S]{0,500}GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment/i;
+const LIVE_INSTANCE_TEMPLATE_IDENTITY_PATTERN =
+  /operator-selected live company names?, descriptions?, and issue prefixes? are valid import choices[\s\S]{0,240}(?:routing|governance visibility|package-owned entity mapping)|(?:routing|governance visibility|package-owned entity mapping)[\s\S]{0,240}operator-selected live company names?, descriptions?, and issue prefixes? are valid import choices/i;
+const SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN =
+  /references to `?\.paperclip\.yaml`? describe source-package defaults for future imports[\s\S]{0,240}(?:not a guarantee that every managed imported workspace exposes `?\.paperclip\.yaml`? locally)|(?:managed imported workspace exposes `?\.paperclip\.yaml`? locally)[\s\S]{0,240}references to `?\.paperclip\.yaml`? describe source-package defaults for future imports/i;
 const ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN =
   /already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval[\s\S]*\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b|\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b[\s\S]*already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval/i;
 const GITHUB_NOT_PLANNED_CLOSE_PATTERN =
@@ -111,6 +115,18 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "README.md",
     pattern: /heartbeat\/invoke/,
     message: "README.md must document explicit reviewer wakeups through the Paperclip heartbeat invoke API.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: LIVE_INSTANCE_TEMPLATE_IDENTITY_PATTERN,
+    message:
+      "README.md must explain that operator-selected live company names, descriptions, and issue prefixes are valid import choices.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN,
+    message:
+      "README.md must explain that `.paperclip.yaml` references describe source-package defaults rather than required live-instance files.",
   },
   {
     relativePath: "README.md",
@@ -268,10 +284,34 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "COMPANY.md",
+    pattern: LIVE_INSTANCE_TEMPLATE_IDENTITY_PATTERN,
+    message:
+      "COMPANY.md must explain that operator-selected live company names, descriptions, and issue prefixes are valid import choices.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN,
+    message:
+      "COMPANY.md must explain that `.paperclip.yaml` references describe source-package defaults rather than required live-instance files.",
+  },
+  {
+    relativePath: "COMPANY.md",
     pattern:
       /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
     message:
       "COMPANY.md must explain that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
+  },
+  {
+    relativePath: "tasks/verify-imported-company-instance/TASK.md",
+    pattern: LIVE_INSTANCE_TEMPLATE_IDENTITY_PATTERN,
+    message:
+      "Bootstrap verification must explain that operator-selected live company names, descriptions, and issue prefixes are valid import choices.",
+  },
+  {
+    relativePath: "tasks/verify-imported-company-instance/TASK.md",
+    pattern: SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN,
+    message:
+      "Bootstrap verification must explain that `.paperclip.yaml` references describe source-package defaults rather than required live-instance files.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -300,6 +340,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
     message:
       "Architect instructions must preserve the rule that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
+  },
+  {
+    relativePath: "agents/architect/AGENTS.md",
+    pattern: SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN,
+    message:
+      "Architect instructions must explain that `.paperclip.yaml` references describe source-package defaults rather than required live-instance files.",
   },
   {
     relativePath: "agents/architect/AGENTS.md",
