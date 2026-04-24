@@ -112,10 +112,27 @@ These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin cap
 - When `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association, even when an equivalent GitHub sync plugin tool exists.
 - If `GITHUB_TOKEN` is not available, use the agent tools below for GitHub operations they cover, including organization-project lookup and PR-to-project association.
 - By `GITHUB_TOKEN`, mean the environment variable with that exact name. Do not search the filesystem, plugin config, or other files for a token.
+- When an authenticated run creates a PR with `gh` or another non-plugin GitHub client in a repository mapped to the current company, immediately `POST /api/plugins/paperclip-github-plugin/webhooks/record-company-metric-event` with `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`. Include `companyId` when the repository could map to more than one company.
+- Authenticate that request with `Authorization: Bearer ${PAPERCLIP_API_KEY}`. The plugin validates the token through `GET /api/agents/me`, so the token must still be valid for the current run and belong to the target company.
+- This metric endpoint is a plugin webhook, not a plugin-tool call, so do not add a board-session header or any extra JWT beyond that bearer token.
+- Do not send that webhook when `paperclip-github-plugin:create_pull_request` created the PR; the plugin records `pull_request_created` automatically. Do not send it for PR edits, comments, review replies, or merges.
+- This webhook exists because authenticated runs currently create those PRs through `gh`, and GitHub alone cannot attribute those PRs to Paperclip work.
+- `PAPERCLIP_API_KEY` is already present in authenticated agent runs; do not try to sign this webhook with `GITHUB_TOKEN`.
 - When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append the same footer automatically.
 - Treat the plugin tool list below as the required surface for no-`GITHUB_TOKEN` GitHub work.
 - Any later `do not use gh` boundary in this skill applies when `GITHUB_TOKEN` is not available; it does not override the `GITHUB_TOKEN` preference above.
+
+Example authenticated KPI attribution call:
+
+```bash
+payload='{"metric":"pull_request_created","repository":"owner/repo","pullRequestNumber":123}'
+
+curl -fsS -X POST "${PAPERCLIP_API_URL%/}/api/plugins/paperclip-github-plugin/webhooks/record-company-metric-event" \
+  -H "content-type: application/json" \
+  -H "authorization: Bearer ${PAPERCLIP_API_KEY}" \
+  -d "${payload}"
+```
 
 - `paperclip-github-plugin:search_repository_items`: repository-scoped GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup
 - `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`: GitHub issue reads, metadata updates, and maintainer-facing issue comments
@@ -307,6 +324,7 @@ Important usage rules:
 - If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:list_organization_projects` during QA intake, or later verification when the upstream facts changed, to identify the best-fit Micronaut organization project for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`).
 - If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:add_pull_request_to_project` after PR creation, when adopting an already-open surviving PR, or after retargeting when the chosen release board changed, so the live PR is linked to the recommended organization project chosen during QA intake or any explicitly revised upstream decision.
 - Naming the chosen organization project in a Paperclip artifact, GitHub comment, or PR description is not a substitute for the live PR association when the `gh` flow or no-`GITHUB_TOKEN` plugin tooling can apply it.
+- In `GITHUB_TOKEN`-backed runs, if `gh` or another non-plugin GitHub client created the PR in a repository mapped to the current company, send the metric webhook immediately after creation using the bearer-token pattern above so the KPI dashboard can attribute that `pull_request_created` event to Paperclip work.
 - For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.4`. The plugin appends the same Markdown footer automatically.
 - Do not silently resolve review threads. Reply first with the decision, such as committed the requested change, not applicable, or disagreement with the feedback, and resolve the thread only after that reply when the thread is settled.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
@@ -317,6 +335,7 @@ Important usage rules:
 - Use `gh` for GitHub operations when `GITHUB_TOKEN` is available, including organization-project lookup and PR-to-project association.
 - Use the sync plugin agent tools for GitHub operations when `GITHUB_TOKEN` is not available: deduplication search, issue reads and updates, GitHub comments, PR creation and updates, changed-file inspection, CI inspection, review-thread work, and reviewer requests.
 - Do not use `gh`, direct GitHub browser edits, or ad hoc scripts when `GITHUB_TOKEN` is not available and the sync plugin tools cover the operation.
+- In `GITHUB_TOKEN`-backed runs, use the company metric webhook only for PR creation that happened outside `paperclip-github-plugin:create_pull_request`; never send it for PR edits, comments, review replies, or merges.
 - If the available sync plugin tool surface does not support linking a PR to the recommended Micronaut organization project, record that tooling limitation in the stage artifact or PR summary and continue; do not escalate solely for that reason.
 
 ## PR Rules
