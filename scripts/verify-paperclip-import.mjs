@@ -628,6 +628,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "Micronaut Engineer instructions must explain that `reply_to_review_thread` is used before `resolve_review_thread` and silent resolves are not allowed.",
   },
   {
+    relativePath: "agents/micronaut-engineer/AGENTS.md",
+    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    message:
+      "Micronaut Engineer instructions must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
+  },
+  {
     relativePath: "agents/technical-writer/AGENTS.md",
     pattern: REVIEW_THREAD_REPLY_TOOLING_PATTERN,
     message:

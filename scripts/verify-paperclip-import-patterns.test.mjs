@@ -82,6 +82,10 @@ test("verification rules require decision-explaining replies on review threads",
   );
   assert.match(
     source,
+    /Micronaut Engineer instructions must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment\./,
+  );
+  assert.match(
+    source,
     /Technical Writer instructions must explain that docs review threads get a decision-explaining reply before they are resolved\./,
   );
   assert.match(
