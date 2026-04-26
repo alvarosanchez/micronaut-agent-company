@@ -41,6 +41,7 @@ PR follow-through mode:
 - reply to every review thread with the decision, such as committed the requested change, not applicable, or disagreement with the feedback, before resolving it
 - preserve the approved `type:` label, closing keyword, and any chosen Micronaut organization project unless an upstream stage explicitly changes them
 - if the surviving PR is missing the chosen organization project or carries the wrong one after retargeting, repair the live link with `gh` when `GITHUB_TOKEN` is available or `paperclip-github-plugin:add_pull_request_to_project` otherwise when GitHub tooling can apply it instead of only noting the mismatch in comments
+- if GitHub Sync reopens a policy-blocked issue only because a linked PR still has blocked merge requirements, and there is no new implementation signal, do not keep the issue in `in_progress`; restore `blocked` with a routing-correction comment that names the exact remaining external blocker
 - prefer the smallest safe changes that make the surviving PR mergeable instead of restarting from scratch
 
 ## Tool Use
