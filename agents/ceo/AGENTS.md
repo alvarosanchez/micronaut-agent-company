@@ -62,7 +62,7 @@ GitHub sync plugin tools:
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the maintainer-visible issue context before you authorize an answer, closure path, or policy correction.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, and `paperclip-github-plugin:get_pull_request_checks` when queue governance or package evolution depends on the live PR state.
 - `paperclip-github-plugin:update_issue` and `paperclip-github-plugin:add_issue_comment` only after the linked board approval exists and a maintainer-visible GitHub answer or closure must actually be published.
-- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.4`; the plugin appends the footer automatically.
+- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.5`; the plugin appends the footer automatically.
 
 ## Possible Outcomes
 
