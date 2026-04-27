@@ -61,6 +61,7 @@ Environment:
 }
 
 function parseArgs(argv) {
+  const npmFlag = (name) => process.env[`npm_config_${name}`] === "true";
   const opts = {
     dataDir: DEFAULT_DATA_DIR,
     port: Number(process.env.PAPERCLIP_LOCAL_PORT || DEFAULT_PORT),
@@ -74,10 +75,10 @@ function parseArgs(argv) {
     agentCompaniesPluginPackage: DEFAULT_AGENT_COMPANIES_PLUGIN_PACKAGE,
     githubPluginPackage: DEFAULT_GITHUB_PLUGIN_PACKAGE,
     micronautPluginPackage: DEFAULT_MICRONAUT_PLUGIN_PACKAGE,
-    reset: false,
-    reuse: false,
-    stopAfterSetup: false,
-    openDashboard: true,
+    reset: npmFlag("reset"),
+    reuse: npmFlag("reuse"),
+    stopAfterSetup: npmFlag("stop_after_setup"),
+    openDashboard: process.env.npm_config_open !== "false" && !npmFlag("no_open"),
     help: false,
   };
 

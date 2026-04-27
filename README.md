@@ -22,6 +22,8 @@ npm run setup:local-paperclip -- --reset
 
 By default the script uses `.paperclip-local/`, `paperclipai@latest`, the latest plugin packages from npm, a clean staged copy of the current checkout's tracked/unignored files as the Agent Companies source, and the current `git origin` repository as the GitHub Sync mapping. It writes a local Paperclip config directly and starts `paperclipai run`, so Paperclip's onboarding page is not opened. Override the imported source with `--company-source <path|repo>` or `PAPERCLIP_LOCAL_COMPANY_SOURCE`, and override the GitHub Sync mapping with `--repo owner/repo` or `PAPERCLIP_LOCAL_REPO=owner/repo`. If `GITHUB_TOKEN` or `PAPERCLIP_GITHUB_TOKEN` is set, the script writes GitHub Sync's worker-local fallback token config into the isolated Paperclip data dir so manual sync can run without pasting a token into the UI. Use `--no-open` when you want setup to finish without opening the dashboard.
 
+Pass script options after npm's `--` separator when possible. The script also honors npm-consumed flags such as `npm run setup:local-paperclip --reset`, but npm will print its own warning before the script starts.
+
 ## Runtime Defaults
 
 All agents are configured to use `codex_local` with `gpt-5.5` and live web search enabled.
