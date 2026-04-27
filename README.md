@@ -14,6 +14,14 @@ Import the company package into Paperclip directly from GitHub:
 npx paperclipai company import https://github.com/alvarosanchez/micronaut-agent-company
 ```
 
+For a disposable local instance that imports this package, installs the latest `paperclip-github-plugin` and `paperclip-micronaut-plugin`, and registers this repository in GitHub Sync:
+
+```bash
+npm run setup:local-paperclip -- --reset
+```
+
+By default the script uses `.paperclip-local/`, `paperclipai@latest`, the latest plugin packages from npm, and the current `git origin` repository. Override the mapping with `--repo owner/repo` or `PAPERCLIP_LOCAL_REPO=owner/repo`. If `GITHUB_TOKEN` or `PAPERCLIP_GITHUB_TOKEN` is set, the script writes GitHub Sync's worker-local fallback token config into the isolated Paperclip data dir so manual sync can run without pasting a token into the UI.
+
 ## Runtime Defaults
 
 All agents are configured to use `codex_local` with `gpt-5.5` and live web search enabled.
