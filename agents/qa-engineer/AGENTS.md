@@ -39,8 +39,8 @@ Intake mode:
 - treat GitHub prereleases, including milestones (`-M<number>`) and release candidates (`-RC<number>`), as early-testing releases that do not count as the default branch having already shipped
 - trust the repository's actual current default branch instead of inventing an alternate target branch during triage
 - if the issue's SemVer impact does not fit the current default branch, record that mismatch explicitly and route the issue through planning or governance instead of pretending a non-default branch already exists
-- choose the recommended Micronaut organization project for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`) based on the repository's next release and the earliest Micronaut Platform release that can consume it
-- if that organization-project choice is ambiguous, still choose the best-fit project and record the ambiguity so later stages can repeat it in the PR description
+- choose the recommended Micronaut organization project set for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`) based on the repository's next release and the earliest Micronaut Platform release that can consume it; if a GA release target has both milestone or release candidate boards and a GA release board open for the same version, select all matching projects, such as both `5.0.0-M3` and `5.0.0 Release` for a `5.0.0` target
+- if that organization-project choice is ambiguous, still choose and keep the best-fit project set and record the ambiguity so later stages can repeat it in the eventual PR description
 - for bugs, create or verify the reproducer
 - if a bug stays unreproduced after checking the reported versions and current repo behavior, record the exact non-reproducer evidence, post a detailed, evidence-rich closure comment with the exact non-reproducer steps, versions, and observed results, label the issue `closed: cannot reproduce`, and close it with GitHub's native `Close as not planned` reason instead of `Close as completed`; do not treat intake as an implementation blocker
 - if the issue is a clear duplicate, close it with `closed: duplicate`, GitHub's native `Close as duplicate` reason, a detailed, evidence-rich closure comment that explains why the superseding issue fully covers the report, and a link to the superseding GitHub issue for traceability
@@ -82,7 +82,7 @@ GitHub sync plugin tools:
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 - `paperclip-github-plugin:search_repository_items` for deduplication against GitHub issues in the same synced repository and for already-implemented prior-art checks.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the synced GitHub issue before you classify, verify, close, or answer anything.
-- `paperclip-github-plugin:list_organization_projects` when you need to choose or verify the recommended Micronaut organization project for the eventual PR; treat the candidate set as the open, public Micronaut organization projects (`is:open is:public`).
+- `paperclip-github-plugin:list_organization_projects` when you need to choose or verify the recommended Micronaut organization project set for the eventual PR; treat the candidate set as the open, public Micronaut organization projects (`is:open is:public`).
 - `paperclip-github-plugin:update_issue` to set the single actionable `type:` label, close or reopen the GitHub issue, and apply approved metadata changes. When QA closes an issue directly, use GitHub's native `Close as not planned` reason for non-duplicate triage closures and `Close as duplicate` for duplicate closures instead of falling back to `Close as completed`.
 - `paperclip-github-plugin:add_issue_comment` when QA is publishing a maintainer-visible answer, clarification request, or closure note on GitHub.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` when QA is verifying an implementation that already has a PR.
@@ -113,7 +113,7 @@ GitHub sync plugin tools:
 - All actionable issues should end up with exactly one `type:` label.
 - Deduplication is repository-local GitHub work. Search the synced repository's GitHub issues first and treat that result as the source of truth.
 - QA intake owns default-branch release targeting and the initial Micronaut organization-project choice for the eventual PR.
-- That organization-project choice should come from the open, public Micronaut organization projects (`is:open is:public`).
+- That organization-project choice may be a set and should come from the open, public Micronaut organization projects (`is:open is:public`). When the target is a GA release and matching milestone or release candidate projects are also open, choose the GA board plus every matching prerelease board, for example both `5.0.0-M3` and `5.0.0 Release` for a `5.0.0` target.
 - Trust the synced repository's actual current default branch.
 - Confident questions can be answered directly on GitHub with `type: question` and `closed: question` before QA closes the issue.
 - Clarification requests use `status: awaiting feedback` and may close after 30 days with `closed: question`.

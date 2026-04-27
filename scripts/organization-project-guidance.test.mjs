@@ -21,7 +21,7 @@ test("README keeps organization-project linkage advisory instead of blocking", a
   );
   assert.match(
     readme,
-    /should be linked to (?:(?:the )?Micronaut organization project chosen during QA intake|best-fit Micronaut Platform release)/i,
+    /should be linked to (?:all selected Micronaut organization projects chosen during QA intake|(?:the )?Micronaut organization project chosen during QA intake|best-fit Micronaut Platform release)/i,
     "README should describe organization-project linkage as a recommendation tied to QA's chosen best-fit release board.",
   );
   assert.match(
@@ -49,7 +49,7 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     codeReviewer,
-    /organization project should be linked[\s\S]*(?:when the chosen project exists|apply the best-fit project chosen upstream)/i,
+    /(?:organization project(?: set)? should be linked|all selected organization projects should be linked|selected organization-project set should be linked)[\s\S]*(?:when (?:the )?chosen project|when those projects exist|apply (?:all selected projects|the best-fit project) chosen upstream)/i,
     "Code Reviewer guidance should still recommend linking the organization project chosen upstream when possible.",
   );
   assert.match(
@@ -69,7 +69,7 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     codeReviewer,
-    /instead of only naming it in prose|not a substitute for applying the live PR project link/i,
+    /instead of only naming (?:it|them) in prose|not a substitute for applying (?:the live PR project link|every selected live PR project link)/i,
     "Code Reviewer guidance should say prose-only organization-project notes are insufficient when the live link can be applied.",
   );
   assert.match(
@@ -145,4 +145,56 @@ test("runtime instructions keep organization-project linkage best effort", async
     /(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available[\s\S]*(list_organization_projects|add_pull_request_to_project|organization-project lookup|PR-to-project association)/i,
     "Repo operations should reserve sync plugin agent tools for runs without GITHUB_TOKEN.",
   );
+});
+
+test("organization-project selection can require GA plus prerelease boards", async () => {
+  const requiredFiles = [
+    "README.md",
+    "COMPANY.md",
+    "agents/qa-engineer/AGENTS.md",
+    "agents/code-reviewer/AGENTS.md",
+    "agents/micronaut-engineer/AGENTS.md",
+    "skills/micronaut-repo-operations/SKILL.md",
+    "skills/micronaut-quality-gates/SKILL.md",
+  ];
+
+  for (const relativePath of requiredFiles) {
+    const markdown = await readRepoFile(relativePath);
+
+    assert.match(
+      markdown,
+      /(?:GA|general availability|Release)[\s\S]{0,260}(?:milestone|release candidate|RC)[\s\S]{0,260}(?:both|all matching|multiple|set of)|(?:milestone|release candidate|RC)[\s\S]{0,260}(?:GA|general availability|Release)[\s\S]{0,260}(?:both|all matching|multiple|set of)/i,
+      `${relativePath} must explain that GA release targets can require linking both GA and prerelease organization projects.`,
+    );
+    assert.match(
+      markdown,
+      /5\.0\.0-M3[\s\S]{0,220}5\.0\.0 Release|5\.0\.0 Release[\s\S]{0,220}5\.0\.0-M3/i,
+      `${relativePath} must include the Micronaut 5.0.0-M3 plus 5.0.0 Release example.`,
+    );
+  }
+});
+
+test("PRs must receive all selected organization-project links when tooling can apply them", async () => {
+  const requiredFiles = [
+    "README.md",
+    "agents/code-reviewer/AGENTS.md",
+    "agents/micronaut-engineer/AGENTS.md",
+    "skills/micronaut-repo-operations/SKILL.md",
+    "skills/micronaut-quality-gates/SKILL.md",
+  ];
+
+  for (const relativePath of requiredFiles) {
+    const markdown = await readRepoFile(relativePath);
+
+    assert.match(
+      markdown,
+      /all selected (?:Micronaut )?organization projects|every selected (?:Micronaut )?organization project|selected organization-project set/i,
+      `${relativePath} must require applying every selected organization-project link.`,
+    );
+    assert.match(
+      markdown,
+      /(?:not|not merely|not only)[\s\S]{0,160}(?:comment|prose|summary|PR description)[\s\S]{0,260}(?:live PR|live association|actual(?:ly)? link|add_pull_request_to_project|gh)|(?:live PR|live association|actual(?:ly)? link|add_pull_request_to_project|gh)[\s\S]{0,260}(?:not|not merely|not only)[\s\S]{0,160}(?:comment|prose|summary|PR description)|(?:comment|prose|summary|PR description)[\s\S]{0,160}not a substitute[\s\S]{0,260}(?:live PR|live association|actual(?:ly)? link|add_pull_request_to_project|gh)/i,
+      `${relativePath} must state that comments or prose are not enough when live project links can be applied.`,
+    );
+  }
 });

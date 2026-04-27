@@ -31,7 +31,7 @@ Before an actionable issue moves out of QA intake:
 - the issue has the correct `type:` label, unless it is on a documented immediate-closure path
 - QA has identified the repository's actual current default branch, the latest stable non-pre-release release, the next release implied by that branch, and whether that branch has already shipped; GitHub prereleases such as milestones (`-M<number>`) and release candidates (`-RC<number>`) do not count as the default branch having already shipped
 - QA has decided whether the issue's SemVer impact fits the current default branch and recorded any mismatch instead of inventing a non-default target branch
-- QA has chosen the best-fit Micronaut organization project for the eventual PR, or recorded that no matching project exists yet or tooling cannot apply it
+- QA has chosen the best-fit Micronaut organization project set for the eventual PR, or recorded that no matching project exists yet or tooling cannot apply it; when a GA target has both matching milestone or release candidate boards and a GA release board open, the set includes all matching projects, such as both `5.0.0-M3` and `5.0.0 Release`
 - any linked contributor PR has been evaluated for whether it should stay on the normal gates or be replaced by a separate maintainer-owned PR while staying open
 - confident questions use the documented `type: question` plus `closed: question` direct-answer path
 - clarification requests use the documented `status: awaiting feedback` path and may close after 30 days with `closed: question`
@@ -58,10 +58,10 @@ Before implementation starts, the plan artifact must state:
 - test strategy
 - documentation impact
 - whether the change must remain non-breaking
-- the QA-selected Micronaut organization project, or the recorded ambiguity or tooling gap that explains why the live PR may not carry it yet
+- the QA-selected Micronaut organization project set, or the recorded ambiguity or tooling gap that explains why the live PR may not carry it yet
 - explicit human approval when the change needs one
 
-If any required items above are missing, planning does not resolve as `approved`. The QA-selected organization project or ambiguity note should be carried forward, but missing live linkage alone does not block planning approval.
+If any required items above are missing, planning does not resolve as `approved`. The QA-selected organization-project set or ambiguity note should be carried forward, but missing live linkage alone does not block planning approval.
 
 ## Implementation Gate
 
@@ -81,7 +81,7 @@ Before code or docs leave implementation:
 The QA Engineer verifies:
 
 - intake decisions are correct and the downstream stage sequence is correct
-- release-targeting facts, allowed change class, and organization-project selection from QA intake are correct
+- release-targeting facts, allowed change class, and organization-project selection from QA intake are correct, including any GA-plus-prerelease project set
 - the implementation still matches the approved plan or the reproducer
 - when a linked contributor PR exists, QA has correctly decided whether it remains the implementation vehicle or should be replaced
 - the original issue or PR concern is actually resolved
@@ -112,8 +112,8 @@ The Code Reviewer checks for:
 - performance and regression risk
 - API, config, and developer-experience quality
 - missing or weak tests
-- correct PR issue linkage, `type:` label, reviewer requests, and the live organization-project association chosen during QA intake
-- if `approved` is chosen, a non-draft GitHub PR exists by the end of the run in the correct repository and branch, is readable from the synced GitHub context, and includes the correct issue linkage, closing keyword, and `type:` label; the organization project should be linked when the chosen project exists and GitHub tooling can apply it, and prose alone is not a substitute for that live association, but missing organization-project linkage due to no matching project or tooling gaps alone does not block code review approval
+- correct PR issue linkage, `type:` label, reviewer requests, and every live organization-project association chosen during QA intake
+- if `approved` is chosen, a non-draft GitHub PR exists by the end of the run in the correct repository and branch, is readable from the synced GitHub context, and includes the correct issue linkage, closing keyword, and `type:` label; all selected organization projects should be linked when the chosen projects exist and GitHub tooling can apply them, and prose alone is not a substitute for those live associations, but missing organization-project linkage due to no matching project or tooling gaps alone does not block code review approval
 
 If the work is approved, the Code Reviewer creates or verifies the PR. If not, it resolves as `changes_requested`.
 
@@ -126,7 +126,7 @@ Before a PR is considered healthy:
 - the summary and rationale are coherent
 - linked issue context is accurate and uses a closing keyword
 - the PR carries exactly one `type:` label
-- the PR should be linked to the Micronaut organization project chosen during QA intake when GitHub tooling can apply it; if that choice carried ambiguity, the PR description repeats it; naming the board in prose is not a substitute for the live association; missing organization-project linkage due to no matching project or tooling gaps does not by itself block a healthy PR
+- the PR should be linked to all selected Micronaut organization projects chosen during QA intake when GitHub tooling can apply them; if that choice carried ambiguity, the PR description repeats it; naming the boards in prose is not a substitute for the live associations; missing organization-project linkage due to no matching project or tooling gaps does not by itself block a healthy PR. For a GA release target with concurrent prerelease and release boards, link both the matching prerelease board and the GA release board, for example `5.0.0-M3` and `5.0.0 Release`.
 - test evidence is ready to share
 - documentation or migration notes are included when needed
 - security review comments are addressed
