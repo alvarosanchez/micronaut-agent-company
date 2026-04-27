@@ -14,13 +14,13 @@ Import the company package into Paperclip directly from GitHub:
 npx paperclipai company import https://github.com/alvarosanchez/micronaut-agent-company
 ```
 
-For a disposable local instance that imports this package, installs the latest `paperclip-github-plugin` and `paperclip-micronaut-plugin`, and registers this repository in GitHub Sync:
+For a disposable local instance that imports this package through `paperclip-agent-companies-plugin`, installs the latest `paperclip-github-plugin` and `paperclip-micronaut-plugin`, registers this repository in GitHub Sync, and opens the imported company dashboard:
 
 ```bash
 npm run setup:local-paperclip -- --reset
 ```
 
-By default the script uses `.paperclip-local/`, `paperclipai@latest`, the latest plugin packages from npm, and the current `git origin` repository. Override the mapping with `--repo owner/repo` or `PAPERCLIP_LOCAL_REPO=owner/repo`. If `GITHUB_TOKEN` or `PAPERCLIP_GITHUB_TOKEN` is set, the script writes GitHub Sync's worker-local fallback token config into the isolated Paperclip data dir so manual sync can run without pasting a token into the UI.
+By default the script uses `.paperclip-local/`, `paperclipai@latest`, the latest plugin packages from npm, a clean staged copy of the current checkout's tracked/unignored files as the Agent Companies source, and the current `git origin` repository as the GitHub Sync mapping. It writes a local Paperclip config directly and starts `paperclipai run`, so Paperclip's onboarding page is not opened. Override the imported source with `--company-source <path|repo>` or `PAPERCLIP_LOCAL_COMPANY_SOURCE`, and override the GitHub Sync mapping with `--repo owner/repo` or `PAPERCLIP_LOCAL_REPO=owner/repo`. If `GITHUB_TOKEN` or `PAPERCLIP_GITHUB_TOKEN` is set, the script writes GitHub Sync's worker-local fallback token config into the isolated Paperclip data dir so manual sync can run without pasting a token into the UI. Use `--no-open` when you want setup to finish without opening the dashboard.
 
 ## Runtime Defaults
 

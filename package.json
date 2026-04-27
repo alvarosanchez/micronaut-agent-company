@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "paperclipai": "2026.427.0",
+    "playwright": "^1.59.1",
     "yaml": "2.8.3"
   }
 }
