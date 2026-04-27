@@ -486,6 +486,21 @@ async function ensurePlugin(apiBase, packageName, pluginKey) {
   throw new Error(`Plugin ${pluginKey} did not become ready.`);
 }
 
+async function enableExperimentalInstanceSettings(apiBase) {
+  const updated = await apiRequest(apiBase, "PATCH", "/api/instance/settings/experimental", {
+    enableEnvironments: true,
+    enableIsolatedWorkspaces: true,
+  });
+
+  if (!updated?.enableEnvironments || !updated?.enableIsolatedWorkspaces) {
+    throw new Error(
+      `Experimental instance settings were not enabled: ${JSON.stringify(updated)}`,
+    );
+  }
+
+  return updated;
+}
+
 function createDefaultCompanyImportSelection() {
   return {
     agents: { mode: "all" },
@@ -1153,6 +1168,9 @@ async function main() {
   try {
     await waitForHealth(apiBase, child, logPath);
 
+    console.log("Enabling experimental Environments and Isolated Workspaces settings");
+    const experimentalSettings = await enableExperimentalInstanceSettings(apiBase);
+
     console.log(`Installing ${opts.agentCompaniesPluginPackage} from npm`);
     await ensurePlugin(
       apiBase,
@@ -1188,6 +1206,9 @@ async function main() {
       dataDir: opts.dataDir,
       configPath,
       logPath,
+      instanceSettings: {
+        experimental: experimentalSettings,
+      },
       company: {
         id: company.id,
         name: company.name,

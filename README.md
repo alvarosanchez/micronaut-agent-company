@@ -14,7 +14,7 @@ Import the company package into Paperclip directly from GitHub:
 npx paperclipai company import https://github.com/alvarosanchez/micronaut-agent-company
 ```
 
-For a disposable local instance that imports this package through `paperclip-agent-companies-plugin`, installs the latest `paperclip-github-plugin` and `paperclip-micronaut-plugin`, registers this repository in GitHub Sync, and opens the imported company dashboard:
+For a disposable local instance that imports this package through `paperclip-agent-companies-plugin`, enables the Experimental **Environments** and **Isolated Workspaces** instance settings, installs the latest `paperclip-github-plugin` and `paperclip-micronaut-plugin`, registers this repository in GitHub Sync, and opens the imported company dashboard:
 
 ```bash
 npm run setup:local-paperclip -- --reset
