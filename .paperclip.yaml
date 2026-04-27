@@ -6,7 +6,7 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.4
+        model: gpt-5.5
         modelReasoningEffort: medium
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
@@ -14,7 +14,7 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.4
+        model: gpt-5.5
         modelReasoningEffort: high
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
@@ -22,7 +22,7 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.4
+        model: gpt-5.5
         modelReasoningEffort: high
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
@@ -30,7 +30,7 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.4
+        model: gpt-5.5
         modelReasoningEffort: high
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
@@ -38,7 +38,7 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.4
+        model: gpt-5.5
         modelReasoningEffort: medium
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
@@ -46,7 +46,7 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.4
+        model: gpt-5.5
         modelReasoningEffort: high
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
@@ -54,7 +54,7 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.4
+        model: gpt-5.5
         modelReasoningEffort: medium
         search: true
         dangerouslyBypassApprovalsAndSandbox: true

@@ -16,7 +16,7 @@ npx paperclipai company import https://github.com/alvarosanchez/micronaut-agent-
 
 ## Runtime Defaults
 
-All agents are configured to use `codex_local` with `gpt-5.4` and live web search enabled.
+All agents are configured to use `codex_local` with `gpt-5.5` and live web search enabled.
 
 - Architect: `high`
 - Security Engineer: `high`
@@ -245,7 +245,7 @@ Explain the maintainer-facing result here.
 ###### ✨ This message was AI-generated using <exact model id>
 ```
 
-When you post through the GitHub sync plugin tools, do not add that footer manually; the plugin appends the same footer automatically. For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, pass only the human-facing body and include `llmModel: gpt-5.4`. Review-thread replies must explain the decision, such as committed the requested change, not applicable, or disagreement with the feedback, before the thread is resolved.
+When you post through the GitHub sync plugin tools, do not add that footer manually; the plugin appends the same footer automatically. For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, pass only the human-facing body and include `llmModel: gpt-5.5`. Review-thread replies must explain the decision, such as committed the requested change, not applicable, or disagreement with the feedback, before the thread is resolved.
 
 ## Paperclip Runtime APIs
 
