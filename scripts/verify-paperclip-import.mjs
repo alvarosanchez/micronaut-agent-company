@@ -258,7 +258,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   {
     relativePath: "README.md",
     pattern:
-      /QA Engineer[\s\S]*default-branch and release-fact gathering[\s\S]*SemVer targeting[\s\S]*organization-project selection/i,
+      /QA Engineer[\s\S]*default-branch and release-fact gathering[\s\S]*SemVer targeting[\s\S]*organization-project (?:set )?selection/i,
     message:
       "README.md must explain that QA intake owns default-branch release facts, SemVer targeting, and organization-project selection.",
   },

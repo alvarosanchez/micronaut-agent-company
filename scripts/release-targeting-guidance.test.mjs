@@ -11,7 +11,7 @@ test("README assigns release targeting to QA instead of Architect", async () => 
 
   assert.match(
     readme,
-    /QA Engineer[\s\S]*default-branch and release-fact gathering[\s\S]*SemVer targeting[\s\S]*organization-project selection/i,
+    /QA Engineer[\s\S]*default-branch and release-fact gathering[\s\S]*SemVer targeting[\s\S]*organization-project (?:set )?selection/i,
     "README should say QA intake owns release facts, SemVer targeting, and organization-project selection.",
   );
   assert.doesNotMatch(

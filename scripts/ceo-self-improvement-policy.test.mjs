@@ -74,3 +74,58 @@ test("README and COMPANY explain .company-runtime overlays in plain language", a
     );
   }
 });
+
+test("managed Micronaut repo AGENTS.md updates require a PR path", async () => {
+  const requiredPaths = [
+    "../agents/ceo/AGENTS.md",
+    "../tasks/daily-ceo-self-improvement/TASK.md",
+    "../skills/company-package-evolution/SKILL.md",
+    "../README.md",
+    "../COMPANY.md",
+  ];
+
+  for (const relativePath of requiredPaths) {
+    const markdown = await readFile(new URL(relativePath, import.meta.url), "utf8");
+
+    assert.match(
+      markdown,
+      /managed Micronaut repositor(?:y|ies)[\s\S]*AGENTS\.md[\s\S]*(?:PR|pull request)|(?:PR|pull request)[\s\S]*managed Micronaut repositor(?:y|ies)[\s\S]*AGENTS\.md/i,
+      `${relativePath} must require managed Micronaut repo AGENTS.md updates to use a PR path.`,
+    );
+  }
+});
+
+test("CEO-opened PRs require CI and review-thread follow-up from the daily routine", async () => {
+  const requiredPaths = [
+    "../agents/ceo/AGENTS.md",
+    "../tasks/daily-ceo-self-improvement/TASK.md",
+    "../skills/company-package-evolution/SKILL.md",
+    "../README.md",
+    "../COMPANY.md",
+  ];
+
+  for (const relativePath of requiredPaths) {
+    const markdown = await readFile(new URL(relativePath, import.meta.url), "utf8");
+
+    assert.match(
+      markdown,
+      /CEO-opened PRs?|PRs? opened by (?:the )?CEO/i,
+      `${relativePath} must name CEO-opened PRs explicitly.`,
+    );
+    assert.match(
+      markdown,
+      /CI[\s\S]{0,220}(?:green|passing)|(?:green|passing)[\s\S]{0,220}(?:CI|checks?)/i,
+      `${relativePath} must require CEO-opened PRs to keep CI/checks green.`,
+    );
+    assert.match(
+      markdown,
+      /unresolved review threads?|review threads?[\s\S]{0,220}(?:unresolved|resolved)/i,
+      `${relativePath} must require review-thread follow-up for CEO-opened PRs.`,
+    );
+    assert.match(
+      markdown,
+      /daily (?:CEO )?self-improvement routine[\s\S]{0,360}(?:follow up|rediscover|recheck|inspect)|(?:follow up|rediscover|recheck|inspect)[\s\S]{0,360}daily (?:CEO )?self-improvement routine/i,
+      `${relativePath} must make the daily CEO self-improvement routine the follow-up mechanism.`,
+    );
+  }
+});

@@ -12,7 +12,7 @@ Use this skill whenever the company learns something about its own operating sys
 Pick the smallest surface that solves the problem:
 
 - If the learning is local to one Paperclip company instance, one maintainer group, or one temporary operating condition, keep it additive in extension instructions or `.company-runtime/` overlays.
-- If the learning belongs to a managed Micronaut repository as a product artifact, update that repository's `AGENTS.md` guidance and keep this company package unchanged.
+- If the learning belongs to a managed Micronaut repository as a product artifact, update that repository's `AGENTS.md` guidance through a branch and PR in the managed Micronaut repository, and keep this company package unchanged.
 - If the root cause clearly lives in a company-owned upstream dependency, such as `alvarosanchez/paperclip-github-plugin`, fix that upstream project directly instead of layering more package prose on top of it.
 - If the gap is about how to use a bundled Paperclip system skill such as `paperclip`, `paperclip-create-agent`, `paperclip-create-plugin`, or `para-memory-files`, do not propose editing that bundled skill from this package. Add company-owned guidance, examples, or a companion skill here instead.
 - If the gap is best solved by a reusable external skill or a live company-skill installation, prefer the company skill library and agent skill assignment model over copying ad hoc instructions into package core.
@@ -31,8 +31,20 @@ When the change belongs in the package core:
 - update both the behavioral instructions and the human-facing docs when policy changes
 - run `npm test` or `npm run test:node22` when the environment supports it
 - create or update a PR to `https://github.com/alvarosanchez/micronaut-agent-company`
+- treat CEO-opened PRs as still active after creation until CI is green, reported checks are passing, and no unresolved review threads remain
 - if the required linked board approval already exists and is approved, implement the change in the same run instead of stopping at a proposal
 - leave merge and release decisions to humans
+
+## Managed Repository AGENTS.md PR Path
+
+When the change belongs in a managed Micronaut repository's `AGENTS.md`:
+
+- work in a clone of that managed Micronaut repository, not this company package
+- make the smallest repo-local guidance change, using linked topic files when the root `AGENTS.md` would otherwise grow too large
+- open or update a PR in that managed repository for the `AGENTS.md` change
+- keep the CEO-opened PR active until CI is green, reported checks are passing, and no unresolved review threads remain
+- keep package-core files unchanged unless future imports also need a reusable default change
+- if repository access or required governance approval is unavailable, create the linked board approval request or record the blocker instead of editing silently
 
 When the change belongs in a company-owned upstream dependency:
 
@@ -41,6 +53,11 @@ When the change belongs in a company-owned upstream dependency:
 - update this package only when future imports also need a durable instruction or routing change in addition to the upstream fix
 - run the relevant tests for that upstream repository when the environment supports it
 - create or update the upstream PR in the same run when the required approval already exists
+- keep CEO-opened PRs active until CI is green, reported checks are passing, and no unresolved review threads remain
+
+## CEO PR Follow-Up Without Heartbeats
+
+Because CEO heartbeats may be disabled, the daily CEO self-improvement routine is the follow-up mechanism for PRs opened by the CEO. Each run should rediscover open CEO-opened PRs from the prior routine report, linked board approvals, recorded PR URLs, and open PR searches, then either update the PR, answer review threads with a decision before resolving them, or record the blocker. Do not treat a CEO-opened PR as finished until CI is green and no unresolved review threads remain.
 
 ## When The Repo Or PR Path Is Unavailable
 
@@ -60,10 +77,20 @@ When you propose or send a package-core change, explain:
 - what local-only guidance still stays additive
 - what verification you ran
 - any compatibility or migration risk
+- the CI/check status and unresolved review-thread status for any CEO-opened PR
 - whether `.company-runtime/` is relevant here; when you mention it, explain plainly that it is an optional local sidecar folder outside the published package
+
+When you send a managed Micronaut repository `AGENTS.md` PR, explain:
+
+- why the guidance belongs to that managed repository instead of this company package
+- which PR carries the repo-local `AGENTS.md` change
+- what verification or readability check you ran
+- the CI/check status and unresolved review-thread status for the CEO-opened PR
+- whether any companion package-core change is still needed for future imports
 
 When you send an upstream dependency fix from the CEO routine, explain:
 
 - why the root cause belongs in that upstream project instead of this package
 - whether the package still needed any companion guidance change
 - what verification you ran in the upstream repository
+- the CI/check status and unresolved review-thread status for the CEO-opened PR

@@ -34,6 +34,7 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - Paperclip also has a separate generic approvals system for linked board approvals. Those approvals have their own lifecycle (`pending`, `approved`, `rejected`, revision request, and resubmission) and can wake the requester when they are resolved.
 - If GitHub Sync reopens a policy-blocked issue only because a linked PR still has failing CI or unresolved review state, and there is no new policy or implementation signal, restore `blocked` with a routing-correction comment instead of resuming execution.
 - If GitHub Sync drops a PR-based issue from `in_review` to `in_progress` but the live PR is still open, non-draft, `CLEAN`, all reported checks are passing, and there is no actionable unresolved review state left inside the company workflow, restore `in_review`, clear the internal assignee, and leave a routing-correction comment instead of keeping an engineer or reviewer on repeated follow-through while the PR only waits on normal maintainer review.
+- PRs opened by the CEO from recurring routines, including managed Micronaut repository `AGENTS.md` PRs, follow the same merge-readiness rules as other agent PRs: CI must be green, reported checks must pass, and no unresolved review threads may remain. Because CEO heartbeats may be disabled, the daily self-improvement routine must rediscover and follow up those CEO-opened PRs instead of waiting for a PR wakeup.
 
 ## Execution-Semantics Guardrails
 
@@ -140,8 +141,8 @@ curl -fsS -X POST "${PAPERCLIP_API_URL%/}/api/plugins/paperclip-github-plugin/we
 - `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`: changed-file inspection and CI/check status
 - `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`: review-thread inspection and response
 - `paperclip-github-plugin:request_pull_request_reviewers`: request user or team reviewers on a GitHub PR
-- `paperclip-github-plugin:list_organization_projects`: list visible open, public GitHub organization Projects (`is:open is:public`) so the agent can choose the right Micronaut release board
-- `paperclip-github-plugin:add_pull_request_to_project`: associate a GitHub pull request with the chosen organization Project
+- `paperclip-github-plugin:list_organization_projects`: list visible open, public GitHub organization Projects (`is:open is:public`) so the agent can choose the right Micronaut release board or board set
+- `paperclip-github-plugin:add_pull_request_to_project`: associate a GitHub pull request with each selected organization Project
 
 Use these plugin-tool conventions exactly:
 
@@ -222,8 +223,9 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 - `type: dependency-upgrade` follows the actual compatibility impact of the resulting repository release, not the label alone.
 - Do not invent or create another target branch during triage just to fit SemVer. If the current default branch cannot legally take the requested SemVer impact, QA records that mismatch and routes the issue into planning or governance instead of targeting a non-default branch by default.
 - Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform releases.
-- QA should choose the best-fit Micronaut organization project during intake from the open, public Micronaut organization projects (`is:open is:public`) by asking which Micronaut Platform release can first consume the repository's next release.
-- If the best-fit organization-project choice is somewhat ambiguous, including major-version upgrades that may or may not fit the next Platform minor board cleanly, still choose the best-fit project and record the ambiguity in the QA artifact so the eventual PR description can repeat it.
+- QA should choose the best-fit Micronaut organization project set during intake from the open, public Micronaut organization projects (`is:open is:public`) by asking which Micronaut Platform release can first consume the repository's next release.
+- If a GA release target has both matching milestone or release candidate projects and a GA release board open, select all matching projects so the PR can appear on both prerelease and GA boards; for example, a `5.0.0` target with open `5.0.0-M3` and `5.0.0 Release` projects should select both.
+- If the best-fit organization-project choice is somewhat ambiguous, including major-version upgrades that may or may not fit the next Platform minor board cleanly, still choose the best-fit project set and record the ambiguity in the QA artifact so the eventual PR description can repeat it.
 - `type: breaking` requires explicit Architect approval and, when necessary, a linked human approval before work proceeds.
 - If no matching organization project exists yet, or if the runtime cannot apply the project link, record that gap and continue. Missing organization-project linkage alone does not block PR creation or approval.
 
@@ -321,12 +323,13 @@ Important usage rules:
 - Use `paperclip-github-plugin:update_issue` for labels, assignees, state, body, title, and milestone changes.
 - Use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
 - When `GITHUB_TOKEN` is available, use `gh` for Micronaut organization-project lookup and live PR association.
-- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:list_organization_projects` during QA intake, or later verification when the upstream facts changed, to identify the best-fit Micronaut organization project for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`).
-- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:add_pull_request_to_project` after PR creation, when adopting an already-open surviving PR, or after retargeting when the chosen release board changed, so the live PR is linked to the recommended organization project chosen during QA intake or any explicitly revised upstream decision.
-- Naming the chosen organization project in a Paperclip artifact, GitHub comment, or PR description is not a substitute for the live PR association when the `gh` flow or no-`GITHUB_TOKEN` plugin tooling can apply it.
+- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:list_organization_projects` during QA intake, or later verification when the upstream facts changed, to identify the best-fit Micronaut organization project set for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`).
+- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:add_pull_request_to_project` after PR creation, when adopting an already-open surviving PR, or after retargeting when the chosen release board changed, so the live PR is linked to every selected organization project chosen during QA intake or any explicitly revised upstream decision.
+- Naming the chosen organization project set in a Paperclip artifact, GitHub comment, or PR description is not a substitute for the live PR associations when the `gh` flow or no-`GITHUB_TOKEN` plugin tooling can apply them.
 - In `GITHUB_TOKEN`-backed runs, if `gh` or another non-plugin GitHub client created the PR in a repository mapped to the current company, send the metric webhook immediately after creation using the bearer-token pattern above so the KPI dashboard can attribute that `pull_request_created` event to Paperclip work.
 - For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.5`. The plugin appends the same Markdown footer automatically.
 - Do not silently resolve review threads. Reply first with the decision, such as committed the requested change, not applicable, or disagreement with the feedback, and resolve the thread only after that reply when the thread is settled.
+- CEO-opened PRs from recurring routines stay on the daily self-improvement routine's follow-up list until CI is green, checks pass, and unresolved review threads are answered and settled.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
 
 ## Tool Boundaries
@@ -342,12 +345,12 @@ Important usage rules:
 
 - The delivery loop combines normal owner assignment for intake, planning, implementation, and PR follow-through with execution-policy stages for the enforced review chain.
 - `code-reviewer` creates the GitHub PR only after QA and Security Engineer stages are approved.
-- `code-reviewer` must not resolve PR-based delivery work as `approved` unless, by the end of that run, a non-draft GitHub PR exists in the correct repository and branch, is readable through the synced GitHub context, and carries the correct issue linkage, closing keyword, and `type:` label. The organization project should be linked when the chosen project exists and GitHub tooling can apply it, but missing linkage due to no matching project or tooling gaps alone does not block `approved`.
+- `code-reviewer` must not resolve PR-based delivery work as `approved` unless, by the end of that run, a non-draft GitHub PR exists in the correct repository and branch, is readable through the synced GitHub context, and carries the correct issue linkage, closing keyword, and `type:` label. All selected organization projects should be linked when the chosen projects exist and GitHub tooling can apply them, but missing linkage due to no matching project or tooling gaps alone does not block `approved`.
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
-- Every PR should be linked to the Micronaut organization project chosen during QA intake, representing the best-fit Micronaut Platform release that can first consume the repository's next module release.
-- When the chosen project exists and GitHub tooling can apply it, agents should create the live PR-to-project association with `gh` when `GITHUB_TOKEN` is available or `paperclip-github-plugin:add_pull_request_to_project` otherwise instead of only restating the intended board in prose.
-- If that chosen project carried ambiguity, repeat the ambiguity in the PR description instead of dropping the project link.
+- Every PR should be linked to all selected Micronaut organization projects chosen during QA intake, representing the best-fit Micronaut Platform release boards that can first consume the repository's next module release.
+- When the selected projects exist and GitHub tooling can apply them, agents should create every live PR-to-project association with `gh` when `GITHUB_TOKEN` is available or `paperclip-github-plugin:add_pull_request_to_project` otherwise instead of only restating the intended boards in prose.
+- If the selected organization-project set carried ambiguity, repeat the ambiguity in the PR description instead of dropping the project links. For a GA release target with both milestone or release candidate boards and a GA release board, keep both links, such as `5.0.0-M3` and `5.0.0 Release`.
 - `code-reviewer` applies the project named earlier by QA intake unless an upstream artifact explicitly revised it.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, replies to every review thread with a decision explanation, and only then resolves settled threads.
 - PR-based delivery work stays open in Paperclip until GitHub merge sync completes. Agents do not manually move those items to `DONE`.
