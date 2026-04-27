@@ -1,5 +1,6 @@
 ---
 name: Code Reviewer
+role: engineer
 title: Code Reviewer
 reportsTo: ceo
 skills:

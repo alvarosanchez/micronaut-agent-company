@@ -30,8 +30,9 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - Do not use `@` mentions as the primary routing mechanism. If a deployment still has mention-wake bugs or the next agent needs extra context, add a structured mention only as a fallback note after the real assignment or stage transition is already correct.
 - Adding a Paperclip reviewer does not guarantee an immediate wake. If the next reviewer should act now and the runtime did not wake them automatically, explicitly invoke that agent heartbeat with the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action after the stage has advanced.
 - A review stage may list multiple participants. Invoke every reviewer you expect to engage immediately after the stage becomes active.
-- The installed `paperclipai@2026.416.0` runtime in this package still exposes `approvalsNeeded: 1` for execution stages, so do not rely on a single multi-participant stage for unanimous sign-off. If all listed reviewers must approve in order, model that as separate sequential stages.
+- The installed `paperclipai@2026.427.0` runtime in this package still exposes `approvalsNeeded: 1` for execution stages, so do not rely on a single multi-participant stage for unanimous sign-off. If all listed reviewers must approve in order, model that as separate sequential stages.
 - Paperclip also has a separate generic approvals system for linked board approvals. Those approvals have their own lifecycle (`pending`, `approved`, `rejected`, revision request, and resubmission) and can wake the requester when they are resolved.
+- Paperclip issue-thread interactions are for non-governance user input in the issue thread: use `suggest_tasks` when the board/user should accept or reject a proposed task list, `ask_user_questions` for bounded structured answers, and `request_confirmation` for explicit proposal or plan confirmation. Keep linked approvals for governance decisions.
 - If GitHub Sync reopens a policy-blocked issue only because a linked PR still has failing CI or unresolved review state, and there is no new policy or implementation signal, restore `blocked` with a routing-correction comment instead of resuming execution.
 - If GitHub Sync drops a PR-based issue from `in_review` to `in_progress` but the live PR is still open, non-draft, `CLEAN`, all reported checks are passing, and there is no actionable unresolved review state left inside the company workflow, restore `in_review`, clear the internal assignee, and leave a routing-correction comment instead of keeping an engineer or reviewer on repeated follow-through while the PR only waits on normal maintainer review.
 - PRs opened by the CEO from recurring routines, including managed Micronaut repository `AGENTS.md` PRs, follow the same merge-readiness rules as other agent PRs: CI must be green, reported checks must pass, and no unresolved review threads may remain. Because CEO heartbeats may be disabled, the daily self-improvement routine must rediscover and follow up those CEO-opened PRs instead of waiting for a PR wakeup.
@@ -41,8 +42,8 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - Paperclip is single-assignee by design. Keep one live owner on an issue at a time, either an agent or a human board user. Linked approvals are for governance, not a second assignee.
 - `todo` is dispatch state and may be assigned or unassigned. `in_progress` is active work and requires an assignee. `blocked` is the correct state for waiting on another issue, a human decision, or an external system. `in_review` means the next move belongs to a reviewer or approver, not the current executor.
 - For agent-owned issues, checkout is required before moving the issue into `in_progress`. When your deployment exposes `checkoutRunId` and `executionRunId`, read them as execution-rights lock versus the currently live execution path.
-- Do not leave agent-assigned non-terminal work stranded. An assigned `todo` should still have a wake path or be intentionally resting after a successful heartbeat. An assigned `in_progress` should have an active run or queued continuation. If Paperclip exhausts its single automatic recovery wake and moves the issue to `blocked` with a visible comment, treat that as an operational problem to repair or escalate.
-- Use `parentId` for structure, work breakdown, and rollup context. Use `blockedByIssueIds` for dependency semantics and automatic wakeups when the blocker clears. If a parent is truly waiting on a child, model both the parent link and the blocker relationship explicitly.
+- Do not leave agent-assigned non-terminal work stranded. An assigned `todo` should still have a wake path or be intentionally resting after a successful heartbeat. An assigned `in_progress` should have an active run, queued continuation, liveness recovery state, or recorded next-action hint. Inspect checkout, execution run, liveness, continuation-attempt, watchdog, and `continuation-summary` context before creating duplicate work. If Paperclip's configured liveness recovery surfaces the issue as stranded or moves it to `blocked` with a visible comment, treat that as an operational problem to repair or escalate.
+- Use `parentId` for structure, work breakdown, checklist display, and rollup context. Create known child issues directly and use `blockParentUntilDone` when a child should hold the parent. Use `blockedByIssueIds` for dependency semantics and automatic wakeups when the blocker clears. If a parent is truly waiting on a child, model both the parent link and the blocker relationship explicitly.
 
 ## Recommended Stage Layouts
 
@@ -76,11 +77,12 @@ These are built into Paperclip itself. Use them even when no plugin-specific too
 
 - identity and inbox: `GET /api/agents/me`, `GET /api/agents/me/inbox-lite`, fallback `GET /api/companies/{companyId}/issues?assigneeAgentId={yourId}&status=todo,in_progress,in_review,blocked`
 - execution lock: `POST /api/issues/{issueId}/checkout`, `POST /api/issues/{issueId}/release`
-- issue context: `GET /api/issues/{issueId}`, `GET /api/issues/{issueId}/heartbeat-context`, `GET /api/issues/{issueId}/comments` for assignee, status, execution state, dependency context, and any exposed `parentId`, `blockedByIssueIds`, `checkoutRunId`, or `executionRunId`
+- issue context: `GET /api/issues/{issueId}`, `GET /api/issues/{issueId}/heartbeat-context`, `GET /api/issues/{issueId}/comments` for assignee, status, execution state, dependency context, liveness and continuation context, and any exposed `parentId`, `blockedByIssueIds`, `checkoutRunId`, or `executionRunId`
 - state updates: `PATCH /api/issues/{issueId}` with the run-id header when you need to change issue status, change assignee, update `executionPolicy`, or append a Paperclip comment in the same call
 - durable stage artifacts: `GET /api/issues/{issueId}/documents`, `GET /api/issues/{issueId}/documents/{key}`, `PUT /api/issues/{issueId}/documents/{key}`, `GET /api/issues/{issueId}/documents/{key}/revisions`
 - attachments when a file artifact matters: `POST /api/companies/{companyId}/issues/{issueId}/attachments`, `GET /api/issues/{issueId}/attachments`, `GET /api/attachments/{attachmentId}/content`
-- subtask or escalation creation: `POST /api/companies/{companyId}/issues`; use `parentId` for structure and `blockedByIssueIds` when the new issue is a real blocker
+- subtask or escalation creation: `POST /api/companies/{companyId}/issues`; use `parentId` for structure, `blockParentUntilDone` for known child work that should hold the parent checklist, and `blockedByIssueIds` when the new issue is a real blocker
+- issue-thread interactions: `POST /api/issues/{issueId}/interactions` with `kind: suggest_tasks`, `kind: ask_user_questions`, or `kind: request_confirmation`; use idempotency keys and a continuation policy when the assignee should resume after the board/user response
 - approvals: `GET /api/companies/{companyId}/approvals?status=pending`, `POST /api/companies/{companyId}/approvals`, `GET /api/approvals/{approvalId}`, `GET /api/approvals/{approvalId}/issues`, `POST /api/approvals/{approvalId}/comments`, `POST /api/approvals/{approvalId}/resubmit`
 - reviewer wakeups: the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint or the equivalent runtime wake endpoint exposed by the installed build after the stage or assignment is already correct
 
@@ -88,6 +90,7 @@ Default artifact policy for this package:
 
 - store plans, QA intake records, QA verification records, security reviews, and review summaries in keyed issue documents such as `plan`, `qa-intake`, `qa-verification`, `security-review`, or `code-review`
 - use Paperclip issue comments for human-visible progress notes, GitHub-facing explanations copied back for audit, execution-policy decision notes, and any non-policy owner handoff notes
+- use issue-thread interactions instead of comment-only proposal lists when the board/user needs to choose tasks, answer structured questions, or confirm a plan
 - use linked approvals for board governance instead of treating comments as approvals
 - after creating or following up on a linked approval, verify the linkage with `GET /api/approvals/{approvalId}/issues` instead of relying only on `issue.linkedApprovalIds`, because some runtimes may leave that issue field empty even when the approval is actually linked
 
@@ -97,9 +100,17 @@ Example keyed-document flow:
 2. Write the updated artifact with `PUT /api/issues/{issueId}/documents/ceo` so the stage output stays anchored to the same durable key.
 3. Use `GET /api/issues/{issueId}/documents/ceo/revisions` when you need the audit trail for an earlier version.
 
+Plan-confirmation flow:
+
+1. Write or update the `plan` document and read back its latest revision id.
+2. Create `POST /api/issues/{issueId}/interactions` with `kind: request_confirmation`, `target.type: issue_document`, `target.key: plan`, the latest `revisionId`, `idempotencyKey: confirmation:{issueId}:plan:{revisionId}`, and `continuationPolicy: wake_assignee_on_accept`.
+3. Wait for acceptance before creating implementation child issues. If a later user or board comment supersedes the plan, update the document and create a fresh confirmation instead of reusing the stale card.
+
 ## Execution Workspaces And Runtime Services
 
 - Runs execute in the resolved issue execution workspace, which may be the project primary workspace or a separate durable execution workspace.
+- Runs may also resolve through a Paperclip `Environment`, such as the local driver, an SSH-backed remote environment, or a sandbox-backed provider. Environment records, default agent environments, provider credentials, and leases are live deployment settings, not portable package defaults.
+- If sandbox execution is required, the operator should install `@paperclipai/plugin-e2b` or another environment-driver plugin in the live Paperclip instance instead of adding that provider to this company package.
 - Project workspace services and jobs define what can be run, but Paperclip does not auto-start or auto-restart those services as part of issue execution.
 - Machine-local checkout paths, service commands, jobs, and workspace-specific runtime overrides belong on live project or execution workspace config, not in this portable package.
 - If a repository task depends on a service that is not already running, call out the missing runtime setup explicitly instead of assuming the heartbeat started it for you.
@@ -158,6 +169,8 @@ Every stage must end in one of these states:
 - `approved`: your stage artifact is complete, the issue is ready for the next configured stage immediately, and no missing governance decision remains for the issue route itself. Intake may still resolve `approved` when a linked contributor PR stays open while the issue moves toward a separate maintainer-owned PR.
 - `changes_requested`: your stage artifact names the exact gap, risk, or missing fact that must be addressed before the issue can move forward.
 - `request_board_approval`: when public GitHub action or a policy exception needs a human decision first, create or update the linked Paperclip approval instead of using a free-form comment as the approval mechanism.
+
+When the work needs explicit plan or proposal confirmation but not governance approval, create a Paperclip `request_confirmation` issue-thread interaction and leave the issue in the appropriate waiting state instead of treating a plain comment as the confirmation mechanism.
 
 ## Required Final Verification
 

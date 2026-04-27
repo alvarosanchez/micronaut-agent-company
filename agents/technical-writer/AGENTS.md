@@ -1,5 +1,6 @@
 ---
 name: Technical Writer
+role: general
 title: Technical Writer
 reportsTo: ceo
 skills:

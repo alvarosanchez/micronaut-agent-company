@@ -1,5 +1,6 @@
 ---
 name: Security Engineer
+role: security
 title: Security Engineer
 reportsTo: ceo
 skills:

@@ -11,7 +11,9 @@ Focus on:
 
 - repeated blockers, stalled handoffs, and noisy queue patterns
 - broken handoffs where issue status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, and the expected next owner do not agree
+- liveness recovery, continuation-attempt, and `resume: true` paths where stalled or completed work needs an intentional restart instead of another generic comment
 - QA, security, or review churn that suggests missing guidance or the wrong quality gate
+- missed chances to use issue-thread interactions for non-governance board input, such as `suggest_tasks` selectable task proposals, `ask_user_questions` bounded questions, or `request_confirmation` plan confirmations
 - missing or outdated repo-level `AGENTS.md` guidance in managed Micronaut repositories
 - live workspace or runtime-service gaps where repo work keeps stalling because jobs or services were assumed to auto-start
 - gaps or upgrade opportunities in the company's imported skill inventory that would materially improve delivery and can be turned into a concrete approval or implementation step now
@@ -26,6 +28,7 @@ Produce one Paperclip report that includes:
 - any linked board approval request you opened, including the exact change it authorizes, the target surface (`.company-runtime/`, company-owned skill/docs, or package-core PR), and the implementation path after approval
 - any approved change you implemented immediately instead of re-reporting it as a proposal
 - any stale handoff you corrected by aligning issue status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, and any required next-action comment or wake
+- any issue-thread interaction you created for a non-governance decision, including its kind, idempotency key, and expected continuation behavior
 - any managed Micronaut repository `AGENTS.md` updates you made using `agent-md-refactor`, including the PR you opened or updated in that managed repository
 - any CEO-opened PRs you rechecked or followed up, including CI/check status, unresolved review-thread status, and the next action if the PR is not green and review-thread-clean yet
 - any proposed additive extension-instruction or `.company-runtime/` changes

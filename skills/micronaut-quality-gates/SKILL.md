@@ -19,6 +19,7 @@ Before any role resolves its stage:
 - manual `TODO` assignment is reserved for non-policy owner changes outside the active review chain
 - for synced GitHub delivery work, `approved` advances the issue to the next stage or PR follow-through; it is not permission to mark the Paperclip item `DONE`
 - if a human governance decision is required, the role creates or updates a real Paperclip approval instead of treating a comment as approval
+- if non-governance board or user input is required, the role uses an issue-thread interaction instead of a loose comment: `suggest_tasks` for selectable task lists, `ask_user_questions` for bounded questions, and `request_confirmation` for explicit plan or proposal confirmation
 - if the next stage or next owner should run immediately, the role explicitly invokes the next heartbeat only after the stage or assignment has already advanced correctly
 - the role re-opens the issue and verifies the execution state matches the intended outcome before finishing
 
@@ -44,6 +45,7 @@ Before an actionable issue moves out of QA intake:
 - the downstream execution-policy stage sequence is correct for the issue type
 - required all-of gates are modeled as separate sequential stages instead of one multi-participant stage
 - if the issue needs a public answer or closure outside QA's direct GitHub authority, the board-approval path is explicit
+- if intake needs bounded maintainer input rather than open-ended discussion, QA uses `ask_user_questions` with clear options and a continuation policy so the issue resumes when answered
 
 ## Planning Gate
 
@@ -60,6 +62,7 @@ Before implementation starts, the plan artifact must state:
 - whether the change must remain non-breaking
 - the QA-selected Micronaut organization project set, or the recorded ambiguity or tooling gap that explains why the live PR may not carry it yet
 - explicit human approval when the change needs one
+- when the plan needs confirmation but not governance approval, a `request_confirmation` interaction targets the latest `plan` document revision with a stable idempotency key and a continuation policy
 
 If any required items above are missing, planning does not resolve as `approved`. The QA-selected organization-project set or ambiguity note should be carried forward, but missing live linkage alone does not block planning approval.
 

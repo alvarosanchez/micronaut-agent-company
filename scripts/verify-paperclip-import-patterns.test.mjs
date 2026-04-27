@@ -48,6 +48,18 @@ test("verification rules enforce the execution-semantics guidance we rely on", a
     source,
     /Shared repo operations guidance must explain checkout-backed agent `in_progress` work and stranded-work recovery\./,
   );
+  assert.match(
+    source,
+    /README\.md must explain Paperclip issue-thread interactions for suggested tasks, structured questions, and request-confirmation cards\./,
+  );
+  assert.match(
+    source,
+    /README\.md must explain structured `resume: true` when restarting follow-up on completed assigned issues\./,
+  );
+  assert.match(
+    source,
+    /README\.md must explain Paperclip environments as live runtime configuration and mention sandbox provider installation when needed\./,
+  );
 });
 
 test("verification rules require decision-explaining replies on review threads", async () => {
