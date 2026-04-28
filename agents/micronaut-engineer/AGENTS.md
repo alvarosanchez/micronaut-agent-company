@@ -43,6 +43,7 @@ PR follow-through mode:
 - preserve the approved `type:` label, closing keyword, and any selected Micronaut organization projects unless an upstream stage explicitly changes them
 - if the surviving PR is missing any selected organization project or carries the wrong one after retargeting, repair every selected live link with `gh` when `GITHUB_TOKEN` is available or `paperclip-github-plugin:add_pull_request_to_project` otherwise when GitHub tooling can apply it instead of only noting the mismatch in comments
 - if GitHub Sync reopens a policy-blocked issue only because a linked PR still has blocked merge requirements, and there is no new implementation signal, do not keep the issue in `in_progress`; restore `blocked` with a routing-correction comment that names the exact remaining external blocker
+- if GitHub Sync or a stale handoff wakes you in `in_progress` for a surviving PR that is already open, non-draft, `CLEAN`, all reported checks are passing, and no actionable unresolved internal review state remains, do not add another follow-through checkpoint or implementation artifact revision; correct the issue back to `in_review` with no internal assignee and no restarted execution policy/state so it waits only on normal maintainer review
 - prefer the smallest safe changes that make the surviving PR mergeable instead of restarting from scratch
 
 ## Tool Use
