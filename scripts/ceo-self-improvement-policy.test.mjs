@@ -92,6 +92,21 @@ test("managed Micronaut repo AGENTS.md updates require a PR path", async () => {
       /managed Micronaut repositor(?:y|ies)[\s\S]*AGENTS\.md[\s\S]*(?:PR|pull request)|(?:PR|pull request)[\s\S]*managed Micronaut repositor(?:y|ies)[\s\S]*AGENTS\.md/i,
       `${relativePath} must require managed Micronaut repo AGENTS.md updates to use a PR path.`,
     );
+    assert.match(
+      markdown,
+      /Managed Repository AGENTS\.md Audit/i,
+      `${relativePath} must require the daily CEO report to include an explicit managed repository AGENTS.md audit section.`,
+    );
+    assert.match(
+      markdown,
+      /root `?AGENTS\.md`? exists[\s\S]{0,260}(?:durable\/current|stale\/generated|missing)|(?:durable\/current|stale\/generated|missing)[\s\S]{0,260}root `?AGENTS\.md`? exists/i,
+      `${relativePath} must require the audit to classify root AGENTS.md as current, stale/generated, or missing.`,
+    );
+    assert.match(
+      markdown,
+      /no action needed[\s\S]{0,260}(?:repo-local PR|linked follow-up issue|linked approval|blocker named)|(?:repo-local PR|linked follow-up issue|linked approval|blocker named)[\s\S]{0,260}no action needed/i,
+      `${relativePath} must require a concrete action or no-action outcome for each managed repository.`,
+    );
   }
 });
 
