@@ -73,6 +73,13 @@ routines:
         label: Daily CEO Self-Improvement
         cronExpression: "0 15 * * *"
         timezone: Europe/Madrid
+  training:
+    status: active
+    triggers:
+      - kind: schedule
+        label: Training
+        cronExpression: "0 10 */2 * *"
+        timezone: Europe/Madrid
 tasks:
   verify-imported-company-instance:
     status: todo

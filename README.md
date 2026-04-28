@@ -143,7 +143,7 @@ If GitHub Sync reopens a policy-blocked issue only because a linked PR still has
 
 If GitHub Sync drops a PR-based issue from `IN_REVIEW` to `IN_PROGRESS` but the live PR is still open, non-draft, `CLEAN`, all reported checks are passing, and there is no actionable unresolved review state left inside the company workflow, restore `IN_REVIEW`, clear the internal assignee, and leave a routing-correction comment instead of keeping an engineer or reviewer on repeated follow-through while the PR only waits on normal maintainer review.
 
-In addition to the synced GitHub work queue, the package includes one bootstrap internal issue plus two recurring internal routines under `company-operations`: a weekly security scan and a daily CEO self-improvement review. The bootstrap issue, **Verify Imported Company Instance**, imports in `TODO` on the CEO queue so the imported entity set can be checked before normal operations begin. Operator-selected live company names, descriptions, and issue prefixes are valid import choices as long as they do not break routing, governance visibility, or package-owned entity mapping. The routines create ongoing internal Paperclip work items that help keep the company healthy; they do not replace the synced GitHub issues and PRs that remain the real delivery backlog. The routines import active by default so those recurring maintenance checks start automatically after import.
+In addition to the synced GitHub work queue, the package includes one bootstrap internal issue plus three recurring internal routines under `company-operations`: a weekly security scan, a daily CEO self-improvement review, and an every-other-day CEO Training review. The bootstrap issue, **Verify Imported Company Instance**, imports in `TODO` on the CEO queue so the imported entity set can be checked before normal operations begin. Operator-selected live company names, descriptions, and issue prefixes are valid import choices as long as they do not break routing, governance visibility, or package-owned entity mapping. The routines create ongoing internal Paperclip work items that help keep the company healthy; they do not replace the synced GitHub issues and PRs that remain the real delivery backlog. The routines import active by default so those recurring maintenance checks start automatically after import.
 
 The CEO self-improvement routine may improve more than this package. When the learning is a reusable default for future imports, route it into a PR against `alvarosanchez/micronaut-agent-company`. When the root cause clearly lives in a company-owned upstream dependency such as `alvarosanchez/paperclip-github-plugin`, the same routine may open that upstream PR directly instead of papering over the problem with more package guidance.
 
@@ -199,7 +199,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 - The GitHub sync plugin creates one Paperclip project per synced repository.
 - Synced GitHub issues and PRs are the actual work items for the company.
 - This package intentionally ships no starter delivery backlog.
-- It does include one lightweight internal project, `company-operations`, whose bootstrap CEO verification task imports as a `TODO` issue and whose two recurring tasks import as active Paperclip routines for security posture reviews and CEO self-improvement.
+- It does include one lightweight internal project, `company-operations`, whose bootstrap CEO verification task imports as a `TODO` issue and whose three recurring tasks import as active Paperclip routines for security posture reviews, CEO self-improvement, and CEO Training.
 - Paperclip issue blockers and execution policies for synced GitHub delivery work belong in the live Paperclip instance or sync/plugin layer, because those issues are created after import rather than authored inside this package. Configure those live issues with review and approval stages that match this package's workflow.
 - Use linked Paperclip approvals for board governance. Do not depend on free-form comments or on undocumented approver semantics inside execution stages.
 - Use issue-thread interactions for board or user input that belongs inside the issue thread but is not itself a governance approval: task selection cards, bounded question forms, and plan-confirmation cards. Governance approvals still use the linked approvals API.
@@ -220,6 +220,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 | --- | --- | --- | --- |
 | `Weekly Security Deep Scan` | Security Engineer | Mondays at 09:00 `Europe/Madrid` | Proactively inspect recent code, dependencies, build logic, CI/CD, release automation, and docs for security risk |
 | `Daily CEO Self-Improvement` | CEO | Every day at 15:00 `Europe/Madrid` | Review recent executions, audit the imported company skill inventory, keep repo-level instruction hygiene healthy through managed-repo PRs, and promote reusable company learnings through package PRs |
+| `Training` | CEO | Every other day at 10:00 `Europe/Madrid` | Analyze non-CEO agent executions since the last Training pass, find targeted https://skills.sh skills, request board approval for each candidate, and add approved referenced company skills to the approved agents |
 
 These routines import active by default.
 
@@ -338,9 +339,9 @@ flowchart TD
 | `micronaut-quality-gates` | Common definition of done across triage, planning, implementation, QA, security review, code review, and PR follow-through |
 | `micronaut-security-review` | Security review checklist for Micronaut source code, dependencies, build logic, CI/CD, release automation, secure defaults, and proactive deep scans |
 
-## Referenced Upstream Skills
+## Referenced External Skills
 
-These skills are included as referenced skills pinned to `micronaut-projects/micronaut-project-template` rather than copied into this repository:
+These skills are included as referenced skills pinned to their upstream source rather than copied into this repository:
 
 | Skill | Assigned To | Purpose |
 | --- | --- | --- |
@@ -349,6 +350,7 @@ These skills are included as referenced skills pinned to `micronaut-projects/mic
 | `gradle` | Architect, Micronaut Engineer, QA Engineer, Security Engineer, Code Reviewer | Micronaut maintainer Gradle workflows, compatibility checks, catalog management, and build diagnostics |
 | `agent-md-refactor` | CEO, Technical Writer | Progressive-disclosure refactoring for repo-level and local runtime instruction files so guidance stays compact, linked, and reimport-safe |
 | `skill-creator` | Architect | Agent-agnostic skill authoring guidance used when the company evolves its own shared skills |
+| `find-skills` | CEO | https://skills.sh marketplace discovery for Training routine skill recommendations and approval-backed company skill additions |
 
 ## First Run
 
