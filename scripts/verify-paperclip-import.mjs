@@ -97,6 +97,8 @@ const APPROVAL_LINKAGE_VERIFICATION_PATTERN =
   /approvals\/\{approvalId\}\/issues[\s\S]{0,320}(?:issue\.linkedApprovalIds|linkedApprovalIds)|(?:issue\.linkedApprovalIds|linkedApprovalIds)[\s\S]{0,320}approvals\/\{approvalId\}\/issues/i;
 const POLICY_BLOCKED_REOPEN_PATTERN =
   /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}policy-blocked[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment|policy-blocked[\s\S]{0,500}GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment/i;
+const HEALTHY_PR_MAINTAINER_WAIT_PATTERN =
+  /(?:open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing[\s\S]{0,320}no actionable unresolved internal review state[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,260}normal maintainer review)|(?:normal maintainer review[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,360}open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing)/i;
 const LIVE_INSTANCE_TEMPLATE_IDENTITY_PATTERN =
   /operator-selected live company names?, descriptions?, and issue prefixes? are valid import choices[\s\S]{0,240}(?:routing|governance visibility|package-owned entity mapping)|(?:routing|governance visibility|package-owned entity mapping)[\s\S]{0,240}operator-selected live company names?, descriptions?, and issue prefixes? are valid import choices/i;
 const SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN =
@@ -635,6 +637,18 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: POLICY_BLOCKED_REOPEN_PATTERN,
     message:
       "COMPANY.md must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
+  },
+  {
+    relativePath: "agents/code-reviewer/AGENTS.md",
+    pattern: HEALTHY_PR_MAINTAINER_WAIT_PATTERN,
+    message:
+      "Code Reviewer instructions must keep healthy PR maintainer-wait issues in `in_review` with no internal assignee instead of routing another follow-through checkpoint.",
+  },
+  {
+    relativePath: "agents/micronaut-engineer/AGENTS.md",
+    pattern: HEALTHY_PR_MAINTAINER_WAIT_PATTERN,
+    message:
+      "Micronaut Engineer instructions must correct healthy PR maintainer-wait reopen noise back to `in_review` with no internal assignee instead of adding another follow-through checkpoint.",
   },
   {
     relativePath: "COMPANY.md",

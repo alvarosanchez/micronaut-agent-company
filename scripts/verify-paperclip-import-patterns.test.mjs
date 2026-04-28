@@ -98,6 +98,14 @@ test("verification rules require decision-explaining replies on review threads",
   );
   assert.match(
     source,
+    /Code Reviewer instructions must keep healthy PR maintainer-wait issues in `in_review` with no internal assignee instead of routing another follow-through checkpoint\./,
+  );
+  assert.match(
+    source,
+    /Micronaut Engineer instructions must correct healthy PR maintainer-wait reopen noise back to `in_review` with no internal assignee instead of adding another follow-through checkpoint\./,
+  );
+  assert.match(
+    source,
     /Technical Writer instructions must explain that docs review threads get a decision-explaining reply before they are resolved\./,
   );
   assert.match(
