@@ -33,6 +33,7 @@ When the change belongs in the package core:
 - create or update a PR to `https://github.com/alvarosanchez/micronaut-agent-company`
 - treat CEO-opened PRs as still active after creation until CI is green, reported checks are passing, and no unresolved review threads remain
 - if the required linked board approval already exists and is approved, implement the change in the same run instead of stopping at a proposal
+- when the package change only needs non-governance confirmation, use a Paperclip `request_confirmation` issue-thread interaction against the current proposal or plan instead of a linked board approval; keep linked approvals for decisions that authorize governance-sensitive action
 - leave merge and release decisions to humans
 
 ## Managed Repository AGENTS.md PR Path
@@ -65,6 +66,7 @@ If you do not have a working copy of the package repo or cannot send a PR from t
 
 - do not mutate an imported company instance's core files in place
 - create a linked board approval request for the exact next action when human authorization or repo access is what is missing
+- create a Paperclip issue-thread interaction when the missing input is a bounded choice, suggested task selection, or non-governance confirmation rather than authorization
 - record a maintainer-ready package proposal in the current Paperclip report only as support for that linked approval or clearly documented blocker
 - use additive extension instructions or `.company-runtime/` overlays only for the local guidance that cannot wait for a published package update
 

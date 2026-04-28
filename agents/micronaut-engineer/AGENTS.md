@@ -1,5 +1,6 @@
 ---
 name: Micronaut Engineer
+role: engineer
 title: Micronaut Engineer
 reportsTo: ceo
 skills:

@@ -1,17 +1,19 @@
 {
   "name": "micronaut-agent-company",
   "version": "1.2.11",
-  "nextVersion": "1.2.12",
+  "nextVersion": "1.3.0",
   "private": true,
   "description": "Paperclip company package for Micronaut inbox-zero maintenance.",
   "license": "MIT",
   "scripts": {
+    "setup:local-paperclip": "node scripts/setup-local-paperclip-instance.mjs",
     "test": "npm run test:unit && node scripts/verify-paperclip-import.mjs",
     "test:node22": "npx -y node@22 --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/board-approval-comment-requirements.test.mjs scripts/organization-project-guidance.test.mjs scripts/release-targeting-guidance.test.mjs scripts/verify-paperclip-import-patterns.test.mjs scripts/qa-direct-github-issue-actions.test.mjs scripts/ceo-self-improvement-policy.test.mjs && npx -y node@22 scripts/verify-paperclip-import.mjs",
     "test:unit": "node --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/board-approval-comment-requirements.test.mjs scripts/organization-project-guidance.test.mjs scripts/release-targeting-guidance.test.mjs scripts/verify-paperclip-import-patterns.test.mjs scripts/qa-direct-github-issue-actions.test.mjs scripts/ceo-self-improvement-policy.test.mjs"
   },
   "devDependencies": {
-    "paperclipai": "2026.416.0",
+    "paperclipai": "2026.427.0",
+    "playwright": "^1.59.1",
     "yaml": "2.8.3"
   }
 }

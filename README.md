@@ -14,6 +14,16 @@ Import the company package into Paperclip directly from GitHub:
 npx paperclipai company import https://github.com/alvarosanchez/micronaut-agent-company
 ```
 
+For a disposable local instance that imports this package through `paperclip-agent-companies-plugin`, enables the Experimental **Environments** and **Isolated Workspaces** instance settings, installs the latest `paperclip-github-plugin` and `paperclip-micronaut-plugin`, registers this repository in GitHub Sync, and opens the imported company dashboard:
+
+```bash
+npm run setup:local-paperclip -- --reset
+```
+
+By default the script uses `.paperclip-local/`, `paperclipai@latest`, the latest plugin packages from npm, a clean staged copy of the current checkout's tracked/unignored files as the Agent Companies source, and the current `git origin` repository as the GitHub Sync mapping. It writes a local Paperclip config directly and starts `paperclipai run`, so Paperclip's onboarding page is not opened. Override the imported source with `--company-source <path|repo>` or `PAPERCLIP_LOCAL_COMPANY_SOURCE`, and override the GitHub Sync mapping with `--repo owner/repo` or `PAPERCLIP_LOCAL_REPO=owner/repo`. If `GITHUB_TOKEN` or `PAPERCLIP_GITHUB_TOKEN` is set, the script writes GitHub Sync's worker-local fallback token config into the isolated Paperclip data dir so manual sync can run without pasting a token into the UI. Use `--no-open` when you want setup to finish without opening the dashboard.
+
+Pass script options after npm's `--` separator when possible. The script also honors npm-consumed flags such as `npm run setup:local-paperclip --reset`, but npm will print its own warning before the script starts.
+
 ## Runtime Defaults
 
 All agents are configured to use `codex_local` with `gpt-5.5` and live web search enabled.
@@ -39,6 +49,20 @@ Each agent defines a Paperclip-specific icon hint under `metadata.paperclip.agen
 | Code Reviewer | `search` |
 | Micronaut Engineer | `hammer` |
 | Technical Writer | `message-square` |
+
+## Paperclip Agent Roles
+
+Each agent also declares a Paperclip role in `AGENTS.md` frontmatter so authenticated org charts, role filters, and cost/profile surfaces can classify the company correctly. The security gate uses Paperclip's first-class `security` role.
+
+| Agent | `role` |
+| --- | --- |
+| CEO | `ceo` |
+| Architect | `cto` |
+| QA Engineer | `qa` |
+| Security Engineer | `security` |
+| Code Reviewer | `engineer` |
+| Micronaut Engineer | `engineer` |
+| Technical Writer | `general` |
 
 ## Workflow
 
@@ -74,12 +98,14 @@ Recommended live routing model:
 - Inside an active execution-policy stage, let Paperclip own the handoff: read `executionState.currentParticipant`, approve with `status: done`, and request changes with `status: in_progress` so the runtime records the decision and routes the issue automatically.
 - Adding a Paperclip reviewer does not guarantee an immediate wake. If the next reviewer should act now and the deployment did not wake them automatically, invoke that agent heartbeat explicitly with the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action after the stage has already advanced. If comment context would help and your deployment still has mention-wake bugs, add a structured `@` mention only as a fallback note, not as the routing mechanism.
 - Paperclip review stages can have multiple participants. When you expect more than one reviewer to look at the active stage, invoke each reviewer explicitly after the stage becomes active.
-- This package models required gates as separate sequential stages. That is intentional: the installed `paperclipai@2026.416.0` runtime in this repository still exposes `approvalsNeeded: 1` for execution stages, so a single multi-participant stage should not be treated as a guaranteed unanimous gate.
+- This package models required gates as separate sequential stages. That is intentional: the installed `paperclipai@2026.427.0` runtime in this repository still exposes `approvalsNeeded: 1` for execution stages, so a single multi-participant stage should not be treated as a guaranteed unanimous gate.
 - Human governance uses linked Paperclip approvals. Those approvals are separate records linked to issues, with their own lifecycle and decision notes, and they are the package's source of truth for board approval.
 - After creating or following up on a linked board approval, verify the linkage with `GET /api/approvals/{approvalId}/issues` instead of relying only on `issue.linkedApprovalIds`, because some runtimes may leave that issue field empty even when the approval is actually linked.
 - Routine QA GitHub issue answers and closure paths for `type: question`, `status: awaiting feedback`, `closed: question`, `closed: cannot reproduce`, `closed: duplicate`, and evidence-backed `already-implemented` closures do not need board approval.
 - When a linked board approval is asking permission to post a maintainer-visible GitHub comment, or proposes a GitHub action with a maintainer-visible `commentBody`, the approval request must put the exact proposed comment body in `recommendedAction` so the default approval card shows the literal public text without expanding hidden fields such as `proposedCommentBody` or `proposedGithubAction.commentBody`.
-- Parent/sub-issue structure is not the same thing as a dependency. Use `parentId` for structural work breakdown and rollup context, and use `blockedByIssueIds` for dependency semantics when one issue truly cannot continue until another changes state. If a parent is genuinely waiting on a child, model that wait explicitly with blockers instead of relying on the parent link alone.
+- Use issue-thread interactions when the board or a user must choose suggested tasks, answer structured questions, or confirm a proposal inside the issue thread. Create known child issues directly; use `suggest_tasks` only when a human should accept or reject the proposed work list, use `ask_user_questions` for bounded multi-question decisions, and use `request_confirmation` for plan or proposal approval.
+- For plan approval, update the `plan` issue document first, then create a `request_confirmation` interaction targeting the latest plan revision with an idempotency key such as `confirmation:{issueId}:plan:{revisionId}` and `continuationPolicy: wake_assignee_on_accept`. If a later user or board comment supersedes the plan, update the document and create a fresh confirmation instead of treating the old card as still valid.
+- Parent/sub-issue structure is not the same thing as a dependency. Use `parentId` for structural work breakdown and rollup context, use `blockParentUntilDone` when creating known child issues that should hold the parent checklist step, and use `blockedByIssueIds` for dependency semantics when one issue truly cannot continue until another changes state. If a parent is genuinely waiting on a child, model that wait explicitly with blockers instead of relying on the parent link alone.
 
 ## Issue Lifecycle
 
@@ -107,7 +133,9 @@ stateDiagram-v2
 
 For active execution-policy stages, trust the runtime to move the issue into `in_review`, assign the next `currentParticipant`, and preserve the decision trail. Use manual `TODO` handoffs only when a live workflow step sits outside the current execution policy, and treat any `@` mention or heartbeat invoke as a wake or context aid rather than the source of truth.
 
-`TODO` is dispatch state and may be assigned or unassigned; `IN_PROGRESS` is active owned work. For assigned agent work, move into `IN_PROGRESS` only after checkout. If your deployment exposes `checkoutRunId` and `executionRunId`, read them as execution-rights lock versus the currently live run. Assigned agent `TODO` or `IN_PROGRESS` work should either have a live wake path, be intentionally resting after a successful heartbeat, or be visibly surfaced as stranded. Let Paperclip spend its one automatic recovery wake first; if the issue is still stranded and gets moved to `BLOCKED` with a visible comment, treat that as a queue-health problem to repair, reroute, or escalate.
+`TODO` is dispatch state and may be assigned or unassigned; `IN_PROGRESS` is active owned work. For assigned agent work, move into `IN_PROGRESS` only after checkout. If your deployment exposes `checkoutRunId`, `executionRunId`, heartbeat run liveness fields, continuation attempts, or watchdog next-action hints, read them as the execution-rights lock, the currently live execution path, and the runtime's own recovery trail. Assigned agent `TODO` or `IN_PROGRESS` work should either have a live wake path, a queued continuation, an intentionally resting next action, or an operator-visible liveness recovery state. If configurable liveness recovery has already surfaced the issue as stranded or `BLOCKED` with a visible comment, treat that as a queue-health problem to repair, reroute, or escalate.
+
+Generic comments on completed assigned issues are inert by default. When follow-up work intentionally restarts on a completed or cancelled issue, include structured `resume: true` on the `POST /api/issues/{issueId}/comments` or `PATCH /api/issues/{issueId}` payload so Paperclip can wake the assignee through the resumable path instead of relying on comment noise.
 
 For PR-based delivery work, a synced Paperclip item remains open until the linked PR merges and the GitHub sync plugin reflects that merge back into Paperclip. For QA-published answers or closures, the terminal Paperclip state depends on the closure disposition after the GitHub action actually syncs back: published answers and closures such as `type: question` plus `closed: question`, timed-out `status: awaiting feedback`, `closed: cannot reproduce`, or an evidence-backed already-implemented closure become `DONE`, while disposition-based closures such as `closed: duplicate`, stale, or out-of-scope become `CANCELLED`. Agents should never treat a successful QA, Security Engineer, or Code Reviewer stage by itself as permission to close the Paperclip item manually.
 
@@ -174,8 +202,10 @@ When the synced issue already has a linked contributor PR, that PR should never 
 - It does include one lightweight internal project, `company-operations`, whose bootstrap CEO verification task imports as a `TODO` issue and whose two recurring tasks import as active Paperclip routines for security posture reviews and CEO self-improvement.
 - Paperclip issue blockers and execution policies for synced GitHub delivery work belong in the live Paperclip instance or sync/plugin layer, because those issues are created after import rather than authored inside this package. Configure those live issues with review and approval stages that match this package's workflow.
 - Use linked Paperclip approvals for board governance. Do not depend on free-form comments or on undocumented approver semantics inside execution stages.
+- Use issue-thread interactions for board or user input that belongs inside the issue thread but is not itself a governance approval: task selection cards, bounded question forms, and plan-confirmation cards. Governance approvals still use the linked approvals API.
 - Use `.company-runtime/shared.md` or `.company-runtime/projects/<project-slug>.md` for supplemental release, CI, docs, and maintainer-convention notes that are not already encoded in the sync plugin configuration.
 - Project workspaces and execution workspaces are live runtime surfaces. Configure machine-local checkout paths, services, jobs, and runtime overrides on the live Paperclip project or execution workspace, not in this portable package.
+- Paperclip environments are also live runtime configuration. Choose local, SSH-backed, or sandbox-backed environments in the live instance, assign agent defaults there when useful, and install `@paperclipai/plugin-e2b` or another environment-driver plugin only in deployments that need sandbox execution. This portable package should not hard-code environment IDs or provider-specific leases.
 - Heartbeats resolve an execution workspace for code access, but they do not auto-start workspace services. Start or stop those services manually in the workspace UI when a repository needs them.
 
 ## Internal Bootstrap Issue
@@ -254,14 +284,17 @@ When you post through the GitHub sync plugin tools, do not add that footer manua
 
 ## Paperclip Runtime APIs
 
-Some workflow actions are Paperclip runtime concerns rather than GitHub sync concerns. In the current `paperclipai@2026.416.0` build, these are core APIs, not built-in agent-tool IDs:
+Some workflow actions are Paperclip runtime concerns rather than GitHub sync concerns. In the current `paperclipai@2026.427.0` build, these are core APIs, not built-in agent-tool IDs:
 
 - Identity and inbox: prefer `GET /api/agents/me/inbox-lite`; fall back to `GET /api/companies/{companyId}/issues?assigneeAgentId={yourId}&status=todo,in_progress,in_review,blocked` when you need full issue objects.
 - Execution-policy decisions: there is no separate decision endpoint. Approve with `PATCH /api/issues/{issueId}` and `status: done`, request changes with a non-`done` status, preferably `in_progress`, and let Paperclip update `executionState`, `in_review`, and `returnAssignee` automatically.
+- Issue-thread interactions: create structured board/user input cards with `POST /api/issues/{issueId}/interactions` using `kind: suggest_tasks`, `kind: ask_user_questions`, or `kind: request_confirmation`. Use idempotency keys for repeatable proposals and a continuation policy when the assignee should resume after the response.
 - Reviewer wakeups: use the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action after activating the next review stage.
 - Linked board approvals: create, inspect, approve, reject, request revision, resubmit, and comment on approvals through the Paperclip approvals API.
 - Approval lifecycle: linked approvals are separate records from issue review stages. They start pending, carry their own decision note history, and are the package's source of truth for board approval.
 - Comment-gating approvals: when the approval is for a maintainer-visible GitHub issue comment or any GitHub action that includes a public `commentBody`, put the exact proposed comment body in `recommendedAction` before asking the board to approve it, and do not hide the only full draft in `proposedCommentBody` or `proposedGithubAction.commentBody`.
+- Liveness and resumability: inspect heartbeat liveness fields, continuation attempt metadata, and any `continuation-summary` document before duplicating work; use structured `resume: true` when intentionally restarting follow-up on a completed assigned issue.
+- Environments: live deployments may configure local, SSH, or sandbox-backed `Environment` records and agent default environments. Environment IDs, provider credentials, and sandbox leases are deployment settings, not portable package defaults.
 - Workspace runtime services: issue heartbeats do not auto-start project or execution workspace services. Configure and operate those services manually in the workspace UI.
 
 ## Org Chart
@@ -320,7 +353,7 @@ These skills are included as referenced skills pinned to `micronaut-projects/mic
 ## First Run
 
 1. Import the company into Paperclip.
-2. Configure the GitHub sync plugin so the target repositories are synced, one Paperclip project is created per repository, new issues land in `BACKLOG`, the required `type:` labels exist in GitHub, and live synced issues receive the correct Paperclip review and approval stages for this workflow. If repository work depends on long-running services or one-shot jobs, configure those commands on the live project workspace or execution workspace because issue heartbeats do not auto-start them.
+2. Configure the GitHub sync plugin so the target repositories are synced, one Paperclip project is created per repository, new issues land in `BACKLOG`, the required `type:` labels exist in GitHub, and live synced issues receive the correct Paperclip review and approval stages for this workflow. Configure local, SSH, or sandbox environments in the live instance, and install `@paperclipai/plugin-e2b` or another environment-driver plugin only if sandbox execution is required. If repository work depends on long-running services or one-shot jobs, configure those commands on the live project workspace or execution workspace because issue heartbeats do not auto-start them.
 3. If you want local, additive runtime guidance that survives package reimports, create `.company-runtime/shared.md` and any role- or project-specific overlay files you need. Keep that guidance out of the package-owned core files unless you are intentionally publishing a new package version through a PR to `alvarosanchez/micronaut-agent-company`.
 4. Put any supplemental facts the agents will need during execution into `.company-runtime/shared.md` or `.company-runtime/projects/<project-slug>.md`, such as release-line rules, CI commands, Sonar expectations, docs layout notes, and maintainer preferences.
 5. Let the sync plugin import the live GitHub issues and PRs. Those imported items are the company backlog and active work queue.

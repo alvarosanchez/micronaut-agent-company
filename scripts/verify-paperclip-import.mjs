@@ -82,9 +82,17 @@ const COMMENT_BODY_RECOMMENDED_ACTION_PATTERN =
 const SINGLE_ASSIGNEE_GOVERNANCE_PATTERN =
   /single[- ]assignee[\s\S]{0,500}(?:linked (?:Paperclip )?approvals)[\s\S]{0,240}(?:not (?:a )?second assignee|not (?:a )?second assignment)|(?:linked (?:Paperclip )?approvals)[\s\S]{0,240}(?:not (?:a )?second assignee|not (?:a )?second assignment)[\s\S]{0,500}single[- ]assignee/i;
 const CHECKOUT_RECOVERY_PATTERN =
-  /(?:assigned agent|agent-owned)[\s\S]{0,700}in_progress[\s\S]{0,240}checkout[\s\S]{0,700}(?:automatic recovery wake|single automatic recovery wake)|(?:automatic recovery wake|single automatic recovery wake)[\s\S]{0,700}(?:assigned agent|agent-owned)[\s\S]{0,700}in_progress[\s\S]{0,240}checkout/i;
+  /(?:assigned agent|agent-owned)[\s\S]{0,700}in_progress[\s\S]{0,320}checkout[\s\S]{0,900}(?:liveness|continuation|watchdog)[\s\S]{0,500}(?:stranded|blocked|repair)|(?:liveness|continuation|watchdog)[\s\S]{0,900}(?:assigned agent|agent-owned)[\s\S]{0,700}in_progress[\s\S]{0,320}checkout/i;
 const PARENT_BLOCKER_PATTERN =
-  /parentId[\s\S]{0,500}(?:structural|structure)[\s\S]{0,500}blockedByIssueIds[\s\S]{0,400}(?:dependency|blocker)|blockedByIssueIds[\s\S]{0,500}(?:dependency|blocker)[\s\S]{0,500}parentId[\s\S]{0,400}(?:structural|structure)/i;
+  /parentId[\s\S]{0,500}(?:structural|structure|checklist)[\s\S]{0,700}(?:blockParentUntilDone|child issues?)[\s\S]{0,700}blockedByIssueIds[\s\S]{0,400}(?:dependency|blocker)|blockedByIssueIds[\s\S]{0,500}(?:dependency|blocker)[\s\S]{0,700}(?:blockParentUntilDone|child issues?)[\s\S]{0,700}parentId[\s\S]{0,400}(?:structural|structure|checklist)/i;
+const ISSUE_THREAD_INTERACTION_PATTERN =
+  /issue-thread interactions?[\s\S]{0,800}suggest_tasks[\s\S]{0,800}ask_user_questions[\s\S]{0,800}request_confirmation|suggest_tasks[\s\S]{0,800}ask_user_questions[\s\S]{0,800}request_confirmation[\s\S]{0,800}issue-thread interactions?/i;
+const PLAN_CONFIRMATION_PATTERN =
+  /plan[\s\S]{0,500}request_confirmation[\s\S]{0,500}confirmation:\{issueId\}:plan:\{revisionId\}[\s\S]{0,500}wake_assignee_on_accept|request_confirmation[\s\S]{0,500}confirmation:\{issueId\}:plan:\{revisionId\}[\s\S]{0,500}wake_assignee_on_accept[\s\S]{0,500}plan/i;
+const RESUME_TRUE_PATTERN =
+  /resume:\s*true[\s\S]{0,500}(?:completed|cancelled|done)[\s\S]{0,500}(?:assigned issue|assignee|wake)|(?:completed|cancelled|done)[\s\S]{0,500}resume:\s*true[\s\S]{0,500}(?:assigned issue|assignee|wake)/i;
+const ENVIRONMENT_RUNTIME_PATTERN =
+  /(?:Paperclip )?environments?[\s\S]{0,500}(?:local|SSH|sandbox)[\s\S]{0,500}(?:live|deployment|operator-owned)[\s\S]{0,500}(?:@paperclipai\/plugin-e2b|environment-driver|provider)|(?:@paperclipai\/plugin-e2b|environment-driver|provider)[\s\S]{0,500}(?:Paperclip )?environments?[\s\S]{0,500}(?:live|deployment|operator-owned)/i;
 const APPROVAL_LINKAGE_VERIFICATION_PATTERN =
   /approvals\/\{approvalId\}\/issues[\s\S]{0,320}(?:issue\.linkedApprovalIds|linkedApprovalIds)|(?:issue\.linkedApprovalIds|linkedApprovalIds)[\s\S]{0,320}approvals\/\{approvalId\}\/issues/i;
 const POLICY_BLOCKED_REOPEN_PATTERN =
@@ -159,6 +167,30 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: PARENT_BLOCKER_PATTERN,
     message:
       "README.md must explain that `parentId` is structural and `blockedByIssueIds` carries dependency semantics.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: ISSUE_THREAD_INTERACTION_PATTERN,
+    message:
+      "README.md must explain Paperclip issue-thread interactions for suggested tasks, structured questions, and request-confirmation cards.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: PLAN_CONFIRMATION_PATTERN,
+    message:
+      "README.md must explain plan confirmation through a `request_confirmation` interaction with idempotency and continuation policy.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: RESUME_TRUE_PATTERN,
+    message:
+      "README.md must explain structured `resume: true` when restarting follow-up on completed assigned issues.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: ENVIRONMENT_RUNTIME_PATTERN,
+    message:
+      "README.md must explain Paperclip environments as live runtime configuration and mention sandbox provider installation when needed.",
   },
   {
     relativePath: "README.md",
@@ -570,6 +602,30 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "COMPANY.md",
+    pattern: ISSUE_THREAD_INTERACTION_PATTERN,
+    message:
+      "COMPANY.md must explain Paperclip issue-thread interactions for suggested tasks, structured questions, and request-confirmation cards.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: PLAN_CONFIRMATION_PATTERN,
+    message:
+      "COMPANY.md must explain plan confirmation through a `request_confirmation` interaction with idempotency and continuation policy.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: RESUME_TRUE_PATTERN,
+    message:
+      "COMPANY.md must explain structured `resume: true` when restarting follow-up on completed assigned issues.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: ENVIRONMENT_RUNTIME_PATTERN,
+    message:
+      "COMPANY.md must explain Paperclip environments as live runtime configuration and mention sandbox provider installation when needed.",
+  },
+  {
+    relativePath: "COMPANY.md",
     pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
     message:
       "COMPANY.md must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
@@ -725,6 +781,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "The daily CEO self-improvement task must require reviewing broken handoffs against `currentParticipant` and `returnAssignee` and correcting routing when possible.",
   },
   {
+    relativePath: "tasks/daily-ceo-self-improvement/TASK.md",
+    pattern: ISSUE_THREAD_INTERACTION_PATTERN,
+    message:
+      "The daily CEO self-improvement task must review opportunities to use Paperclip issue-thread interactions.",
+  },
+  {
     relativePath: "README.md",
     pattern:
       /execution workspace[\s\S]*auto-start workspace services|auto-start workspace services[\s\S]*execution workspace/i,
@@ -755,6 +817,42 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: PARENT_BLOCKER_PATTERN,
     message:
       "Shared repo operations guidance must explain that `parentId` is structural and `blockedByIssueIds` carries dependency semantics.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: ISSUE_THREAD_INTERACTION_PATTERN,
+    message:
+      "Shared repo operations guidance must explain Paperclip issue-thread interactions for suggested tasks, structured questions, and request-confirmation cards.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: PLAN_CONFIRMATION_PATTERN,
+    message:
+      "Shared repo operations guidance must explain plan confirmation through a `request_confirmation` interaction with idempotency and continuation policy.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: ENVIRONMENT_RUNTIME_PATTERN,
+    message:
+      "Shared repo operations guidance must explain Paperclip environments as live runtime configuration and mention sandbox provider installation when needed.",
+  },
+  {
+    relativePath: "agents/architect/AGENTS.md",
+    pattern: PLAN_CONFIRMATION_PATTERN,
+    message:
+      "Architect instructions must use request-confirmation interactions for non-governance plan confirmation.",
+  },
+  {
+    relativePath: "agents/ceo/AGENTS.md",
+    pattern: ISSUE_THREAD_INTERACTION_PATTERN,
+    message:
+      "CEO instructions must explain issue-thread interactions for non-governance board/user input.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern: /ask_user_questions[\s\S]{0,500}(?:bounded|structured|options)[\s\S]{0,500}continuation/i,
+    message:
+      "QA instructions must use ask-user-questions interactions for bounded maintainer input.",
   },
   {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",
@@ -813,6 +911,20 @@ const PAPERCLIP_AGENT_ICONS = new Set([
   "hexagon",
   "pentagon",
   "fingerprint",
+]);
+const PAPERCLIP_AGENT_ROLES = new Set([
+  "ceo",
+  "cto",
+  "cmo",
+  "cfo",
+  "security",
+  "engineer",
+  "designer",
+  "pm",
+  "qa",
+  "devops",
+  "researcher",
+  "general",
 ]);
 
 function toPosix(relativePath) {
@@ -908,6 +1020,22 @@ function assertValidPaperclipAgentIcon(value, relativePath) {
       `Expected metadata.paperclip.agentIcon in ${relativePath} to be a valid Paperclip icon id`,
       `Received: ${value}`,
       `Allowed: ${[...PAPERCLIP_AGENT_ICONS].join(", ")}`,
+    ].join("\n"),
+  );
+}
+
+function assertValidPaperclipAgentRole(value, relativePath) {
+  assert.equal(
+    typeof value,
+    "string",
+    `Expected role in ${relativePath}`,
+  );
+  assert.ok(
+    PAPERCLIP_AGENT_ROLES.has(value),
+    [
+      `Expected role in ${relativePath} to be a valid Paperclip agent role`,
+      `Received: ${value}`,
+      `Allowed: ${[...PAPERCLIP_AGENT_ROLES].join(", ")}`,
     ].join("\n"),
   );
 }
@@ -1220,9 +1348,11 @@ async function loadSourceExpectations(rootDir) {
         frontmatter.metadata?.paperclip?.agentIcon,
       );
       assertValidPaperclipAgentIcon(paperclipAgentIcon, relativePath);
+      assertValidPaperclipAgentRole(frontmatter.role, relativePath);
       agents.set(slug, {
         slug,
         name: frontmatter.name,
+        role: frontmatter.role,
         title: frontmatter.title ?? null,
         reportsTo: frontmatter.reportsTo ?? null,
         skills: Array.isArray(frontmatter.skills) ? frontmatter.skills : [],
@@ -1536,7 +1666,7 @@ function assertExportedBody(exportFiles, relativePath, expectedBody, expectedSlu
   const exportedMarkdown = getTextFile(exportFiles, relativePath);
   const actualBody = bodyOfMarkdown(exportedMarkdown);
   if (expectedSlug === "verify-imported-company-instance") {
-    // Paperclip 2026.416.0 currently truncates the tail of this bootstrap task body on export.
+    // Paperclip currently truncates the tail of this bootstrap task body on export.
     // The import remains correct, so keep the source text human-readable and accept a prefix match here,
     // but still require a substantial portion of the body so empty or drastically truncated exports fail.
     const minimumExpectedLength = Math.min(
@@ -1638,6 +1768,11 @@ async function main() {
           (agent) => agent.name === expectedAgent.name,
         );
         assert.ok(importedAgent, `Missing imported agent ${expectedAgent.slug}`);
+        assert.equal(
+          importedAgent.role,
+          expectedAgent.role,
+          `Role mismatch for imported agent ${expectedAgent.slug}`,
+        );
         assertImportedCodexAdapterConfig(
           importedAgent,
           expectedAgent.adapter,
@@ -1797,6 +1932,7 @@ async function main() {
       );
       assert.ok(actualAgent, `Missing exported agent ${expectedAgent.slug}`);
       assert.equal(actualAgent.name, expectedAgent.name);
+      assert.equal(actualAgent.role, expectedAgent.role);
       assert.equal(actualAgent.title ?? null, expectedAgent.title);
       assert.equal(actualAgent.reportsToSlug ?? null, expectedAgent.reportsTo);
       assert.equal(actualAgent.path, expectedAgent.path);
