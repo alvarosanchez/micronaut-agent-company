@@ -33,32 +33,29 @@ const BLANK_LINE_PATTERN =
 const AI_FOOTER_PATTERN = /######\s*✨\s*This message was AI-generated using <exact model id>/i;
 const PLUGIN_AUTO_FOOTER_PATTERN =
   /do not add that footer manually when you use the GitHub sync plugin tools|plugin appends the same footer automatically|plugin appends the footer automatically|plugin appends it automatically/i;
-const KPI_WEBHOOK_ENDPOINT_PATTERN =
-  /record-company-metric-event|\/api\/plugins\/paperclip-github-plugin\/webhooks\/record-company-metric-event/i;
-const KPI_WEBHOOK_METRIC_PATTERN = /pull_request_created/i;
-const KPI_WEBHOOK_AUTH_PATTERN =
+const KPI_API_ROUTE_ENDPOINT_PATTERN =
+  /\/api\/plugins\/paperclip-github-plugin\/api\/company-metrics\/events/i;
+const KPI_API_ROUTE_METRIC_PATTERN = /pull_request_created/i;
+const KPI_API_ROUTE_AUTH_PATTERN =
   /authenticated (?:run|runs|deployment|deployments)[\s\S]*(?:gh|gh pr create)|(?:gh|gh pr create)[\s\S]*authenticated/i;
-const KPI_WEBHOOK_PLUGIN_EXCEPTION_PATTERN =
+const KPI_API_ROUTE_PLUGIN_EXCEPTION_PATTERN =
   /create_pull_request[\s\S]*(?:records?|recording|automatically)|do not (?:send|post|call)[\s\S]*create_pull_request/i;
-const KPI_WEBHOOK_SCOPE_PATTERN =
+const KPI_API_ROUTE_SCOPE_PATTERN =
   /do not (?:send|post|call)[\s\S]*(?:PR edits|comments|review replies|merges)|comments, review replies, or merges/i;
-const KPI_WEBHOOK_REASON_PATTERN =
+const KPI_API_ROUTE_REASON_PATTERN =
   /GitHub alone cannot attribute|cannot attribute those PRs to Paperclip work|cannot attribute that PR to Paperclip work|cannot tell which pull requests came from a Paperclip company/i;
-const KPI_WEBHOOK_NO_AUTH_PATTERN =
-  /plugin webhook, not a plugin-tool call|do not need to add an agent JWT|do not add an agent JWT|do not need to add an agent JWT or board-session header|do not add an agent JWT or board-session header|do not add a board-session header or any extra JWT|do not add any extra JWT or board-session header/i;
-const KPI_WEBHOOK_BEARER_AUTH_PATTERN =
+const KPI_API_ROUTE_KIND_PATTERN =
+  /native plugin JSON route[\s\S]*agent auth[\s\S]*not a plugin-tool call or webhook|not a plugin-tool call or webhook[\s\S]*native plugin JSON route[\s\S]*agent auth/i;
+const KPI_API_ROUTE_BEARER_AUTH_PATTERN =
   /Authorization:\s*Bearer\s*\$\{PAPERCLIP_API_KEY\}|authorization:\s*Bearer\s*\$\{PAPERCLIP_API_KEY\}|Bearer\s+\$\{PAPERCLIP_API_KEY\}/i;
-const KPI_WEBHOOK_AGENT_TOKEN_PATTERN = /PAPERCLIP_API_KEY/i;
-const KPI_WEBHOOK_AGENTS_ME_PATTERN = /GET\s+\/api\/agents\/me|\/api\/agents\/me/i;
-const KPI_WEBHOOK_OLD_TIMESTAMP_HEADER_PATTERN = /x-paperclip-github-sync-timestamp/i;
-const KPI_WEBHOOK_OLD_SIGNATURE_HEADER_PATTERN = /x-paperclip-github-sync-signature/i;
-const KPI_WEBHOOK_OLD_SIGNATURE_FORMAT_PATTERN =
-  /sha256=<hex-hmac>|sha256=<hex hmac>|sha256=\$|sha256=.*hmac|HMAC/i;
-const KPI_WEBHOOK_OLD_GITHUB_TOKEN_SIGNING_PATTERN =
-  /same company `?GITHUB_TOKEN`?|using .*GITHUB_TOKEN|with the same company `?GITHUB_TOKEN`?/i;
-const KPI_WEBHOOK_OLD_RAW_BODY_PATTERN =
-  /exact JSON (?:payload|string|body).*(?:rawBody)|using the exact JSON payload string sent as `rawBody`|exact JSON body you send as `rawBody`/i;
-const KPI_WEBHOOK_AGENT_PATHS = [
+const KPI_API_ROUTE_AGENT_TOKEN_PATTERN = /PAPERCLIP_API_KEY/i;
+const KPI_API_ROUTE_HOST_SCOPE_PATTERN =
+  /Paperclip host[\s\S]*authenticates[\s\S]*bearer token[\s\S]*scopes[\s\S]*calling agent's company[\s\S]*rejects[\s\S]*(?:non-agent|cross-company)|host[\s\S]*rejects[\s\S]*(?:non-agent|cross-company)[\s\S]*before (?:the )?(?:plugin )?worker/i;
+const KPI_API_ROUTE_COMPANY_ID_PATTERN =
+  /companyId[\s\S]*(?:must match|matches) the calling agent's company/i;
+const KPI_API_ROUTE_LEGACY_WEBHOOK_PATH_PATTERN =
+  /\/api\/plugins\/paperclip-github-plugin\/webhooks\/record-company-metric-event|\/webhooks\/record-company-metric-event/i;
+const KPI_API_ROUTE_AGENT_PATHS = [
   "agents/ceo/AGENTS.md",
   "agents/code-reviewer/AGENTS.md",
 ];
@@ -91,81 +88,66 @@ function assertDirectGithubFooterPolicy(markdown, label) {
   );
 }
 
-function assertPullRequestMetricWebhookPolicy(markdown, label) {
+function assertPullRequestMetricApiRoutePolicy(markdown, label) {
   assert.match(
     markdown,
-    KPI_WEBHOOK_ENDPOINT_PATTERN,
-    `${label} must mention the company metric webhook endpoint.`,
+    KPI_API_ROUTE_ENDPOINT_PATTERN,
+    `${label} must mention the company metric plugin API route endpoint.`,
   );
   assert.match(
     markdown,
-    KPI_WEBHOOK_METRIC_PATTERN,
+    KPI_API_ROUTE_METRIC_PATTERN,
     `${label} must mention the pull_request_created metric.`,
   );
   assert.match(
     markdown,
-    KPI_WEBHOOK_AUTH_PATTERN,
-    `${label} must tie the webhook to authenticated gh-based PR creation.`,
+    KPI_API_ROUTE_AUTH_PATTERN,
+    `${label} must tie the API route to authenticated gh-based PR creation.`,
   );
   assert.match(
     markdown,
-    KPI_WEBHOOK_PLUGIN_EXCEPTION_PATTERN,
+    KPI_API_ROUTE_PLUGIN_EXCEPTION_PATTERN,
     `${label} must explain that create_pull_request already records the metric.`,
   );
   assert.match(
     markdown,
-    KPI_WEBHOOK_SCOPE_PATTERN,
-    `${label} must limit the webhook to PR creation rather than edits, comments, review replies, or merges.`,
+    KPI_API_ROUTE_SCOPE_PATTERN,
+    `${label} must limit the API route to PR creation rather than edits, comments, review replies, or merges.`,
   );
   assert.match(
     markdown,
-    KPI_WEBHOOK_REASON_PATTERN,
+    KPI_API_ROUTE_REASON_PATTERN,
     `${label} must explain why GitHub-side PR creation needs explicit Paperclip attribution.`,
   );
   assert.match(
     markdown,
-    KPI_WEBHOOK_NO_AUTH_PATTERN,
-    `${label} must explain that the metric webhook does not need an agent JWT or board-session header.`,
+    KPI_API_ROUTE_KIND_PATTERN,
+    `${label} must explain that the metric endpoint is a native plugin JSON route with agent auth.`,
   );
   assert.match(
     markdown,
-    KPI_WEBHOOK_BEARER_AUTH_PATTERN,
-    `${label} must explain that the metric webhook authenticates with Authorization: Bearer \${PAPERCLIP_API_KEY}.`,
+    KPI_API_ROUTE_BEARER_AUTH_PATTERN,
+    `${label} must explain that the metric API route authenticates with Authorization: Bearer \${PAPERCLIP_API_KEY}.`,
   );
   assert.match(
     markdown,
-    KPI_WEBHOOK_AGENT_TOKEN_PATTERN,
-    `${label} must mention PAPERCLIP_API_KEY for the metric webhook.`,
+    KPI_API_ROUTE_AGENT_TOKEN_PATTERN,
+    `${label} must mention PAPERCLIP_API_KEY for the metric API route.`,
   );
   assert.match(
     markdown,
-    KPI_WEBHOOK_AGENTS_ME_PATTERN,
-    `${label} must explain that the metric webhook bearer token is validated through GET /api/agents/me.`,
+    KPI_API_ROUTE_HOST_SCOPE_PATTERN,
+    `${label} must explain that the Paperclip host authenticates and company-scopes the agent request before worker dispatch.`,
+  );
+  assert.match(
+    markdown,
+    KPI_API_ROUTE_COMPANY_ID_PATTERN,
+    `${label} must explain that companyId, when present, must match the calling agent's company.`,
   );
   assert.doesNotMatch(
     markdown,
-    KPI_WEBHOOK_OLD_TIMESTAMP_HEADER_PATTERN,
-    `${label} must not mention the old timestamp header for the metric webhook.`,
-  );
-  assert.doesNotMatch(
-    markdown,
-    KPI_WEBHOOK_OLD_SIGNATURE_HEADER_PATTERN,
-    `${label} must not mention the old signature header for the metric webhook.`,
-  );
-  assert.doesNotMatch(
-    markdown,
-    KPI_WEBHOOK_OLD_SIGNATURE_FORMAT_PATTERN,
-    `${label} must not describe the metric webhook as HMAC-signed.`,
-  );
-  assert.doesNotMatch(
-    markdown,
-    KPI_WEBHOOK_OLD_GITHUB_TOKEN_SIGNING_PATTERN,
-    `${label} must not describe the metric webhook as signed with GITHUB_TOKEN.`,
-  );
-  assert.doesNotMatch(
-    markdown,
-    KPI_WEBHOOK_OLD_RAW_BODY_PATTERN,
-    `${label} must not describe the metric webhook as rawBody-signed.`,
+    KPI_API_ROUTE_LEGACY_WEBHOOK_PATH_PATTERN,
+    `${label} must not mention the old company metric webhook path.`,
   );
 }
 
@@ -292,27 +274,27 @@ test("README documents the direct GitHub footer rule and plugin fallback", async
   assert.match(markdown, ENV_VAR_ONLY_PATTERN);
   assert.match(markdown, NO_FILESYSTEM_TOKEN_SEARCH_PATTERN);
   assertDirectGithubFooterPolicy(markdown, "README.md");
-  assertPullRequestMetricWebhookPolicy(markdown, "README.md");
+  assertPullRequestMetricApiRoutePolicy(markdown, "README.md");
 });
 
-test("Shared Micronaut repo operations explain PR KPI webhook attribution", async () => {
+test("Shared Micronaut repo operations explain PR KPI API route attribution", async () => {
   const markdown = await readFile(
     new URL("../skills/micronaut-repo-operations/SKILL.md", import.meta.url),
     "utf8",
   );
 
-  assertPullRequestMetricWebhookPolicy(
+  assertPullRequestMetricApiRoutePolicy(
     markdown,
     "skills/micronaut-repo-operations/SKILL.md",
   );
 });
 
-test("PR-creating agents explain the authenticated PR KPI webhook rule", async () => {
-  for (const relativePath of KPI_WEBHOOK_AGENT_PATHS) {
+test("PR-creating agents explain the authenticated PR KPI API route rule", async () => {
+  for (const relativePath of KPI_API_ROUTE_AGENT_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { body } = parseFrontmatter(markdown);
 
-    assertPullRequestMetricWebhookPolicy(body, relativePath);
+    assertPullRequestMetricApiRoutePolicy(body, relativePath);
   }
 });
 
