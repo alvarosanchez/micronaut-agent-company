@@ -258,10 +258,11 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 
 ## Internal Operating Routines
 
-This package intentionally keeps internal automation small. It includes one lightweight project, `company-operations`, with two recurring Paperclip routines:
+This package intentionally keeps internal automation small. It includes one lightweight project, `company-operations`, with three recurring Paperclip routines:
 
 - `weekly-security-deep-scan`, assigned to `security-engineer`
 - `daily-ceo-self-improvement`, assigned to `ceo`
+- `training`, assigned to `ceo`
 
 These routines are company-operating work, not substitutes for the synced GitHub backlog. They exist to keep the maintenance system healthy even when the GitHub queue is quiet.
 
