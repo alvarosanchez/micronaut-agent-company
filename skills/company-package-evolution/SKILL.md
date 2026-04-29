@@ -47,6 +47,8 @@ When the change belongs in a managed Micronaut repository's `AGENTS.md`:
 - keep package-core files unchanged unless future imports also need a reusable default change
 - if repository access or required governance approval is unavailable, create the linked board approval request or record the blocker instead of editing silently
 
+The daily CEO self-improvement report must include a `Managed Repository AGENTS.md Audit` section. For each active managed Micronaut repository considered, record whether root `AGENTS.md` exists, whether it is durable/current or stale/generated/missing, and the exact outcome: no action needed, repo-local PR opened or updated, linked follow-up issue created, linked approval requested, or blocker named. A bounded metadata/readability check is enough unless recent execution evidence points to a deeper repository-specific guidance problem.
+
 When the change belongs in a company-owned upstream dependency:
 
 - work in a clone of that upstream repository
@@ -89,6 +91,8 @@ When you send a managed Micronaut repository `AGENTS.md` PR, explain:
 - what verification or readability check you ran
 - the CI/check status and unresolved review-thread status for the CEO-opened PR
 - whether any companion package-core change is still needed for future imports
+
+When the daily routine only opens or routes follow-up work for managed repository `AGENTS.md` guidance, still include the audit section in the package report so the next pass can rediscover the repository, status, and follow-up issue or PR.
 
 When you send an upstream dependency fix from the CEO routine, explain:
 
