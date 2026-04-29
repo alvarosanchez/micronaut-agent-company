@@ -12,7 +12,7 @@
     "test:unit": "node --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/board-approval-comment-requirements.test.mjs scripts/organization-project-guidance.test.mjs scripts/release-targeting-guidance.test.mjs scripts/verify-paperclip-import-patterns.test.mjs scripts/qa-direct-github-issue-actions.test.mjs scripts/ceo-self-improvement-policy.test.mjs scripts/ceo-training-routine.test.mjs"
   },
   "devDependencies": {
-    "paperclipai": "2026.427.0",
+    "paperclipai": "2026.428.0",
     "playwright": "^1.59.1",
     "yaml": "2.8.3"
   }
