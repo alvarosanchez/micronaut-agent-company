@@ -21,6 +21,7 @@ Before any role resolves its stage:
 - if a human governance decision is required, the role creates or updates a real Paperclip approval instead of treating a comment as approval
 - if non-governance board or user input is required, the role uses an issue-thread interaction instead of a loose comment: `suggest_tasks` for selectable task lists, `ask_user_questions` for bounded questions, and `request_confirmation` for explicit plan or proposal confirmation
 - if the next stage or next owner should run immediately, the role explicitly invokes the next heartbeat only after the stage or assignment has already advanced correctly
+- if Paperclip has opened a productivity review issue with `issue_productivity_review` for the source issue because of a no-comment streak, long-active duration, or high-churn loop, the manager or CEO records a queue-health manager decision on that review issue before the source work is forced to continue
 - the role re-opens the issue and verifies the execution state matches the intended outcome before finishing
 
 ## Intake Gate

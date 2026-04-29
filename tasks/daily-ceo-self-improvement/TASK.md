@@ -10,6 +10,7 @@ Review the company's recent execution history and improve the operating system w
 Focus on:
 
 - repeated blockers, stalled handoffs, and noisy queue patterns
+- open Paperclip productivity review issues (`issue_productivity_review`) for no-comment streak, long-active duration, or high-churn source work, including whether each source issue needs a manager decision, decomposition, reroute, blocker, or cancellation
 - broken handoffs where issue status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, and the expected next owner do not agree
 - liveness recovery, continuation-attempt, and `resume: true` paths where stalled or completed work needs an intentional restart instead of another generic comment
 - QA, security, or review churn that suggests missing guidance or the wrong quality gate
@@ -28,6 +29,7 @@ Produce one Paperclip report that includes:
 - any linked board approval request you opened, including the exact change it authorizes, the target surface (`.company-runtime/`, company-owned skill/docs, or package-core PR), and the implementation path after approval
 - any approved change you implemented immediately instead of re-reporting it as a proposal
 - any stale handoff you corrected by aligning issue status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, and any required next-action comment or wake
+- any productivity review issue you handled, the linked source issue, the trigger evidence such as no-comment, long-active, or high-churn behavior, and the concrete manager decision you recorded for the source work
 - any issue-thread interaction you created for a non-governance decision, including its kind, idempotency key, and expected continuation behavior
 - any managed Micronaut repository `AGENTS.md` updates you made using `agent-md-refactor`, including the PR you opened or updated in that managed repository
 - a **Managed Repository AGENTS.md Audit** section that lists each active managed Micronaut repository you considered, whether root `AGENTS.md` exists, whether it is durable/current or stale/generated/missing, and the concrete outcome for each repository: no action needed, repo-local PR opened or updated, linked follow-up issue created, linked approval requested, or blocker named
@@ -40,6 +42,7 @@ For each improvement candidate, finish the routine with one of these states inst
 - change implemented now
 - linked board approval request opened for a specific next action
 - clearly blocked, with the blocking fact named
+- manager decision recorded on the productivity review and source issue route corrected
 
 Treat Paperclip's bundled system skills `paperclip`, `paperclip-create-agent`, `paperclip-create-plugin`, and `para-memory-files` as immutable runtime capabilities. Do not propose editing them from this routine. If one of those capabilities needs better examples or safer defaults, add company-owned guidance or a company-owned skill in this package instead.
 
