@@ -1,15 +1,15 @@
 {
   "name": "micronaut-agent-company",
-  "version": "1.3.4",
-  "nextVersion": "1.3.5",
+  "version": "1.3.5",
+  "nextVersion": "1.3.6",
   "private": true,
   "description": "Paperclip company package for Micronaut inbox-zero maintenance.",
   "license": "MIT",
   "scripts": {
     "setup:local-paperclip": "node scripts/setup-local-paperclip-instance.mjs",
     "test": "npm run test:unit && node scripts/verify-paperclip-import.mjs",
-    "test:node22": "npx -y node@22 --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/board-approval-comment-requirements.test.mjs scripts/organization-project-guidance.test.mjs scripts/release-targeting-guidance.test.mjs scripts/verify-paperclip-import-patterns.test.mjs scripts/qa-direct-github-issue-actions.test.mjs scripts/ceo-self-improvement-policy.test.mjs scripts/ceo-training-routine.test.mjs scripts/paperclip-2026-428-release.test.mjs && npx -y node@22 scripts/verify-paperclip-import.mjs",
-    "test:unit": "node --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/board-approval-comment-requirements.test.mjs scripts/organization-project-guidance.test.mjs scripts/release-targeting-guidance.test.mjs scripts/verify-paperclip-import-patterns.test.mjs scripts/qa-direct-github-issue-actions.test.mjs scripts/ceo-self-improvement-policy.test.mjs scripts/ceo-training-routine.test.mjs scripts/paperclip-2026-428-release.test.mjs"
+    "test:node22": "npx -y node@22 --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/board-approval-comment-requirements.test.mjs scripts/organization-project-guidance.test.mjs scripts/release-targeting-guidance.test.mjs scripts/verify-paperclip-import-patterns.test.mjs scripts/qa-direct-github-issue-actions.test.mjs scripts/github-issue-ownership-and-reviewers.test.mjs scripts/ceo-self-improvement-policy.test.mjs scripts/ceo-training-routine.test.mjs scripts/paperclip-2026-428-release.test.mjs && npx -y node@22 scripts/verify-paperclip-import.mjs",
+    "test:unit": "node --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/board-approval-comment-requirements.test.mjs scripts/organization-project-guidance.test.mjs scripts/release-targeting-guidance.test.mjs scripts/verify-paperclip-import-patterns.test.mjs scripts/qa-direct-github-issue-actions.test.mjs scripts/github-issue-ownership-and-reviewers.test.mjs scripts/ceo-self-improvement-policy.test.mjs scripts/ceo-training-routine.test.mjs scripts/paperclip-2026-428-release.test.mjs"
   },
   "devDependencies": {
     "paperclipai": "2026.428.0",
