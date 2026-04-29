@@ -30,6 +30,8 @@ const paperclipCliPath = path.join(
 const ROOT_PACKAGE_FILES = [".paperclip.yaml", "COMPANY.md", "README.md"];
 const ROOT_PACKAGE_DIRS = ["agents", "projects", "tasks", "skills"];
 const DISALLOWED_PACKAGE_DIRS = ["references"];
+const DEFAULT_COMPANY_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
+const PAPERCLIP_ISSUE_LIST_DESCRIPTION_EXPORT_MAX_CHARS = 1200;
 const PORTABLE_RUNTIME_FILE_PATTERNS = [
   /^agents\/[^/]+\/AGENTS\.md$/,
   /^skills\/[^/]+\/SKILL\.md$/,
@@ -99,6 +101,12 @@ const POLICY_BLOCKED_REOPEN_PATTERN =
   /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}policy-blocked[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment|policy-blocked[\s\S]{0,500}GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment/i;
 const HEALTHY_PR_MAINTAINER_WAIT_PATTERN =
   /(?:open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing[\s\S]{0,320}no actionable unresolved internal review state[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,260}normal maintainer review)|(?:normal maintainer review[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,360}open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing)/i;
+const COMPANY_ATTACHMENT_LIMIT_PATTERN =
+  /attachmentMaxBytes[\s\S]{0,260}10 MiB[\s\S]{0,260}process-level (?:attachment )?cap[\s\S]{0,260}(?:ceiling|final ceiling)|10 MiB[\s\S]{0,260}attachmentMaxBytes[\s\S]{0,260}(?:ceiling|final ceiling)/i;
+const NEW_HIRE_APPROVAL_POLICY_PATTERN =
+  /requireBoardApprovalForNewAgents[\s\S]{0,260}false[\s\S]{0,260}(?:new-hire approval|hire approval|future hires)|new-hire approval[\s\S]{0,260}(?:opt-in|explicit)[\s\S]{0,260}requireBoardApprovalForNewAgents/i;
+const PRODUCTIVITY_REVIEW_PATTERN =
+  /productivity review[\s\S]{0,420}(?:issue_productivity_review|no-comment|long-active|high-churn|high churn|long active)[\s\S]{0,620}(?:source issue|source work|review issue|manager decision|queue-health|queue health)/i;
 const LIVE_INSTANCE_TEMPLATE_IDENTITY_PATTERN =
   /operator-selected live company names?, descriptions?, and issue prefixes? are valid import choices[\s\S]{0,240}(?:routing|governance visibility|package-owned entity mapping)|(?:routing|governance visibility|package-owned entity mapping)[\s\S]{0,240}operator-selected live company names?, descriptions?, and issue prefixes? are valid import choices/i;
 const SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN =
@@ -137,6 +145,24 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN,
     message:
       "README.md must explain that `.paperclip.yaml` references describe source-package defaults rather than required live-instance files.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: COMPANY_ATTACHMENT_LIMIT_PATTERN,
+    message:
+      "README.md must document the explicit Paperclip company attachment cap.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: NEW_HIRE_APPROVAL_POLICY_PATTERN,
+    message:
+      "README.md must document the explicit Paperclip new-hire approval policy.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: PRODUCTIVITY_REVIEW_PATTERN,
+    message:
+      "README.md must explain Paperclip productivity review issues.",
   },
   {
     relativePath: "README.md",
@@ -330,6 +356,24 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "COMPANY.md",
+    pattern: COMPANY_ATTACHMENT_LIMIT_PATTERN,
+    message:
+      "COMPANY.md must document the explicit Paperclip company attachment cap.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: NEW_HIRE_APPROVAL_POLICY_PATTERN,
+    message:
+      "COMPANY.md must document the explicit Paperclip new-hire approval policy.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: PRODUCTIVITY_REVIEW_PATTERN,
+    message:
+      "COMPANY.md must explain Paperclip productivity review issues.",
+  },
+  {
+    relativePath: "COMPANY.md",
     pattern:
       /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
     message:
@@ -346,6 +390,36 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN,
     message:
       "Bootstrap verification must explain that `.paperclip.yaml` references describe source-package defaults rather than required live-instance files.",
+  },
+  {
+    relativePath: "tasks/verify-imported-company-instance/TASK.md",
+    pattern: PRODUCTIVITY_REVIEW_PATTERN,
+    message:
+      "Bootstrap verification must explain Paperclip productivity review issues.",
+  },
+  {
+    relativePath: "agents/ceo/AGENTS.md",
+    pattern: PRODUCTIVITY_REVIEW_PATTERN,
+    message:
+      "CEO instructions must explain how to handle Paperclip productivity review issues.",
+  },
+  {
+    relativePath: "tasks/daily-ceo-self-improvement/TASK.md",
+    pattern: PRODUCTIVITY_REVIEW_PATTERN,
+    message:
+      "Daily CEO self-improvement task must include productivity review queue-health work.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: PRODUCTIVITY_REVIEW_PATTERN,
+    message:
+      "Repo operations must explain Paperclip productivity review issues.",
+  },
+  {
+    relativePath: "skills/micronaut-quality-gates/SKILL.md",
+    pattern: PRODUCTIVITY_REVIEW_PATTERN,
+    message:
+      "Quality gates must explain Paperclip productivity review issues.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -1348,6 +1422,16 @@ async function loadSourceExpectations(rootDir) {
 
   const { frontmatter: companyFrontmatter } = parseFrontmatterMarkdown(companyMarkdown);
   const extension = YAML.parse(extensionYaml) ?? {};
+  assert.equal(
+    extension?.company?.attachmentMaxBytes,
+    DEFAULT_COMPANY_ATTACHMENT_MAX_BYTES,
+    "Expected .paperclip.yaml to set the Paperclip company attachment cap to 10 MiB.",
+  );
+  assert.equal(
+    extension?.company?.requireBoardApprovalForNewAgents,
+    false,
+    "Expected .paperclip.yaml to set the explicit new-hire approval policy.",
+  );
 
   const agents = new Map();
   const skills = new Map();
@@ -1680,12 +1764,12 @@ function assertExportedBody(exportFiles, relativePath, expectedBody, expectedSlu
   const exportedMarkdown = getTextFile(exportFiles, relativePath);
   const actualBody = bodyOfMarkdown(exportedMarkdown);
   if (expectedSlug === "verify-imported-company-instance") {
-    // Paperclip currently truncates the tail of this bootstrap task body on export.
-    // The import remains correct, so keep the source text human-readable and accept a prefix match here,
-    // but still require a substantial portion of the body so empty or drastically truncated exports fail.
+    // Paperclip exports all issues through the issue list path, whose description
+    // projection is capped at 1200 chars. The import remains correct, so keep the
+    // source text human-readable and accept exactly that prefix-only export.
     const minimumExpectedLength = Math.min(
       expectedBody.length,
-      Math.max(200, Math.floor(expectedBody.length * 0.6)),
+      PAPERCLIP_ISSUE_LIST_DESCRIPTION_EXPORT_MAX_CHARS,
     );
     assert.ok(
       actualBody.length >= minimumExpectedLength,
@@ -1768,6 +1852,16 @@ async function main() {
     const company = await apiJson(baseUrl, `/api/companies/${importedCompanyId}`);
     assert.equal(company.name, expected.company.name);
     assert.equal(company.description, expected.company.description);
+    assert.equal(
+      company.attachmentMaxBytes,
+      DEFAULT_COMPANY_ATTACHMENT_MAX_BYTES,
+      "Imported company attachment cap did not match the package default.",
+    );
+    assert.equal(
+      company.requireBoardApprovalForNewAgents,
+      false,
+      "Imported company new-hire approval policy did not match the package default.",
+    );
 
     const importedAgents = await apiJson(baseUrl, `/api/companies/${importedCompanyId}/agents`);
     assert.equal(importedAgents.length, expected.agents.size);
