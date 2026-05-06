@@ -41,6 +41,7 @@ test("Product Manager agent is configured for product discovery", async () => {
   assertContains(body, /type: enhancement/i, "Product Manager instructions should mention type: enhancement.");
   assertContains(body, /acceptance criteria/i, "Product Manager instructions should include acceptance criteria guidance.");
   assertContains(body, /duplicate|deduplic/i, "Product Manager instructions should require duplicate checks.");
+  assertContains(body, /outside the managed Micronaut-related boundary/i, "Product Manager instructions should record out-of-bound project skips.");
 });
 
 test("Daily Product Discovery routine is active and owned by Product Manager", async () => {
@@ -94,4 +95,15 @@ test("Product Manager role and routine are documented", async () => {
 
   assertContains(team, /agents\/product-manager\/AGENTS\.md/, "Engineering team docs should link the Product Manager agent file.");
   assertContains(team, /Product Manager|product discovery/i, "Engineering team docs should mention Product Manager or product discovery.");
+});
+
+test("Product Manager is covered by internal company maintenance routines", async () => {
+  const trainingMarkdown = await read("../tasks/training/TASK.md");
+  const { body: trainingBody } = parseFrontmatter(trainingMarkdown);
+  const bootstrapMarkdown = await read("../tasks/verify-imported-company-instance/TASK.md");
+  const { body: bootstrapBody } = parseFrontmatter(bootstrapMarkdown);
+
+  assertContains(trainingBody, /Inspect every non-CEO agent:[\s\S]*Product Manager/i, "Training should inspect Product Manager as a non-CEO agent.");
+  assertContains(bootstrapBody, /Product Manager[\s\S]{0,220}role `pm`[\s\S]{0,220}icon `radar`/i, "Bootstrap verification should check Product Manager role and icon.");
+  assertContains(bootstrapBody, /Daily Product Discovery[\s\S]{0,120}active routine owned by `product-manager`/i, "Bootstrap verification should check the Daily Product Discovery routine.");
 });

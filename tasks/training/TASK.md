@@ -12,6 +12,7 @@ Start by finding the previous Training report or routine run. Use that timestamp
 Inspect every non-CEO agent:
 
 - Architect
+- Product Manager
 - QA Engineer
 - Security Engineer
 - Code Reviewer
