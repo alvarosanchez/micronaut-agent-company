@@ -21,7 +21,7 @@ test("CEO self-improvement routine runs daily", async () => {
 
   assert.ok(trigger, "Expected daily-ceo-self-improvement routine trigger.");
   assert.equal(trigger.label, "Daily CEO Self-Improvement");
-  assert.equal(trigger.cronExpression, "0 15 * * *");
+  assert.equal(trigger.cronExpression, "0 3 * * *");
   assert.equal(trigger.timezone, "Europe/Madrid");
 
   const taskMarkdown = await readFile(

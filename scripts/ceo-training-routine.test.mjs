@@ -22,7 +22,7 @@ test("CEO Training routine runs every other day", async () => {
   assert.ok(trigger, "Expected training routine trigger.");
   assert.equal(config.routines.training.status, "active");
   assert.equal(trigger.label, "Training");
-  assert.equal(trigger.cronExpression, "0 10 */2 * *");
+  assert.equal(trigger.cronExpression, "0 2 */2 * *");
   assert.equal(trigger.timezone, "Europe/Madrid");
 
   const taskMarkdown = await readFile(new URL("../tasks/training/TASK.md", import.meta.url), "utf8");

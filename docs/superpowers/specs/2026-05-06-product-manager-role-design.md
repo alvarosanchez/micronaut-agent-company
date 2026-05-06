@@ -7,7 +7,7 @@ Status: Approved for specification
 
 Add a first-class Product Manager agent to Micronaut Agent Company. The Product Manager researches the market, competing frameworks, adjacent technologies, and active ecosystem expectations, then turns the highest-value gaps for each managed Micronaut project into detailed GitHub feature requests that implementation agents can pick up later.
 
-The Product Manager is proactive product discovery, not an implementation or governance gate. It creates public GitHub issues directly during its daily routine.
+The Product Manager is proactive product discovery, not an implementation or governance gate. It creates public GitHub issues directly during its weekly routine.
 
 ## Context
 
@@ -16,7 +16,7 @@ The company package is a portable Paperclip company template. It currently conta
 The new Product Manager should follow the same package shape:
 
 - one agent instruction file under `agents/product-manager/AGENTS.md`
-- one recurring task under `tasks/daily-product-discovery/TASK.md`
+- one recurring task under `tasks/weekly-product-discovery/TASK.md`
 - adapter and routine defaults in `.paperclip.yaml`
 - docs updates in `README.md` and `COMPANY.md`
 - team membership in `teams/engineering/TEAM.md`
@@ -38,9 +38,9 @@ The high reasoning setting is appropriate because each run depends on source int
 
 ## Daily Routine
 
-Add an active daily routine named `Daily Product Discovery`, owned by `product-manager`, scheduled at 11:00 Europe/Madrid.
+Add an active weekly routine named `Weekly Product Discovery`, owned by `product-manager`, scheduled at 11:00 Europe/Madrid.
 
-This schedule avoids the existing weekly 09:00 security scan, 10:00 training routine, and 15:00 CEO self-improvement routine while still running during the normal workday.
+This schedule was later superseded by the package-wide overnight routine schedule in `2026-05-06-technical-writer-routines-design.md`.
 
 ## Project Selection
 
@@ -127,8 +127,8 @@ Implementation should add a focused unit test for the new PM role and routine. T
 
 - `agents/product-manager/AGENTS.md` frontmatter has role `pm`, reports to CEO, and uses the expected skills and icon
 - `.paperclip.yaml` includes the Product Manager adapter with `gpt-5.5`, high reasoning, and live search
-- `.paperclip.yaml` includes the active `daily-product-discovery` routine at 11:00 Europe/Madrid
-- `tasks/daily-product-discovery/TASK.md` is recurring, assigned to `product-manager`, and describes direct GitHub issue creation
+- `.paperclip.yaml` includes the active `weekly-product-discovery` routine at 11:00 Europe/Madrid
+- `tasks/weekly-product-discovery/TASK.md` is recurring, assigned to `product-manager`, and describes direct GitHub issue creation
 - the task requires comprehensive feature request contents and duplicate checks
 - README and COMPANY docs mention the Product Manager in agent tables and internal routine tables
 

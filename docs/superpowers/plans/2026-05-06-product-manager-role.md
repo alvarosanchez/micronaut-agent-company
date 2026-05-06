@@ -14,8 +14,8 @@
 
 - Create `scripts/product-manager-routine.test.mjs`: package-level unit test for the new role, routine, direct GitHub issue guidance, and docs mentions.
 - Create `agents/product-manager/AGENTS.md`: Product Manager agent identity, session rules, discovery workflow, GitHub issue creation rules, and verification checklist.
-- Create `tasks/daily-product-discovery/TASK.md`: recurring Paperclip task that drives daily market/competitor research and GitHub issue creation.
-- Modify `.paperclip.yaml`: add Product Manager `codex_local` adapter and active `daily-product-discovery` routine trigger.
+- Create `tasks/weekly-product-discovery/TASK.md`: recurring Paperclip task that drives weekly market/competitor research and GitHub issue creation.
+- Modify `.paperclip.yaml`: add Product Manager `codex_local` adapter and active `weekly-product-discovery` routine trigger.
 - Modify `package.json`: include the new unit test in both `test:unit` and `test:node22`.
 - Modify `README.md`: add Product Manager runtime default, icon, role, routine, org chart node, role detail, and referenced skill assignment mentions.
 - Modify `COMPANY.md`: add product-discovery wording to company goals and internal routine summary.
@@ -86,10 +86,10 @@ test("Product Manager agent is configured for product discovery", async () => {
   assert.match(body, /duplicate|deduplic/i);
 });
 
-test("Daily Product Discovery routine is active and owned by Product Manager", async () => {
+test("Weekly Product Discovery routine is active and owned by Product Manager", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const adapter = extension.agents?.["product-manager"]?.adapter;
-  const routine = extension.routines?.["daily-product-discovery"];
+  const routine = extension.routines?.["weekly-product-discovery"];
   const trigger = routine?.triggers?.[0];
 
   assert.equal(adapter?.type, "codex_local");
@@ -100,14 +100,14 @@ test("Daily Product Discovery routine is active and owned by Product Manager", a
 
   assert.equal(routine?.status, "active");
   assert.equal(trigger?.kind, "schedule");
-  assert.equal(trigger?.label, "Daily Product Discovery");
-  assert.equal(trigger?.cronExpression, "0 11 * * *");
+  assert.equal(trigger?.label, "Weekly Product Discovery");
+  assert.equal(trigger?.cronExpression, "0 1 * * 1");
   assert.equal(trigger?.timezone, "Europe/Madrid");
 
-  const taskMarkdown = await read("../tasks/daily-product-discovery/TASK.md");
+  const taskMarkdown = await read("../tasks/weekly-product-discovery/TASK.md");
   const { frontmatter, body } = parseFrontmatter(taskMarkdown);
 
-  assert.equal(frontmatter.name, "Daily Product Discovery");
+  assert.equal(frontmatter.name, "Weekly Product Discovery");
   assert.equal(frontmatter.assignee, "product-manager");
   assert.equal(frontmatter.project, "company-operations");
   assert.equal(frontmatter.recurring, true);
@@ -127,12 +127,12 @@ test("Product Manager role and routine are documented", async () => {
   assert.match(readme, /Product Manager: `high`/);
   assert.match(readme, /\| Product Manager \| `radar` \|/);
   assert.match(readme, /\| Product Manager \| `pm` \|/);
-  assert.match(readme, /\| `Daily Product Discovery` \| Product Manager \| Every day at 11:00 `Europe\/Madrid` \|/);
+  assert.match(readme, /\| `Weekly Product Discovery` \| Product Manager \| Mondays at 01:00 `Europe\/Madrid` \|/);
   assert.match(readme, /\| Product Manager \| Product Manager \| `ceo` \|/);
   assert.match(readme, /research(?:es)?[\s\S]{0,160}(?:market|competitor|framework|technolog)[\s\S]{0,220}GitHub feature/i);
 
   assert.match(company, /Product Manager/i);
-  assert.match(company, /Daily Product Discovery/i);
+  assert.match(company, /Weekly Product Discovery/i);
   assert.match(company, /direct GitHub feature request|GitHub feature requests directly/i);
 
   assert.match(team, /agents\/product-manager\/AGENTS\.md/);
@@ -154,7 +154,7 @@ Expected result: fail with an `ENOENT` error for `agents/product-manager/AGENTS.
 
 **Files:**
 - Create: `agents/product-manager/AGENTS.md`
-- Create: `tasks/daily-product-discovery/TASK.md`
+- Create: `tasks/weekly-product-discovery/TASK.md`
 
 - [ ] **Step 1: Create the Product Manager agent instructions**
 
@@ -182,7 +182,7 @@ Run with a strong frontier model and high reasoning. This package pins the Produ
 ## Session Start
 
 1. Open the Paperclip routine or issue, the current execution stage, the current execution state, the active company projects, the latest Product Manager report, and any repository or GitHub sync metadata exposed for those projects.
-2. Continue only if the Daily Product Discovery routine invoked you, you are the current stage participant for product discovery, or the issue returned `changes_requested` to Product Manager scope. If another current stage participant or a human approval is active, stop without changing routing.
+2. Continue only if the Weekly Product Discovery routine invoked you, you are the current stage participant for product discovery, or the issue returned `changes_requested` to Product Manager scope. If another current stage participant or a human approval is active, stop without changing routing.
 3. Confirm this is product-discovery work. If you were assigned a normal synced GitHub delivery issue, do not take over implementation, QA, security review, or code review; route back through the configured workflow.
 4. Identify active Micronaut-related Paperclip projects. Exclude internal company-operating projects such as `company-operations`, and record a skip reason for projects that cannot be mapped to a managed GitHub repository.
 5. Read `.company-runtime/shared.md`, `.company-runtime/agents/product-manager.md`, project-specific files under `.company-runtime/projects/` such as `.company-runtime/projects/micronaut-core.md`, repo-local `AGENTS.md`, and existing project docs when they exist and affect product direction or maintainer expectations.
@@ -291,13 +291,13 @@ GitHub sync plugin tools:
 - When GitHub write access is unavailable, do not pretend the issue was created. Record a blocker and the complete draft.
 ```
 
-- [ ] **Step 2: Create the Daily Product Discovery routine task**
+- [ ] **Step 2: Create the Weekly Product Discovery routine task**
 
-Create `tasks/daily-product-discovery/TASK.md` with this content:
+Create `tasks/weekly-product-discovery/TASK.md` with this content:
 
 ```md
 ---
-name: Daily Product Discovery
+name: Weekly Product Discovery
 assignee: product-manager
 project: company-operations
 recurring: true
@@ -356,7 +356,7 @@ Run:
 node --test scripts/product-manager-routine.test.mjs
 ```
 
-Expected result: fail on the missing `.paperclip.yaml` `product-manager` adapter or `daily-product-discovery` routine. The agent and task files should now parse.
+Expected result: fail on the missing `.paperclip.yaml` `product-manager` adapter or `weekly-product-discovery` routine. The agent and task files should now parse.
 
 ## Task 3: Wire Package Config, Docs, And Team Membership
 
@@ -381,17 +381,17 @@ In `.paperclip.yaml`, add this block under `agents:` after `ceo` and before `arc
         dangerouslyBypassApprovalsAndSandbox: true
 ```
 
-- [ ] **Step 2: Add the Daily Product Discovery routine to `.paperclip.yaml`**
+- [ ] **Step 2: Add the Weekly Product Discovery routine to `.paperclip.yaml`**
 
 In `.paperclip.yaml`, add this block under `routines:` after `weekly-security-deep-scan` and before `daily-ceo-self-improvement`:
 
 ```yaml
-  daily-product-discovery:
+  weekly-product-discovery:
     status: active
     triggers:
       - kind: schedule
-        label: Daily Product Discovery
-        cronExpression: "0 11 * * *"
+        label: Weekly Product Discovery
+        cronExpression: "0 1 * * 1"
         timezone: Europe/Madrid
 ```
 
@@ -423,16 +423,16 @@ In `README.md`, change the internal-routine summary from three routines to four 
 In addition to the synced GitHub work queue, the package includes one bootstrap internal issue plus four recurring internal routines under `company-operations`: a weekly security scan, a daily Product Manager product-discovery review, a daily CEO self-improvement review, and an every-other-day CEO Training review. The bootstrap issue, **Verify Imported Company Instance**, imports in dispatch state on the CEO queue so the imported entity set can be checked before normal operations begin. Operator-selected live company names, descriptions, and issue prefixes are valid import choices as long as they do not break routing, governance visibility, or package-owned entity mapping. The routines create ongoing internal Paperclip work items that help keep the company healthy and product-aware; they do not replace the synced GitHub issues, PRs, PM-created GitHub feature requests after sync, or Paperclip-created productivity review issues that remain the real delivery and queue-health surface. The routines import active by default so those recurring maintenance checks start automatically after import.
 ```
 
-In the `Work Surface` section, replace the bullet about three recurring tasks with:
+In the `Work Surface` section, replace the bullet about the recurring tasks with:
 
 ```md
-- It does include one lightweight internal project, `company-operations`, whose bootstrap CEO verification task imports on the CEO queue and whose four recurring tasks import as active Paperclip routines for product discovery, security posture reviews, CEO self-improvement, and CEO Training.
+- It does include one lightweight internal project, `company-operations`, whose bootstrap CEO verification task imports on the CEO queue and whose recurring tasks import as active Paperclip routines for product discovery, security posture reviews, guide routines, CEO self-improvement, and CEO Training.
 ```
 
 In the `Internal Routines` table, add this row after `Weekly Security Deep Scan`:
 
 ```md
-| `Daily Product Discovery` | Product Manager | Every day at 11:00 `Europe/Madrid` | Research managed Micronaut-related projects, identify market and competitor gaps, and create direct GitHub feature requests detailed enough for later implementation |
+| `Weekly Product Discovery` | Product Manager | Mondays at 01:00 `Europe/Madrid` | Research managed Micronaut-related projects, identify market and competitor gaps, and create direct GitHub feature requests detailed enough for later implementation |
 ```
 
 Change `These routines import active by default.` only if surrounding wording still implies three routines. Keep the sentence if it remains accurate.
@@ -480,13 +480,13 @@ In `COMPANY.md`, replace the existing goal that starts `Run lightweight internal
 After the paragraph that says the package combines local skills with referenced maintainer skills, add:
 
 ```md
-The Product Manager role adds proactive product discovery. Its daily routine researches active Micronaut-related projects, compares each project's current capabilities with market, competitor-framework, and adjacent-technology signals, and creates direct GitHub feature requests detailed enough for the normal QA, architecture, engineering, documentation, security, and review pipeline to implement after GitHub Sync imports them.
+The Product Manager role adds proactive product discovery. Its weekly routine researches active Micronaut-related projects, compares each project's current capabilities with market, competitor-framework, and adjacent-technology signals, and creates direct GitHub feature requests detailed enough for the normal QA, architecture, engineering, documentation, security, and review pipeline to implement after GitHub Sync imports them.
 ```
 
 Replace the paragraph that starts `The package also includes one lightweight internal project` with this paragraph:
 
 ```md
-The package also includes one lightweight internal project, `company-operations`, with one bootstrap **CEO** verification issue plus four recurring Paperclip routines: a weekly **Security Engineer** deep scan, a daily **Product Manager** product-discovery review, a daily **CEO** self-improvement review, and an every-other-day **CEO** Training review. The bootstrap issue imports on the CEO queue so the CEO can verify that the imported entities are complete before normal operations begin. Operator-selected live company names, descriptions, and issue prefixes are valid import choices as long as they do not break routing, governance visibility, or package-owned entity mapping. The recurring routines are company-operating work, not delivery backlog, and they exist to keep the maintenance system healthy, product-aware, and skill-aware even when the synced GitHub queue is temporarily quiet. They import active by default so those maintenance checks start automatically after import. The Product Manager routine creates direct GitHub feature requests for non-duplicative implementation-ready gaps in active Micronaut-related projects; after GitHub Sync imports those issues, QA intake owns the normal route. The CEO routine may promote reusable company learnings into PRs against the source package repository when a default should improve for future imports, may open managed Micronaut repository `AGENTS.md` PRs when repo-local guidance is stale, and may also send a PR to a company-owned upstream dependency such as the GitHub sync plugin when the root cause clearly lives there instead of in package guidance. Every daily CEO self-improvement report must include a `Managed Repository AGENTS.md Audit` section that names each active managed Micronaut repository considered, says whether root `AGENTS.md` exists and is durable/current, stale/generated, or missing, and records the exact outcome for each repository: no action needed, repo-local PR opened or updated, linked follow-up issue created, linked approval requested, or blocker named. A bounded metadata/readability check is enough unless recent execution evidence shows a deeper repository-specific guidance problem. CEO-opened PRs must still reach the same bar as other agent PRs: CI green, reported checks passing, and no unresolved review threads. Because CEO heartbeats may be disabled, the daily self-improvement routine rediscovers and follows up PRs opened by the CEO from prior routine reports, linked approvals, recorded PR URLs, open PR searches, and open productivity review issues. It must still end with a real action such as an implemented change, a linked board approval request, an open PR, or a manager decision on a productivity review instead of a proposal-only report. One required review point for that routine is stale handoff repair: when issue status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, and the expected next owner disagree, the CEO should correct the routing if possible instead of only reporting it. The Training routine analyzes non-CEO agent executions since the last Training pass, uses the CEO's referenced `find-skills` capability to search https://skills.sh for skill candidates, creates a linked board approval request for every candidate before installation, and only after approval adds the candidate as a company skill referencing the exact https://skills.sh entry and links it to the approved agent or agents.
+The package also includes one lightweight internal project, `company-operations`, with one bootstrap **CEO** verification issue plus recurring Paperclip routines for product discovery, security, Technical Writer guide quality, CEO self-improvement, and CEO Training. The bootstrap issue imports on the CEO queue so the CEO can verify that the imported entities are complete before normal operations begin. Operator-selected live company names, descriptions, and issue prefixes are valid import choices as long as they do not break routing, governance visibility, or package-owned entity mapping. The recurring routines are company-operating work, not delivery backlog, and they exist to keep the maintenance system healthy, product-aware, guide-aware, and skill-aware even when the synced GitHub queue is temporarily quiet.
 ```
 
 - [ ] **Step 7: Update engineering team membership**
@@ -518,7 +518,7 @@ Expected result: pass.
 Run:
 
 ```bash
-git add .paperclip.yaml README.md COMPANY.md teams/engineering/TEAM.md agents/product-manager/AGENTS.md tasks/daily-product-discovery/TASK.md scripts/product-manager-routine.test.mjs package.json
+git add .paperclip.yaml README.md COMPANY.md teams/engineering/TEAM.md agents/product-manager/AGENTS.md tasks/weekly-product-discovery/TASK.md scripts/product-manager-routine.test.mjs package.json
 git commit -m "feat: add product manager discovery routine"
 ```
 
@@ -548,7 +548,7 @@ Run:
 node scripts/verify-paperclip-import.mjs
 ```
 
-Expected result: Paperclip import verification passes and includes the Product Manager agent and Daily Product Discovery routine automatically through package discovery.
+Expected result: Paperclip import verification passes and includes the Product Manager agent and Weekly Product Discovery routine automatically through package discovery.
 
 - [ ] **Step 3: Run the full test command**
 
@@ -578,6 +578,6 @@ git commit -m "test: cover product manager import contract"
 
 ## Self-Review Notes
 
-- Spec coverage: Task 2 creates the PM agent and daily routine task. Task 3 wires Paperclip config, docs, and team membership. Task 1 verifies direct GitHub issue guidance, detailed feature request contents, duplicate checks, schedule, adapter config, and docs. Task 4 runs package verification.
+- Spec coverage: Task 2 creates the PM agent and weekly routine task. Task 3 wires Paperclip config, docs, and team membership. Task 1 verifies direct GitHub issue guidance, detailed feature request contents, duplicate checks, schedule, adapter config, and docs. Task 4 runs package verification.
 - Placeholder scan: the plan avoids unresolved placeholders in implementation content.
-- Type consistency: the slug is consistently `product-manager`, the routine slug is consistently `daily-product-discovery`, the role is `pm`, the icon is `radar`, and the routine schedule is consistently `0 11 * * *` in `Europe/Madrid`.
+- Type consistency: the slug is consistently `product-manager`, the routine slug is consistently `weekly-product-discovery`, the role is `pm`, the icon is `radar`, and the routine schedule is consistently `0 1 * * 1` in `Europe/Madrid`.

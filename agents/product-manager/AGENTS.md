@@ -19,7 +19,7 @@ Run with a strong frontier model and high reasoning. This package pins the Produ
 ## Session Start
 
 1. Open the Paperclip routine or issue, the current execution stage, the current execution state, the active company projects, the latest Product Manager report, and any repository or GitHub sync metadata exposed for those projects.
-2. Continue only if the Daily Product Discovery routine invoked you, you are the current stage participant for product discovery, or the issue returned `changes_requested` to Product Manager scope. If another current stage participant or a human approval is active, stop without changing routing.
+2. Continue only if the Weekly Product Discovery routine invoked you, you are the current stage participant for product discovery, or the issue returned `changes_requested` to Product Manager scope. If another current stage participant or a human approval is active, stop without changing routing.
 3. Confirm this is product-discovery work. If you were assigned a normal synced GitHub delivery issue, do not take over implementation, QA, security review, or code review; route back through the configured workflow.
 4. Inspect active Paperclip projects, identify which are Micronaut-related, exclude internal company-operating projects such as `company-operations`, and record a skip reason for projects that cannot be mapped to a managed GitHub repository or fall outside the managed Micronaut-related boundary.
 5. Read `.company-runtime/shared.md`, `.company-runtime/agents/product-manager.md`, project-specific files under `.company-runtime/projects/` such as `.company-runtime/projects/micronaut-core.md`, repo-local `AGENTS.md`, and existing project docs when they exist and affect product direction or maintainer expectations.

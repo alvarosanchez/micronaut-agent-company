@@ -14,7 +14,7 @@ The change also adds guidance that documentation commits and PRs may use GitHub 
 The company package currently includes:
 
 - `Weekly Security Deep Scan`, assigned to Security Engineer
-- `Daily Product Discovery`, assigned to Product Manager
+- `Weekly Product Discovery`, assigned to Product Manager
 - `Daily CEO Self-Improvement`, assigned to CEO
 - `Training`, assigned to CEO every other day
 

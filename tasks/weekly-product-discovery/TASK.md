@@ -1,11 +1,11 @@
 ---
-name: Daily Product Discovery
+name: Weekly Product Discovery
 assignee: product-manager
 project: company-operations
 recurring: true
 ---
 
-Research the managed Micronaut-related Paperclip projects and create direct GitHub feature requests for the strongest implementation-ready product gaps.
+Research the managed Micronaut-related Paperclip projects each week and create direct GitHub feature requests for the strongest implementation-ready product gaps.
 
 During each run:
 

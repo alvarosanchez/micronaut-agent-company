@@ -222,6 +222,8 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 - If migration pain is even slightly plausible, write the migration note while change context is still fresh.
 - For code issues with documentation impact, keep the original non-docs `type:` label instead of relabeling the work as `type: docs`.
 - Before editing docs in a Micronaut repository, identify where guides, reference docs, release notes, and upgrade notes live and how examples or snippets are validated there.
+- Documentation-only commits or PRs may use GitHub CI-skip keywords such as `[skip ci]` when the changed documentation is not exercised by the build.
+- Do not skip CI for documentation tied to build-validated snippets, executable examples, generated guides, `./gradlew publishGuide`, or other docs checks. Record the validation or skip rationale in the PR body or routine report.
 
 ## Release Targeting And Branch Rules
 
@@ -259,21 +261,24 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 
 ## Internal Operating Routines
 
-This package intentionally keeps internal automation small. It includes one lightweight project, `company-operations`, with four recurring Paperclip routines:
+This package intentionally keeps internal automation small. It includes one lightweight project, `company-operations`, with six recurring Paperclip routines:
 
+- `weekly-product-discovery`, assigned to `product-manager`
 - `weekly-security-deep-scan`, assigned to `security-engineer`
-- `daily-product-discovery`, assigned to `product-manager`
+- `weekly-user-guide-review`, assigned to `technical-writer`
+- `weekly-guide-topic-discovery`, assigned to `technical-writer`
 - `daily-ceo-self-improvement`, assigned to `ceo`
 - `training`, assigned to `ceo`
 
-These routines are company-operating work, not substitutes for the synced GitHub backlog. They exist to keep the maintenance system healthy and product-aware even when the GitHub queue is quiet.
+These routines are company-operating work, not substitutes for the synced GitHub backlog. They exist to keep the maintenance system healthy, product-aware, and guide-aware even when the GitHub queue is quiet.
 
 They import active by default.
 
 When a routine surfaces a new problem:
 
 - reuse or update an existing synced GitHub issue or PR when one already covers the work
-- for Product Manager discovery, create a direct GitHub feature request only when the Daily Product Discovery instructions authorize it and duplicate checks are complete
+- for Product Manager discovery, create a direct GitHub feature request only when the Weekly Product Discovery instructions authorize it and duplicate checks are complete
+- for Technical Writer guide routines, create direct documentation PRs only after the relevant guide assembly, fact-checking, deduplication, or validation evidence is recorded
 - otherwise, prepare a maintainer-ready Paperclip escalation instead of inventing unsupported GitHub issue-creation workflows
 
 ## Reimport-Safe Runtime Overlays
