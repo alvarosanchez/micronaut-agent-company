@@ -259,19 +259,21 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 
 ## Internal Operating Routines
 
-This package intentionally keeps internal automation small. It includes one lightweight project, `company-operations`, with three recurring Paperclip routines:
+This package intentionally keeps internal automation small. It includes one lightweight project, `company-operations`, with four recurring Paperclip routines:
 
 - `weekly-security-deep-scan`, assigned to `security-engineer`
+- `daily-product-discovery`, assigned to `product-manager`
 - `daily-ceo-self-improvement`, assigned to `ceo`
 - `training`, assigned to `ceo`
 
-These routines are company-operating work, not substitutes for the synced GitHub backlog. They exist to keep the maintenance system healthy even when the GitHub queue is quiet.
+These routines are company-operating work, not substitutes for the synced GitHub backlog. They exist to keep the maintenance system healthy and product-aware even when the GitHub queue is quiet.
 
 They import active by default.
 
 When a routine surfaces a new problem:
 
 - reuse or update an existing synced GitHub issue or PR when one already covers the work
+- for Product Manager discovery, create a direct GitHub feature request only when the Daily Product Discovery instructions authorize it and duplicate checks are complete
 - otherwise, prepare a maintainer-ready Paperclip escalation instead of inventing unsupported GitHub issue-creation workflows
 
 ## Reimport-Safe Runtime Overlays
