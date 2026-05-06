@@ -97,8 +97,8 @@ const ENVIRONMENT_RUNTIME_PATTERN =
   /(?:Paperclip )?environments?[\s\S]{0,500}(?:local|SSH|sandbox)[\s\S]{0,500}(?:live|deployment|operator-owned)[\s\S]{0,500}(?:@paperclipai\/plugin-e2b|environment-driver|provider)|(?:@paperclipai\/plugin-e2b|environment-driver|provider)[\s\S]{0,500}(?:Paperclip )?environments?[\s\S]{0,500}(?:live|deployment|operator-owned)/i;
 const APPROVAL_LINKAGE_VERIFICATION_PATTERN =
   /approvals\/\{approvalId\}\/issues[\s\S]{0,320}(?:issue\.linkedApprovalIds|linkedApprovalIds)|(?:issue\.linkedApprovalIds|linkedApprovalIds)[\s\S]{0,320}approvals\/\{approvalId\}\/issues/i;
-const POLICY_BLOCKED_REOPEN_PATTERN =
-  /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}policy-blocked[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment|policy-blocked[\s\S]{0,500}GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,320}restore\s+`?blocked`?[\s\S]{0,240}routing-correction comment/i;
+const ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN =
+  /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}failing CI[\s\S]{0,500}unresolved review feedback[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}target branch[\s\S]{0,500}(?:Micronaut Engineer|make the PR mergeable)[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline|failing CI[\s\S]{0,500}target branch[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline/i;
 const HEALTHY_PR_MAINTAINER_WAIT_PATTERN =
   /(?:open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing[\s\S]{0,320}no actionable unresolved internal review state[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,260}normal maintainer review)|(?:normal maintainer review[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,360}open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing)/i;
 const COMPANY_ATTACHMENT_LIMIT_PATTERN =
@@ -228,9 +228,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "README.md",
-    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    pattern: ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN,
     message:
-      "README.md must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
+      "README.md must explain that failing PR CI or unresolved review feedback is actionable PR follow-through even when the failure also reproduces on the target branch.",
   },
   {
     relativePath: "README.md",
@@ -311,9 +311,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
-    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    pattern: ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN,
     message:
-      "QA instructions must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
+      "QA instructions must explain that failing PR CI or unresolved review feedback is actionable PR follow-through even when the failure also reproduces on the target branch.",
   },
   {
     relativePath: "README.md",
@@ -463,9 +463,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/architect/AGENTS.md",
-    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    pattern: ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN,
     message:
-      "Architect instructions must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
+      "Architect instructions must explain that failing PR CI or unresolved review feedback is actionable PR follow-through even when the failure also reproduces on the target branch.",
   },
   {
     relativePath: "agents/ceo/AGENTS.md",
@@ -475,9 +475,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/ceo/AGENTS.md",
-    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    pattern: ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN,
     message:
-      "CEO instructions must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
+      "CEO instructions must explain that failing PR CI or unresolved review feedback is actionable PR follow-through even when the failure also reproduces on the target branch.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -508,9 +508,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",
-    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    pattern: ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN,
     message:
-      "Shared repo operations guidance must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
+      "Shared repo operations guidance must explain that failing PR CI or unresolved review feedback is actionable PR follow-through even when the failure also reproduces on the target branch.",
   },
   {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",
@@ -708,9 +708,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "COMPANY.md",
-    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    pattern: ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN,
     message:
-      "COMPANY.md must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
+      "COMPANY.md must explain that failing PR CI or unresolved review feedback is actionable PR follow-through even when the failure also reproduces on the target branch.",
   },
   {
     relativePath: "agents/code-reviewer/AGENTS.md",
@@ -773,9 +773,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/micronaut-engineer/AGENTS.md",
-    pattern: POLICY_BLOCKED_REOPEN_PATTERN,
+    pattern: ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN,
     message:
-      "Micronaut Engineer instructions must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment.",
+      "Micronaut Engineer instructions must explain that failing PR CI or unresolved review feedback is actionable PR follow-through even when the failure also reproduces on the target branch.",
   },
   {
     relativePath: "agents/technical-writer/AGENTS.md",

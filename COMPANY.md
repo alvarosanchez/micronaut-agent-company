@@ -54,7 +54,7 @@ Paperclip issues are single-assignee by design: keep one current owner, either a
 
 Generic comments on completed assigned issues are inert by default. When follow-up work intentionally restarts on a completed or cancelled issue, include structured `resume: true` on the issue comment or update payload so Paperclip can wake the assignee through the resumable path.
 
-If GitHub Sync reopens a policy-blocked issue only because a linked PR still has failing CI or unresolved review state, and there is no new policy or implementation signal, restore `blocked` with a routing-correction comment instead of treating the reopen as automatic permission to resume execution.
+If GitHub Sync reopens a PR-based issue because the linked PR has failing CI or unresolved review feedback, treat that as actionable PR follow-through work even when the failure also reproduces on the target branch. Route it to the Micronaut Engineer to make the PR mergeable or produce a concrete named blocker; do not restore `blocked` solely because the failure appears baseline.
 
 If GitHub Sync drops a PR-based issue from `in_review` to `in_progress` but the live PR is still open, non-draft, `CLEAN`, all reported checks are passing, and there is no actionable unresolved review state left inside the company workflow, restore `in_review`, clear the internal assignee, and leave a routing-correction comment instead of keeping an engineer or reviewer on repeated follow-through while the PR only waits on normal maintainer review.
 
