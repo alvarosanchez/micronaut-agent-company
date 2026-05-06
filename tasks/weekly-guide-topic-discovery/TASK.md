@@ -17,6 +17,7 @@ During each run:
 - identify missing guide topics that would help users learn the project
 - deduplicate candidate topics against existing `micronaut-guides` content, nearby guide topics, repository docs, open issues, and open PRs
 - create or update a PR in `micronaut-projects/micronaut-guides` when a concrete standalone guide topic is warranted
+- when a guide PR is opened or updated, export the generated guide PDF and make that exact PDF PR-visible as an uploaded artifact or PR attachment link; do not commit the PDF to the repository
 
 Use the `guides` skill for standalone Micronaut Guides work in `micronaut-projects/micronaut-guides`. Do not use it for ordinary module documentation under `src/main/docs/guide`; those fixes belong to Weekly User Guide Review or normal synced `type: docs` work.
 
@@ -29,6 +30,7 @@ Produce one Paperclip report that includes:
 - selected guide topic and why it matters
 - source facts from the local project that prove the guide content
 - PR URLs opened or updated in `micronaut-guides`
+- the exported PDF filename and the PR-visible attachment or artifact link, or the named blocker that prevented attaching it
 - blockers such as missing repository access, ambiguous overlap with an existing guide, or validation that could not be completed
 
 Finish with a real outcome: no missing guide topic found, guide PR opened or updated, or clearly blocked with the blocking fact recorded.

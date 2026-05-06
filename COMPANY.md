@@ -31,7 +31,7 @@ The package combines local company-specific operating skills with referenced mai
 
 The Product Manager role adds proactive product discovery. The Weekly Product Discovery routine researches active Micronaut-related projects, compares each project's current capabilities with market, competitor-framework, and adjacent-technology signals, and creates direct GitHub feature requests detailed enough for the normal QA, architecture, engineering, documentation, security, and review pipeline to implement after GitHub Sync imports them.
 
-The Technical Writer also runs two weekly overnight guide routines. Weekly User Guide Review assembles repository user guides with `./gradlew publishGuide`, fact-checks guide claims with throwaway applications, verifies links and snippets, and opens project PRs for evidence-backed fixes. Weekly Guide Topic Discovery uses the referenced Micronaut Guides skill to identify missing standalone guide topics, deduplicate existing guide coverage, and open guide PRs when a concrete topic is warranted.
+The Technical Writer also runs two weekly overnight guide routines. Weekly User Guide Review assembles repository user guides with `./gradlew publishGuide`, fact-checks guide claims with throwaway applications, verifies links and snippets, and opens project PRs for evidence-backed fixes. Weekly Guide Topic Discovery uses the referenced Micronaut Guides skill to identify missing standalone guide topics, deduplicate existing guide coverage, and open guide PRs when a concrete topic is warranted; every opened or updated standalone guide PR must make the generated guide PDF PR-visible as an uploaded artifact or attachment link without committing the PDF.
 
 The company operates as a gated pipeline driven by Paperclip execution policies:
 
