@@ -94,7 +94,7 @@ test("verification rules require decision-explaining replies on review threads",
   );
   assert.match(
     source,
-    /Micronaut Engineer instructions must explain that GitHub Sync reopen noise does not override a policy-blocked issue and should be corrected back to `blocked` with a routing-correction comment\./,
+    /Micronaut Engineer instructions must explain that failing PR CI or unresolved review feedback is actionable PR follow-through even when the failure also reproduces on the target branch\./,
   );
   assert.match(
     source,
