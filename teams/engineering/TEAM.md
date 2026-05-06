@@ -4,6 +4,7 @@ description: Maintenance team responsible for the Micronaut repository cluster o
 slug: engineering
 manager: ../../agents/ceo/AGENTS.md
 includes:
+  - ../../agents/product-manager/AGENTS.md
   - ../../agents/architect/AGENTS.md
   - ../../agents/qa-engineer/AGENTS.md
   - ../../agents/security-engineer/AGENTS.md
@@ -19,4 +20,4 @@ tags:
   - maintenance
 ---
 
-The Engineering team maintains a bounded Micronaut repository cluster through a strict `BACKLOG -> TODO -> QA -> implementation -> QA -> Security Engineer -> Code Reviewer -> PR cycle` workflow, with human board approvals and merges remaining outside the agent org.
+The Engineering team maintains a bounded Micronaut repository cluster through proactive product discovery plus a strict `BACKLOG -> TODO -> QA -> implementation -> QA -> Security Engineer -> Code Reviewer -> PR cycle` workflow, with human board approvals and merges remaining outside the agent org.

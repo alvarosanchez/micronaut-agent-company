@@ -12,13 +12,14 @@ Start by finding the previous Training report or routine run. Use that timestamp
 Inspect every non-CEO agent:
 
 - Architect
+- Product Manager
 - QA Engineer
 - Security Engineer
 - Code Reviewer
 - Micronaut Engineer
 - Technical Writer
 
-For each agent, review completed, failed, blocked, and changes-requested executions, including issue reports, stage artifacts, comments, linked approvals, PR follow-up notes, and any runtime liveness or continuation metadata that explains where work slowed down.
+For each agent, review completed, failed, blocked, and changes-requested executions, including issue reports, stage artifacts, comments, linked approvals, PR follow-up notes, routine reports, and any runtime liveness or continuation metadata that explains where work slowed down. For Technical Writer, include evidence from Weekly User Guide Review and Weekly Guide Topic Discovery executions.
 
 Look for repeatable performance gaps that a reusable skill could improve, such as missed domain conventions, repeated tool mistakes, weak verification loops, brittle review habits, slow GitHub or Paperclip workflows, avoidable planning churn, or documentation quality issues. Do not create skill proposals for one-off mistakes that are better handled by a direct issue comment, a local `.company-runtime/` overlay, or an existing company skill.
 

@@ -32,6 +32,7 @@ All agents are configured to use `codex_local` with `gpt-5.5` and live web searc
 - Security Engineer: `high`
 - QA Engineer: `high`
 - Code Reviewer: `high`
+- Product Manager: `high`
 - CEO: `medium`
 - Micronaut Engineer: `medium`
 - Technical Writer: `medium`
@@ -45,6 +46,7 @@ Each agent defines a Paperclip-specific icon hint under `metadata.paperclip.agen
 | Agent | `metadata.paperclip.agentIcon` |
 | --- | --- |
 | CEO | `crown` |
+| Product Manager | `radar` |
 | Architect | `telescope` |
 | QA Engineer | `eye` |
 | Security Engineer | `shield` |
@@ -59,6 +61,7 @@ Each agent also declares a Paperclip role in `AGENTS.md` frontmatter so authenti
 | Agent | `role` |
 | --- | --- |
 | CEO | `ceo` |
+| Product Manager | `pm` |
 | Architect | `cto` |
 | QA Engineer | `qa` |
 | Security Engineer | `security` |
@@ -152,7 +155,7 @@ Paperclip v2026.428.0 can create `issue_productivity_review` issues when assigne
 
 For no-comment and high-churn soft-stop triggers, Paperclip may hold automatic continuation while an open productivity review exists. Do not force a `resume: true` loop around that hold. Resolve the review issue or correct the source issue's ownership, stage, blocker, or next-action comment first; then invoke the proper assignee only after the source work has a clear route.
 
-In addition to the synced GitHub work queue, the package includes one bootstrap internal issue plus three recurring internal routines under `company-operations`: a weekly security scan, a daily CEO self-improvement review, and an every-other-day CEO Training review. The bootstrap issue, **Verify Imported Company Instance**, imports in `TODO` on the CEO queue so the imported entity set can be checked before normal operations begin. Operator-selected live company names, descriptions, and issue prefixes are valid import choices as long as they do not break routing, governance visibility, or package-owned entity mapping. The routines create ongoing internal Paperclip work items that help keep the company healthy; they do not replace the synced GitHub issues, PRs, or Paperclip-created productivity review issues that remain the real delivery and queue-health surface. The routines import active by default so those recurring maintenance checks start automatically after import.
+In addition to the synced GitHub work queue, the package includes one bootstrap internal issue plus six recurring internal routines under `company-operations`: weekly Product Manager product discovery, a weekly security scan, two weekly Technical Writer guide routines, daily CEO self-improvement, and every-other-day CEO Training. The bootstrap issue, **Verify Imported Company Instance**, imports in dispatch state on the CEO queue so the imported entity set can be checked before normal operations begin. Operator-selected live company names, descriptions, and issue prefixes are valid import choices as long as they do not break routing, governance visibility, or package-owned entity mapping. The routines create ongoing internal Paperclip work items that help keep the company healthy and product-aware; they do not replace the synced GitHub issues, PRs, PM-created GitHub feature requests that later sync into Paperclip, Technical Writer-created documentation PRs, or Paperclip-created productivity review issues that remain the real delivery and queue-health surface. The routines import active by default and run overnight in `Europe/Madrid` so humans can review outcomes during work hours.
 
 The CEO self-improvement routine may improve more than this package. When the learning is a reusable default for future imports, route it into a PR against `alvarosanchez/micronaut-agent-company`. When the root cause clearly lives in a company-owned upstream dependency such as `alvarosanchez/paperclip-github-plugin`, the same routine may open that upstream PR directly instead of papering over the problem with more package guidance.
 
@@ -208,7 +211,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 - The GitHub sync plugin creates one Paperclip project per synced repository.
 - Synced GitHub issues and PRs are the actual work items for the company.
 - This package intentionally ships no starter delivery backlog.
-- It does include one lightweight internal project, `company-operations`, whose bootstrap CEO verification task imports as a `TODO` issue and whose three recurring tasks import as active Paperclip routines for security posture reviews, CEO self-improvement, and CEO Training.
+- It does include one lightweight internal project, `company-operations`, whose bootstrap CEO verification task imports on the CEO queue and whose six recurring tasks import as active Paperclip routines for product discovery, security posture reviews, user-guide review, guide-topic discovery, CEO self-improvement, and CEO Training.
 - Paperclip issue blockers and execution policies for synced GitHub delivery work belong in the live Paperclip instance or sync/plugin layer, because those issues are created after import rather than authored inside this package. Configure those live issues with review and approval stages that match this package's workflow.
 - Use linked Paperclip approvals for board governance. Do not depend on free-form comments or on undocumented approver semantics inside execution stages.
 - Use issue-thread interactions for board or user input that belongs inside the issue thread but is not itself a governance approval: task selection cards, bounded question forms, and plan-confirmation cards. Governance approvals still use the linked approvals API.
@@ -228,9 +231,12 @@ When the synced issue already has a linked contributor PR, that PR should never 
 
 | Routine | Assignee | Schedule | Purpose |
 | --- | --- | --- | --- |
-| `Weekly Security Deep Scan` | Security Engineer | Mondays at 09:00 `Europe/Madrid` | Proactively inspect recent code, dependencies, build logic, CI/CD, release automation, and docs for security risk |
-| `Daily CEO Self-Improvement` | CEO | Every day at 15:00 `Europe/Madrid` | Review recent executions, audit the imported company skill inventory, keep repo-level instruction hygiene healthy through managed-repo PRs, and promote reusable company learnings through package PRs |
-| `Training` | CEO | Every other day at 10:00 `Europe/Madrid` | Analyze non-CEO agent executions since the last Training pass, find targeted https://skills.sh skills, request board approval for each candidate, and add approved referenced company skills to the approved agents |
+| `Weekly Product Discovery` | Product Manager | Mondays at 01:00 `Europe/Madrid` | Research managed Micronaut-related projects, identify market and competitor gaps, and create direct GitHub feature requests detailed enough for later implementation |
+| `Weekly Security Deep Scan` | Security Engineer | Tuesdays at 01:00 `Europe/Madrid` | Proactively inspect recent code, dependencies, build logic, CI/CD, release automation, and docs for security risk |
+| `Weekly User Guide Review` | Technical Writer | Wednesdays at 01:00 `Europe/Madrid` | Assemble user guides, fact-check claims with throwaway applications, verify links and snippets, and open project PRs with evidence-backed fixes |
+| `Weekly Guide Topic Discovery` | Technical Writer | Thursdays at 01:00 `Europe/Madrid` | Use the Micronaut Guides skill to identify missing standalone guide topics, deduplicate existing guides, and open guide PRs when warranted |
+| `Training` | CEO | Every other day at 02:00 `Europe/Madrid` | Analyze non-CEO agent executions since the last Training pass, find targeted https://skills.sh skills, request board approval for each candidate, and add approved referenced company skills to the approved agents |
+| `Daily CEO Self-Improvement` | CEO | Every day at 03:00 `Europe/Madrid` | Review recent executions, audit the imported company skill inventory, keep repo-level instruction hygiene healthy through managed-repo PRs, and promote reusable company learnings through package PRs |
 
 These routines import active by default.
 
@@ -263,6 +269,10 @@ For local, additive guidance that should survive reimports, agents may read and 
 These files are additive, optional, and intentionally outside the portable package surface. If the current workspace is a managed Micronaut repository rather than this company package, repo-level `AGENTS.md` files remain valid product artifacts and may still be maintained when the active task or routine calls for it; those managed Micronaut repository `AGENTS.md` updates should be carried through a repo-local PR.
 
 When a learning should improve the default behavior of future imports, the CEO should promote it through a PR to `https://github.com/alvarosanchez/micronaut-agent-company` instead of baking it into local overlays or mutating an imported company instance in place.
+
+## Documentation CI Skips
+
+Documentation-only commits and PRs may use GitHub CI-skip keywords such as `[skip ci]` when the changed documentation is not exercised by the build. Do not skip CI for documentation tied to build-validated snippets, executable examples, generated guides, `./gradlew publishGuide`, or other docs checks. PR bodies and routine reports should state which validation ran and why CI was skipped or not skipped.
 
 ## GitHub Sync Agent Tools
 
@@ -314,6 +324,7 @@ Some workflow actions are Paperclip runtime concerns rather than GitHub sync con
 ```mermaid
 flowchart TD
     CEO["CEO<br/>Chief Executive Officer"]
+    PM["Product Manager"]
     Architect["Architect<br/>Micronaut Architect"]
     QA["QA Engineer"]
     Security["Security Engineer"]
@@ -321,6 +332,7 @@ flowchart TD
     Engineer["Micronaut Engineer"]
     Writer["Technical Writer"]
 
+    CEO --> PM
     CEO --> Architect
     CEO --> QA
     CEO --> Security
@@ -334,12 +346,13 @@ flowchart TD
 | Agent | Title | Reports To | Primary Responsibility |
 | --- | --- | --- | --- |
 | CEO | Chief Executive Officer | `null` | Queue health, board-approval visibility, repo-cluster scope, package-evolution routing, escalation |
+| Product Manager | Product Manager | `ceo` | Market and competitor research, capability-gap analysis, and direct GitHub feature requests for managed Micronaut projects |
 | Architect | Micronaut Architect | `ceo` | Implementation plans, compatibility framing, release-policy exceptions, breaking-change approval |
 | QA Engineer | QA Engineer | `ceo` | Intake gate, deduplication, label classification, release targeting, SemVer/project triage, reproducer validation, final QA sign-off |
 | Security Engineer | Security Engineer | `ceo` | Security review across source code, dependencies, build scripts, CI/CD, secure defaults, and security-sensitive docs |
 | Code Reviewer | Code Reviewer | `ceo` | Structural review, PR creation, maintainer-facing quality and DX gate |
 | Micronaut Engineer | Micronaut Engineer | `ceo` | Code implementation, reproducer fixes, PR-cycle execution |
-| Technical Writer | Technical Writer | `ceo` | Docs-only implementation, migration notes, guide and reference quality |
+| Technical Writer | Technical Writer | `ceo` | Docs-only implementation, migration notes, guide and reference quality, proactive user-guide and standalone-guide routines |
 
 ## Local Company Skills
 
@@ -357,7 +370,9 @@ These skills are included as referenced skills pinned to their upstream source r
 | Skill | Assigned To | Purpose |
 | --- | --- | --- |
 | `coding` | Architect, Micronaut Engineer, Security Engineer, Code Reviewer | Micronaut maintainer guidance for Java implementation, API evolution, and maintainer-grade verification |
-| `docs` | Architect, Micronaut Engineer, Technical Writer, Code Reviewer | Micronaut guide-authoring conventions for Asciidoctor, `toc.yml`, macros, and docs validation |
+| `docs` | Architect, Product Manager, Micronaut Engineer, Technical Writer, Code Reviewer | Micronaut guide-authoring conventions for Asciidoctor, `toc.yml`, macros, and docs validation |
+| `guides` | Technical Writer | Micronaut standalone guide authoring, validation, PDF export, and PR handoff for `micronaut-projects/micronaut-guides` |
+| `gh-cli` | CEO, Architect, Product Manager, QA Engineer, Security Engineer, Code Reviewer, Micronaut Engineer, Technical Writer | GitHub CLI workflows when `GITHUB_TOKEN` is available, including direct maintainer-visible GitHub issue and PR body footer rules |
 | `gradle` | Architect, Micronaut Engineer, QA Engineer, Security Engineer, Code Reviewer | Micronaut maintainer Gradle workflows, compatibility checks, catalog management, and build diagnostics |
 | `agent-md-refactor` | CEO, Technical Writer | Progressive-disclosure refactoring for repo-level and local runtime instruction files so guidance stays compact, linked, and reimport-safe |
 | `skill-creator` | Architect | Agent-agnostic skill authoring guidance used when the company evolves its own shared skills |
@@ -370,7 +385,7 @@ These skills are included as referenced skills pinned to their upstream source r
 3. If you want local, additive runtime guidance that survives package reimports, create `.company-runtime/shared.md` and any role- or project-specific overlay files you need. Keep that guidance out of the package-owned core files unless you are intentionally publishing a new package version through a PR to `alvarosanchez/micronaut-agent-company`.
 4. Put any supplemental facts the agents will need during execution into `.company-runtime/shared.md` or `.company-runtime/projects/<project-slug>.md`, such as release-line rules, CI commands, Sonar expectations, docs layout notes, and maintainer preferences.
 5. Let the sync plugin import the live GitHub issues and PRs. Those imported items are the company backlog and active work queue.
-6. Expect Paperclip to import `Verify Imported Company Instance` as a `TODO` issue for the **CEO**, plus the `company-operations` recurring tasks as active internal routines for the **Security Engineer** and **CEO**. Use the bootstrap issue to verify the imported entities while the routines begin their normal schedule.
+6. Expect Paperclip to import `Verify Imported Company Instance` as a `TODO` issue for the **CEO**, plus the `company-operations` recurring tasks as active internal routines for the **Product Manager**, **Security Engineer**, **Technical Writer**, and **CEO**. Use the bootstrap issue to verify the imported entities while the routines begin their normal overnight schedule.
 7. Importing the bootstrap issue does not automatically wake the CEO. After import, explicitly invoke the CEO heartbeat for `Verify Imported Company Instance` with the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint, the equivalent runtime wake endpoint exposed by your installed build, or the UI's `Review now` action.
 8. Use the imported `micronaut-repo-operations` and `micronaut-quality-gates` skills as the operational source of truth when adjusting local company policy.
 

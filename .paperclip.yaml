@@ -11,6 +11,14 @@ agents:
         modelReasoningEffort: medium
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
+  product-manager:
+    adapter:
+      type: codex_local
+      config:
+        model: gpt-5.5
+        modelReasoningEffort: high
+        search: true
+        dangerouslyBypassApprovalsAndSandbox: true
   architect:
     adapter:
       type: codex_local
@@ -60,26 +68,47 @@ agents:
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
 routines:
+  weekly-product-discovery:
+    status: active
+    triggers:
+      - kind: schedule
+        label: Weekly Product Discovery
+        cronExpression: "0 1 * * 1"
+        timezone: Europe/Madrid
   weekly-security-deep-scan:
     status: active
     triggers:
       - kind: schedule
         label: Weekly security deep scan
-        cronExpression: "0 9 * * 1"
+        cronExpression: "0 1 * * 2"
+        timezone: Europe/Madrid
+  weekly-user-guide-review:
+    status: active
+    triggers:
+      - kind: schedule
+        label: Weekly User Guide Review
+        cronExpression: "0 1 * * 3"
+        timezone: Europe/Madrid
+  weekly-guide-topic-discovery:
+    status: active
+    triggers:
+      - kind: schedule
+        label: Weekly Guide Topic Discovery
+        cronExpression: "0 1 * * 4"
         timezone: Europe/Madrid
   daily-ceo-self-improvement:
     status: active
     triggers:
       - kind: schedule
         label: Daily CEO Self-Improvement
-        cronExpression: "0 15 * * *"
+        cronExpression: "0 3 * * *"
         timezone: Europe/Madrid
   training:
     status: active
     triggers:
       - kind: schedule
         label: Training
-        cronExpression: "0 10 */2 * *"
+        cronExpression: "0 2 */2 * *"
         timezone: Europe/Madrid
 tasks:
   verify-imported-company-instance:
