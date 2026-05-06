@@ -20,4 +20,4 @@ tags:
   - maintenance
 ---
 
-The Engineering team maintains a bounded Micronaut repository cluster through proactive product discovery plus a strict backlog-to-QA-to-implementation-to-review PR workflow, with human board approvals and merges remaining outside the agent org.
+The Engineering team maintains a bounded Micronaut repository cluster through proactive product discovery plus a strict `BACKLOG -> TODO -> QA -> implementation -> QA -> Security Engineer -> Code Reviewer -> PR cycle` workflow, with human board approvals and merges remaining outside the agent org.
