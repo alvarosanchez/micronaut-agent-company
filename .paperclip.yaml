@@ -11,6 +11,14 @@ agents:
         modelReasoningEffort: medium
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
+  product-manager:
+    adapter:
+      type: codex_local
+      config:
+        model: gpt-5.5
+        modelReasoningEffort: high
+        search: true
+        dangerouslyBypassApprovalsAndSandbox: true
   architect:
     adapter:
       type: codex_local
@@ -66,6 +74,13 @@ routines:
       - kind: schedule
         label: Weekly security deep scan
         cronExpression: "0 9 * * 1"
+        timezone: Europe/Madrid
+  daily-product-discovery:
+    status: active
+    triggers:
+      - kind: schedule
+        label: Daily Product Discovery
+        cronExpression: "0 11 * * *"
         timezone: Europe/Madrid
   daily-ceo-self-improvement:
     status: active

@@ -20,7 +20,7 @@ During each run:
 - create the GitHub issue directly when GitHub write access is available
 - apply `type: enhancement` when the label exists or the available tooling can apply labels
 
-Each GitHub feature request must be comprehensive and detailed enough to become implementation input for another agent. Include:
+Each comprehensive GitHub feature request must be detailed enough to become implementation input for another agent. Include:
 
 - problem statement and affected user persona
 - market, competitor framework, or technology evidence
