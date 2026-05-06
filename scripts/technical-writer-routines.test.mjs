@@ -73,6 +73,8 @@ test("Weekly Guide Topic Discovery task uses the Micronaut Guides skill", async 
   assertContains(body, /deduplic/i, "Guide topic discovery should deduplicate guide topics.");
   assertContains(body, /micronaut-guides/i, "Guide topic discovery should target micronaut-guides for standalone guides.");
   assertContains(body, /PR/i, "Guide topic discovery should open or update PRs.");
+  assertContains(body, /PDF[\s\S]{0,160}(?:PR-visible|attachment|artifact)/i, "Guide topic discovery should require the generated PDF to be visible from the PR.");
+  assertContains(body, /do not commit the PDF|PDF[\s\S]{0,120}not committed/i, "Guide topic discovery should keep generated PDFs out of repository commits.");
 });
 
 test("Technical Writer has guide-routine and CI-skip guidance", async () => {
@@ -87,6 +89,7 @@ test("Technical Writer has guide-routine and CI-skip guidance", async () => {
   assertContains(body, /fact-check[\s\S]{0,160}proposed/i, "Technical Writer should fact-check proposed changes.");
   assertContains(body, /delta/i, "Technical Writer should mention delta review after the first run.");
   assertContains(body, /skip ci|\[skip ci\]/i, "Technical Writer should mention CI-skip guidance.");
+  assertContains(body, /PDF[\s\S]{0,200}(?:PR-visible|attachment|artifact)/i, "Technical Writer should attach or link generated PDFs from standalone guide PRs.");
 
   const skillMarkdown = await read("../skills/guides/SKILL.md");
   const { frontmatter: skillFrontmatter } = parseFrontmatter(skillMarkdown);

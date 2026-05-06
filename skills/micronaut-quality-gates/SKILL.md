@@ -133,6 +133,7 @@ Before a PR is considered healthy:
 - the PR should be linked to all selected Micronaut organization projects chosen during QA intake when GitHub tooling can apply them; if that choice carried ambiguity, the PR description repeats it; naming the boards in prose is not a substitute for the live associations; missing organization-project linkage due to no matching project or tooling gaps does not by itself block a healthy PR. For a GA release target with concurrent prerelease and release boards, link both the matching prerelease board and the GA release board, for example `5.0.0-M3` and `5.0.0 Release`.
 - test evidence is ready to share
 - documentation or migration notes are included when needed
+- standalone `micronaut-guides` PRs created or updated by guide routines include the generated guide PDF as a PR-visible uploaded artifact or attachment link, and the PDF is not committed to the repository
 - security review comments are addressed
 - CI is green
 - Sonar Quality Gate issues are addressed
