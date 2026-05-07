@@ -3,7 +3,7 @@ name: Micronaut Agent Company
 description: Agent company for Micronaut open-source maintenance that drives a related repository cluster to zero open GitHub issues and pull requests through triage, planning, implementation, QA, security review, code review, and documentation.
 slug: micronaut-agent-company
 schema: agentcompanies/v1
-version: 1.4.0
+version: 1.4.1
 license: MIT
 authors:
   - name: Álvaro Sánchez-Mariscal
@@ -31,7 +31,7 @@ The package combines local company-specific operating skills with referenced mai
 
 The Product Manager role adds proactive product discovery. The Weekly Product Discovery routine researches active Micronaut-related projects, compares each project's current capabilities with market, competitor-framework, and adjacent-technology signals, and creates top-level Paperclip issues in the corresponding project backlog so humans can review product-discovery proposals before they enter the normal QA, architecture, engineering, documentation, security, and review pipeline.
 
-The Technical Writer also runs two weekly overnight guide routines. Weekly User Guide Review assembles repository user guides with `./gradlew publishGuide`, fact-checks guide claims with throwaway applications, verifies links and snippets, and opens project PRs for evidence-backed fixes. Weekly Guide Topic Discovery uses the referenced Micronaut Guides skill to identify missing standalone guide topics, deduplicate existing guide coverage, and open guide PRs when a concrete topic is warranted.
+The Technical Writer also runs two weekly overnight guide routines. Weekly User Guide Review assembles repository user guides with `./gradlew publishGuide`, fact-checks guide claims with throwaway applications, verifies links and snippets, and opens project PRs for evidence-backed fixes. Weekly Guide Topic Discovery uses the referenced Micronaut Guides skill to identify missing standalone guide topics, deduplicate existing guide coverage, and open guide PRs when a concrete topic is warranted; every opened or updated standalone guide PR must make the generated guide PDF PR-visible as an uploaded artifact or attachment link without committing the PDF.
 
 The company operates as a gated pipeline driven by Paperclip execution policies:
 
