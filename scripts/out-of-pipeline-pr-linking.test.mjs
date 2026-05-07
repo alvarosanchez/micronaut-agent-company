@@ -16,6 +16,10 @@ const SYNC_PLUGIN_EXCEPTION_PATTERN =
   /(?:synced|imported)[\s\S]{0,180}(?:GitHub )?issues?[\s\S]{0,220}(?:already|not need|do not need)[\s\S]{0,220}linked|(?:already|not need|do not need)[\s\S]{0,220}linked[\s\S]{0,220}(?:synced|imported)[\s\S]{0,180}(?:GitHub )?issues?/i;
 const AFFECTED_PROJECT_SUBTASK_PATTERN =
   /(?:one|1)[\s\S]{0,80}(?:Paperclip )?(?:child issue|subtask)[\s\S]{0,180}(?:per|for each)[\s\S]{0,120}affected project|affected project[\s\S]{0,180}(?:per|for each)[\s\S]{0,120}(?:Paperclip )?(?:child issue|subtask)/i;
+const ACTUAL_PROJECT_SUBTASK_PATTERN =
+  /(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project|(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project[\s\S]{0,220}(?:Paperclip )?(?:sub-issue|child issue|subtask)/i;
+const ROUTINE_OWNER_SUBTASK_ASSIGNEE_PATTERN =
+  /(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:assigned|assignee)[\s\S]{0,160}(?:routine owner|current routine owner|self|yourself|CEO|ceo|Technical Writer|technical-writer|Product Manager|product-manager)|(?:assigned|assignee)[\s\S]{0,160}(?:routine owner|current routine owner|self|yourself|CEO|ceo|Technical Writer|technical-writer|Product Manager|product-manager)[\s\S]{0,220}(?:Paperclip )?(?:sub-issue|child issue|subtask)/i;
 const EXISTING_PROJECT_PATTERN =
   /project exists in Paperclip|Paperclip project exists|existing Paperclip project/i;
 const LINK_TOOL_PATTERN =
@@ -59,6 +63,11 @@ test("shared guidance scopes out-of-pipeline PRs into linked Paperclip subtasks"
     );
     assert.match(
       markdown,
+      ACTUAL_PROJECT_SUBTASK_PATTERN,
+      `${relativePath} must require project-specific subtasks to belong to the actual project.`,
+    );
+    assert.match(
+      markdown,
       EXISTING_PROJECT_PATTERN,
       `${relativePath} must scope per-project subtasks to projects that exist in Paperclip.`,
     );
@@ -98,6 +107,16 @@ test("routine PR surfaces require a Paperclip subtask and PR link", async () => 
       markdown,
       AFFECTED_PROJECT_SUBTASK_PATTERN,
       `${relativePath} must require one Paperclip child issue or subtask per affected project.`,
+    );
+    assert.match(
+      markdown,
+      ACTUAL_PROJECT_SUBTASK_PATTERN,
+      `${relativePath} must require project-specific subtasks to belong to the actual project.`,
+    );
+    assert.match(
+      markdown,
+      ROUTINE_OWNER_SUBTASK_ASSIGNEE_PATTERN,
+      `${relativePath} must assign project-specific subtasks to the routine owner.`,
     );
     assert.match(
       markdown,
