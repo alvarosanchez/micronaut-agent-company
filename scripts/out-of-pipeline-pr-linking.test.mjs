@@ -26,6 +26,12 @@ const LINK_TOOL_PATTERN =
   /paperclip-github-plugin:link_github_item[\s\S]{0,500}(?:kind[\s\S]{0,80}pull_request|pull_request[\s\S]{0,80}kind)[\s\S]{0,500}paperclipIssueId[\s\S]{0,500}(?:pullRequestUrl|reference)/i;
 const ISSUE_LINK_API_PATTERN =
   /\/api\/plugins\/paperclip-github-plugin\/api\/issue-link[\s\S]{0,500}PAPERCLIP_API_KEY[\s\S]{0,500}paperclipIssueId[\s\S]{0,500}(?:pullRequestUrl|reference)/i;
+const SUBTASK_IN_REVIEW_AFTER_PR_PATTERN =
+  /(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:PR|pull request)[\s\S]{0,260}(?:in_review|in review)[\s\S]{0,260}(?:do not|must not|never)[\s\S]{0,160}(?:close|mark(?:ed)? done|status: done|DONE)|(?:do not|must not|never)[\s\S]{0,160}(?:close|mark(?:ed)? done|status: done|DONE)[\s\S]{0,260}(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:PR|pull request)[\s\S]{0,260}(?:in_review|in review)/i;
+const TARGET_BRANCH_BEFORE_WORK_PATTERN =
+  /(?:target|base|default) branch[\s\S]{0,220}(?:fetch|update|rebase|merge|sync)[\s\S]{0,220}(?:before|prior to)[\s\S]{0,180}(?:start(?:ing)? work|edit(?:ing)?|commit(?:ting)?|open(?:ing)?|creat(?:ing)?|updat(?:ing)?)[\s\S]{0,160}(?:PR|pull request|branch)|(?:before|prior to)[\s\S]{0,180}(?:start(?:ing)? work|edit(?:ing)?|commit(?:ing)?|open(?:ing)?|creat(?:ing)?|updat(?:ing)?)[\s\S]{0,160}(?:PR|pull request|branch)[\s\S]{0,220}(?:fetch|update|rebase|merge|sync)[\s\S]{0,220}(?:target|base|default) branch/i;
+const TARGET_CONFLICT_BLOCKER_PATTERN =
+  /(?:target|base|default) branch[\s\S]{0,220}(?:conflict|merge conflict|rebase conflict)[\s\S]{0,220}(?:blocker|blocked|do not open|do not update|must not open|must not update)|(?:blocker|blocked|do not open|do not update|must not open|must not update)[\s\S]{0,220}(?:conflict|merge conflict|rebase conflict)[\s\S]{0,220}(?:target|base|default) branch/i;
 
 function assertOutOfPipelinePrPolicy(markdown, label) {
   assert.match(
@@ -128,6 +134,11 @@ test("routine PR surfaces require a Paperclip subtask and PR link", async () => 
       ISSUE_LINK_API_PATTERN,
       `${relativePath} must document the plugin-scoped /issue-link API route fallback.`,
     );
+    assert.match(
+      markdown,
+      SUBTASK_IN_REVIEW_AFTER_PR_PATTERN,
+      `${relativePath} must leave PR-owning subtasks in review instead of closing them.`,
+    );
   }
 });
 
@@ -157,4 +168,35 @@ test("package, managed repository, and upstream PR paths all mention subtask lin
     /upstream dependency[\s\S]{0,360}(?:Paperclip )?(?:child issue|subtask)[\s\S]{0,260}(?:link|linked|linking)[\s\S]{0,180}(?:PR|pull request)|(?:Paperclip )?(?:child issue|subtask)[\s\S]{0,260}upstream dependency[\s\S]{0,360}(?:link|linked|linking)[\s\S]{0,180}(?:PR|pull request)/i,
     "Upstream dependency PR path must mention child issue or subtask linkage.",
   );
+});
+
+test("PR creators update from the target branch before starting work", async () => {
+  const requiredPaths = [
+    "../README.md",
+    "../COMPANY.md",
+    "../skills/micronaut-repo-operations/SKILL.md",
+    "../skills/micronaut-quality-gates/SKILL.md",
+    "../skills/company-package-evolution/SKILL.md",
+    "../agents/code-reviewer/AGENTS.md",
+    "../agents/ceo/AGENTS.md",
+    "../agents/technical-writer/AGENTS.md",
+    "../tasks/daily-ceo-self-improvement/TASK.md",
+    "../tasks/weekly-user-guide-review/TASK.md",
+    "../tasks/weekly-guide-topic-discovery/TASK.md",
+  ];
+
+  for (const relativePath of requiredPaths) {
+    const markdown = await read(relativePath);
+
+    assert.match(
+      markdown,
+      TARGET_BRANCH_BEFORE_WORK_PATTERN,
+      `${relativePath} must require PR branches to fetch/update from the target branch before work starts.`,
+    );
+    assert.match(
+      markdown,
+      TARGET_CONFLICT_BLOCKER_PATTERN,
+      `${relativePath} must treat target-branch update conflicts as blockers instead of publishing conflicting PRs.`,
+    );
+  }
 });

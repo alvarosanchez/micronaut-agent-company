@@ -5,7 +5,7 @@ project: company-operations
 recurring: true
 ---
 
-Research the managed Micronaut-related Paperclip projects each week by creating project-specific discovery sub-issues first. Each discovery subtask belongs to the actual Micronaut-related project and is assigned to Product Manager for deep review; only then should it create a top-level Paperclip product development issue in that project's backlog, assigned to QA, when the strongest implementation-ready product gap justifies one.
+Coordinate project-specific product-discovery sub-issues for the managed Micronaut-related Paperclip projects. The routine issue is a coordinator only: do not perform deep review, market research, candidate selection, feature request creation, or top-level product development issue creation from the routine issue itself.
 
 During each run:
 
@@ -13,18 +13,14 @@ During each run:
 - exclude internal company-operating projects such as `company-operations`
 - exclude `micronaut-projects/micronaut-project-template`; it is a repository template and file sync source, not an actual Micronaut project, so skip it for product discovery, product development issues, and feature requests
 - map each eligible project to its GitHub repository from project metadata, synced issues, GitHub sync context, or clear repository naming evidence
-- create one Paperclip product-discovery sub-issue, child issue, or subtask per eligible Micronaut-related project; set the subtask's project to the actual corresponding Paperclip project, link it to the routine issue with `parentId` when supported, and set assignee to Product Manager (`product-manager`)
-- perform the deep review inside each project-specific discovery subtask
-- read the repository README, docs, examples, recent releases, open issues, closed feature requests, and current known capabilities inside that subtask
-- research the market, competitor frameworks, adjacent technologies, and developer workflows on the internet inside that subtask
-- compare the research against the repository's existing capabilities
-- deduplicate candidate gaps against open and closed GitHub issues in the same repository
-- pick at most one high-value non-duplicative feature request per project
-- when a subtask justifies a new product request, create a top-level Paperclip product development issue in the corresponding project with status `backlog`, no parent issue, and assignee QA (`qa-engineer`)
-- do not publish issues to GitHub from this routine; include `Intended GitHub label: type: enhancement` in the Paperclip issue body unless an equivalent Paperclip label can be applied safely
-- leave created Paperclip product development issues in backlog for human review; keep them assigned to QA so that when a board user moves one to `TODO`, QA can begin intake triage
+- before creating a project child issue, search for an existing open or already-created product-discovery child issue or subtask for the same routine issue and project; also search for orphan or top-level product-discovery issues for the same project from recent routine attempts; reuse, update, or reparent the existing issue when possible, and if it cannot be safely reparented, record a blocker instead of creating another duplicate
+- create at most one Paperclip product-discovery sub-issue, child issue, or subtask per eligible Micronaut-related project; set the subtask's project to the actual corresponding Paperclip project, link it to the routine issue with `parentId` when supported, and set assignee to Product Manager (`product-manager`)
+- make each child issue description self-contained and complete: tell the assignee to use the product-discovery skill, name the project repository, include the discovery checklist, duplicate-check expectations, output sections, and allowed outcomes
+- do not create top-level project-specific Paperclip issues for Weekly Product Discovery follow-up; use the child issue or subtask as the project-owned work item
+- do not create top-level product development issues or feature requests from the routine issue; any product development issue decision and creation must happen only inside the project-specific child issue or subtask
+- inside each project-specific subtask, use the product-discovery skill, perform the deep review, read the repository README, docs, examples, recent releases, open issues, closed feature requests, and current known capabilities, research market and competitors, deduplicate candidate gaps, and record either a top-level Paperclip product development issue with status `backlog` and assignee QA (`qa-engineer`) or a no-create decision
 
-Each comprehensive Paperclip feature request must be detailed enough to become implementation input for another agent after human review. Include:
+Inside a project-specific subtask, each comprehensive Paperclip feature request must be detailed enough to become implementation input for another agent after human review. Include:
 
 - problem statement and affected user persona
 - market, competitor framework, or technology evidence
@@ -41,15 +37,10 @@ Produce one Paperclip report that includes:
 
 - every eligible project considered
 - skipped projects and why they were skipped
-- product-discovery sub-issues or subtasks created in the actual corresponding projects and assigned to Product Manager
-- repository capability summary per inspected project
-- research sources and competitor technologies considered
-- candidate feature gaps considered
-- duplicate checks performed
-- selected feature for each project
-- created top-level Paperclip product development issue URLs and confirmation that each is in backlog, assigned to QA, and not parented under the discovery subtask
-- projects where no issue was opened and the reason
-- blockers such as missing repository mapping, missing GitHub read access, missing Paperclip project access, missing Paperclip issue-creation access, or unavailable project context
-- complete issue drafts for any feature request that could not be opened because of a blocker
+- product-discovery sub-issues or subtasks reused or created in the actual corresponding projects and assigned to Product Manager
+- parent link status for each child issue or subtask
+- confirmation that no duplicate child issue was created for a project that already had a product-discovery subtask for this routine
+- orphan or top-level product-discovery issues found, whether they were reused, updated, reparented, or blocked because they could not be safely corrected
+- blockers such as missing repository mapping, missing Paperclip project access, missing Paperclip issue-creation access, or unavailable project context
 
-Finish with a real outcome: project-specific discovery subtasks created and assigned to Product Manager, top-level Paperclip product development issue created in backlog and assigned to QA, no non-duplicative implementation-ready feature justified in the project subtask, or clearly blocked with the blocking fact and issue draft recorded. Do not end with a proposal-only list when Paperclip issue creation is available.
+Finish the routine issue with a real coordination outcome: project-specific discovery subtasks reused or created and assigned to Product Manager, no eligible project found, or clearly blocked with the blocking fact recorded. The project child issue or subtask later finishes with the project outcome: top-level Paperclip product development issue created in backlog and assigned to QA, no non-duplicative implementation-ready feature justified, or clearly blocked with the blocking fact and issue draft recorded. Do not end with a proposal-only list when Paperclip issue creation is available.

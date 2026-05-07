@@ -28,12 +28,22 @@ const ROUTINE_OWNER_ASSIGNEE_PATTERN =
   /(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:assigned|assignee)[\s\S]{0,160}(?:Technical Writer|technical-writer|routine owner|self|yourself)|(?:assigned|assignee)[\s\S]{0,160}(?:Technical Writer|technical-writer|routine owner|self|yourself)[\s\S]{0,220}(?:sub-issue|child issue|subtask)/i;
 const PROJECT_TEMPLATE_GUIDE_EXCLUSION_PATTERN =
   /micronaut-project-template[\s\S]{0,260}(?:not an actual Micronaut project|repository template|file sync|sync files)[\s\S]{0,260}(?:skip|exclude|not eligible|do not)[\s\S]{0,260}(?:user guide|guide topic|standalone guide|guide routines)|(?:skip|exclude|not eligible|do not)[\s\S]{0,260}micronaut-project-template[\s\S]{0,260}(?:user guide|guide topic|standalone guide|guide routines)/i;
+const MICRONAUT_BUILD_GUIDE_EXCLUSION_PATTERN =
+  /micronaut-build[\s\S]{0,260}(?:internal Gradle plugins|Micronaut committers|not intended.*user|not end users|not an end-user project)[\s\S]{0,260}(?:skip|exclude|not eligible|do not)[\s\S]{0,260}(?:user guide|guide topic|standalone guide|guide routines)|(?:skip|exclude|not eligible|do not)[\s\S]{0,260}micronaut-build[\s\S]{0,260}(?:user guide|guide topic|standalone guide|guide routines)/i;
 const ROUTINE_COORDINATOR_ONLY_PATTERN =
   /routine issue[\s\S]{0,260}(?:coordinator|coordination)[\s\S]{0,260}(?:does not|must not|do not)[\s\S]{0,160}(?:open|create|update)[\s\S]{0,120}(?:PR|pull request)|(?:does not|must not|do not)[\s\S]{0,160}(?:open|create|update)[\s\S]{0,120}(?:PR|pull request)[\s\S]{0,260}routine issue/i;
 const SUBTASK_PR_DECISION_PATTERN =
   /(?:PR|pull request|documentation fix|guide PR)[\s\S]{0,260}(?:only|exclusively)[\s\S]{0,180}(?:inside|from)[\s\S]{0,120}(?:sub-issue|child issue|subtask)|(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:only|exclusively)[\s\S]{0,180}(?:open|create|update|decide)[\s\S]{0,120}(?:PR|pull request|documentation fix|guide PR)/i;
 const NO_TOP_LEVEL_ROUTINE_FOLLOWUP_PATTERN =
   /(?:do not|must not|never)[\s\S]{0,160}(?:create|open)[\s\S]{0,160}top-level[\s\S]{0,160}(?:project-specific )?(?:issue|Paperclip issue)[\s\S]{0,220}(?:Weekly User Guide Review|Weekly Guide Topic Discovery|guide routine|routine issue)|(?:Weekly User Guide Review|Weekly Guide Topic Discovery|guide routine|routine issue)[\s\S]{0,220}(?:do not|must not|never)[\s\S]{0,160}(?:create|open)[\s\S]{0,160}top-level[\s\S]{0,160}(?:project-specific )?(?:issue|Paperclip issue)/i;
+const GUIDE_PR_TYPE_DOCS_PATTERN =
+  /(?:guide|documentation|docs)[\s\S]{0,220}(?:PR|pull request)[\s\S]{0,220}`?type: docs`?|`?type: docs`?[\s\S]{0,220}(?:guide|documentation|docs)[\s\S]{0,220}(?:PR|pull request)/i;
+const SKIP_CI_COMMIT_PATTERN =
+  /(?:guide|docs|documentation)[\s\S]{0,220}(?:PR|pull request)[\s\S]{0,260}(?:CI (?:is )?not needed|CI is not required|not exercised by the build|build does not exercise)[\s\S]{0,260}(?:commit|commits|commit message)[\s\S]{0,180}(?:skip ci|\[skip ci\])|(?:commit|commits|commit message)[\s\S]{0,180}(?:skip ci|\[skip ci\])[\s\S]{0,260}(?:CI (?:is )?not needed|CI is not required|not exercised by the build|build does not exercise)[\s\S]{0,220}(?:guide|docs|documentation)[\s\S]{0,220}(?:PR|pull request)/i;
+const UPDATE_FROM_TARGET_BRANCH_PATTERN =
+  /(?:guide|docs|documentation)[\s\S]{0,220}(?:PR|pull request)[\s\S]{0,260}(?:before|prior to)[\s\S]{0,160}(?:open|create|update)[\s\S]{0,180}(?:update|rebase|merge|sync)[\s\S]{0,220}(?:target|base|default) branch|(?:update|rebase|merge|sync)[\s\S]{0,220}(?:target|base|default) branch[\s\S]{0,260}(?:before|prior to)[\s\S]{0,160}(?:open|create|update)[\s\S]{0,180}(?:guide|docs|documentation)[\s\S]{0,220}(?:PR|pull request)/i;
+const CONFLICT_BLOCKER_PATTERN =
+  /(?:conflict|merge conflict|rebase conflict)[\s\S]{0,220}(?:blocker|blocked|do not open|do not update|must not open|must not update)|(?:do not open|do not update|must not open|must not update|blocker|blocked)[\s\S]{0,220}(?:conflict|merge conflict|rebase conflict)/i;
 
 test("Technical Writer owns weekly guide review and topic discovery routines", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
@@ -139,7 +149,7 @@ test("docs-only CI skip guidance is documented in shared package surfaces", asyn
   }
 });
 
-test("guide routines exclude the Micronaut project template repository", async () => {
+test("guide routines exclude non-user-facing infrastructure repositories", async () => {
   const guideReview = await read("../tasks/weekly-user-guide-review/TASK.md");
   const guideTopic = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
   const writer = await read("../agents/technical-writer/AGENTS.md");
@@ -159,6 +169,11 @@ test("guide routines exclude the Micronaut project template repository", async (
       markdown,
       PROJECT_TEMPLATE_GUIDE_EXCLUSION_PATTERN,
       `${label} should exclude micronaut-project-template from user-guide and guide-topic routines.`,
+    );
+    assertContains(
+      markdown,
+      MICRONAUT_BUILD_GUIDE_EXCLUSION_PATTERN,
+      `${label} should exclude micronaut-build from user-guide and guide-topic routines.`,
     );
   }
 });
@@ -189,6 +204,85 @@ test("guide routine issues only coordinate project subtasks", async () => {
       markdown,
       NO_TOP_LEVEL_ROUTINE_FOLLOWUP_PATTERN,
       `${label} should prevent top-level project-specific issues for guide-routine follow-up.`,
+    );
+  }
+});
+
+test("guide-related pull requests are labeled type docs", async () => {
+  const guideReview = await read("../tasks/weekly-user-guide-review/TASK.md");
+  const guideTopic = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
+  const writer = await read("../agents/technical-writer/AGENTS.md");
+  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const qualityGates = await read("../skills/micronaut-quality-gates/SKILL.md");
+
+  for (const [label, markdown] of [
+    ["Weekly User Guide Review", guideReview],
+    ["Weekly Guide Topic Discovery", guideTopic],
+    ["Technical Writer", writer],
+    ["repo operations", repoOperations],
+    ["quality gates", qualityGates],
+  ]) {
+    assertContains(
+      markdown,
+      GUIDE_PR_TYPE_DOCS_PATTERN,
+      `${label} should require guide-related PRs to carry type: docs.`,
+    );
+  }
+});
+
+test("guide and docs PR commits use skip ci when CI is not needed", async () => {
+  const guideReview = await read("../tasks/weekly-user-guide-review/TASK.md");
+  const guideTopic = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
+  const writer = await read("../agents/technical-writer/AGENTS.md");
+  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const qualityGates = await read("../skills/micronaut-quality-gates/SKILL.md");
+  const readme = await read("../README.md");
+  const company = await read("../COMPANY.md");
+
+  for (const [label, markdown] of [
+    ["Weekly User Guide Review", guideReview],
+    ["Weekly Guide Topic Discovery", guideTopic],
+    ["Technical Writer", writer],
+    ["repo operations", repoOperations],
+    ["quality gates", qualityGates],
+    ["README", readme],
+    ["COMPANY", company],
+  ]) {
+    assertContains(
+      markdown,
+      SKIP_CI_COMMIT_PATTERN,
+      `${label} should require skip-ci commit messages for guide/docs PRs when CI is not needed.`,
+    );
+  }
+});
+
+test("guide and docs PR branches are current with the target branch before publication", async () => {
+  const guideReview = await read("../tasks/weekly-user-guide-review/TASK.md");
+  const guideTopic = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
+  const writer = await read("../agents/technical-writer/AGENTS.md");
+  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const qualityGates = await read("../skills/micronaut-quality-gates/SKILL.md");
+  const readme = await read("../README.md");
+  const company = await read("../COMPANY.md");
+
+  for (const [label, markdown] of [
+    ["Weekly User Guide Review", guideReview],
+    ["Weekly Guide Topic Discovery", guideTopic],
+    ["Technical Writer", writer],
+    ["repo operations", repoOperations],
+    ["quality gates", qualityGates],
+    ["README", readme],
+    ["COMPANY", company],
+  ]) {
+    assertContains(
+      markdown,
+      UPDATE_FROM_TARGET_BRANCH_PATTERN,
+      `${label} should require guide/docs PR branches to be updated from the target branch before publication.`,
+    );
+    assertContains(
+      markdown,
+      CONFLICT_BLOCKER_PATTERN,
+      `${label} should treat target-branch update conflicts as blockers instead of publishing conflicting PRs.`,
     );
   }
 });

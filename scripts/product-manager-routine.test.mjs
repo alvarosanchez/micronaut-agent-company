@@ -34,6 +34,16 @@ const QA_ASSIGNED_BACKLOG_PRODUCT_ISSUE_PATTERN =
   /(?:top-level Paperclip (?:product development|feature request|product) issue|top-level Paperclip issue)[\s\S]{0,260}status `backlog`[\s\S]{0,220}(?:assigned|assignee)[\s\S]{0,120}(?:QA|qa-engineer)|(?:assigned|assignee)[\s\S]{0,120}(?:QA|qa-engineer)[\s\S]{0,220}status `backlog`[\s\S]{0,260}(?:top-level Paperclip (?:product development|feature request|product) issue|top-level Paperclip issue)/i;
 const PROJECT_TEMPLATE_PRODUCT_EXCLUSION_PATTERN =
   /micronaut-project-template[\s\S]{0,260}(?:not an actual Micronaut project|repository template|file sync|sync files)[\s\S]{0,260}(?:skip|exclude|not eligible|do not)[\s\S]{0,260}(?:product discovery|product development|feature request|Product Manager)|(?:skip|exclude|not eligible|do not)[\s\S]{0,260}micronaut-project-template[\s\S]{0,260}(?:product discovery|product development|feature request|Product Manager)/i;
+const PRODUCT_DISCOVERY_COORDINATOR_ONLY_PATTERN =
+  /routine issue[\s\S]{0,260}(?:coordinator|coordination)[\s\S]{0,260}(?:does not|must not|do not)[\s\S]{0,200}(?:deep review|market research|product development issue|feature request)|(?:does not|must not|do not)[\s\S]{0,200}(?:deep review|market research|product development issue|feature request)[\s\S]{0,260}routine issue/i;
+const EXISTING_DISCOVERY_SUBTASK_DEDUP_PATTERN =
+  /(?:search|check|look for|reuse|update)[\s\S]{0,260}(?:existing|open|already-created)[\s\S]{0,220}(?:product-discovery|Product discovery|discovery)[\s\S]{0,220}(?:sub-issue|child issue|subtask)|(?:do not|must not|never)[\s\S]{0,160}(?:duplicate|create another)[\s\S]{0,220}(?:product-discovery|Product discovery|discovery)[\s\S]{0,220}(?:sub-issue|child issue|subtask)/i;
+const ORPHAN_DISCOVERY_ISSUE_DEDUP_PATTERN =
+  /(?:orphan|top-level)[\s\S]{0,180}(?:product-discovery|Product discovery|discovery)[\s\S]{0,220}(?:reuse|update|reparent|record a blocker|do not create another)|(?:reuse|update|reparent|record a blocker|do not create another)[\s\S]{0,220}(?:orphan|top-level)[\s\S]{0,180}(?:product-discovery|Product discovery|discovery)/i;
+const SELF_CONTAINED_DISCOVERY_CHILD_PATTERN =
+  /(?:child issue|subtask|sub-issue)[\s\S]{0,220}(?:description|body)[\s\S]{0,220}(?:self-contained|complete|full)[\s\S]{0,260}product-discovery skill|product-discovery skill[\s\S]{0,260}(?:child issue|subtask|sub-issue)[\s\S]{0,220}(?:description|body)[\s\S]{0,220}(?:self-contained|complete|full)/i;
+const PRODUCT_DISCOVERY_SKILL_MODE_PATTERN =
+  /coordinator[\s\S]{0,260}project subtask|project subtask[\s\S]{0,260}coordinator/i;
 
 test("Product Manager agent is configured for product discovery", async () => {
   const agentMarkdown = await read("../agents/product-manager/AGENTS.md");
@@ -44,6 +54,7 @@ test("Product Manager agent is configured for product discovery", async () => {
   assert.equal(frontmatter.title, "Product Manager");
   assert.equal(frontmatter.reportsTo, "ceo");
   assert.deepEqual(frontmatter.skills, [
+    "product-discovery",
     "micronaut-repo-operations",
     "docs",
     "gh-cli",
@@ -152,6 +163,48 @@ test("Product discovery excludes the Micronaut project template repository", asy
       markdown,
       PROJECT_TEMPLATE_PRODUCT_EXCLUSION_PATTERN,
       `${label} should exclude micronaut-project-template from Product Manager discovery.`,
+    );
+  }
+});
+
+test("Product Manager uses a product-discovery skill for coordinator and subtask modes", async () => {
+  const agentMarkdown = await read("../agents/product-manager/AGENTS.md");
+  const { frontmatter: agentFrontmatter, body: agentBody } = parseFrontmatter(agentMarkdown);
+  const taskMarkdown = await read("../tasks/weekly-product-discovery/TASK.md");
+  const { body: taskBody } = parseFrontmatter(taskMarkdown);
+  const skillMarkdown = await read("../skills/product-discovery/SKILL.md");
+  const { frontmatter: skillFrontmatter, body: skillBody } = parseFrontmatter(skillMarkdown);
+  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+
+  assert.ok(agentFrontmatter.skills.includes("product-discovery"), "Product Manager should include the product-discovery skill.");
+  assert.equal(skillFrontmatter.name, "product-discovery");
+  assertContains(skillBody, PRODUCT_DISCOVERY_SKILL_MODE_PATTERN, "product-discovery skill should describe coordinator and project-subtask modes.");
+
+  for (const [label, markdown] of [
+    ["Product Manager", agentBody],
+    ["Weekly Product Discovery", taskBody],
+    ["product-discovery skill", skillBody],
+    ["repo operations", repoOperations],
+  ]) {
+    assertContains(
+      markdown,
+      PRODUCT_DISCOVERY_COORDINATOR_ONLY_PATTERN,
+      `${label} should keep the routine issue coordinator-only for Product Manager discovery.`,
+    );
+    assertContains(
+      markdown,
+      EXISTING_DISCOVERY_SUBTASK_DEDUP_PATTERN,
+      `${label} should require reusing existing product-discovery subtasks instead of creating duplicates.`,
+    );
+    assertContains(
+      markdown,
+      ORPHAN_DISCOVERY_ISSUE_DEDUP_PATTERN,
+      `${label} should detect orphan top-level product-discovery issues before creating another duplicate.`,
+    );
+    assertContains(
+      markdown,
+      SELF_CONTAINED_DISCOVERY_CHILD_PATTERN,
+      `${label} should require self-contained product-discovery child issue descriptions that invoke the skill.`,
     );
   }
 });
