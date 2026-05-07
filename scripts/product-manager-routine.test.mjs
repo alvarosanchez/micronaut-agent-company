@@ -22,6 +22,19 @@ function assertContains(value, pattern, message) {
   assert.ok(pattern.test(value), message);
 }
 
+const PROJECT_DISCOVERY_SUBTASK_PATTERN =
+  /(?:one|1)[\s\S]{0,120}(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,180}(?:per|for each)[\s\S]{0,160}Micronaut-related[\s\S]{0,120}project|Micronaut-related[\s\S]{0,120}project[\s\S]{0,180}(?:per|for each)[\s\S]{0,160}(?:Paperclip )?(?:sub-issue|child issue|subtask)/i;
+const ACTUAL_PROJECT_SUBTASK_PATTERN =
+  /(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project|(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project[\s\S]{0,220}(?:sub-issue|child issue|subtask)/i;
+const PRODUCT_MANAGER_ASSIGNEE_PATTERN =
+  /(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:assigned|assignee)[\s\S]{0,120}(?:Product Manager|product-manager|self|yourself)|(?:assigned|assignee)[\s\S]{0,120}(?:Product Manager|product-manager|self|yourself)[\s\S]{0,220}(?:sub-issue|child issue|subtask)/i;
+const DEEP_REVIEW_IN_SUBTASK_PATTERN =
+  /(?:deep review|repository review|market[\s\S]{0,80}research|competitor[\s\S]{0,80}research)[\s\S]{0,260}(?:inside|in)[\s\S]{0,120}(?:sub-issue|child issue|subtask)|(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:deep review|repository review|market[\s\S]{0,80}research|competitor[\s\S]{0,80}research)/i;
+const QA_ASSIGNED_BACKLOG_PRODUCT_ISSUE_PATTERN =
+  /(?:top-level Paperclip (?:product development|feature request|product) issue|top-level Paperclip issue)[\s\S]{0,260}status `backlog`[\s\S]{0,220}(?:assigned|assignee)[\s\S]{0,120}(?:QA|qa-engineer)|(?:assigned|assignee)[\s\S]{0,120}(?:QA|qa-engineer)[\s\S]{0,220}status `backlog`[\s\S]{0,260}(?:top-level Paperclip (?:product development|feature request|product) issue|top-level Paperclip issue)/i;
+const PROJECT_TEMPLATE_PRODUCT_EXCLUSION_PATTERN =
+  /micronaut-project-template[\s\S]{0,260}(?:not an actual Micronaut project|repository template|file sync|sync files)[\s\S]{0,260}(?:skip|exclude|not eligible|do not)[\s\S]{0,260}(?:product discovery|product development|feature request|Product Manager)|(?:skip|exclude|not eligible|do not)[\s\S]{0,260}micronaut-project-template[\s\S]{0,260}(?:product discovery|product development|feature request|Product Manager)/i;
+
 test("Product Manager agent is configured for product discovery", async () => {
   const agentMarkdown = await read("../agents/product-manager/AGENTS.md");
   const { frontmatter, body } = parseFrontmatter(agentMarkdown);
@@ -37,7 +50,11 @@ test("Product Manager agent is configured for product discovery", async () => {
   ]);
   assert.equal(frontmatter.metadata?.paperclip?.agentIcon, "radar");
   assertContains(body, /market[\s\S]{0,160}competitor|competitor[\s\S]{0,160}market/i, "Product Manager instructions should mention market and competitor research.");
-  assertContains(body, /top-level Paperclip issue[\s\S]{0,220}backlog|backlog[\s\S]{0,220}top-level Paperclip issue/i, "Product Manager instructions should create top-level Paperclip issues in backlog.");
+  assertContains(body, PROJECT_DISCOVERY_SUBTASK_PATTERN, "Product Manager instructions should create one product-discovery sub-issue per Micronaut-related project.");
+  assertContains(body, ACTUAL_PROJECT_SUBTASK_PATTERN, "Product Manager instructions should place discovery subtasks in the actual project being reviewed.");
+  assertContains(body, PRODUCT_MANAGER_ASSIGNEE_PATTERN, "Product Manager instructions should assign project-specific discovery subtasks to Product Manager.");
+  assertContains(body, DEEP_REVIEW_IN_SUBTASK_PATTERN, "Product Manager instructions should perform deep project review inside each discovery subtask.");
+  assertContains(body, QA_ASSIGNED_BACKLOG_PRODUCT_ISSUE_PATTERN, "Product Manager instructions should create resulting product development issues in backlog assigned to QA.");
   assertContains(body, /human review|reviewed by (?:a )?human|human-reviewed/i, "Product Manager instructions should keep product-discovery issues waiting for human review.");
   assert.doesNotMatch(body, /direct(?:ly)?[\s\S]{0,180}GitHub issue|GitHub issue[\s\S]{0,180}direct(?:ly)?/i, "Product Manager instructions should not require direct GitHub issue creation.");
   assertContains(body, /type: enhancement/i, "Product Manager instructions should mention type: enhancement.");
@@ -73,7 +90,11 @@ test("Weekly Product Discovery routine is active and owned by Product Manager", 
   assert.equal(frontmatter.recurring, true);
   assertContains(body, /Micronaut-related Paperclip projects/i, "Weekly Product Discovery task should mention Micronaut-related projects.");
   assertContains(body, /research[\s\S]{0,160}(?:market|competitor|framework|technolog)/i, "Weekly Product Discovery task should require market, competitor, framework, or technology research.");
-  assertContains(body, /top-level Paperclip issue[\s\S]{0,220}backlog|backlog[\s\S]{0,220}top-level Paperclip issue/i, "Weekly Product Discovery task should create top-level Paperclip issues in backlog.");
+  assertContains(body, PROJECT_DISCOVERY_SUBTASK_PATTERN, "Weekly Product Discovery should create one product-discovery sub-issue per Micronaut-related project.");
+  assertContains(body, ACTUAL_PROJECT_SUBTASK_PATTERN, "Weekly Product Discovery should place discovery subtasks in the actual project being reviewed.");
+  assertContains(body, PRODUCT_MANAGER_ASSIGNEE_PATTERN, "Weekly Product Discovery should assign project-specific discovery subtasks to Product Manager.");
+  assertContains(body, DEEP_REVIEW_IN_SUBTASK_PATTERN, "Weekly Product Discovery should perform deep project review inside each discovery subtask.");
+  assertContains(body, QA_ASSIGNED_BACKLOG_PRODUCT_ISSUE_PATTERN, "Weekly Product Discovery should create resulting product development issues in backlog assigned to QA.");
   assertContains(body, /human review|reviewed by (?:a )?human|human-reviewed/i, "Weekly Product Discovery task should leave created issues for human review.");
   assert.doesNotMatch(body, /create(?:s)?[\s\S]{0,180}GitHub issue[\s\S]{0,180}direct/i, "Weekly Product Discovery task should not require direct GitHub issue creation.");
   assertContains(body, /comprehensive[\s\S]{0,220}feature request|detailed[\s\S]{0,220}feature request/i, "Weekly Product Discovery task should require comprehensive or detailed feature requests.");
@@ -111,4 +132,26 @@ test("Product Manager is covered by internal company maintenance routines", asyn
   assertContains(trainingBody, /Inspect every non-CEO agent:[\s\S]*Product Manager/i, "Training should inspect Product Manager as a non-CEO agent.");
   assertContains(bootstrapBody, /Product Manager[\s\S]{0,220}role `pm`[\s\S]{0,220}icon `radar`/i, "Bootstrap verification should check Product Manager role and icon.");
   assertContains(bootstrapBody, /Weekly Product Discovery[\s\S]{0,120}active routine owned by `product-manager`/i, "Bootstrap verification should check the Weekly Product Discovery routine.");
+});
+
+test("Product discovery excludes the Micronaut project template repository", async () => {
+  const agentMarkdown = await read("../agents/product-manager/AGENTS.md");
+  const taskMarkdown = await read("../tasks/weekly-product-discovery/TASK.md");
+  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const readme = await read("../README.md");
+  const company = await read("../COMPANY.md");
+
+  for (const [label, markdown] of [
+    ["Product Manager", agentMarkdown],
+    ["Weekly Product Discovery", taskMarkdown],
+    ["repo operations", repoOperations],
+    ["README", readme],
+    ["COMPANY", company],
+  ]) {
+    assertContains(
+      markdown,
+      PROJECT_TEMPLATE_PRODUCT_EXCLUSION_PATTERN,
+      `${label} should exclude micronaut-project-template from Product Manager discovery.`,
+    );
+  }
 });

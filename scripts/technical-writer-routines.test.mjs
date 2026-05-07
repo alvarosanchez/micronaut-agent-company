@@ -22,6 +22,19 @@ function assertContains(value, pattern, message) {
   assert.ok(pattern.test(value), message);
 }
 
+const ACTUAL_PROJECT_ROUTINE_SUBTASK_PATTERN =
+  /(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project|(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project[\s\S]{0,220}(?:sub-issue|child issue|subtask)/i;
+const ROUTINE_OWNER_ASSIGNEE_PATTERN =
+  /(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:assigned|assignee)[\s\S]{0,160}(?:Technical Writer|technical-writer|routine owner|self|yourself)|(?:assigned|assignee)[\s\S]{0,160}(?:Technical Writer|technical-writer|routine owner|self|yourself)[\s\S]{0,220}(?:sub-issue|child issue|subtask)/i;
+const PROJECT_TEMPLATE_GUIDE_EXCLUSION_PATTERN =
+  /micronaut-project-template[\s\S]{0,260}(?:not an actual Micronaut project|repository template|file sync|sync files)[\s\S]{0,260}(?:skip|exclude|not eligible|do not)[\s\S]{0,260}(?:user guide|guide topic|standalone guide|guide routines)|(?:skip|exclude|not eligible|do not)[\s\S]{0,260}micronaut-project-template[\s\S]{0,260}(?:user guide|guide topic|standalone guide|guide routines)/i;
+const ROUTINE_COORDINATOR_ONLY_PATTERN =
+  /routine issue[\s\S]{0,260}(?:coordinator|coordination)[\s\S]{0,260}(?:does not|must not|do not)[\s\S]{0,160}(?:open|create|update)[\s\S]{0,120}(?:PR|pull request)|(?:does not|must not|do not)[\s\S]{0,160}(?:open|create|update)[\s\S]{0,120}(?:PR|pull request)[\s\S]{0,260}routine issue/i;
+const SUBTASK_PR_DECISION_PATTERN =
+  /(?:PR|pull request|documentation fix|guide PR)[\s\S]{0,260}(?:only|exclusively)[\s\S]{0,180}(?:inside|from)[\s\S]{0,120}(?:sub-issue|child issue|subtask)|(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:only|exclusively)[\s\S]{0,180}(?:open|create|update|decide)[\s\S]{0,120}(?:PR|pull request|documentation fix|guide PR)/i;
+const NO_TOP_LEVEL_ROUTINE_FOLLOWUP_PATTERN =
+  /(?:do not|must not|never)[\s\S]{0,160}(?:create|open)[\s\S]{0,160}top-level[\s\S]{0,160}(?:project-specific )?(?:issue|Paperclip issue)[\s\S]{0,220}(?:Weekly User Guide Review|Weekly Guide Topic Discovery|guide routine|routine issue)|(?:Weekly User Guide Review|Weekly Guide Topic Discovery|guide routine|routine issue)[\s\S]{0,220}(?:do not|must not|never)[\s\S]{0,160}(?:create|open)[\s\S]{0,160}top-level[\s\S]{0,160}(?:project-specific )?(?:issue|Paperclip issue)/i;
+
 test("Technical Writer owns weekly guide review and topic discovery routines", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const guideReview = extension.routines?.["weekly-user-guide-review"];
@@ -56,6 +69,8 @@ test("Weekly User Guide Review task requires fact-checked guide validation", asy
   assertContains(body, /fact-check[\s\S]{0,160}proposed/i, "User guide review should fact-check proposed changes.");
   assertContains(body, /first run[\s\S]{0,220}full guide review|full guide review[\s\S]{0,220}first run/i, "User guide review should do a full first pass.");
   assertContains(body, /prior routine report[\s\S]{0,260}(?:delta|diff|recent commits)|(?:delta|diff|recent commits)[\s\S]{0,260}prior routine report/i, "User guide review should use prior reports and deltas after the first run.");
+  assertContains(body, ACTUAL_PROJECT_ROUTINE_SUBTASK_PATTERN, "User guide review should create project-specific subtasks in the actual project being reviewed.");
+  assertContains(body, ROUTINE_OWNER_ASSIGNEE_PATTERN, "User guide review should assign project-specific subtasks to the Technical Writer.");
   assertContains(body, /PR/i, "User guide review should open or update PRs.");
 });
 
@@ -74,6 +89,8 @@ test("Weekly Guide Topic Discovery task uses the Micronaut Guides skill", async 
   assertContains(body, /micronaut-guides/i, "Guide topic discovery should target micronaut-guides for standalone guides.");
   assertContains(body, /existing[\s\S]{0,180}(?:PR|pull request)[\s\S]{0,220}micronaut-guides|micronaut-guides[\s\S]{0,220}existing[\s\S]{0,180}(?:PR|pull request)/i, "Guide topic discovery should check existing micronaut-guides PRs.");
   assertContains(body, /assigned issue[\s\S]{0,220}(?:work in progress|avoid|do not create)|(?:work in progress|avoid|do not create)[\s\S]{0,220}assigned issue/i, "Guide topic discovery should treat assigned guide issues as work in progress.");
+  assertContains(body, ACTUAL_PROJECT_ROUTINE_SUBTASK_PATTERN, "Guide topic discovery should create project-specific subtasks in the actual project being reviewed.");
+  assertContains(body, ROUTINE_OWNER_ASSIGNEE_PATTERN, "Guide topic discovery should assign project-specific subtasks to the Technical Writer.");
   assertContains(body, /PR/i, "Guide topic discovery should open or update PRs.");
   assertContains(body, /PDF[\s\S]{0,160}(?:PR-visible|attachment|artifact)/i, "Guide topic discovery should require the generated PDF to be visible from the PR.");
   assertContains(body, /do not commit the PDF|PDF[\s\S]{0,120}not committed/i, "Guide topic discovery should keep generated PDFs out of repository commits.");
@@ -91,6 +108,8 @@ test("Technical Writer has guide-routine and CI-skip guidance", async () => {
   assertContains(body, /fact-check[\s\S]{0,160}proposed/i, "Technical Writer should fact-check proposed changes.");
   assertContains(body, /assigned issue[\s\S]{0,260}(?:work in progress|avoid|do not create)|(?:work in progress|avoid|do not create)[\s\S]{0,260}assigned issue/i, "Technical Writer should avoid duplicate guide work when assigned guide issues exist.");
   assertContains(body, /delta/i, "Technical Writer should mention delta review after the first run.");
+  assertContains(body, ACTUAL_PROJECT_ROUTINE_SUBTASK_PATTERN, "Technical Writer should create weekly routine subtasks in the actual project being reviewed.");
+  assertContains(body, ROUTINE_OWNER_ASSIGNEE_PATTERN, "Technical Writer should assign weekly routine subtasks to Technical Writer.");
   assertContains(body, /skip ci|\[skip ci\]/i, "Technical Writer should mention CI-skip guidance.");
   assertContains(body, /PDF[\s\S]{0,200}(?:PR-visible|attachment|artifact)/i, "Technical Writer should attach or link generated PDFs from standalone guide PRs.");
 
@@ -117,5 +136,59 @@ test("docs-only CI skip guidance is documented in shared package surfaces", asyn
     assertContains(markdown, /skip ci|\[skip ci\]/i, `${label} should mention CI-skip keywords.`);
     assertContains(markdown, /documentation[\s\S]{0,220}(?:not exercised by the build|build does not exercise)|(?:not exercised by the build|build does not exercise)[\s\S]{0,220}documentation/i, `${label} should scope CI-skip guidance to docs not exercised by the build.`);
     assertContains(markdown, /(?:publishGuide|generated guides|executable examples|build-validated snippets)/i, `${label} should preserve validation for build-exercised docs.`);
+  }
+});
+
+test("guide routines exclude the Micronaut project template repository", async () => {
+  const guideReview = await read("../tasks/weekly-user-guide-review/TASK.md");
+  const guideTopic = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
+  const writer = await read("../agents/technical-writer/AGENTS.md");
+  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const readme = await read("../README.md");
+  const company = await read("../COMPANY.md");
+
+  for (const [label, markdown] of [
+    ["Weekly User Guide Review", guideReview],
+    ["Weekly Guide Topic Discovery", guideTopic],
+    ["Technical Writer", writer],
+    ["repo operations", repoOperations],
+    ["README", readme],
+    ["COMPANY", company],
+  ]) {
+    assertContains(
+      markdown,
+      PROJECT_TEMPLATE_GUIDE_EXCLUSION_PATTERN,
+      `${label} should exclude micronaut-project-template from user-guide and guide-topic routines.`,
+    );
+  }
+});
+
+test("guide routine issues only coordinate project subtasks", async () => {
+  const guideReview = await read("../tasks/weekly-user-guide-review/TASK.md");
+  const guideTopic = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
+  const writer = await read("../agents/technical-writer/AGENTS.md");
+  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+
+  for (const [label, markdown] of [
+    ["Weekly User Guide Review", guideReview],
+    ["Weekly Guide Topic Discovery", guideTopic],
+    ["Technical Writer", writer],
+    ["repo operations", repoOperations],
+  ]) {
+    assertContains(
+      markdown,
+      ROUTINE_COORDINATOR_ONLY_PATTERN,
+      `${label} should say the routine issue coordinates child work and must not open PRs itself.`,
+    );
+    assertContains(
+      markdown,
+      SUBTASK_PR_DECISION_PATTERN,
+      `${label} should say PR decisions and PR creation happen only inside the project subtask.`,
+    );
+    assertContains(
+      markdown,
+      NO_TOP_LEVEL_ROUTINE_FOLLOWUP_PATTERN,
+      `${label} should prevent top-level project-specific issues for guide-routine follow-up.`,
+    );
   }
 });
