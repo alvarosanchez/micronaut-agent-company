@@ -71,7 +71,7 @@ test("Weekly User Guide Review task requires fact-checked guide validation", asy
   assertContains(body, /prior routine report[\s\S]{0,260}(?:delta|diff|recent commits)|(?:delta|diff|recent commits)[\s\S]{0,260}prior routine report/i, "User guide review should use prior reports and deltas after the first run.");
   assertContains(body, ACTUAL_PROJECT_ROUTINE_SUBTASK_PATTERN, "User guide review should create project-specific subtasks in the actual project being reviewed.");
   assertContains(body, ROUTINE_OWNER_ASSIGNEE_PATTERN, "User guide review should assign project-specific subtasks to the Technical Writer.");
-  assertContains(body, /PR/i, "User guide review should open or update PRs.");
+  assertContains(body, /PR/i, "User guide review project subtasks should be allowed to open or update PRs.");
 });
 
 test("Weekly Guide Topic Discovery task uses the Micronaut Guides skill", async () => {
@@ -91,7 +91,7 @@ test("Weekly Guide Topic Discovery task uses the Micronaut Guides skill", async 
   assertContains(body, /assigned issue[\s\S]{0,220}(?:work in progress|avoid|do not create)|(?:work in progress|avoid|do not create)[\s\S]{0,220}assigned issue/i, "Guide topic discovery should treat assigned guide issues as work in progress.");
   assertContains(body, ACTUAL_PROJECT_ROUTINE_SUBTASK_PATTERN, "Guide topic discovery should create project-specific subtasks in the actual project being reviewed.");
   assertContains(body, ROUTINE_OWNER_ASSIGNEE_PATTERN, "Guide topic discovery should assign project-specific subtasks to the Technical Writer.");
-  assertContains(body, /PR/i, "Guide topic discovery should open or update PRs.");
+  assertContains(body, /PR/i, "Guide topic discovery project subtasks should be allowed to open or update PRs.");
   assertContains(body, /PDF[\s\S]{0,160}(?:PR-visible|attachment|artifact)/i, "Guide topic discovery should require the generated PDF to be visible from the PR.");
   assertContains(body, /do not commit the PDF|PDF[\s\S]{0,120}not committed/i, "Guide topic discovery should keep generated PDFs out of repository commits.");
 });
