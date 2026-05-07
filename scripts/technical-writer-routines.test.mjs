@@ -72,6 +72,8 @@ test("Weekly Guide Topic Discovery task uses the Micronaut Guides skill", async 
   assertContains(body, /missing guide topics?/i, "Guide topic discovery should identify missing guide topics.");
   assertContains(body, /deduplic/i, "Guide topic discovery should deduplicate guide topics.");
   assertContains(body, /micronaut-guides/i, "Guide topic discovery should target micronaut-guides for standalone guides.");
+  assertContains(body, /existing[\s\S]{0,180}(?:PR|pull request)[\s\S]{0,220}micronaut-guides|micronaut-guides[\s\S]{0,220}existing[\s\S]{0,180}(?:PR|pull request)/i, "Guide topic discovery should check existing micronaut-guides PRs.");
+  assertContains(body, /assigned issue[\s\S]{0,220}(?:work in progress|avoid|do not create)|(?:work in progress|avoid|do not create)[\s\S]{0,220}assigned issue/i, "Guide topic discovery should treat assigned guide issues as work in progress.");
   assertContains(body, /PR/i, "Guide topic discovery should open or update PRs.");
   assertContains(body, /PDF[\s\S]{0,160}(?:PR-visible|attachment|artifact)/i, "Guide topic discovery should require the generated PDF to be visible from the PR.");
   assertContains(body, /do not commit the PDF|PDF[\s\S]{0,120}not committed/i, "Guide topic discovery should keep generated PDFs out of repository commits.");
@@ -87,6 +89,7 @@ test("Technical Writer has guide-routine and CI-skip guidance", async () => {
   assertContains(body, /\.\/gradlew publishGuide/i, "Technical Writer should mention publishGuide.");
   assertContains(body, /throwaway (?:applications|apps|projects)/i, "Technical Writer should mention throwaway app fact-checking.");
   assertContains(body, /fact-check[\s\S]{0,160}proposed/i, "Technical Writer should fact-check proposed changes.");
+  assertContains(body, /assigned issue[\s\S]{0,260}(?:work in progress|avoid|do not create)|(?:work in progress|avoid|do not create)[\s\S]{0,260}assigned issue/i, "Technical Writer should avoid duplicate guide work when assigned guide issues exist.");
   assertContains(body, /delta/i, "Technical Writer should mention delta review after the first run.");
   assertContains(body, /skip ci|\[skip ci\]/i, "Technical Writer should mention CI-skip guidance.");
   assertContains(body, /PDF[\s\S]{0,200}(?:PR-visible|attachment|artifact)/i, "Technical Writer should attach or link generated PDFs from standalone guide PRs.");

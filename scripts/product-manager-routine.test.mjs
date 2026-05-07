@@ -37,7 +37,9 @@ test("Product Manager agent is configured for product discovery", async () => {
   ]);
   assert.equal(frontmatter.metadata?.paperclip?.agentIcon, "radar");
   assertContains(body, /market[\s\S]{0,160}competitor|competitor[\s\S]{0,160}market/i, "Product Manager instructions should mention market and competitor research.");
-  assertContains(body, /direct(?:ly)?[\s\S]{0,180}GitHub issue|GitHub issue[\s\S]{0,180}direct(?:ly)?/i, "Product Manager instructions should require direct GitHub issue creation.");
+  assertContains(body, /top-level Paperclip issue[\s\S]{0,220}backlog|backlog[\s\S]{0,220}top-level Paperclip issue/i, "Product Manager instructions should create top-level Paperclip issues in backlog.");
+  assertContains(body, /human review|reviewed by (?:a )?human|human-reviewed/i, "Product Manager instructions should keep product-discovery issues waiting for human review.");
+  assert.doesNotMatch(body, /direct(?:ly)?[\s\S]{0,180}GitHub issue|GitHub issue[\s\S]{0,180}direct(?:ly)?/i, "Product Manager instructions should not require direct GitHub issue creation.");
   assertContains(body, /type: enhancement/i, "Product Manager instructions should mention type: enhancement.");
   assertContains(body, /acceptance criteria/i, "Product Manager instructions should include acceptance criteria guidance.");
   assertContains(body, /duplicate|deduplic/i, "Product Manager instructions should require duplicate checks.");
@@ -71,7 +73,9 @@ test("Weekly Product Discovery routine is active and owned by Product Manager", 
   assert.equal(frontmatter.recurring, true);
   assertContains(body, /Micronaut-related Paperclip projects/i, "Weekly Product Discovery task should mention Micronaut-related projects.");
   assertContains(body, /research[\s\S]{0,160}(?:market|competitor|framework|technolog)/i, "Weekly Product Discovery task should require market, competitor, framework, or technology research.");
-  assertContains(body, /create(?:s)?[\s\S]{0,180}GitHub issue[\s\S]{0,180}direct/i, "Weekly Product Discovery task should require direct GitHub issue creation.");
+  assertContains(body, /top-level Paperclip issue[\s\S]{0,220}backlog|backlog[\s\S]{0,220}top-level Paperclip issue/i, "Weekly Product Discovery task should create top-level Paperclip issues in backlog.");
+  assertContains(body, /human review|reviewed by (?:a )?human|human-reviewed/i, "Weekly Product Discovery task should leave created issues for human review.");
+  assert.doesNotMatch(body, /create(?:s)?[\s\S]{0,180}GitHub issue[\s\S]{0,180}direct/i, "Weekly Product Discovery task should not require direct GitHub issue creation.");
   assertContains(body, /comprehensive[\s\S]{0,220}feature request|detailed[\s\S]{0,220}feature request/i, "Weekly Product Discovery task should require comprehensive or detailed feature requests.");
   assertContains(body, /acceptance criteria/i, "Weekly Product Discovery task should include acceptance criteria guidance.");
   assertContains(body, /duplicate|deduplic/i, "Weekly Product Discovery task should require duplicate checks.");
@@ -87,11 +91,12 @@ test("Product Manager role and routine are documented", async () => {
   assertContains(readme, /\| Product Manager \| `pm` \|/, "README should document the Product Manager pm role.");
   assertContains(readme, /\| `Weekly Product Discovery` \| Product Manager \| Mondays at 01:00 `Europe\/Madrid` \|/, "README should document the Weekly Product Discovery schedule.");
   assertContains(readme, /\| Product Manager \| Product Manager \| `ceo` \|/, "README should document Product Manager reporting to the CEO.");
-  assertContains(readme, /research(?:es)?[\s\S]{0,160}(?:market|competitor|framework|technolog)[\s\S]{0,220}GitHub feature/i, "README should describe Product Manager research leading to GitHub features.");
+  assertContains(readme, /research(?:es)?[\s\S]{0,160}(?:market|competitor|framework|technolog)[\s\S]{0,260}Paperclip issue/i, "README should describe Product Manager research leading to Paperclip issues.");
+  assertContains(readme, /Weekly Product Discovery[\s\S]{0,260}backlog/i, "README should describe Product Manager routine issues as backlog work.");
 
   assertContains(company, /Product Manager/i, "COMPANY.md should mention the Product Manager.");
   assertContains(company, /Weekly Product Discovery/i, "COMPANY.md should mention Weekly Product Discovery.");
-  assertContains(company, /direct GitHub feature request|GitHub feature requests directly/i, "COMPANY.md should describe direct GitHub feature requests.");
+  assertContains(company, /top-level Paperclip issue[\s\S]{0,220}backlog|backlog[\s\S]{0,220}top-level Paperclip issue/i, "COMPANY.md should describe backlog Paperclip product-discovery issues.");
 
   assertContains(team, /agents\/product-manager\/AGENTS\.md/, "Engineering team docs should link the Product Manager agent file.");
   assertContains(team, /Product Manager|product discovery/i, "Engineering team docs should mention Product Manager or product discovery.");
