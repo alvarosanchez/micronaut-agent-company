@@ -36,6 +36,7 @@ Use this skill whenever you are acting on synced GitHub issues or pull requests 
 - If GitHub Sync reopens a PR-based issue because the linked PR has failing CI or unresolved review feedback, treat that as actionable PR follow-through work even when the failure also reproduces on the target branch. Route it to the Micronaut Engineer to make the PR mergeable or produce a concrete named blocker; do not restore `blocked` solely because the failure appears baseline.
 - If GitHub Sync drops a PR-based issue from `in_review` to `in_progress` but the live PR is still open, non-draft, `CLEAN`, all reported checks are passing, and there is no actionable unresolved review state left inside the company workflow, restore `in_review`, clear the internal assignee, and leave a routing-correction comment instead of keeping an engineer or reviewer on repeated follow-through while the PR only waits on normal maintainer review.
 - PRs opened by the CEO from recurring routines, including managed Micronaut repository `AGENTS.md` PRs, follow the same merge-readiness rules as other agent PRs: CI must be green, reported checks must pass, and no unresolved review threads may remain. Because CEO heartbeats may be disabled, the daily self-improvement routine must rediscover and follow up those CEO-opened PRs instead of waiting for a PR wakeup.
+- PRs created outside the normal delivery pipeline must be scoped in Paperclip before they are opened. Create one Paperclip child issue or subtask per affected project when the project exists in Paperclip, decide inside that subtask whether a PR is needed, link any resulting PR to that Paperclip issue through GitHub Sync, and record both URLs plus link status in the routine or stage artifact. Synced GitHub issues created by the sync plugin are already linked and do not need this extra subtask.
 
 ## Execution-Semantics Guardrails
 
@@ -277,8 +278,9 @@ They import active by default.
 When a routine surfaces a new problem:
 
 - reuse or update an existing synced GitHub issue or PR when one already covers the work
-- for Product Manager discovery, create a direct GitHub feature request only when the Weekly Product Discovery instructions authorize it and duplicate checks are complete
-- for Technical Writer guide routines, create direct documentation PRs only after the relevant guide assembly, fact-checking, deduplication, or validation evidence is recorded
+- for Product Manager discovery, create a top-level Paperclip issue in the corresponding project with `status: backlog` only when the Weekly Product Discovery instructions authorize it and duplicate checks are complete; do not publish issues to GitHub from the routine
+- for Technical Writer guide routines, create one Paperclip child issue or subtask per affected project when the project exists in Paperclip, perform the project-specific validation inside that subtask, and create direct documentation PRs only when the relevant guide assembly, fact-checking, deduplication, or validation evidence is recorded; link any resulting PR to the subtask through GitHub Sync
+- for CEO package-core, managed repository `AGENTS.md`, upstream dependency, or other out-of-pipeline PRs, create one Paperclip child issue or subtask per affected project when the project exists in Paperclip before deciding whether a PR is needed; if a routine may affect more than one project, create multiple subtasks so each project has a clear Paperclip state owner
 - otherwise, prepare a maintainer-ready Paperclip escalation instead of inventing unsupported GitHub issue-creation workflows
 
 ## Reimport-Safe Runtime Overlays
@@ -329,6 +331,7 @@ The sync plugin currently exposes this GitHub tool surface for agents, using the
 - `paperclip-github-plugin:request_pull_request_reviewers`
 - `paperclip-github-plugin:list_organization_projects`
 - `paperclip-github-plugin:add_pull_request_to_project`
+- `paperclip-github-plugin:link_github_item`
 
 Use them by workflow stage:
 
@@ -350,6 +353,8 @@ Important usage rules:
 - Naming the chosen organization project set in a Paperclip artifact, GitHub comment, or PR description is not a substitute for the live PR associations when the `gh` flow or no-`GITHUB_TOKEN` plugin tooling can apply them.
 - In `GITHUB_TOKEN`-backed runs, if `gh` or another non-plugin GitHub client created the PR in a repository mapped to the current company, call the metric API route immediately after creation using the bearer-token pattern above so the KPI dashboard can attribute that `pull_request_created` event to Paperclip work.
 - For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and always set `llmModel: gpt-5.5`. The plugin appends the same Markdown footer automatically.
+- Use `paperclip-github-plugin:link_github_item` after creating or discovering an out-of-pipeline PR that should drive a Paperclip issue. Pass `kind: "pull_request"`, `paperclipIssueId`, and either `pullRequestUrl` or `reference`; include `repository` when you use a number-only reference and the Paperclip issue project is not mapped to that repository.
+- When plugin tools are unavailable, call `POST /api/plugins/paperclip-github-plugin/api/issue-link` with `Authorization: Bearer ${PAPERCLIP_API_KEY}`, `Content-Type: application/json`, and a JSON body containing `paperclipIssueId` plus `pullRequestUrl` or `reference` for the PR. Use the same route with `kind: "issue"` only when linking an existing GitHub issue to a Paperclip issue is the intended outcome.
 - Do not silently resolve review threads. Reply first with the decision, such as committed the requested change, not applicable, or disagreement with the feedback, and resolve the thread only after that reply when the thread is settled.
 - CEO-opened PRs from recurring routines stay on the daily self-improvement routine's follow-up list until CI is green, checks pass, and unresolved review threads are answered and settled.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
@@ -362,12 +367,14 @@ Important usage rules:
 - Do not use `gh`, direct GitHub browser edits, or ad hoc scripts when `GITHUB_TOKEN` is not available and the sync plugin tools cover the operation.
 - In `GITHUB_TOKEN`-backed runs, use the company metric API route only for PR creation that happened outside `paperclip-github-plugin:create_pull_request`; never send it for PR edits, comments, review replies, or merges.
 - If the available sync plugin tool surface does not support linking a PR to the recommended Micronaut organization project, record that tooling limitation in the stage artifact or PR summary and continue; do not escalate solely for that reason.
+- When a PR is created outside the normal synced GitHub issue delivery pipeline, use `paperclip-github-plugin:link_github_item` or `POST /api/plugins/paperclip-github-plugin/api/issue-link` to link that PR to the Paperclip child issue or subtask that scopes the work. If the runtime cannot create that durable PR-to-Paperclip issue link, record the tooling blocker in the subtask and routine report instead of presenting the PR as fully tracked.
 
 ## PR Rules
 
 - The delivery loop combines normal owner assignment for intake, planning, implementation, and PR follow-through with execution-policy stages for the enforced review chain.
 - `code-reviewer` creates the GitHub PR only after QA and Security Engineer stages are approved.
 - `code-reviewer` must not resolve PR-based delivery work as `approved` unless, by the end of that run, a non-draft GitHub PR exists in the correct repository and branch, is readable through the synced GitHub context, and carries the correct issue linkage, closing keyword, and `type:` label. All selected organization projects should be linked when the chosen projects exist and GitHub tooling can apply them, but missing linkage due to no matching project or tooling gaps alone does not block `approved`.
+- Normal delivery PRs created from synced GitHub issues already have a Paperclip issue from the sync plugin. The affected-project child issue or subtask requirement applies to routine PRs, package-evolution PRs, managed repository `AGENTS.md` PRs, upstream dependency PRs, and any other PR created outside that normal delivery pipeline.
 - Every PR must include a closing keyword such as `Fixes #123`.
 - Every PR must carry exactly one `type:` label.
 - Every PR should be linked to all selected Micronaut organization projects chosen during QA intake, representing the best-fit Micronaut Platform release boards that can first consume the repository's next module release.

@@ -34,6 +34,7 @@ When the change belongs in the package core:
 - treat CEO-opened PRs as still active after creation until CI is green, reported checks are passing, and no unresolved review threads remain
 - if the required linked board approval already exists and is approved, implement the change in the same run instead of stopping at a proposal
 - when the package change only needs non-governance confirmation, use a Paperclip `request_confirmation` issue-thread interaction against the current proposal or plan instead of a linked board approval; keep linked approvals for decisions that authorize governance-sensitive action
+- before opening a package-core PR outside the normal delivery pipeline, create one Paperclip child issue or subtask per affected project when the project exists in Paperclip, decide inside the subtask whether the package change needs a PR, then link the PR to that Paperclip issue through GitHub Sync
 - leave merge and release decisions to humans
 
 ## Managed Repository AGENTS.md PR Path
@@ -46,6 +47,7 @@ When the change belongs in a managed Micronaut repository's `AGENTS.md`:
 - keep the CEO-opened PR active until CI is green, reported checks are passing, and no unresolved review threads remain
 - keep package-core files unchanged unless future imports also need a reusable default change
 - if repository access or required governance approval is unavailable, create the linked board approval request or record the blocker instead of editing silently
+- before opening a managed Micronaut repository `AGENTS.md` PR outside the normal delivery pipeline, create one Paperclip child issue or subtask per affected project when the project exists in Paperclip, decide inside the subtask whether the repo-local guidance change needs a PR, then link the PR to that Paperclip issue through GitHub Sync
 
 The daily CEO self-improvement report must include a `Managed Repository AGENTS.md Audit` section. For each active managed Micronaut repository considered, record whether root `AGENTS.md` exists, whether it is durable/current or stale/generated/missing, and the exact outcome: no action needed, repo-local PR opened or updated, linked follow-up issue created, linked approval requested, or blocker named. A bounded metadata/readability check is enough unless recent execution evidence points to a deeper repository-specific guidance problem.
 
@@ -57,6 +59,9 @@ When the change belongs in a company-owned upstream dependency:
 - run the relevant tests for that upstream repository when the environment supports it
 - create or update the upstream PR in the same run when the required approval already exists
 - keep CEO-opened PRs active until CI is green, reported checks are passing, and no unresolved review threads remain
+- before opening an upstream dependency PR outside the normal delivery pipeline, create one Paperclip child issue or subtask per affected project when the project exists in Paperclip, decide inside the subtask whether the upstream fix needs a PR, then link the PR to that Paperclip issue through GitHub Sync
+
+For all package-core, managed repository, upstream dependency, or other PRs created outside the normal synced GitHub issue delivery pipeline, create the Paperclip child issue or subtask first. If one routine can affect more than one project, create multiple subtasks so each affected project has one state owner. Synced GitHub issues created by the sync plugin are already linked and do not need this extra subtask. Use `paperclip-github-plugin:link_github_item` with `kind: "pull_request"`, `paperclipIssueId`, and `pullRequestUrl` or `reference` when plugin tools are available. When plugin tools are unavailable, call `POST /api/plugins/paperclip-github-plugin/api/issue-link` with `Authorization: Bearer ${PAPERCLIP_API_KEY}` and a JSON body containing `paperclipIssueId` plus `pullRequestUrl` or `reference`. If the runtime cannot create the durable PR-to-Paperclip issue link, record that tooling blocker in the subtask and routine report instead of presenting the PR as fully tracked.
 
 ## CEO PR Follow-Up Without Heartbeats
 
@@ -88,6 +93,7 @@ When you send a managed Micronaut repository `AGENTS.md` PR, explain:
 
 - why the guidance belongs to that managed repository instead of this company package
 - which PR carries the repo-local `AGENTS.md` change
+- which Paperclip child issue or subtask scopes the out-of-pipeline PR, and whether the PR is linked to that Paperclip issue
 - what verification or readability check you ran
 - the CI/check status and unresolved review-thread status for the CEO-opened PR
 - whether any companion package-core change is still needed for future imports
@@ -98,5 +104,6 @@ When you send an upstream dependency fix from the CEO routine, explain:
 
 - why the root cause belongs in that upstream project instead of this package
 - whether the package still needed any companion guidance change
+- which Paperclip child issue or subtask scopes the out-of-pipeline PR, and whether the PR is linked to that Paperclip issue
 - what verification you ran in the upstream repository
 - the CI/check status and unresolved review-thread status for the CEO-opened PR
