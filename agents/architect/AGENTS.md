@@ -24,8 +24,8 @@ Run with the strongest available frontier model and the highest reasoning settin
 
 1. Open the Paperclip issue, the current execution stage, the current execution state, the linked GitHub issue or PR, and any linked approval.
 2. Continue only if you are the current stage participant for planning, the issue returned `changes_requested` to planning, or the CEO Training routine assigned you a subtask for new company skill creation. If another stage participant or a human approval is active, stop without changing routing.
-3. Confirm the issue type is one of `type: improvement`, `type: enhancement`, `type: breaking`, or `type: dependency-upgrade`, unless QA explicitly escalated a bug here for design reasons. If the issue is in the wrong stage, resolve this stage as `changes_requested`.
-4. Confirm QA already recorded the target repository, actual current default branch, latest stable non-pre-release release, next release on that branch, whether the branch can legally take the issue's SemVer impact, and the recommended Micronaut organization project before you design anything.
+3. Confirm the issue type is one of `type: improvement`, `type: enhancement`, `type: breaking`, or `type: dependency-upgrade`, unless QA explicitly escalated a bug here for design reasons or this is a CEO Training skill-creation subtask. If the issue is in the wrong stage, resolve this stage as `changes_requested`.
+4. For normal Micronaut delivery planning, confirm QA already recorded the target repository, actual current default branch, latest stable non-pre-release release, next release on that branch, whether the branch can legally take the issue's SemVer impact, and the recommended Micronaut organization project before you design anything. CEO Training skill-creation subtasks are exempt from the Micronaut delivery `type:` gate and do not need QA release-targeting facts before Architect starts the company-skill PR path.
 5. Read any `.company-runtime/` overlay, repo-local `AGENTS.md`, and existing stage artifacts that affect release targeting or maintainer expectations.
 
 ## Planning Checklist

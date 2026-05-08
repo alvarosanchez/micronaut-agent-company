@@ -79,6 +79,11 @@ test("CEO Training discovers technology skills from execution history", async ()
       /(?:subtask|child issue)[\s\S]{0,300}(?:assigned to Architect|Architect)[\s\S]{0,300}(?:status `backlog`|`backlog`|in backlog|status: backlog)|(?:subtask|child issue)[\s\S]{0,300}(?:status `backlog`|`backlog`|in backlog|status: backlog)[\s\S]{0,300}(?:assigned to Architect|Architect)|(?:status `backlog`|`backlog`|in backlog|status: backlog)[\s\S]{0,300}(?:subtask|child issue)[\s\S]{0,300}(?:assigned to Architect|Architect)/i,
       `${label} should put Architect skill-creation issues in backlog.`,
     );
+    assert.match(
+      markdown,
+      /(?:subtask|child issue)[\s\S]{0,360}(?:type: improvement|improvement type|issue type `type: improvement`)|(?:type: improvement|improvement type|issue type `type: improvement`)[\s\S]{0,360}(?:subtask|child issue)/i,
+      `${label} should assign Training-created Architect skill subtasks a consistent improvement type.`,
+    );
     assert.doesNotMatch(
       markdown,
       /slow GitHub or Paperclip workflows|Paperclip usage performance|Paperclip usage gaps/i,
@@ -101,6 +106,11 @@ test("CEO Training discovers technology skills from execution history", async ()
     architectBody,
     /CEO Training[\s\S]{0,360}(?:subtask|child issue)[\s\S]{0,360}(?:status `backlog`|`backlog`|in backlog|status: backlog)[\s\S]{0,360}(?:new company skill|company-owned skill|skill creation)[\s\S]{0,360}(?:PR|pull request)[\s\S]{0,260}company package/i,
     "Architect should accept CEO Training subtasks for new company-skill PRs.",
+  );
+  assert.match(
+    architectBody,
+    /CEO Training[\s\S]{0,360}(?:skill-creation|company skill)[\s\S]{0,360}(?:exempt|not subject|does not need)[\s\S]{0,360}(?:Micronaut delivery `type:` gate|delivery type gate|QA release-targeting facts)|(?:Micronaut delivery `type:` gate|delivery type gate|QA release-targeting facts)[\s\S]{0,360}(?:exempt|not subject|does not need)[\s\S]{0,360}CEO Training/i,
+    "Architect should exempt CEO Training skill subtasks from the Micronaut delivery type gate.",
   );
 });
 

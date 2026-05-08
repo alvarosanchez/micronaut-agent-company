@@ -37,7 +37,7 @@ For every skill candidate, create one linked board approval request before chang
 
 If the board approval is already approved during this run, add the approved skill as a company skill referencing the https://skills.sh entry and link it to the agent or agents named in the approval. If approval is pending, rejected, or requires revision, do not install or assign the skill; record the approval state and next step.
 
-If no suitable existing https://skills.sh skill exists, but the same technology or domain gap is recurring enough to justify company-owned guidance, create one Paperclip child issue or subtask with status `backlog` and assignee Architect. The subtask must ask Architect to create the new company skill as a pull request to the company package, include the target agent or agents, cite the execution evidence, explain why no existing external skill was suitable, and name the expected skill slug and scope. Do not draft the custom skill in the Training routine itself.
+If no suitable existing https://skills.sh skill exists, but the same technology or domain gap is recurring enough to justify company-owned guidance, create one Paperclip child issue or subtask with status `backlog`, issue type `type: improvement`, and assignee Architect. The subtask must ask Architect to create the new company skill as a pull request to the company package, include the target agent or agents, cite the execution evidence, explain why no existing external skill was suitable, and name the expected skill slug and scope. Do not draft the custom skill in the Training routine itself.
 
 Produce one Paperclip report that includes:
 
