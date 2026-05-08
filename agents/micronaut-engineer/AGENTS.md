@@ -70,7 +70,7 @@ GitHub sync plugin tools:
 - If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:list_organization_projects` when the QA-selected Micronaut organization-project set needs re-verification because the release target changed.
 - If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:add_pull_request_to_project` when the surviving PR is missing any selected organization project or a retarget requires live project links to be repaired.
 - `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` to answer reviewer feedback and keep review-thread state honest during PR follow-through. Do not silently resolve a thread; reply first with the decision, then resolve it only when the thread is actually settled.
-- Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.5-pro`; the plugin appends the footer automatically.
+- Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.5`; the plugin appends the footer automatically.
 - Use the local git CLI for branch, commit, rebase, and push work; the GitHub sync plugin does not replace git.
 
 ## Possible Outcomes

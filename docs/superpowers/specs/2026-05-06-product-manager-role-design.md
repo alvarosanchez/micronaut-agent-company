@@ -32,9 +32,9 @@ The Product Manager will be a first-class agent with:
 - `reportsTo: ceo`
 - icon hint `radar`
 - skills `micronaut-repo-operations`, `docs`, and `gh-cli`
-- `codex_local`, `gpt-5.5-pro`, `high` reasoning, live web search enabled
+- `codex_local`, `gpt-5.5`, `xhigh` reasoning, live web search enabled
 
-The high reasoning setting is appropriate because each run depends on source interpretation, internet research, duplicate detection, prioritization, and writing a feature request that is detailed enough for later implementation.
+The xhigh reasoning setting is appropriate because each run depends on source interpretation, internet research, duplicate detection, prioritization, and writing a feature request that is detailed enough for later implementation.
 
 ## Daily Routine
 
@@ -126,7 +126,7 @@ The GitHub sync plugin is expected to import the new issue later, at which point
 Implementation should add a focused unit test for the new PM role and routine. The test should verify:
 
 - `agents/product-manager/AGENTS.md` frontmatter has role `pm`, reports to CEO, and uses the expected skills and icon
-- `.paperclip.yaml` includes the Product Manager adapter with `gpt-5.5-pro`, high reasoning, and live search
+- `.paperclip.yaml` includes the Product Manager adapter with `gpt-5.5`, xhigh reasoning, and live search
 - `.paperclip.yaml` includes the active `weekly-product-discovery` routine at 11:00 Europe/Madrid
 - `tasks/weekly-product-discovery/TASK.md` is recurring, assigned to `product-manager`, and describes direct GitHub issue creation
 - the task requires comprehensive feature request contents and duplicate checks
