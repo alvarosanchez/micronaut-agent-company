@@ -7,7 +7,7 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5-pro
+        model: gpt-5.5
         modelReasoningEffort: high
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
@@ -15,8 +15,8 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5-pro
-        modelReasoningEffort: high
+        model: gpt-5.5
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   architect:
@@ -31,8 +31,8 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5-pro
-        modelReasoningEffort: high
+        model: gpt-5.5
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   security-engineer:
@@ -47,7 +47,7 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5-pro
+        model: gpt-5.5
         modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
