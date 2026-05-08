@@ -118,6 +118,7 @@ The Code Reviewer checks for:
 - missing or weak tests
 - correct PR issue linkage, `type:` label, reviewer requests, and every live organization-project association chosen during QA intake
 - if `approved` is chosen, a non-draft GitHub PR exists by the end of the run in the correct repository and branch, is readable from the synced GitHub context, and includes the correct issue linkage, closing keyword, and `type:` label; all selected organization projects should be linked when the chosen projects exist and GitHub tooling can apply them, and prose alone is not a substitute for those live associations, but missing organization-project linkage due to no matching project or tooling gaps alone does not block code review approval
+- if a human maintainer changed, rescheduled, or retargeted the PR organization project after PR creation, that maintainer project change is authoritative and must remain; code review must not restore, reapply, re-add, or reset the original QA-selected organization project set over the maintainer's choice
 - once the target branch is identified, the work branch is fetched and updated from the target branch before starting work, editing, committing, opening, creating, or updating a PR; target branch rebase or merge conflicts are recorded as blockers instead of publishing conflicting PRs
 
 If the work is approved, the Code Reviewer creates or verifies the PR. If not, it resolves as `changes_requested`.
@@ -131,7 +132,7 @@ Before a PR is considered healthy:
 - the summary and rationale are coherent
 - linked issue context is accurate and uses a closing keyword
 - the PR carries exactly one `type:` label
-- the PR should be linked to all selected Micronaut organization projects chosen during QA intake when GitHub tooling can apply them; if that choice carried ambiguity, the PR description repeats it; naming the boards in prose is not a substitute for the live associations; missing organization-project linkage due to no matching project or tooling gaps does not by itself block a healthy PR. For a GA release target with concurrent prerelease and release boards, link both the matching prerelease board and the GA release board, for example `5.0.0-M3` and `5.0.0 Release`.
+- the PR should be linked to all selected Micronaut organization projects chosen during QA intake when GitHub tooling can apply them; if that choice carried ambiguity, the PR description repeats it; naming the boards in prose is not a substitute for the live associations; missing organization-project linkage due to no matching project or tooling gaps does not by itself block a healthy PR. For a GA release target with concurrent prerelease and release boards, link both the matching prerelease board and the GA release board, for example `5.0.0-M3` and `5.0.0 Release`. If a human maintainer changes, reschedules, or retargets the PR organization project after PR creation, preserve that maintainer project choice and do not restore, reapply, re-add, or reset the original QA-selected organization project links unless a later maintainer or board decision explicitly asks for it.
 - test evidence is ready to share
 - documentation or migration notes are included when needed
 - guide-related PRs created or updated by guide routines carry the `type: docs` label
