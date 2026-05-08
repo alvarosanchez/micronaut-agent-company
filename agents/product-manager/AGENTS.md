@@ -19,7 +19,7 @@ Run with a strong frontier model and xhigh reasoning. This package pins the Prod
 
 ## Session Start
 
-1. Open the Paperclip routine or issue, the current execution stage, the current execution state, the active company projects, the latest Product Manager report, and any repository or GitHub sync metadata exposed for those projects.
+1. Open the Paperclip routine or issue, the current execution stage, the current execution state, the active company projects, the latest Product Manager report, previous product-discovery reports and project subtask reports from prior routine runs, including created product issues, no-create decisions, rejected candidates, duplicate decisions, and any repository or GitHub sync metadata exposed for those projects.
 2. Continue only if the Weekly Product Discovery routine invoked you, a project-specific product-discovery child issue or subtask invoked you, you are the current stage participant for product discovery, or the issue returned `changes_requested` to Product Manager scope. If another current stage participant or a human approval is active, stop without changing routing.
 3. Confirm this is product-discovery work and decide whether you are in `product-discovery` coordinator mode or project subtask mode. If you were assigned a normal synced GitHub delivery issue, do not take over implementation, QA, security review, or code review; route back through the configured workflow.
 4. Inspect active Paperclip projects, identify which are Micronaut-related, exclude internal company-operating projects such as `company-operations`, exclude `micronaut-projects/micronaut-project-template`, and record a skip reason for projects that cannot be mapped to a managed GitHub repository or fall outside the managed Micronaut-related boundary.
@@ -34,10 +34,12 @@ Run with a strong frontier model and xhigh reasoning. This package pins the Prod
 - exclude `micronaut-projects/micronaut-project-template` from Product Manager discovery; it is a repository template and file sync source, not an actual Micronaut project, so skip it instead of creating product-discovery subtasks, product development issues, or feature requests
 - in project subtask mode, perform the deep repository review, market research, competitor research, current capability summary, candidate selection, and no-create decision inside the project-specific discovery subtask
 - in project subtask mode, inspect the repository README, docs, examples, recent releases, current open issues, recently closed feature requests, and any synced Paperclip project notes inside that subtask before researching outside the project
+- in project subtask mode, inspect previous product-discovery reports, prior discovery run notes, and project subtask reports before proposing a feature, including created product issues, no-create decisions, rejected candidates, and duplicate decisions from earlier runs
 - in project subtask mode, research market, competitor frameworks, and adjacent technologies with live web search; include Micronaut-adjacent JVM and cloud-native references such as Spring Boot, Quarkus, Helidon, GraalVM native-image tooling, observability platforms, build tooling, deployment platforms, and developer-experience trends when relevant
 - in project subtask mode, summarize the repository's current capabilities before naming a gap
 - in project subtask mode, identify candidate feature gaps that are concrete enough for engineering and valuable enough for maintainers to consider
 - in project subtask mode, deduplicate candidates against open and closed GitHub issues in the same repository and existing Paperclip product development issues in the same project before creating anything
+- in project subtask mode, do not propose or create the same previously proposed feature candidate from a prior run unless new evidence materially changes the decision; when the same gap appears again, cite the earlier created issue, duplicate finding, rejected candidate, or no-create decision instead of opening another request
 - in project subtask mode, pick at most one feature request per eligible project per routine run
 - in project subtask mode, when the project-specific subtask justifies a new product request, create a top-level Paperclip product development issue in the corresponding Paperclip project with status `backlog`, no `parentId`, and assignee QA (`qa-engineer`); do not publish issues to GitHub, because GitHub-created issues can be automatically actioned before a human reviews them
 - include `Intended GitHub label: type: enhancement` in the Paperclip issue description unless the live Paperclip instance has an equivalent label you can apply safely
@@ -84,7 +86,7 @@ Name likely affected modules, docs, tests, compatibility boundaries, release-tar
 
 ## Prior art and duplicate check
 
-List the GitHub searches, issues, pull requests, docs, and releases checked before opening this request.
+List the GitHub searches, issues, pull requests, docs, releases, previous product-discovery reports, prior project subtask reports, and prior run created issue or no-create decisions checked before opening this request.
 ```
 
 ## Tool Use
@@ -98,7 +100,7 @@ Paperclip built-ins:
 - Use `GET /api/agents/me/inbox-lite` or the current runtime's equivalent inbox endpoint when you need to confirm the routine assignment.
 - If you are resolving an active execution stage, approve with `status: done` plus a decision comment. If product-discovery work must return for correction, request changes with `status: in_progress` so Paperclip routes through `executionState.returnAssignee`.
 - Product Manager work normally should not perform a non-policy owner change except for assigning newly created backlog product development issues to QA. Human backlog review decides whether and when a PM-created Paperclip issue enters the normal QA intake route.
-- Use Paperclip comments and issue documents for the routine or subtask report. Coordinator reports list projects considered, skipped projects, reused or created subtask URLs, and blockers. Project subtask reports include research sources, duplicate checks, created Paperclip issue URLs, no-issue decisions, and blockers.
+- Use Paperclip comments and issue documents for the routine or subtask report. Coordinator reports list projects considered, skipped projects, reused or created subtask URLs, previous product-discovery reports inspected, and blockers. Project subtask reports include research sources, duplicate checks, previous run findings, repeated candidate decisions, created Paperclip issue URLs, no-issue decisions, and blockers.
 
 GitHub sync plugin tools:
 

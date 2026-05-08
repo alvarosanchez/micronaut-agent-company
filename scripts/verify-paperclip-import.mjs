@@ -119,6 +119,8 @@ const GITHUB_DUPLICATE_CLOSE_PATTERN =
   /Close as duplicate[\s\S]{0,320}(?:superseding GitHub issue|duplicate link|link(?:ing)? the duplicate issue)|(?:superseding GitHub issue|duplicate link|link(?:ing)? the duplicate issue)[\s\S]{0,320}Close as duplicate/i;
 const EVIDENCE_RICH_CLOSURE_COMMENT_PATTERN =
   /(?:closure comment|GitHub issue closure|public comment|GitHub closure)[\s\S]{0,700}(?:detailed,?\s*evidence-rich|detailed evidence)[\s\S]{0,260}(?:not short on details|exact facts that justify the closure|short generic close note)|(?:not short on details|exact facts that justify the closure|short generic close note)[\s\S]{0,700}(?:closure comment|GitHub issue closure|public comment|GitHub closure)/i;
+const CLOSED_ISSUE_DEDUP_REASONING_PATTERN =
+  /deduplicat(?:e|ion)[\s\S]{0,520}(?:open and closed|closed and open)[\s\S]{0,260}GitHub issues[\s\S]{0,520}(?:why they were closed|closure reason|closing reason|closure disposition|closure comments?)[\s\S]{0,360}(?:triage opinion|form an opinion|decide|decision|superseding|already implemented|stale|out-of-scope)|closed GitHub issues[\s\S]{0,520}(?:why they were closed|closure reason|closing reason|closure disposition|closure comments?)[\s\S]{0,520}deduplicat(?:e|ion)/i;
 const REVIEW_THREAD_REPLY_POLICY_PATTERN =
   /review threads?[\s\S]{0,320}(?:reply(?:ing)?|repl(?:y|ied|ies))[\s\S]{0,320}(?:decision|committed the requested change|not applicable|disagreement with the feedback)[\s\S]{0,220}(?:before resolving|before the thread is resolved|before they are resolved|only then resolves|only then resolve)|(?:reply(?:ing)?|repl(?:y|ied|ies))[\s\S]{0,320}review threads?[\s\S]{0,320}(?:decision|committed the requested change|not applicable|disagreement with the feedback)[\s\S]{0,220}(?:before resolving|before the thread is resolved|before they are resolved|only then resolves|only then resolve)|(?:decision|committed the requested change|not applicable|disagreement with the feedback)[\s\S]{0,320}review threads?[\s\S]{0,320}(?:reply(?:ing)?|repl(?:y|ied|ies))/i;
 const REVIEW_THREAD_REPLY_TOOLING_PATTERN =
@@ -170,6 +172,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       /currentParticipant[\s\S]*returnAssignee|returnAssignee[\s\S]*currentParticipant/i,
     message:
       "README.md must explain native execution-policy routing through `currentParticipant` and `returnAssignee`.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: CLOSED_ISSUE_DEDUP_REASONING_PATTERN,
+    message:
+      "README.md must explain that QA deduplication considers open and closed GitHub issues and why closed issues were closed.",
   },
   {
     relativePath: "README.md",
@@ -250,6 +258,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "agents/qa-engineer/AGENTS.md",
     pattern: /same synced repository/i,
     message: "QA instructions must say that deduplication happens against GitHub issues in the same synced repository.",
+  },
+  {
+    relativePath: "agents/qa-engineer/AGENTS.md",
+    pattern: CLOSED_ISSUE_DEDUP_REASONING_PATTERN,
+    message:
+      "QA instructions must require deduplication against open and closed GitHub issues and review why closed issues were closed.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -534,6 +548,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    pattern: CLOSED_ISSUE_DEDUP_REASONING_PATTERN,
+    message:
+      "Repo operations must require QA deduplication against open and closed GitHub issues and review why closed issues were closed.",
+  },
+  {
+    relativePath: "skills/micronaut-repo-operations/SKILL.md",
     pattern: GITHUB_DUPLICATE_CLOSE_PATTERN,
     message:
       "Repo operations must explain that duplicate closures use native `Close as duplicate` and link the superseding GitHub issue.",
@@ -543,6 +563,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: GITHUB_NOT_PLANNED_CLOSE_PATTERN,
     message:
       "Quality gates must explain that direct non-duplicate QA closures use native `Close as not planned` instead of `Close as completed`.",
+  },
+  {
+    relativePath: "skills/micronaut-quality-gates/SKILL.md",
+    pattern: CLOSED_ISSUE_DEDUP_REASONING_PATTERN,
+    message:
+      "Quality gates must require QA deduplication against open and closed GitHub issues and review why closed issues were closed.",
   },
   {
     relativePath: "skills/micronaut-quality-gates/SKILL.md",

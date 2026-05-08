@@ -29,7 +29,7 @@ Before any role resolves its stage:
 Before an actionable issue moves out of QA intake:
 
 - a human has moved the synced issue from `BACKLOG` to `TODO`
-- deduplication has been performed against GitHub issues in the same synced repository
+- deduplication has been performed against open and closed GitHub issues in the same synced repository, and closed GitHub issues were evaluated by why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence, before QA forms the triage opinion
 - the issue has the correct `type:` label, unless it is on a documented immediate-closure path
 - QA has identified the repository's actual current default branch, the latest stable non-pre-release release, the next release implied by that branch, and whether that branch has already shipped; GitHub prereleases such as milestones (`-M<number>`) and release candidates (`-RC<number>`) do not count as the default branch having already shipped
 - QA has decided whether the issue's SemVer impact fits the current default branch and recorded any mismatch instead of inventing a non-default target branch
