@@ -71,7 +71,7 @@ Before you do any work on a synced issue or PR:
 3. If another stage participant or a human approval is active, stop and leave the routing unchanged.
 4. Read the latest stage artifact before acting so you are responding to the actual current request, not stale queue history.
 5. Read any repo-local or `.company-runtime/` guidance that changes release-line, CI, docs, or maintainer expectations.
-6. If your work depends on deduplication, perform it against GitHub issues in the synced repository through the GitHub sync plugin, not against unrelated Paperclip issues.
+6. If your work depends on deduplication, perform it against open and closed GitHub issues in the synced repository through the GitHub sync plugin, not against unrelated Paperclip issues. For closed GitHub issues, inspect why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence, then use that history to form the QA deduplication decision about whether they supersede, block, or leave the new work actionable.
 
 ## Built-In Paperclip Control-Plane APIs
 
@@ -148,7 +148,7 @@ curl -fsS -X POST "${PAPERCLIP_API_URL%/}/api/plugins/paperclip-github-plugin/ap
   -d "${payload}"
 ```
 
-- `paperclip-github-plugin:search_repository_items`: repository-scoped GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup
+- `paperclip-github-plugin:search_repository_items`: repository-scoped open and closed GitHub issue and PR search for deduplication, backlog scans, and prior-art lookup; closed issue results must be judged by why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence
 - `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`: GitHub issue reads, metadata updates, and maintainer-facing issue comments
 - `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:update_pull_request`: PR creation and PR metadata/state management
 - `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`: changed-file inspection and CI/check status
@@ -162,7 +162,7 @@ Use these plugin-tool conventions exactly:
 - prefer `paperclipIssueId` whenever the work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository
 - provide `repository` only when the plugin cannot infer it from the mapped Paperclip project
 - for GitHub comments and review-thread replies, send only the human-facing body and always include `llmModel` so the plugin can append the same Markdown footer automatically
-- use `paperclip-github-plugin:search_repository_items` for deduplication and prior-art search; do not replace it with generic Paperclip issue listing
+- use `paperclip-github-plugin:search_repository_items` for open and closed GitHub issue deduplication and prior-art search; do not replace it with generic Paperclip issue listing, and do not ignore closed issues without reviewing why they were closed
 
 ## Required Outcomes
 
@@ -246,6 +246,7 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 - If the best-fit organization-project choice is somewhat ambiguous, including major-version upgrades that may or may not fit the next Platform minor board cleanly, still choose the best-fit project set and record the ambiguity in the QA artifact so the eventual PR description can repeat it.
 - `type: breaking` requires explicit Architect approval and, when necessary, a linked human approval before work proceeds.
 - If no matching organization project exists yet, or if the runtime cannot apply the project link, record that gap and continue. Missing organization-project linkage alone does not block PR creation or approval.
+- After PR creation, human maintainer project changes win over earlier agent-selected projects. If a maintainer changes, reschedules, or retargets the PR organization project, preserve that live maintainer choice and do not restore, reapply, re-add, or reset the original QA-selected organization project links unless a later maintainer or board decision explicitly asks for it.
 
 ## Approval Boundaries
 
@@ -283,7 +284,7 @@ When a routine surfaces a new problem:
 - reuse or update an existing synced GitHub issue or PR when one already covers the work
 - for any routine that needs to work across more than one project, create one Paperclip child issue or subtask per affected project when the project exists in Paperclip; put each subtask in the actual corresponding project, set assignee to the routine owner, and perform the project-specific work inside that subtask instead of only on the routine issue
 - for Product Manager discovery, use the `product-discovery` skill; keep the parent routine issue as a coordinator only, search for an existing open or already-created product-discovery child issue or subtask for the same routine issue and project, also search for orphan or top-level product-discovery issues for the same project from recent routine attempts, reuse, update, or reparent the existing issue when possible, record a blocker instead of creating another duplicate if it cannot be safely reparented, and write a child issue description that is self-contained and complete and tells Product Manager to use the product-discovery skill
-- for Product Manager discovery, do not perform deep review, market research, candidate selection, feature request creation, or top-level product development issue creation from the routine issue itself; from each project subtask, create a top-level Paperclip product development issue in the corresponding project with `status: backlog`, no `parentId`, and assignee QA (`qa-engineer`) only when the Weekly Product Discovery instructions authorize it and duplicate checks are complete; do not publish issues to GitHub
+- for Product Manager discovery, do not perform deep review, market research, candidate selection, feature request creation, or top-level product development issue creation from the routine issue itself; from each project subtask, inspect previous product-discovery reports, prior routine run notes, and project subtask reports, including created product issues, no-create decisions, rejected candidates, and duplicate decisions, then create a top-level Paperclip product development issue in the corresponding project with `status: backlog`, no `parentId`, and assignee QA (`qa-engineer`) only when the Weekly Product Discovery instructions authorize it and duplicate checks are complete; do not propose or create the same previously proposed feature candidate unless new evidence materially changes the decision, and do not publish issues to GitHub
 - for Technical Writer guide routines, keep the parent routine issue as a coordinator only: it creates one Paperclip child issue or subtask per affected project when the project exists in Paperclip, puts each child in the actual corresponding project, sets `parentId` to the routine issue when supported, sets assignee to Technical Writer, and then stops instead of opening or updating PRs
 - for Technical Writer guide routines, do not create top-level project-specific Paperclip issues for routine follow-up; the child issue or subtask is the project-owned work item
 - for Technical Writer guide routines, perform the project-specific validation and the PR/no-PR decision only inside the project child issue or subtask, and create direct documentation PRs only there when the relevant guide assembly, fact-checking, deduplication, or validation evidence is recorded; label guide-related PRs `type: docs`, link any resulting PR to the child issue or subtask through GitHub Sync, leave that child issue or subtask in `in_review`, and do not close it or mark it `DONE` just because the PR was created
@@ -356,7 +357,7 @@ Important usage rules:
 - Use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
 - When `GITHUB_TOKEN` is available, use `gh` for Micronaut organization-project lookup and live PR association.
 - If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:list_organization_projects` during QA intake, or later verification when the upstream facts changed, to identify the best-fit Micronaut organization project set for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`).
-- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:add_pull_request_to_project` after PR creation, when adopting an already-open surviving PR, or after retargeting when the chosen release board changed, so the live PR is linked to every selected organization project chosen during QA intake or any explicitly revised upstream decision.
+- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:add_pull_request_to_project` after PR creation, when adopting an already-open surviving PR, or after agent retargeting when the chosen release board changed, so the live PR is linked to every selected organization project chosen during QA intake or any explicitly revised upstream decision. Do not use this repair path to undo a maintainer project change.
 - Naming the chosen organization project set in a Paperclip artifact, GitHub comment, or PR description is not a substitute for the live PR associations when the `gh` flow or no-`GITHUB_TOKEN` plugin tooling can apply them.
 - In `GITHUB_TOKEN`-backed runs, if `gh` or another non-plugin GitHub client created the PR in a repository mapped to the current company, call the metric API route immediately after creation using the bearer-token pattern above so the KPI dashboard can attribute that `pull_request_created` event to Paperclip work.
 - For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel` to your exact runtime model id from `.paperclip.yaml`. The plugin appends the same Markdown footer automatically.
@@ -388,6 +389,7 @@ Important usage rules:
 - Every PR should be linked to all selected Micronaut organization projects chosen during QA intake, representing the best-fit Micronaut Platform release boards that can first consume the repository's next module release.
 - When the selected projects exist and GitHub tooling can apply them, agents should create every live PR-to-project association with `gh` when `GITHUB_TOKEN` is available or `paperclip-github-plugin:add_pull_request_to_project` otherwise instead of only restating the intended boards in prose.
 - If the selected organization-project set carried ambiguity, repeat the ambiguity in the PR description instead of dropping the project links. For a GA release target with both milestone or release candidate boards and a GA release board, keep both links, such as `5.0.0-M3` and `5.0.0 Release`.
+- If a human maintainer changes, reschedules, or retargets the PR organization project after PR creation, that maintainer project change is authoritative and must remain. Agents must not restore, reapply, re-add, or reset the original QA-selected organization project set over the maintainer's choice.
 - `code-reviewer` applies the project named earlier by QA intake unless an upstream artifact explicitly revised it.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, replies to every review thread with a decision explanation, and only then resolves settled threads.
 - PR-based delivery work stays open in Paperclip until GitHub merge sync completes. Agents do not manually move those items to `DONE`.

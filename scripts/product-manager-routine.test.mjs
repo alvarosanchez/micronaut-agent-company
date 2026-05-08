@@ -44,6 +44,10 @@ const SELF_CONTAINED_DISCOVERY_CHILD_PATTERN =
   /(?:child issue|subtask|sub-issue)[\s\S]{0,220}(?:description|body)[\s\S]{0,220}(?:self-contained|complete|full)[\s\S]{0,260}product-discovery skill|product-discovery skill[\s\S]{0,260}(?:child issue|subtask|sub-issue)[\s\S]{0,220}(?:description|body)[\s\S]{0,220}(?:self-contained|complete|full)/i;
 const PRODUCT_DISCOVERY_SKILL_MODE_PATTERN =
   /coordinator[\s\S]{0,260}project subtask|project subtask[\s\S]{0,260}coordinator/i;
+const PREVIOUS_PRODUCT_DISCOVERY_RUN_PATTERN =
+  /(?:previous|prior|latest)[\s\S]{0,200}(?:Product Manager report|product-discovery report|discovery run|routine run|project subtask report)[\s\S]{0,320}(?:created product issue|created issue|no-create|no issue|rejected|duplicate|candidate)|(?:created product issue|created issue|no-create|no issue|rejected|duplicate|candidate)[\s\S]{0,320}(?:previous|prior|latest)[\s\S]{0,200}(?:Product Manager report|product-discovery report|discovery run|routine run|project subtask report)/i;
+const REPEATED_FEATURE_AVOIDANCE_PATTERN =
+  /(?:do not|avoid|must not|never)[\s\S]{0,240}(?:propos(?:e|ing)|open|create)[\s\S]{0,240}(?:same|repeat(?:ed)?|previously proposed|already proposed)[\s\S]{0,240}(?:feature|candidate|gap)|(?:same|repeat(?:ed)?|previously proposed|already proposed)[\s\S]{0,240}(?:feature|candidate|gap)[\s\S]{0,240}(?:new evidence|materially changed|do not|avoid|must not|never)/i;
 
 test("Product Manager agent is configured for product discovery", async () => {
   const agentMarkdown = await read("../agents/product-manager/AGENTS.md");
@@ -71,6 +75,8 @@ test("Product Manager agent is configured for product discovery", async () => {
   assertContains(body, /type: enhancement/i, "Product Manager instructions should mention type: enhancement.");
   assertContains(body, /acceptance criteria/i, "Product Manager instructions should include acceptance criteria guidance.");
   assertContains(body, /duplicate|deduplic/i, "Product Manager instructions should require duplicate checks.");
+  assertContains(body, PREVIOUS_PRODUCT_DISCOVERY_RUN_PATTERN, "Product Manager instructions should require reviewing previous product-discovery runs.");
+  assertContains(body, REPEATED_FEATURE_AVOIDANCE_PATTERN, "Product Manager instructions should avoid proposing the same feature from prior runs without new evidence.");
   assertContains(body, /outside the managed Micronaut-related boundary/i, "Product Manager instructions should record out-of-bound project skips.");
 });
 
@@ -111,6 +117,8 @@ test("Weekly Product Discovery routine is active and owned by Product Manager", 
   assertContains(body, /comprehensive[\s\S]{0,220}feature request|detailed[\s\S]{0,220}feature request/i, "Weekly Product Discovery task should require comprehensive or detailed feature requests.");
   assertContains(body, /acceptance criteria/i, "Weekly Product Discovery task should include acceptance criteria guidance.");
   assertContains(body, /duplicate|deduplic/i, "Weekly Product Discovery task should require duplicate checks.");
+  assertContains(body, PREVIOUS_PRODUCT_DISCOVERY_RUN_PATTERN, "Weekly Product Discovery should require reviewing previous product-discovery runs.");
+  assertContains(body, REPEATED_FEATURE_AVOIDANCE_PATTERN, "Weekly Product Discovery should avoid proposing the same feature from prior runs without new evidence.");
 });
 
 test("Product Manager role and routine are documented", async () => {
@@ -205,6 +213,16 @@ test("Product Manager uses a product-discovery skill for coordinator and subtask
       markdown,
       SELF_CONTAINED_DISCOVERY_CHILD_PATTERN,
       `${label} should require self-contained product-discovery child issue descriptions that invoke the skill.`,
+    );
+    assertContains(
+      markdown,
+      PREVIOUS_PRODUCT_DISCOVERY_RUN_PATTERN,
+      `${label} should require checking previous product-discovery runs before proposing a feature.`,
+    );
+    assertContains(
+      markdown,
+      REPEATED_FEATURE_AVOIDANCE_PATTERN,
+      `${label} should avoid repeating feature proposals from prior runs without new evidence.`,
     );
   }
 });

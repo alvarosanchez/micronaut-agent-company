@@ -34,6 +34,22 @@ test("verification rules require direct QA GitHub issue answer and closure guida
   );
   assert.match(
     source,
+    /QA instructions must require deduplication against open and closed GitHub issues and review why closed issues were closed\./,
+  );
+  assert.match(
+    source,
+    /README\.md must explain that QA deduplication considers open and closed GitHub issues and why closed issues were closed\./,
+  );
+  assert.match(
+    source,
+    /Repo operations must require QA deduplication against open and closed GitHub issues and review why closed issues were closed\./,
+  );
+  assert.match(
+    source,
+    /Quality gates must require QA deduplication against open and closed GitHub issues and review why closed issues were closed\./,
+  );
+  assert.match(
+    source,
     /QA instructions must require GitHub closure comments to contain detailed evidence and not be short on details\./,
   );
   assert.match(

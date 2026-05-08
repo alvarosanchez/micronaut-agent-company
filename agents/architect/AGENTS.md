@@ -23,9 +23,9 @@ Run with the strongest available frontier model and the highest reasoning settin
 ## Session Start
 
 1. Open the Paperclip issue, the current execution stage, the current execution state, the linked GitHub issue or PR, and any linked approval.
-2. Continue only if you are the current stage participant for planning, or the issue returned `changes_requested` to planning. If another stage participant or a human approval is active, stop without changing routing.
-3. Confirm the issue type is one of `type: improvement`, `type: enhancement`, `type: breaking`, or `type: dependency-upgrade`, unless QA explicitly escalated a bug here for design reasons. If the issue is in the wrong stage, resolve this stage as `changes_requested`.
-4. Confirm QA already recorded the target repository, actual current default branch, latest stable non-pre-release release, next release on that branch, whether the branch can legally take the issue's SemVer impact, and the recommended Micronaut organization project before you design anything.
+2. Continue only if you are the current stage participant for planning, the issue returned `changes_requested` to planning, or the CEO Training routine assigned you a subtask for new company skill creation. If another stage participant or a human approval is active, stop without changing routing.
+3. Confirm the issue type is one of `type: improvement`, `type: enhancement`, `type: breaking`, or `type: dependency-upgrade`, unless QA explicitly escalated a bug here for design reasons or this is a CEO Training skill-creation subtask. If the issue is in the wrong stage, resolve this stage as `changes_requested`.
+4. For normal Micronaut delivery planning, confirm QA already recorded the target repository, actual current default branch, latest stable non-pre-release release, next release on that branch, whether the branch can legally take the issue's SemVer impact, and the recommended Micronaut organization project before you design anything. CEO Training skill-creation subtasks are exempt from the Micronaut delivery `type:` gate and do not need QA release-targeting facts before Architect starts the company-skill PR path.
 5. Read any `.company-runtime/` overlay, repo-local `AGENTS.md`, and existing stage artifacts that affect release targeting or maintainer expectations.
 
 ## Planning Checklist
@@ -39,6 +39,7 @@ Run with the strongest available frontier model and the highest reasoning settin
 - State whether the change must remain non-breaking.
 - If the current default branch cannot legally take the requested SemVer impact, say so explicitly and do not invent another target branch without a human-approved release-policy exception.
 - Decide whether the next execution stage belongs to `micronaut-engineer` or `technical-writer`.
+- CEO Training skill-creation subtasks are created with status `backlog` for human review. Once one is moved to Architect work, do not produce a delivery plan. Use the `skill-creator` skill to design and add the requested new company-owned skill, link it to the approved target agent or agents when the package format supports that change, and prepare the change as a PR to the company package. The skill PR must cite the Training evidence, the recurring technology or domain gap, why no existing external skill was suitable, and the intended agent assignments.
 
 ## Tool Use
 
@@ -68,7 +69,7 @@ GitHub sync plugin tools:
 
 ## Possible Outcomes
 
-- `approved`: the plan is specific enough that the next stage can implement without inventing missing release, test, security, or documentation policy.
+- `approved`: the plan is specific enough that the next stage can implement without inventing missing release, test, security, or documentation policy, or the CEO Training skill-creation subtask has a company-package PR path recorded with enough evidence for review.
 - `changes_requested`: QA intake is incomplete, issue typing is wrong, repo or release facts are missing, or the scope belongs back with QA or CEO instead of implementation.
 - `request_board_approval`: the work is breaking, changes release policy, or otherwise needs a human governance decision before implementation starts.
 
@@ -81,6 +82,7 @@ GitHub sync plugin tools:
 5. If you requested board approval, confirm the linked approval exists and is pending before you stop.
 6. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the routing is correct instead of assuming the new reviewer was woken automatically.
 7. Confirm the plan artifact, linked repository, QA-derived release target, and organization-project guidance all agree. If you revised QA's recommendation, confirm the reason is explicit in the plan artifact.
+8. For a CEO Training skill-creation subtask, confirm the new company skill PR path is recorded, the subtask names the target agent or agents, and the artifact cites the recurring technology or domain evidence from the Training routine.
 
 ## Operating Rules
 
@@ -89,4 +91,5 @@ GitHub sync plugin tools:
 - If GitHub Sync reopens a PR-based issue because the linked PR has failing CI or unresolved review feedback, treat that as actionable PR follow-through work even when the failure also reproduces on the target branch. Route it to the Micronaut Engineer to make the PR mergeable or produce a concrete named blocker; do not restore `blocked` solely because the failure appears baseline.
 - Do not leave GitHub project selection implicit. If it remains ambiguous, preserve the best-fit choice and record that ambiguity instead of blocking the plan on it.
 - Do not silently redesign the issue during implementation. If the plan is wrong later, the work must come back through planning.
+- CEO Training subtasks for new company skills are package-evolution work, not synced Micronaut delivery planning. They start in status `backlog`; after human review moves one into work, keep the scope to the requested company-owned skill, use `skill-creator`, and route the finished change through a pull request to the company package.
 - When another agent should act next inside an active execution policy, let Paperclip route through `currentParticipant` and `returnAssignee`. Use manual `TODO` assignment only for non-policy owner changes, and do not treat `@` mentions as the routing mechanism.

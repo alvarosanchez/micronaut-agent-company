@@ -198,3 +198,29 @@ test("PRs must receive all selected organization-project links when tooling can 
     );
   }
 });
+
+test("maintainer project retargeting is authoritative after PR creation", async () => {
+  const requiredFiles = [
+    "README.md",
+    "COMPANY.md",
+    "agents/code-reviewer/AGENTS.md",
+    "agents/micronaut-engineer/AGENTS.md",
+    "skills/micronaut-repo-operations/SKILL.md",
+    "skills/micronaut-quality-gates/SKILL.md",
+  ];
+
+  for (const relativePath of requiredFiles) {
+    const markdown = await readRepoFile(relativePath);
+
+    assert.match(
+      markdown,
+      /maintainer[\s\S]{0,320}(?:changes?|changed|retargets?|retargeted|reschedules?|rescheduled)[\s\S]{0,320}(?:organization )?project[\s\S]{0,320}(?:authoritative|wins|preserve|do not restore|must remain)|(?:organization )?project[\s\S]{0,320}(?:changes?|changed|retargets?|retargeted|reschedules?|rescheduled)[\s\S]{0,320}maintainer[\s\S]{0,320}(?:authoritative|wins|preserve|do not restore|must remain)/i,
+      `${relativePath} must treat maintainer project retargeting as authoritative.`,
+    );
+    assert.match(
+      markdown,
+      /(?:do not|must not|never)[\s\S]{0,260}(?:restore|reapply|re-add|reset)[\s\S]{0,260}(?:QA-selected|original|earlier|initial)[\s\S]{0,260}(?:organization )?project|(?:QA-selected|original|earlier|initial)[\s\S]{0,260}(?:organization )?project[\s\S]{0,260}(?:do not|must not|never)[\s\S]{0,260}(?:restore|reapply|re-add|reset)/i,
+      `${relativePath} must forbid restoring original QA-selected project links over a maintainer change.`,
+    );
+  }
+});

@@ -31,7 +31,7 @@ Intake mode:
 
 - decide whether the issue is actionable, blocked on clarification, duplicate, stale, out-of-scope, unreproducible, or already-implemented
 - before you make the triage decision for an imported or synced GitHub issue, assign the GitHub issue to the current user: use `paperclip-github-plugin:assign_to_current_user` when that agent tool is available, otherwise use `gh issue edit <number> --repo <owner>/<repo> --add-assignee "@me"` or the equivalent issue URL form
-- perform deduplication against GitHub issues in the same synced repository through the GitHub sync plugin, not against unrelated Paperclip issues
+- perform deduplication against open and closed GitHub issues in the same synced repository through the GitHub sync plugin, not against unrelated Paperclip issues; for closed GitHub issues, review why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence, then use that history to form the triage opinion
 - if the imported issue already has a linked PR from an external contributor, inspect that PR before you finalize routing
 - if a question can be answered with confidence, post the answer on GitHub, label the issue `type: question` and `closed: question`, and close the issue with GitHub's native `Close as not planned` reason instead of `Close as completed`
 - if the issue needs clarification, post a request-for-comments message on GitHub, label the issue `status: awaiting feedback`, and if that state lasts more than 30 days, close it with `closed: question` plus GitHub's native `Close as not planned` reason instead of `Close as completed`
@@ -85,7 +85,7 @@ GitHub sync plugin tools:
 - When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
 - Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
-- `paperclip-github-plugin:search_repository_items` for deduplication against GitHub issues in the same synced repository and for already-implemented prior-art checks.
+- `paperclip-github-plugin:search_repository_items` for deduplication against open and closed GitHub issues in the same synced repository and for already-implemented prior-art checks; closed issue results must be evaluated by why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the synced GitHub issue before you classify, verify, close, or answer anything.
 - `paperclip-github-plugin:assign_to_current_user` to assign or claim the synced GitHub issue for the current user before QA triage proceeds.
 - `paperclip-github-plugin:list_organization_projects` when you need to choose or verify the recommended Micronaut organization project set for the eventual PR; treat the candidate set as the open, public Micronaut organization projects (`is:open is:public`).
@@ -118,7 +118,7 @@ GitHub sync plugin tools:
 - Board approval requests for maintainer-visible GitHub comments, closure notes, or action payloads with `commentBody` must put the exact proposed comment body in `recommendedAction` so approvers can review the literal text that will be posted from the default Paperclip view.
 - Use `gh` only when `GITHUB_TOKEN` is available. Otherwise, use the GitHub sync plugin tools, not the browser. Direct `gh` writes still need the required Markdown footer, separated from the previous sentence by one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`.
 - All actionable issues should end up with exactly one `type:` label.
-- Deduplication is repository-local GitHub work. Search the synced repository's GitHub issues first and treat that result as the source of truth.
+- Deduplication is repository-local GitHub work. Search the synced repository's open and closed GitHub issues first and treat that result as the source of truth. Closed issues are evidence too: inspect why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence, before deciding whether the new report is a duplicate, already implemented, stale, out of scope, or still actionable.
 - QA intake owns default-branch release targeting and the initial Micronaut organization-project choice for the eventual PR.
 - That organization-project choice may be a set and should come from the open, public Micronaut organization projects (`is:open is:public`). When the target is a GA release and matching milestone or release candidate projects are also open, choose the GA board plus every matching prerelease board, for example both `5.0.0-M3` and `5.0.0 Release` for a `5.0.0` target.
 - Trust the synced repository's actual current default branch.
