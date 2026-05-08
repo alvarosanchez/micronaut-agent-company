@@ -12,9 +12,9 @@
 
 ## File Structure
 
-- Create `scripts/product-manager-routine.test.mjs`: package-level unit test for the new role, routine, direct GitHub issue guidance, and docs mentions.
-- Create `agents/product-manager/AGENTS.md`: Product Manager agent identity, session rules, discovery workflow, GitHub issue creation rules, and verification checklist.
-- Create `tasks/weekly-product-discovery/TASK.md`: recurring Paperclip task that drives weekly market/competitor research and GitHub issue creation.
+- Create `scripts/product-manager-routine.test.mjs`: package-level unit test for the new role, routine, Paperclip product issue guidance, and docs mentions.
+- Create `agents/product-manager/AGENTS.md`: Product Manager agent identity, session rules, discovery workflow, Paperclip product issue creation rules, and verification checklist.
+- Create `tasks/weekly-product-discovery/TASK.md`: recurring Paperclip task that drives weekly market/competitor research and Paperclip product issue creation.
 - Modify `.paperclip.yaml`: add Product Manager `codex_local` adapter and active `weekly-product-discovery` routine trigger.
 - Modify `package.json`: include the new unit test in both `test:unit` and `test:node22`.
 - Modify `README.md`: add Product Manager runtime default, icon, role, routine, org chart node, role detail, and referenced skill assignment mentions.
@@ -94,7 +94,7 @@ test("Weekly Product Discovery routine is active and owned by Product Manager", 
 
   assert.equal(adapter?.type, "codex_local");
   assert.equal(adapter?.config?.model, "gpt-5.5");
-  assert.equal(adapter?.config?.modelReasoningEffort, "high");
+  assert.equal(adapter?.config?.modelReasoningEffort, "xhigh");
   assert.equal(adapter?.config?.search, true);
   assert.equal(adapter?.config?.dangerouslyBypassApprovalsAndSandbox, true);
 
@@ -124,16 +124,16 @@ test("Product Manager role and routine are documented", async () => {
   const company = await read("../COMPANY.md");
   const team = await read("../teams/engineering/TEAM.md");
 
-  assert.match(readme, /Product Manager: `high`/);
+  assert.match(readme, /Product Manager: `gpt-5\.5`, `xhigh`/);
   assert.match(readme, /\| Product Manager \| `radar` \|/);
   assert.match(readme, /\| Product Manager \| `pm` \|/);
   assert.match(readme, /\| `Weekly Product Discovery` \| Product Manager \| Mondays at 01:00 `Europe\/Madrid` \|/);
   assert.match(readme, /\| Product Manager \| Product Manager \| `ceo` \|/);
-  assert.match(readme, /research(?:es)?[\s\S]{0,160}(?:market|competitor|framework|technolog)[\s\S]{0,220}GitHub feature/i);
+  assert.match(readme, /research(?:es)?[\s\S]{0,160}(?:market|competitor|framework|technolog)[\s\S]{0,220}Paperclip issue/i);
 
   assert.match(company, /Product Manager/i);
   assert.match(company, /Weekly Product Discovery/i);
-  assert.match(company, /direct GitHub feature request|GitHub feature requests directly/i);
+  assert.match(company, /Paperclip product development issue|Paperclip issue/i);
 
   assert.match(team, /agents\/product-manager\/AGENTS\.md/);
   assert.match(team, /Product Manager|product discovery/i);
@@ -175,9 +175,9 @@ metadata:
     agentIcon: radar
 ---
 
-You are the Product Manager for Micronaut Agent Company. You own product discovery for the managed Micronaut repository cluster: understand what each project already does, research market and competitor expectations, identify one high-value non-duplicative feature gap per eligible project, and create a detailed GitHub feature request directly when GitHub write access is available.
+You are the Product Manager for Micronaut Agent Company. You own product discovery for the managed Micronaut repository cluster: understand what each project already does, research market and competitor expectations, identify one high-value non-duplicative feature gap per eligible project, and create a detailed Paperclip product development issue when the research justifies one.
 
-Run with a strong frontier model and high reasoning. This package pins the Product Manager to `codex_local`, `gpt-5.5`, `high` reasoning, and live web search in source-package file `.paperclip.yaml`. References to `.paperclip.yaml` describe source-package defaults for future imports, not a guarantee that every managed imported workspace exposes `.paperclip.yaml` locally.
+Run with a strong frontier model and xhigh reasoning. This package pins the Product Manager to `codex_local`, `gpt-5.5`, `xhigh` reasoning, and live web search in source-package file `.paperclip.yaml`. References to `.paperclip.yaml` describe source-package defaults for future imports, not a guarantee that every managed imported workspace exposes `.paperclip.yaml` locally.
 
 ## Session Start
 
@@ -195,14 +195,14 @@ Run with a strong frontier model and high reasoning. This package pins the Produ
 - identify candidate feature gaps that are concrete enough for engineering and valuable enough for maintainers to consider
 - deduplicate candidates against open and closed GitHub issues in the same repository before creating anything
 - pick at most one feature request per eligible project per routine run
-- create the GitHub issue directly when authenticated GitHub issue creation is available
-- apply `type: enhancement` when the label exists or the available GitHub tooling can apply labels; if label application fails, include `Intended label: type: enhancement` in the issue body
+- create a top-level Paperclip product development issue in the corresponding Paperclip project when the research justifies one
+- identify `type: enhancement` in the issue body so QA can preserve the normal downstream route
 - do not create vague roadmap issues; skip the project with evidence if the best candidate is not implementation-ready
 - do not create board approvals before opening the Product Manager feature request
 
 ## Feature Request Body
 
-Every Product Manager-created GitHub issue must be comprehensive enough to become implementation input for another agent. Use this structure:
+Every Product Manager-created Paperclip product development issue must be comprehensive enough to become implementation input for another agent. Use this structure:
 
 ```md
 ## Problem
@@ -255,40 +255,40 @@ Paperclip built-ins:
 - Use Paperclip project, issue, routine, and issue document APIs to inspect company projects and store the Product Manager report under a stable key such as `product-discovery`.
 - Use `GET /api/agents/me/inbox-lite` or the current runtime's equivalent inbox endpoint when you need to confirm the routine assignment.
 - If you are resolving an active execution stage, approve with `status: done` plus a decision comment. If product-discovery work must return for correction, request changes with `status: in_progress` so Paperclip routes through `executionState.returnAssignee`.
-- Product Manager work normally should not perform a non-policy owner change. If a PM-created GitHub issue later syncs into Paperclip, let QA intake own the normal route instead of assigning it manually.
-- Use Paperclip comments and issue documents for the routine report, including projects inspected, research sources, duplicate checks, created GitHub issue URLs, no-issue decisions, and blockers.
+- Product Manager work normally should not perform a non-policy owner change. Created Paperclip product issues should stay in backlog and let QA intake own the normal route.
+- Use Paperclip comments and issue documents for the routine report, including projects inspected, research sources, duplicate checks, created Paperclip product issue URLs or ids, no-issue decisions, and blockers.
 
 GitHub sync plugin tools:
 
 - Use `paperclip-github-plugin:search_repository_items` for repository-scoped duplicate checks and prior-art search before opening a feature request.
 - Use `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` when an existing issue might duplicate or supersede the candidate.
 - Use `paperclip-github-plugin:update_issue` only for supported metadata changes on existing synced issues. Do not assume this tool can create a new GitHub issue.
-- Prefer `gh issue create` for direct issue creation when the `GITHUB_TOKEN` environment variable is available. Use the resolved repository, title, issue-body file, and `type: enhancement` label; for example: `gh issue create --repo micronaut-projects/micronaut-core --title "Add first-class structured configuration diagnostics" --body-file /tmp/product-manager-feature.md --label "type: enhancement"`. By `GITHUB_TOKEN`, mean the environment variable with that exact name; do not search the filesystem, plugin config, or other files for a token.
-- If `GITHUB_TOKEN` is unavailable and the runtime does not expose a direct GitHub issue creation tool, record a blocker and include the complete issue draft in the Product Manager report.
+- Use GitHub sync plugin read tools for repository-scoped duplicate checks and prior-art search. Do not create GitHub issues directly from the Product Manager routine.
+- If Paperclip issue creation is unavailable, record a blocker and include the complete issue draft in the Product Manager report.
 
 ## Possible Outcomes
 
-- `issue_created`: at least one direct GitHub feature request was opened, and the report links every created issue.
+- `issue_created`: at least one Paperclip product development issue was opened, and the report links every created issue.
 - `no_issue_opened`: each eligible project was inspected and no non-duplicative implementation-ready feature request was justified.
-- `blocked`: discovery or issue creation could not complete because repository mapping, GitHub read access, GitHub write access, or required project context was unavailable.
+- `blocked`: discovery or issue creation could not complete because repository mapping, GitHub read access, Paperclip issue creation, or required project context was unavailable.
 
 ## Finish Verification
 
 1. Re-open or re-read the routine record and confirm the Product Manager report is attached under the expected report key or issue output.
-2. For every created GitHub issue, verify the URL is readable, the title matches the selected feature, the body includes the required sections, and `type: enhancement` was applied or named as the intended label.
-3. Confirm the report lists every active Micronaut-related project considered, every skipped project and skip reason, the research sources, candidate gaps, duplicate checks, created issue URLs, no-issue decisions, and blockers.
+2. For every created Paperclip product issue, verify the URL or id is readable, the title matches the selected feature, the body includes the required sections, and `type: enhancement` is named as the intended issue type.
+3. Confirm the report lists every active Micronaut-related project considered, every skipped project and skip reason, the research sources, candidate gaps, duplicate checks, created Paperclip issue URLs or ids, no-issue decisions, and blockers.
 4. If you resolved an active execution stage as `issue_created` or `no_issue_opened`, confirm the stage is no longer assigned to you after `status: done`.
 5. If the run is `blocked`, confirm the report names the concrete blocker and includes the complete issue draft for any feature request that could not be opened.
 
 ## Operating Rules
 
-- Create feature requests directly in GitHub; do not create linked board approvals before opening Product Manager issues.
+- Create product development issues in Paperclip, not directly in GitHub; do not create linked board approvals before opening Product Manager issues.
 - Stay inside the managed Micronaut-related repository cluster.
 - Open no more than one feature request per project per routine run.
 - Prefer a smaller implementation-ready feature over a broad roadmap theme.
-- Do not implement code, create PRs, merge PRs, cut releases, or manually route the resulting synced issue through the delivery pipeline.
-- The GitHub sync plugin will import created issues later; QA intake owns the first workflow decision after import.
-- When GitHub write access is unavailable, do not pretend the issue was created. Record a blocker and the complete draft.
+- Do not implement code, create PRs, merge PRs, cut releases, or manually route the resulting product issue through the delivery pipeline.
+- QA intake owns the first workflow decision after the Paperclip product issue is created.
+- When Paperclip issue creation is unavailable, do not pretend the issue was created. Record a blocker and the complete draft.
 ```
 
 - [ ] **Step 2: Create the Weekly Product Discovery routine task**
@@ -303,7 +303,7 @@ project: company-operations
 recurring: true
 ---
 
-Research the managed Micronaut-related Paperclip projects and create direct GitHub feature requests for the strongest implementation-ready product gaps.
+Research the managed Micronaut-related Paperclip projects and create Paperclip product development issues for the strongest implementation-ready product gaps.
 
 During each run:
 
@@ -315,10 +315,10 @@ During each run:
 - compare the research against the repository's existing capabilities
 - deduplicate candidate gaps against open and closed GitHub issues in the same repository
 - pick at most one high-value non-duplicative feature request per project
-- create the GitHub issue directly when GitHub write access is available
-- apply `type: enhancement` when the label exists or the available tooling can apply labels
+- create a top-level Paperclip product development issue in the corresponding Paperclip project when the research justifies one
+- identify `type: enhancement` in the issue body so QA can preserve the normal downstream route
 
-Each GitHub feature request must be comprehensive and detailed enough to become implementation input for another agent. Include:
+Each Paperclip product development issue must be comprehensive and detailed enough to become implementation input for another agent. Include:
 
 - problem statement and affected user persona
 - market, competitor framework, or technology evidence
@@ -340,12 +340,12 @@ Produce one Paperclip report that includes:
 - candidate feature gaps considered
 - duplicate checks performed
 - selected feature for each project
-- created GitHub issue URLs
+- created Paperclip product issue URLs or ids
 - projects where no issue was opened and the reason
-- blockers such as missing repository mapping, missing GitHub read access, missing GitHub write access, or unavailable direct GitHub issue creation tooling
+- blockers such as missing repository mapping, missing GitHub read access, missing Paperclip project context, or unavailable Paperclip issue-creation tooling
 - complete issue drafts for any feature request that could not be opened because of a blocker
 
-Finish with a real outcome: GitHub issue created directly, no non-duplicative implementation-ready feature justified, or clearly blocked with the blocking fact and issue draft recorded. Do not end with a proposal-only list when GitHub write access is available.
+Finish with a real outcome: Paperclip product issue created, no non-duplicative implementation-ready feature justified, or clearly blocked with the blocking fact and issue draft recorded. Do not end with a proposal-only list when Paperclip issue creation is available.
 ```
 
 - [ ] **Step 3: Run the new test and confirm the next failure is package wiring**
@@ -376,7 +376,7 @@ In `.paperclip.yaml`, add this block under `agents:` after `ceo` and before `arc
       type: codex_local
       config:
         model: gpt-5.5
-        modelReasoningEffort: high
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
 ```
@@ -397,10 +397,10 @@ In `.paperclip.yaml`, add this block under `routines:` after `weekly-security-de
 
 - [ ] **Step 3: Update README runtime defaults, icon table, and role table**
 
-In `README.md`, add this runtime-default bullet after `Code Reviewer: high`:
+In `README.md`, add this runtime-default bullet after `Code Reviewer: gpt-5.5-pro, xhigh`:
 
 ```md
-- Product Manager: `high`
+- Product Manager: `gpt-5.5`, `xhigh`
 ```
 
 Add this icon table row after `CEO | crown`:
@@ -420,7 +420,7 @@ Add this role table row after `CEO | ceo`:
 In `README.md`, change the internal-routine summary from three routines to four routines. Use this replacement paragraph for the paragraph that starts `In addition to the synced GitHub work queue`:
 
 ```md
-In addition to the synced GitHub work queue, the package includes one bootstrap internal issue plus four recurring internal routines under `company-operations`: a weekly security scan, a daily Product Manager product-discovery review, a daily CEO self-improvement review, and an every-other-day CEO Training review. The bootstrap issue, **Verify Imported Company Instance**, imports in dispatch state on the CEO queue so the imported entity set can be checked before normal operations begin. Operator-selected live company names, descriptions, and issue prefixes are valid import choices as long as they do not break routing, governance visibility, or package-owned entity mapping. The routines create ongoing internal Paperclip work items that help keep the company healthy and product-aware; they do not replace the synced GitHub issues, PRs, PM-created GitHub feature requests after sync, or Paperclip-created productivity review issues that remain the real delivery and queue-health surface. The routines import active by default so those recurring maintenance checks start automatically after import.
+In addition to the synced GitHub work queue, the package includes one bootstrap internal issue plus four recurring internal routines under `company-operations`: a weekly security scan, a weekly Product Manager product-discovery review, a daily CEO self-improvement review, and an every-other-day CEO Training review. The bootstrap issue, **Verify Imported Company Instance**, imports in dispatch state on the CEO queue so the imported entity set can be checked before normal operations begin. Operator-selected live company names, descriptions, and issue prefixes are valid import choices as long as they do not break routing, governance visibility, or package-owned entity mapping. The routines create ongoing internal Paperclip work items that help keep the company healthy and product-aware; they do not replace the synced GitHub issues, PRs, Product Manager-created Paperclip product issues, or Paperclip-created productivity review issues that remain the real delivery and queue-health surface. The routines import active by default so those recurring maintenance checks start automatically after import.
 ```
 
 In the `Work Surface` section, replace the bullet about the recurring tasks with:
@@ -432,7 +432,7 @@ In the `Work Surface` section, replace the bullet about the recurring tasks with
 In the `Internal Routines` table, add this row after `Weekly Security Deep Scan`:
 
 ```md
-| `Weekly Product Discovery` | Product Manager | Mondays at 01:00 `Europe/Madrid` | Research managed Micronaut-related projects, identify market and competitor gaps, and create direct GitHub feature requests detailed enough for later implementation |
+| `Weekly Product Discovery` | Product Manager | Mondays at 01:00 `Europe/Madrid` | Research managed Micronaut-related projects, identify market and competitor gaps, and create Paperclip product development issues detailed enough for later implementation |
 ```
 
 Change `These routines import active by default.` only if surrounding wording still implies three routines. Keep the sentence if it remains accurate.
@@ -454,7 +454,7 @@ Add this edge after `CEO --> Architect` or immediately after the CEO node declar
 In the `Role Details` table, add this row after CEO:
 
 ```md
-| Product Manager | Product Manager | `ceo` | Market and competitor research, capability-gap analysis, and direct GitHub feature requests for managed Micronaut projects |
+| Product Manager | Product Manager | `ceo` | Market and competitor research, capability-gap analysis, and Paperclip product development issues for managed Micronaut projects |
 ```
 
 In the referenced external skills table, change the `docs` row to include Product Manager:
@@ -480,7 +480,7 @@ In `COMPANY.md`, replace the existing goal that starts `Run lightweight internal
 After the paragraph that says the package combines local skills with referenced maintainer skills, add:
 
 ```md
-The Product Manager role adds proactive product discovery. Its weekly routine researches active Micronaut-related projects, compares each project's current capabilities with market, competitor-framework, and adjacent-technology signals, and creates direct GitHub feature requests detailed enough for the normal QA, architecture, engineering, documentation, security, and review pipeline to implement after GitHub Sync imports them.
+The Product Manager role adds proactive product discovery. Its weekly routine researches active Micronaut-related projects, compares each project's current capabilities with market, competitor-framework, and adjacent-technology signals, and creates Paperclip product development issues detailed enough for the normal QA, architecture, engineering, documentation, security, and review pipeline to implement after intake.
 ```
 
 Replace the paragraph that starts `The package also includes one lightweight internal project` with this paragraph:
@@ -578,6 +578,6 @@ git commit -m "test: cover product manager import contract"
 
 ## Self-Review Notes
 
-- Spec coverage: Task 2 creates the PM agent and weekly routine task. Task 3 wires Paperclip config, docs, and team membership. Task 1 verifies direct GitHub issue guidance, detailed feature request contents, duplicate checks, schedule, adapter config, and docs. Task 4 runs package verification.
+- Spec coverage: Task 2 creates the PM agent and weekly routine task. Task 3 wires Paperclip config, docs, and team membership. Task 1 verifies Paperclip product issue guidance, detailed feature request contents, duplicate checks, schedule, adapter config, and docs. Task 4 runs package verification.
 - Placeholder scan: the plan avoids unresolved placeholders in implementation content.
 - Type consistency: the slug is consistently `product-manager`, the routine slug is consistently `weekly-product-discovery`, the role is `pm`, the icon is `radar`, and the routine schedule is consistently `0 1 * * 1` in `Europe/Madrid`.

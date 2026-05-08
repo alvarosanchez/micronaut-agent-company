@@ -82,7 +82,7 @@ test("Weekly Product Discovery routine is active and owned by Product Manager", 
 
   assert.equal(adapter?.type, "codex_local");
   assert.equal(adapter?.config?.model, "gpt-5.5");
-  assert.equal(adapter?.config?.modelReasoningEffort, "high");
+  assert.equal(adapter?.config?.modelReasoningEffort, "xhigh");
   assert.equal(adapter?.config?.search, true);
   assert.equal(adapter?.config?.dangerouslyBypassApprovalsAndSandbox, true);
 
@@ -118,7 +118,7 @@ test("Product Manager role and routine are documented", async () => {
   const company = await read("../COMPANY.md");
   const team = await read("../teams/engineering/TEAM.md");
 
-  assertContains(readme, /Product Manager: `high`/, "README should document Product Manager high reasoning effort.");
+  assertContains(readme, /Product Manager: `gpt-5\.5`, `xhigh`/, "README should document Product Manager model and xhigh reasoning effort.");
   assertContains(readme, /\| Product Manager \| `radar` \|/, "README should document the Product Manager radar icon.");
   assertContains(readme, /\| Product Manager \| `pm` \|/, "README should document the Product Manager pm role.");
   assertContains(readme, /\| `Weekly Product Discovery` \| Product Manager \| Mondays at 01:00 `Europe\/Madrid` \|/, "README should document the Weekly Product Discovery schedule.");

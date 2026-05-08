@@ -5,9 +5,9 @@ Status: Approved for specification
 
 ## Goal
 
-Add a first-class Product Manager agent to Micronaut Agent Company. The Product Manager researches the market, competing frameworks, adjacent technologies, and active ecosystem expectations, then turns the highest-value gaps for each managed Micronaut project into detailed GitHub feature requests that implementation agents can pick up later.
+Add a first-class Product Manager agent to Micronaut Agent Company. The Product Manager researches the market, competing frameworks, adjacent technologies, and active ecosystem expectations, then turns the highest-value gaps for each managed Micronaut project into detailed Paperclip product development issues that implementation agents can pick up later.
 
-The Product Manager is proactive product discovery, not an implementation or governance gate. It creates public GitHub issues directly during its weekly routine.
+The Product Manager is proactive product discovery, not an implementation or governance gate. It creates Paperclip issues during its weekly routine and leaves maintainer-visible GitHub actions to the normal QA and delivery workflow.
 
 ## Context
 
@@ -32,13 +32,13 @@ The Product Manager will be a first-class agent with:
 - `reportsTo: ceo`
 - icon hint `radar`
 - skills `micronaut-repo-operations`, `docs`, and `gh-cli`
-- `codex_local`, `gpt-5.5`, `high` reasoning, live web search enabled
+- `codex_local`, `gpt-5.5`, `xhigh` reasoning, live web search enabled
 
-The high reasoning setting is appropriate because each run depends on source interpretation, internet research, duplicate detection, prioritization, and writing a feature request that is detailed enough for later implementation.
+The xhigh reasoning setting is appropriate because each run depends on source interpretation, internet research, duplicate detection, prioritization, and writing a feature request that is detailed enough for later implementation.
 
 ## Daily Routine
 
-Add an active weekly routine named `Weekly Product Discovery`, owned by `product-manager`, scheduled at 11:00 Europe/Madrid.
+Add an active weekly routine named `Weekly Product Discovery`, owned by `product-manager`, scheduled at 01:00 Europe/Madrid.
 
 This schedule was later superseded by the package-wide overnight routine schedule in `2026-05-06-technical-writer-routines-design.md`.
 
@@ -58,14 +58,14 @@ For each eligible project, the Product Manager:
 4. Compares the project capabilities against the research and lists candidate feature gaps.
 5. Deduplicates each candidate against existing open and closed GitHub issues in the same repository.
 6. Picks exactly one high-value, non-duplicative feature per project for that routine run.
-7. Creates a GitHub issue directly in the target repository.
-8. Records the created issue URL and supporting research in the Paperclip routine report.
+7. Creates a top-level Paperclip product development issue in the corresponding Paperclip project with status `backlog`, no `parentId`, and QA as assignee.
+8. Records the created Paperclip issue URL or id and supporting research in the project-specific discovery subtask and routine report.
 
-If no feature is worth opening for a project, the Product Manager records `no issue opened` with the evidence that led to that decision.
+If no feature is worth opening for a project, the Product Manager records `no product issue opened` with the evidence that led to that decision.
 
-## GitHub Issue Requirements
+## Paperclip Product Issue Requirements
 
-Each Product Manager-created GitHub issue must be comprehensive enough for another agent to implement later. The issue body should include:
+Each Product Manager-created Paperclip product development issue must be comprehensive enough for another agent to implement later. The issue body should include:
 
 - concise title that names the user-visible feature
 - problem statement and affected user persona
@@ -79,9 +79,9 @@ Each Product Manager-created GitHub issue must be comprehensive enough for anoth
 - documentation and test expectations
 - related issues or prior art checked during deduplication
 
-The Product Manager should apply `type: enhancement` when the label exists or when the available GitHub tooling supports labels. If label application is unavailable, the issue body should still identify the intended type so QA can preserve the normal downstream route.
+The Product Manager should identify the intended issue type as `type: enhancement` so QA can preserve the normal downstream route. The Product Manager does not publish the product request directly to GitHub from the discovery routine, because GitHub-created issues can be automatically actioned before human review.
 
-When using `gh` or any direct GitHub client with `GITHUB_TOKEN`, the Product Manager must follow the package's existing GitHub footer policy for maintainer-visible AI-generated text. When using `paperclip-github-plugin` tools, the plugin owns footer behavior.
+QA or a later delivery stage owns any maintainer-visible GitHub action after the Paperclip issue has passed the normal intake route.
 
 ## Reporting
 
@@ -94,15 +94,15 @@ Each routine run produces one Paperclip report with:
 - candidate feature gaps considered
 - duplicate checks performed
 - the selected feature for each project
-- created GitHub issue URLs
+- created Paperclip product issue URLs or ids
 - projects where no issue was opened and the reason
-- blockers such as missing repository mapping, missing GitHub write access, or unavailable GitHub tooling
+- blockers such as missing repository mapping, unavailable Paperclip project context, or unavailable Paperclip issue-creation tooling
 
-The routine should not end with a proposal-only list when GitHub write access is available. It should either create the selected issue, record that no issue is justified, or name the concrete blocker.
+The routine should not end with a proposal-only list when Paperclip issue creation is available. It should either create the selected Paperclip product issue, record that no issue is justified, or name the concrete blocker.
 
 ## Error Handling
 
-If GitHub write access is unavailable, the Product Manager records a blocker in the routine report and includes the complete issue draft that would have been opened.
+If Paperclip issue creation is unavailable, the Product Manager records a blocker in the routine report and includes the complete issue draft that would have been opened.
 
 If research results conflict or the project capability is unclear, the Product Manager chooses the smallest defensible feature request or skips that project with an evidence-backed reason. It should not create vague roadmap issues.
 
@@ -119,16 +119,16 @@ The Product Manager does not:
 - create board approvals before opening the feature issue
 - file issues outside the managed Micronaut-related repository cluster
 
-The GitHub sync plugin is expected to import the new issue later, at which point the normal company workflow applies.
+The resulting Paperclip issue enters the normal company workflow from backlog and waits for QA intake before any maintainer-visible GitHub action.
 
 ## Tests And Verification
 
 Implementation should add a focused unit test for the new PM role and routine. The test should verify:
 
 - `agents/product-manager/AGENTS.md` frontmatter has role `pm`, reports to CEO, and uses the expected skills and icon
-- `.paperclip.yaml` includes the Product Manager adapter with `gpt-5.5`, high reasoning, and live search
-- `.paperclip.yaml` includes the active `weekly-product-discovery` routine at 11:00 Europe/Madrid
-- `tasks/weekly-product-discovery/TASK.md` is recurring, assigned to `product-manager`, and describes direct GitHub issue creation
+- `.paperclip.yaml` includes the Product Manager adapter with `gpt-5.5`, xhigh reasoning, and live search
+- `.paperclip.yaml` includes the active `weekly-product-discovery` routine at 01:00 Europe/Madrid
+- `tasks/weekly-product-discovery/TASK.md` is recurring, assigned to `product-manager`, and describes Paperclip product issue creation
 - the task requires comprehensive feature request contents and duplicate checks
 - README and COMPANY docs mention the Product Manager in agent tables and internal routine tables
 

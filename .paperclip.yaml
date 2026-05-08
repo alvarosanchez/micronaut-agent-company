@@ -8,7 +8,7 @@ agents:
       type: codex_local
       config:
         model: gpt-5.5
-        modelReasoningEffort: medium
+        modelReasoningEffort: high
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   product-manager:
@@ -16,15 +16,15 @@ agents:
       type: codex_local
       config:
         model: gpt-5.5
-        modelReasoningEffort: high
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   architect:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: high
+        model: gpt-5.5-pro
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   qa-engineer:
@@ -32,15 +32,15 @@ agents:
       type: codex_local
       config:
         model: gpt-5.5
-        modelReasoningEffort: high
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   security-engineer:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: high
+        model: gpt-5.5-pro
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   micronaut-engineer:
@@ -48,15 +48,15 @@ agents:
       type: codex_local
       config:
         model: gpt-5.5
-        modelReasoningEffort: medium
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   code-reviewer:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: high
+        model: gpt-5.5-pro
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   technical-writer:
