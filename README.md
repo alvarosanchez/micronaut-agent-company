@@ -26,15 +26,15 @@ Pass script options after npm's `--` separator when possible. The script also ho
 
 ## Runtime Defaults
 
-All agents are configured to use `codex_local` with `gpt-5.5` and live web search enabled.
+All agents are configured to use `codex_local` with live web search enabled. Agents with `high` or `xhigh` reasoning use `gpt-5.5-pro`; agents with `medium` reasoning use `gpt-5.5`.
 
-- Architect: `high`
-- Security Engineer: `high`
+- Architect: `xhigh`
+- Security Engineer: `xhigh`
 - QA Engineer: `high`
-- Code Reviewer: `high`
+- Code Reviewer: `xhigh`
 - Product Manager: `high`
-- CEO: `medium`
-- Micronaut Engineer: `medium`
+- CEO: `high`
+- Micronaut Engineer: `xhigh`
 - Technical Writer: `medium`
 
 The package also pins two Paperclip company settings in `.paperclip.yaml`: `attachmentMaxBytes: 10485760`, the 10 MiB company attachment cap introduced in `paperclipai@2026.428.0`, and `requireBoardApprovalForNewAgents: false`. New-hire approval is now opt-in in Paperclip, so this explicit `false` preserves the package's import behavior while still letting operators enable stricter hire approval in the live company settings before adding agents beyond the package roster. The Paperclip process-level attachment cap remains the final ceiling even if a live company raises `attachmentMaxBytes`.
@@ -303,7 +303,7 @@ Explain the maintainer-facing result here.
 ###### ✨ This message was AI-generated using <exact model id>
 ```
 
-When you post through the GitHub sync plugin tools, do not add that footer manually; the plugin appends the same footer automatically. For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, pass only the human-facing body and include `llmModel: gpt-5.5`. Review-thread replies must explain the decision, such as committed the requested change, not applicable, or disagreement with the feedback, before the thread is resolved.
+When you post through the GitHub sync plugin tools, do not add that footer manually; the plugin appends the same footer automatically. For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, pass only the human-facing body and include the exact runtime model id in `llmModel`: `gpt-5.5-pro` for agents configured with `high` or `xhigh` reasoning, and `gpt-5.5` for agents configured with `medium` reasoning. Review-thread replies must explain the decision, such as committed the requested change, not applicable, or disagreement with the feedback, before the thread is resolved.
 
 ## Paperclip Runtime APIs
 

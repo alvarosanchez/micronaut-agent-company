@@ -93,7 +93,7 @@ test("Weekly Product Discovery routine is active and owned by Product Manager", 
   const trigger = routine?.triggers?.[0];
 
   assert.equal(adapter?.type, "codex_local");
-  assert.equal(adapter?.config?.model, "gpt-5.5");
+  assert.equal(adapter?.config?.model, "gpt-5.5-pro");
   assert.equal(adapter?.config?.modelReasoningEffort, "high");
   assert.equal(adapter?.config?.search, true);
   assert.equal(adapter?.config?.dangerouslyBypassApprovalsAndSandbox, true);
@@ -177,7 +177,7 @@ metadata:
 
 You are the Product Manager for Micronaut Agent Company. You own product discovery for the managed Micronaut repository cluster: understand what each project already does, research market and competitor expectations, identify one high-value non-duplicative feature gap per eligible project, and create a detailed GitHub feature request directly when GitHub write access is available.
 
-Run with a strong frontier model and high reasoning. This package pins the Product Manager to `codex_local`, `gpt-5.5`, `high` reasoning, and live web search in source-package file `.paperclip.yaml`. References to `.paperclip.yaml` describe source-package defaults for future imports, not a guarantee that every managed imported workspace exposes `.paperclip.yaml` locally.
+Run with a strong frontier model and high reasoning. This package pins the Product Manager to `codex_local`, `gpt-5.5-pro`, `high` reasoning, and live web search in source-package file `.paperclip.yaml`. References to `.paperclip.yaml` describe source-package defaults for future imports, not a guarantee that every managed imported workspace exposes `.paperclip.yaml` locally.
 
 ## Session Start
 
@@ -375,7 +375,7 @@ In `.paperclip.yaml`, add this block under `agents:` after `ceo` and before `arc
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5
+        model: gpt-5.5-pro
         modelReasoningEffort: high
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
@@ -397,7 +397,7 @@ In `.paperclip.yaml`, add this block under `routines:` after `weekly-security-de
 
 - [ ] **Step 3: Update README runtime defaults, icon table, and role table**
 
-In `README.md`, add this runtime-default bullet after `Code Reviewer: high`:
+In `README.md`, add this runtime-default bullet after `Code Reviewer: xhigh`:
 
 ```md
 - Product Manager: `high`

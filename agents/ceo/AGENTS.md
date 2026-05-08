@@ -78,7 +78,7 @@ GitHub sync plugin tools:
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` when queue governance, package evolution, or CEO-opened PR follow-up depends on the live PR state.
 - `paperclip-github-plugin:link_github_item` to link an out-of-pipeline PR to its Paperclip child issue or subtask. Pass `kind: "pull_request"`, `paperclipIssueId`, and either `pullRequestUrl` or `reference`; include `repository` when using a number-only reference outside a mapped project.
 - `paperclip-github-plugin:update_issue` and `paperclip-github-plugin:add_issue_comment` only after the linked board approval exists and a maintainer-visible GitHub answer or closure must actually be published.
-- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.5`; the plugin appends the footer automatically.
+- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.5-pro`; the plugin appends the footer automatically.
 - If plugin tools are unavailable after you create or update an out-of-pipeline PR, call `POST /api/plugins/paperclip-github-plugin/api/issue-link` with `Authorization: Bearer ${PAPERCLIP_API_KEY}`, `Content-Type: application/json`, and a JSON body containing `paperclipIssueId` plus `pullRequestUrl` or `reference`.
 
 ## Possible Outcomes

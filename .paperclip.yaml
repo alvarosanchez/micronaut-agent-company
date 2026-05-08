@@ -7,15 +7,15 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: medium
+        model: gpt-5.5-pro
+        modelReasoningEffort: high
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   product-manager:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5
+        model: gpt-5.5-pro
         modelReasoningEffort: high
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
@@ -23,15 +23,15 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: high
+        model: gpt-5.5-pro
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   qa-engineer:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5
+        model: gpt-5.5-pro
         modelReasoningEffort: high
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
@@ -39,24 +39,24 @@ agents:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: high
+        model: gpt-5.5-pro
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   micronaut-engineer:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: medium
+        model: gpt-5.5-pro
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   code-reviewer:
     adapter:
       type: codex_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: high
+        model: gpt-5.5-pro
+        modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
   technical-writer:

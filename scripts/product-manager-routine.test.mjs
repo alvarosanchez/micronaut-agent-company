@@ -81,7 +81,7 @@ test("Weekly Product Discovery routine is active and owned by Product Manager", 
   const trigger = routine?.triggers?.[0];
 
   assert.equal(adapter?.type, "codex_local");
-  assert.equal(adapter?.config?.model, "gpt-5.5");
+  assert.equal(adapter?.config?.model, "gpt-5.5-pro");
   assert.equal(adapter?.config?.modelReasoningEffort, "high");
   assert.equal(adapter?.config?.search, true);
   assert.equal(adapter?.config?.dangerouslyBypassApprovalsAndSandbox, true);

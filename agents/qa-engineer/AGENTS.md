@@ -92,7 +92,7 @@ GitHub sync plugin tools:
 - `paperclip-github-plugin:update_issue` to set the single actionable `type:` label, close or reopen the GitHub issue, and apply approved metadata changes. When QA closes an issue directly, use GitHub's native `Close as not planned` reason for non-duplicate triage closures and `Close as duplicate` for duplicate closures instead of falling back to `Close as completed`.
 - `paperclip-github-plugin:add_issue_comment` when QA is publishing a maintainer-visible answer, clarification request, or closure note on GitHub.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` when QA is verifying an implementation that already has a PR.
-- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.5`; the plugin appends the footer automatically.
+- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.5-pro`; the plugin appends the footer automatically.
 
 ## Possible Outcomes
 
