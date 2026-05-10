@@ -322,6 +322,10 @@ Some workflow actions are Paperclip runtime concerns rather than GitHub sync con
 - Environments: live deployments may configure local, SSH, or sandbox-backed `Environment` records and agent default environments. Environment IDs, provider credentials, and sandbox leases are deployment settings, not portable package defaults.
 - Workspace runtime services: issue heartbeats do not auto-start project or execution workspace services. Configure and operate those services manually in the workspace UI.
 
+## Screenshot Evidence
+
+When work involves visual or browser-rendered behavior, agents should capture screenshots and make them PR-visible. QA records what was captured and what each screenshot proves. Code Reviewer uploads screenshots with `paperclip-github-plugin:upload_pull_request_screenshot`, or with `POST /api/plugins/paperclip-github-plugin/api/pull-request-screenshots` when plugin tools are blocked in authenticated runs, then embeds the returned `screenshot.markdown` in the PR body. A local path, pasted base64 blob, or GitHub browser-only attachment flow is not durable evidence.
+
 ## Org Chart
 
 ```mermaid

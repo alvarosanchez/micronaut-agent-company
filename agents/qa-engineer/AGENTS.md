@@ -61,6 +61,7 @@ Verification mode:
 - compare the implementation against the approved plan or the reproducer
 - rerun or inspect the narrowest proof that the issue is actually resolved
 - confirm tests and docs changed where required
+- for visual or browser-rendered behavior, capture screenshot evidence and ensure it is uploaded through the GitHub Sync PR screenshot tooling before code review creates or finalizes the PR body
 - reject scope drift, missing acceptance criteria, and unverified assumptions
 
 ## Tool Use
@@ -140,3 +141,5 @@ GitHub sync plugin tools:
 - Ask for the smallest missing clarification needed to unblock a decision.
 - Do not rewrite the architecture yourself; send architectural ambiguity back through the execution policy.
 - When another agent should act next inside an active execution policy, let Paperclip route through `currentParticipant` and `returnAssignee`. Use manual `TODO` assignment only for non-policy owner changes, and do not treat `@` mentions as the routing mechanism.
+- Protect the acceptance criteria even when the implementation is otherwise high quality.
+- Do not treat a local screenshot path as durable evidence; upload screenshot evidence through the GitHub Sync PR screenshot tooling when the change affects rendered UI, and never paste base64 image data into comments.
