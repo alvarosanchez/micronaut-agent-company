@@ -90,7 +90,7 @@ The QA Engineer verifies:
 - when a linked contributor PR exists, QA has correctly decided whether it remains the implementation vehicle or should be replaced
 - the original issue or PR concern is actually resolved
 - tests and documentation support the claimed change
-- screenshot evidence has been captured when the verified behavior is visual or browser-rendered, and the Code Reviewer has enough context to upload it through GitHub Sync before the PR body is finalized
+- PR-visible asset evidence has been captured or generated when the verified behavior is visual, browser-rendered, or file-based, and the Code Reviewer has enough context to upload it through GitHub Sync before the PR body is finalized
 - no important acceptance criteria were silently dropped
 - public answers and closure paths use the correct GitHub labels when applicable, use GitHub's native `Close as not planned` or `Close as duplicate` reason as appropriate, include detailed evidence rather than short generic close notes, treat evidence-backed already-implemented issues as part of QA's direct closure authority, and only require Paperclip board approval when the path is outside QA's direct GitHub authority
 
@@ -135,7 +135,7 @@ Before a PR is considered healthy:
 - the PR carries exactly one `type:` label
 - the PR should be linked to all selected Micronaut organization projects chosen during QA intake when GitHub tooling can apply them; if that choice carried ambiguity, the PR description repeats it; naming the boards in prose is not a substitute for the live associations; missing organization-project linkage due to no matching project or tooling gaps does not by itself block a healthy PR. For a GA release target with concurrent prerelease and release boards, link both the matching prerelease board and the GA release board, for example `5.0.0-M3` and `5.0.0 Release`. If a human maintainer changes, reschedules, or retargets the PR organization project after PR creation, preserve that maintainer project choice and do not restore, reapply, re-add, or reset the original QA-selected organization project links unless a later maintainer or board decision explicitly asks for it.
 - test evidence is ready to share
-- visual evidence is embedded in the PR body when the change affects rendered output, using the GitHub Sync screenshot upload tool or its native `/pull-request-screenshots` API route; if upload fails, the PR explains the concrete permission or runtime blocker instead of saying screenshots are unavailable
+- visual evidence and generated review artifacts are embedded in the PR body when the change affects rendered output or produces files such as PDFs, using the GitHub Sync asset upload tool or its native `/pull-request-assets` API route; if upload fails, the PR explains the concrete permission, size, MIME, or runtime blocker instead of saying assets are unavailable
 - documentation or migration notes are included when needed
 - guide-related PRs created or updated by guide routines carry the `type: docs` label
 - guide, docs, or documentation PRs whose CI is not needed because the changed docs are not exercised by the build use a skip-ci keyword in the commit message, such as `[skip ci]`

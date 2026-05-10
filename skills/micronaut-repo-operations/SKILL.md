@@ -377,21 +377,21 @@ Important usage rules:
 - If the available sync plugin tool surface does not support linking a PR to the recommended Micronaut organization project, record that tooling limitation in the stage artifact or PR summary and continue; do not escalate solely for that reason.
 - When a PR is created outside the normal synced GitHub issue delivery pipeline, use `paperclip-github-plugin:link_github_item` or `POST /api/plugins/paperclip-github-plugin/api/issue-link` to link that PR to the Paperclip child issue or subtask that scopes the work. If the runtime cannot create that durable PR-to-Paperclip issue link, record the tooling blocker in the subtask and routine report instead of presenting the PR as fully tracked.
 
-## Screenshot Evidence
+## PR Assets and Visual Evidence
 
-Use screenshot evidence when a result is visual or browser-rendered, such as generated docs, UI pages, error pages, control panels, dashboards, examples that render HTML, or anything where a maintainer needs to see before/after behavior.
+Use PR-visible assets when a result is visual, browser-rendered, or otherwise easier for maintainers to evaluate as a file, such as screenshots, generated PDFs, QA reports, logs, dashboards, examples that render HTML, or other review artifacts.
 
-When screenshot evidence is needed:
+When PR assets are needed:
 
-- Capture the screenshot with the active browser or test tool after reproducing the exact workflow under review.
-- Save screenshots with descriptive names that include the issue or PR identifier and the state shown, for example `DEV-123-before-error-page.png` or `DEV-123-after-docs-render.png`.
-- Do not paste base64 image data into comments, do not rely on ephemeral local paths as the only evidence, and do not upload secrets, tokens, private user data, or unrelated browser chrome. Crop or retake the screenshot if sensitive data is visible.
-- In QA, record which screenshots were captured and what they prove in `qa-verification` so Code Reviewer can publish them with the PR.
-- In Code Review, upload PR-visible screenshots with `paperclip-github-plugin:upload_pull_request_screenshot` when plugin tools are available. Pass the PR target plus `fileName`, `alt`, and either `contentBase64` or `dataUrl`; embed the returned `screenshot.markdown` in the PR body with `update_pull_request`.
-- If authenticated runtime blocks plugin tool execution, call `POST /api/plugins/paperclip-github-plugin/api/pull-request-screenshots` with `Authorization: Bearer ${PAPE...Y}`, `Content-Type: application/json`, and the same JSON payload. Embed the response's `screenshot.markdown` in the PR body.
-- If screenshot upload fails, record the concrete blocker, such as missing token, missing contents write permission, unsupported MIME type, size limit, or host route failure. Do not claim screenshots are unavailable merely because GitHub's browser-only attachment uploader is unavailable.
+- Capture or generate the asset after reproducing the exact workflow under review.
+- Save assets with descriptive names that include the issue or PR identifier and the state shown, for example `DEV-123-before-error-page.png`, `DEV-123-after-docs-render.png`, or `DEV-123-review-report.pdf`.
+- Do not paste base64 asset data into comments, do not rely on ephemeral local paths as the only evidence, and do not upload secrets, tokens, private user data, or unrelated browser chrome. Crop, redact, regenerate, or retake the asset if sensitive data is visible.
+- In QA, record which assets were captured or generated and what they prove in `qa-verification` so Code Reviewer can publish them with the PR.
+- In Code Review, upload PR-visible assets with `paperclip-github-plugin:upload_pull_request_asset` when plugin tools are available. Pass the PR target plus `fileName`, either `contentBase64` or `dataUrl`, and optional `label`, `alt`, `caption`, or `mimeType`; embed the returned `asset.markdown` in the PR body with `update_pull_request`.
+- If authenticated runtime blocks plugin tool execution, call `POST /api/plugins/paperclip-github-plugin/api/pull-request-assets` with `Authorization: Bearer ${PAPERCLIP_API_KEY}`, `Content-Type: application/json`, and the same JSON payload. Embed the response's `asset.markdown` in the PR body.
+- If asset upload fails, record the concrete blocker, such as missing token, missing contents write permission, unsupported size, unsafe filename, invalid base64, or host route failure. Do not claim assets are unavailable merely because GitHub's browser-only attachment uploader is unavailable.
 
-GitHub comments created through `add_issue_comment` or `reply_to_review_thread` may summarize what the screenshot proves, but PR visual evidence belongs in the PR body through the GitHub Sync screenshot upload tool or route.
+GitHub comments created through `add_issue_comment` or `reply_to_review_thread` may summarize what the asset proves, but PR-visible assets belong in the PR body through the GitHub Sync asset upload tool or route.
 
 ## PR Rules
 

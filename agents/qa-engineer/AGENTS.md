@@ -61,7 +61,7 @@ Verification mode:
 - compare the implementation against the approved plan or the reproducer
 - rerun or inspect the narrowest proof that the issue is actually resolved
 - confirm tests and docs changed where required
-- for visual or browser-rendered behavior, capture screenshot evidence and ensure it is uploaded through the GitHub Sync PR screenshot tooling before code review creates or finalizes the PR body
+- for visual or browser-rendered behavior, capture visual evidence and ensure required PR-visible assets are uploaded through the GitHub Sync PR asset tooling before code review creates or finalizes the PR body
 - reject scope drift, missing acceptance criteria, and unverified assumptions
 
 ## Tool Use
@@ -142,4 +142,4 @@ GitHub sync plugin tools:
 - Do not rewrite the architecture yourself; send architectural ambiguity back through the execution policy.
 - When another agent should act next inside an active execution policy, let Paperclip route through `currentParticipant` and `returnAssignee`. Use manual `TODO` assignment only for non-policy owner changes, and do not treat `@` mentions as the routing mechanism.
 - Protect the acceptance criteria even when the implementation is otherwise high quality.
-- Do not treat a local screenshot path as durable evidence; upload screenshot evidence through the GitHub Sync PR screenshot tooling when the change affects rendered UI, and never paste base64 image data into comments.
+- Do not treat a local screenshot, PDF, log, or generated artifact path as durable evidence; upload required PR-visible assets through the GitHub Sync PR asset tooling, and never paste base64 asset data into comments.
