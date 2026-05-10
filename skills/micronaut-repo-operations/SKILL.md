@@ -339,13 +339,14 @@ The sync plugin currently exposes this GitHub tool surface for agents, using the
 - `paperclip-github-plugin:request_pull_request_reviewers`
 - `paperclip-github-plugin:list_organization_projects`
 - `paperclip-github-plugin:add_pull_request_to_project`
+- `paperclip-github-plugin:upload_pull_request_asset`
 - `paperclip-github-plugin:link_github_item`
 
 Use them by workflow stage:
 
 - intake and queue work: `paperclip-github-plugin:search_repository_items`, `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`
 - planning and review context: `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:list_organization_projects`
-- PR creation and routing: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:update_pull_request`, `paperclip-github-plugin:request_pull_request_reviewers`, `paperclip-github-plugin:add_pull_request_to_project`
+- PR creation, assets, and routing: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:update_pull_request`, `paperclip-github-plugin:upload_pull_request_asset`, `paperclip-github-plugin:request_pull_request_reviewers`, `paperclip-github-plugin:add_pull_request_to_project`
 - review-thread handling: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
 - reviewer wakeups: the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint or the equivalent runtime wake endpoint exposed by the installed build when the live stage or assignment has already advanced correctly
 
@@ -387,7 +388,7 @@ When PR assets are needed:
 - Save assets with descriptive names that include the issue or PR identifier and the state shown, for example `DEV-123-before-error-page.png`, `DEV-123-after-docs-render.png`, or `DEV-123-review-report.pdf`.
 - Do not paste base64 asset data into comments, do not rely on ephemeral local paths as the only evidence, and do not upload secrets, tokens, private user data, or unrelated browser chrome. Crop, redact, regenerate, or retake the asset if sensitive data is visible.
 - In QA, record which assets were captured or generated and what they prove in `qa-verification` so Code Reviewer can publish them with the PR.
-- In Code Review, upload PR-visible assets with `paperclip-github-plugin:upload_pull_request_asset` when plugin tools are available. Pass the PR target plus `fileName`, either `contentBase64` or `dataUrl`, and optional `label`, `alt`, `caption`, or `mimeType`; embed the returned `asset.markdown` in the PR body with `update_pull_request`.
+- In Code Review, upload PR-visible assets with `paperclip-github-plugin:upload_pull_request_asset` when plugin tools are available. Pass `paperclipIssueId` when acting from synced work, or `repository` plus `pullRequestNumber` for an explicit PR target, plus `fileName`, either `contentBase64` or `dataUrl`, and optional `label`, `alt`, `caption`, or `mimeType`; embed the returned `asset.markdown` in the PR body with `update_pull_request`.
 - If authenticated runtime blocks plugin tool execution, call `POST /api/plugins/paperclip-github-plugin/api/pull-request-assets` with `Authorization: Bearer ${PAPERCLIP_API_KEY}`, `Content-Type: application/json`, and the same JSON payload. Embed the response's `asset.markdown` in the PR body.
 - If asset upload fails, record the concrete blocker, such as missing token, missing contents write permission, unsupported size, unsafe filename, invalid base64, or host route failure. Do not claim assets are unavailable merely because GitHub's browser-only attachment uploader is unavailable.
 
