@@ -126,9 +126,10 @@ These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin cap
 - When `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association, even when an equivalent GitHub sync plugin tool exists.
 - If `GITHUB_TOKEN` is not available, use the agent tools below for GitHub operations they cover, including organization-project lookup and PR-to-project association.
 - By `GITHUB_TOKEN`, mean the environment variable with that exact name. Do not search the filesystem, plugin config, or other files for a token.
-- When an authenticated run creates a PR with `gh` or another non-plugin GitHub client in a repository mapped to the current company, immediately `POST /api/plugins/paperclip-github-plugin/api/company-metrics/events` with `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`. Include `companyId` only when useful for disambiguation; if present, it must match the calling agent's company.
-- Authenticate that request with `Authorization: Bearer ${PAPERCLIP_API_KEY}`. The Paperclip host authenticates the bearer token, scopes the request to the calling agent's company, and rejects missing, expired, invalid, non-agent, or cross-company calls before the plugin worker handles it.
-- This metric endpoint is a native plugin JSON route with agent auth, not a plugin-tool call or webhook.
+- When an authenticated run creates a PR with `gh` or another non-plugin GitHub client in a repository mapped to the current company, immediately create the durable PR-to-Paperclip link by posting to `POST /api/plugins/paperclip-github-plugin/api/issue-link` with `paperclipIssueId` plus `pullRequestUrl` or `reference`, then separately `POST /api/plugins/paperclip-github-plugin/api/company-metrics/events` with `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`. Include `companyId` only when useful for disambiguation; if present, it must match the calling agent's company.
+- The PR creation metric is not the issue link. Confirm the `issue-link` route returns `status: "linked"` before reporting the PR as tracked by GitHub Sync.
+- Authenticate both native plugin JSON routes with `Authorization: Bearer ${PAPERCLIP_API_KEY}`. The Paperclip host authenticates the bearer token, scopes each request to the calling agent's company, and rejects missing, expired, invalid, non-agent, or cross-company calls before the plugin worker handles it.
+- This metric endpoint is a native plugin JSON route with agent auth, not a plugin-tool call or webhook. The issue-link endpoint uses the same native route authentication.
 - Do not send that route call when `paperclip-github-plugin:create_pull_request` created the PR; the plugin records `pull_request_created` automatically. Do not send it for PR edits, comments, review replies, or merges.
 - This route exists because authenticated runs can create those PRs through `gh`, and GitHub alone cannot attribute those PRs to Paperclip work.
 - `PAPERCLIP_API_KEY` is already present in authenticated agent runs and is the credential for this route.
@@ -141,6 +142,11 @@ Example authenticated KPI attribution call:
 
 ```bash
 payload='{"metric":"pull_request_created","repository":"owner/repo","pullRequestNumber":123}'
+
+curl -fsS -X POST "${PAPERCLIP_API_URL%/}/api/plugins/paperclip-github-plugin/api/issue-link" \
+  -H "content-type: application/json" \
+  -H "authorization: Bearer ${PAPERCLIP_API_KEY}" \
+  -d '{"paperclipIssueId":"<paperclipIssueId>","pullRequestUrl":"https://github.com/owner/repo/pull/123"}'
 
 curl -fsS -X POST "${PAPERCLIP_API_URL%/}/api/plugins/paperclip-github-plugin/api/company-metrics/events" \
   -H "content-type: application/json" \
@@ -360,7 +366,7 @@ Important usage rules:
 - If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:list_organization_projects` during QA intake, or later verification when the upstream facts changed, to identify the best-fit Micronaut organization project set for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`).
 - If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:add_pull_request_to_project` after PR creation, when adopting an already-open surviving PR, or after agent retargeting when the chosen release board changed, so the live PR is linked to every selected organization project chosen during QA intake or any explicitly revised upstream decision. Do not use this repair path to undo a maintainer project change.
 - Naming the chosen organization project set in a Paperclip artifact, GitHub comment, or PR description is not a substitute for the live PR associations when the `gh` flow or no-`GITHUB_TOKEN` plugin tooling can apply them.
-- In `GITHUB_TOKEN`-backed runs, if `gh` or another non-plugin GitHub client created the PR in a repository mapped to the current company, call the metric API route immediately after creation using the bearer-token pattern above so the KPI dashboard can attribute that `pull_request_created` event to Paperclip work.
+- In `GITHUB_TOKEN`-backed runs, if `gh` or another non-plugin GitHub client created the PR in a repository mapped to the current company, call the `issue-link` API route immediately after creation so GitHub Sync can track the PR, then call the metric API route using the bearer-token pattern above so the KPI dashboard can attribute that `pull_request_created` event to Paperclip work.
 - For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel` to your exact runtime model id from `.paperclip.yaml`. The plugin appends the same Markdown footer automatically.
 - Use `paperclip-github-plugin:link_github_item` after creating or discovering an out-of-pipeline PR that should drive a Paperclip issue. Pass `kind: "pull_request"`, `paperclipIssueId`, and either `pullRequestUrl` or `reference`; include `repository` when you use a number-only reference and the Paperclip issue project is not mapped to that repository.
 - When plugin tools are unavailable, call `POST /api/plugins/paperclip-github-plugin/api/issue-link` with `Authorization: Bearer ${PAPERCLIP_API_KEY}`, `Content-Type: application/json`, and a JSON body containing `paperclipIssueId` plus `pullRequestUrl` or `reference` for the PR. Use the same route with `kind: "issue"` only when linking an existing GitHub issue to a Paperclip issue is the intended outcome.
