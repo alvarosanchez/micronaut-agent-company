@@ -128,8 +128,8 @@ These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin cap
 - By `GITHUB_TOKEN`, mean the environment variable with that exact name. Do not search the filesystem, plugin config, or other files for a token.
 - When an authenticated run creates a PR with `gh` or another non-plugin GitHub client in a repository mapped to the current company, immediately create the durable PR-to-Paperclip link by posting to `POST /api/plugins/paperclip-github-plugin/api/issue-link` with `paperclipIssueId` plus `pullRequestUrl` or `reference`, then separately `POST /api/plugins/paperclip-github-plugin/api/company-metrics/events` with `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`. Include `companyId` only when useful for disambiguation; if present, it must match the calling agent's company.
 - The PR creation metric is not the issue link. Confirm the `issue-link` route returns `status: "linked"` before reporting the PR as tracked by GitHub Sync.
-- Authenticate that request with `Authorization: Bearer ${PAPERCLIP_API_KEY}`. The Paperclip host authenticates the bearer token, scopes the request to the calling agent's company, and rejects missing, expired, invalid, non-agent, or cross-company calls before the plugin worker handles it.
-- This metric endpoint is a native plugin JSON route with agent auth, not a plugin-tool call or webhook.
+- Authenticate both native plugin JSON routes with `Authorization: Bearer ${PAPERCLIP_API_KEY}`. The Paperclip host authenticates the bearer token, scopes each request to the calling agent's company, and rejects missing, expired, invalid, non-agent, or cross-company calls before the plugin worker handles it.
+- This metric endpoint is a native plugin JSON route with agent auth, not a plugin-tool call or webhook. The issue-link endpoint uses the same native route authentication.
 - Do not send that route call when `paperclip-github-plugin:create_pull_request` created the PR; the plugin records `pull_request_created` automatically. Do not send it for PR edits, comments, review replies, or merges.
 - This route exists because authenticated runs can create those PRs through `gh`, and GitHub alone cannot attribute those PRs to Paperclip work.
 - `PAPERCLIP_API_KEY` is already present in authenticated agent runs and is the credential for this route.
@@ -146,7 +146,7 @@ payload='{"metric":"pull_request_created","repository":"owner/repo","pullRequest
 curl -fsS -X POST "${PAPERCLIP_API_URL%/}/api/plugins/paperclip-github-plugin/api/issue-link" \
   -H "content-type: application/json" \
   -H "authorization: Bearer ${PAPERCLIP_API_KEY}" \
-  -d '{"paperclipIssueId":"'"${PAPERCLIP_TASK_ID}"'","pullRequestUrl":"https://github.com/owner/repo/pull/123"}'
+  -d '{"paperclipIssueId":"<paperclipIssueId>","pullRequestUrl":"https://github.com/owner/repo/pull/123"}'
 
 curl -fsS -X POST "${PAPERCLIP_API_URL%/}/api/plugins/paperclip-github-plugin/api/company-metrics/events" \
   -H "content-type: application/json" \
