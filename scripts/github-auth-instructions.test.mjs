@@ -55,6 +55,12 @@ const KPI_API_ROUTE_COMPANY_ID_PATTERN =
   /companyId[\s\S]*(?:must match|matches) the calling agent's company/i;
 const KPI_API_ROUTE_LEGACY_WEBHOOK_PATH_PATTERN =
   /\/api\/plugins\/paperclip-github-plugin\/webhooks\/record-company-metric-event|\/webhooks\/record-company-metric-event/i;
+const PR_ISSUE_LINK_ROUTE_PATTERN =
+  /\/api\/plugins\/paperclip-github-plugin\/api\/issue-link[\s\S]{0,500}paperclipIssueId[\s\S]{0,500}(?:pullRequestUrl|reference)/i;
+const PR_ISSUE_LINK_BEFORE_METRIC_PATTERN =
+  /issue-link[\s\S]{0,700}(?:company-metrics\/events|pull_request_created)/i;
+const PR_ISSUE_LINK_VERIFICATION_PATTERN =
+  /(?:PR creation metric is not the issue link|metric is not the issue link)[\s\S]{0,220}(?:status:\s*"linked"|`status: "linked"`)|(?:status:\s*"linked"|`status: "linked"`)[\s\S]{0,220}(?:tracked by GitHub Sync|GitHub Sync can track)/i;
 const KPI_API_ROUTE_AGENT_PATHS = [
   "agents/ceo/AGENTS.md",
   "agents/code-reviewer/AGENTS.md",
@@ -89,6 +95,21 @@ function assertDirectGithubFooterPolicy(markdown, label) {
 }
 
 function assertPullRequestMetricApiRoutePolicy(markdown, label) {
+  assert.match(
+    markdown,
+    PR_ISSUE_LINK_ROUTE_PATTERN,
+    `${label} must create the durable PR-to-Paperclip issue link for gh-created PRs.`,
+  );
+  assert.match(
+    markdown,
+    PR_ISSUE_LINK_BEFORE_METRIC_PATTERN,
+    `${label} must create the issue link before recording the pull_request_created metric.`,
+  );
+  assert.match(
+    markdown,
+    PR_ISSUE_LINK_VERIFICATION_PATTERN,
+    `${label} must verify the issue-link response before reporting the PR as tracked.`,
+  );
   assert.match(
     markdown,
     KPI_API_ROUTE_ENDPOINT_PATTERN,
