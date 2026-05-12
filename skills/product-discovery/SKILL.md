@@ -45,7 +45,7 @@ In a project-specific product-discovery child issue or subtask:
 - Deduplicate candidates against open and closed GitHub issues in the same repository and against existing Paperclip product development issues in the project.
 - Do not propose or create the same previously proposed feature candidate from a prior run unless new evidence materially changes the decision. When the same gap appears again, cite the earlier created issue, duplicate finding, rejected candidate, or no-create decision instead of opening another request.
 - Pick at most one high-value non-duplicative feature request for the project in a routine run.
-- When justified, create one top-level Paperclip product development issue in the same Paperclip project with status `backlog`, workMode: standard, no `parentId`, and assignee QA (`qa-engineer`). Pass the backlog status explicitly so assigned issue creation does not auto-dispatch the proposal as `todo`.
+- When justified, create one top-level Paperclip product development issue in the same Paperclip project with `status: backlog`, `workMode: standard`, no `parentId`, and assignee QA (`qa-engineer`). Pass the backlog status explicitly so assigned issue creation does not auto-dispatch the proposal as `todo`.
 - Include `Intended GitHub label: type: enhancement` in the product development issue body unless an equivalent Paperclip label can be applied safely.
 - Do not publish issues to GitHub from Product Manager discovery.
 
