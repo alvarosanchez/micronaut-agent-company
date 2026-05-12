@@ -13,7 +13,7 @@ const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, "..");
 const DEFAULT_DATA_DIR = path.join(REPO_ROOT, ".paperclip-local");
 const DEFAULT_PORT = 3100;
-const DEFAULT_PAPERCLIP_PACKAGE = "paperclipai@2026.428.0";
+const DEFAULT_PAPERCLIP_PACKAGE = "paperclipai@2026.512.0";
 const DEFAULT_AGENT_COMPANIES_PLUGIN_PACKAGE = "paperclip-agent-companies-plugin";
 const DEFAULT_AGENT_COMPANIES_PLUGIN_KEY = "paperclip-agent-companies-plugin";
 const DEFAULT_GITHUB_PLUGIN_PACKAGE = "paperclip-github-plugin";
@@ -41,7 +41,7 @@ Options:
   --company-name <name>      Imported company name override
   --company-source <source>  Agent Companies source path/repo (default: current checkout)
   --github-token <token>     Optional GitHub token for GitHub Sync fallback config
-  --paperclip-package <pkg>  Paperclip CLI package (default: paperclipai@2026.428.0)
+  --paperclip-package <pkg>  Paperclip CLI package (default: paperclipai@2026.512.0)
   --agent-companies-plugin <pkg>
                              Agent Companies plugin npm package (default: paperclip-agent-companies-plugin)
   --github-plugin <pkg>      GitHub plugin npm package (default: paperclip-github-plugin)

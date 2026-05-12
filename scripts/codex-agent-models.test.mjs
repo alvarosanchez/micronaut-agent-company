@@ -36,3 +36,22 @@ test("README runtime defaults match the package agent model and reasoning settin
     );
   }
 });
+
+test("Codex local agents explicitly bypass the git repository trust check", async () => {
+  const extension = YAML.parse(await read("../.paperclip.yaml"));
+  const readme = await read("../README.md");
+
+  for (const [agentSlug, agent] of Object.entries(extension.agents ?? {})) {
+    assert.deepEqual(
+      agent?.adapter?.config?.extraArgs,
+      ["--skip-git-repo-check"],
+      `${agentSlug} must explicitly set the Paperclip 2026.512 Codex import argument.`,
+    );
+  }
+
+  assert.match(
+    readme,
+    /--skip-git-repo-check[\s\S]{0,260}(?:Codex|codex_local|git repository trust check)/i,
+    "README must document the explicit Codex git repository trust check argument.",
+  );
+});

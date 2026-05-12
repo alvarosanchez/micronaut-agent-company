@@ -11,6 +11,8 @@ agents:
         modelReasoningEffort: high
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
+        extraArgs:
+          - --skip-git-repo-check
   product-manager:
     adapter:
       type: codex_local
@@ -19,6 +21,8 @@ agents:
         modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
+        extraArgs:
+          - --skip-git-repo-check
   architect:
     adapter:
       type: codex_local
@@ -27,6 +31,8 @@ agents:
         modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
+        extraArgs:
+          - --skip-git-repo-check
   qa-engineer:
     adapter:
       type: codex_local
@@ -35,6 +41,8 @@ agents:
         modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
+        extraArgs:
+          - --skip-git-repo-check
   security-engineer:
     adapter:
       type: codex_local
@@ -43,6 +51,8 @@ agents:
         modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
+        extraArgs:
+          - --skip-git-repo-check
   micronaut-engineer:
     adapter:
       type: codex_local
@@ -51,6 +61,8 @@ agents:
         modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
+        extraArgs:
+          - --skip-git-repo-check
   code-reviewer:
     adapter:
       type: codex_local
@@ -59,6 +71,8 @@ agents:
         modelReasoningEffort: xhigh
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
+        extraArgs:
+          - --skip-git-repo-check
   technical-writer:
     adapter:
       type: codex_local
@@ -67,6 +81,8 @@ agents:
         modelReasoningEffort: medium
         search: true
         dangerouslyBypassApprovalsAndSandbox: true
+        extraArgs:
+          - --skip-git-repo-check
 routines:
   weekly-product-discovery:
     status: active
