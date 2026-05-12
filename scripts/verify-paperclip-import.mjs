@@ -107,6 +107,10 @@ const NEW_HIRE_APPROVAL_POLICY_PATTERN =
   /requireBoardApprovalForNewAgents[\s\S]{0,260}false[\s\S]{0,260}(?:new-hire approval|hire approval|future hires)|new-hire approval[\s\S]{0,260}(?:opt-in|explicit)[\s\S]{0,260}requireBoardApprovalForNewAgents/i;
 const PRODUCTIVITY_REVIEW_PATTERN =
   /productivity review[\s\S]{0,420}(?:issue_productivity_review|no-comment|long-active|high-churn|high churn|long active)[\s\S]{0,620}(?:source issue|source work|review issue|manager decision|queue-health|queue health)/i;
+const PAPERCLIP_2026_512_ASSIGNED_STATUS_DEFAULT_PATTERN =
+  /Paperclip (?:v|`?paperclipai@)2026\.512\.0[\s\S]{0,900}assigned[\s\S]{0,360}status[\s\S]{0,260}(?:todo|TODO)[\s\S]{0,360}(?:explicit|omitted)/i;
+const PAPERCLIP_2026_512_PLANNING_MODE_PATTERN =
+  /planning mode[\s\S]{0,700}(?:plan only|planning-only|do not write code|not start implementation)[\s\S]{0,700}(?:child implementation issues|standard delivery issues?|standard work mode)|(?:child implementation issues|standard delivery issues?|standard work mode)[\s\S]{0,700}planning mode[\s\S]{0,700}(?:plan only|planning-only|do not write code|not start implementation)/i;
 const LIVE_INSTANCE_TEMPLATE_IDENTITY_PATTERN =
   /operator-selected live company names?, descriptions?, and issue prefixes? are valid import choices[\s\S]{0,240}(?:routing|governance visibility|package-owned entity mapping)|(?:routing|governance visibility|package-owned entity mapping)[\s\S]{0,240}operator-selected live company names?, descriptions?, and issue prefixes? are valid import choices/i;
 const SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN =
@@ -165,6 +169,30 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: PRODUCTIVITY_REVIEW_PATTERN,
     message:
       "README.md must explain Paperclip productivity review issues.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: PAPERCLIP_2026_512_ASSIGNED_STATUS_DEFAULT_PATTERN,
+    message:
+      "README.md must explain Paperclip 2026.512 assigned-issue status defaults.",
+  },
+  {
+    relativePath: "README.md",
+    pattern: PAPERCLIP_2026_512_PLANNING_MODE_PATTERN,
+    message:
+      "README.md must explain Paperclip 2026.512 planning-mode issue semantics.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: PAPERCLIP_2026_512_ASSIGNED_STATUS_DEFAULT_PATTERN,
+    message:
+      "COMPANY.md must explain Paperclip 2026.512 assigned-issue status defaults.",
+  },
+  {
+    relativePath: "COMPANY.md",
+    pattern: PAPERCLIP_2026_512_PLANNING_MODE_PATTERN,
+    message:
+      "COMPANY.md must explain Paperclip 2026.512 planning-mode issue semantics.",
   },
   {
     relativePath: "README.md",

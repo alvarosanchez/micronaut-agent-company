@@ -5,19 +5,20 @@ import { readFile } from "node:fs/promises";
 import YAML from "yaml";
 
 const TEN_MIB = 10 * 1024 * 1024;
+const PAPERCLIP_RELEASE_UNDER_TEST = "2026.512.0";
 
 async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("package pins the Paperclip v2026.428.0 runtime for local verification", async () => {
+test("package pins the Paperclip v2026.512.0 runtime for local verification", async () => {
   const packageJson = JSON.parse(await read("../package.json"));
   const setupScript = await read("./setup-local-paperclip-instance.mjs");
 
-  assert.equal(packageJson.devDependencies.paperclipai, "2026.428.0");
+  assert.equal(packageJson.devDependencies.paperclipai, PAPERCLIP_RELEASE_UNDER_TEST);
   assert.match(
     setupScript,
-    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.428\.0"/,
+    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.512\.0"/,
   );
 });
 
@@ -26,6 +27,54 @@ test("Paperclip company extension declares v2026.428 company defaults explicitly
 
   assert.equal(extension.company?.requireBoardApprovalForNewAgents, false);
   assert.equal(extension.company?.attachmentMaxBytes, TEN_MIB);
+});
+
+test("guidance preserves normal delivery work as standard-mode issue work", async () => {
+  const requiredPaths = [
+    "../README.md",
+    "../COMPANY.md",
+    "../agents/architect/AGENTS.md",
+    "../agents/product-manager/AGENTS.md",
+    "../skills/product-discovery/SKILL.md",
+    "../skills/micronaut-repo-operations/SKILL.md",
+  ];
+
+  for (const relativePath of requiredPaths) {
+    const markdown = await read(relativePath);
+
+    assert.match(
+      markdown,
+      /workMode:\s*standard|standard work mode|standard-mode issue/i,
+      `${relativePath} must require standard work mode for normal delivery issues.`,
+    );
+  }
+});
+
+test("guidance handles Paperclip v2026.512 issue defaults and planning mode", async () => {
+  for (const relativePath of ["../README.md", "../COMPANY.md"]) {
+    const markdown = await read(relativePath);
+
+    assert.match(
+      markdown,
+      /Paperclip (?:v|`?paperclipai@)2026\.512\.0[\s\S]{0,900}assigned[\s\S]{0,360}status[\s\S]{0,260}(?:todo|TODO)[\s\S]{0,360}(?:explicit|omitted)/i,
+      `${relativePath} must document the assigned-issue status default introduced in Paperclip v2026.512.0.`,
+    );
+    assert.match(
+      markdown,
+      /planning mode[\s\S]{0,700}(?:plan only|planning-only|do not write code|not start implementation)[\s\S]{0,700}(?:child implementation issues|standard delivery issue|standard work mode)|(?:child implementation issues|standard delivery issue|standard work mode)[\s\S]{0,700}planning mode[\s\S]{0,700}(?:plan only|planning-only|do not write code|not start implementation)/i,
+      `${relativePath} must explain that planning-mode issues are plan-only and separate from standard delivery issues.`,
+    );
+  }
+
+  const source = await read("./verify-paperclip-import.mjs");
+  assert.match(
+    source,
+    /README\.md must explain Paperclip 2026\.512 planning-mode issue semantics\./,
+  );
+  assert.match(
+    source,
+    /README\.md must explain Paperclip 2026\.512 assigned-issue status defaults\./,
+  );
 });
 
 test("docs explain v2026.428 company-level attachment and hiring semantics", async () => {

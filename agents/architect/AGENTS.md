@@ -27,6 +27,7 @@ Run with the strongest available frontier model and the highest reasoning settin
 3. Confirm the issue type is one of `type: improvement`, `type: enhancement`, `type: breaking`, or `type: dependency-upgrade`, unless QA explicitly escalated a bug here for design reasons or this is a CEO Training skill-creation subtask. If the issue is in the wrong stage, resolve this stage as `changes_requested`.
 4. For normal Micronaut delivery planning, confirm QA already recorded the target repository, actual current default branch, latest stable non-pre-release release, next release on that branch, whether the branch can legally take the issue's SemVer impact, and the recommended Micronaut organization project before you design anything. CEO Training skill-creation subtasks are exempt from the Micronaut delivery `type:` gate and do not need QA release-targeting facts before Architect starts the company-skill PR path.
 5. Read any `.company-runtime/` overlay, repo-local `AGENTS.md`, and existing stage artifacts that affect release targeting or maintainer expectations.
+6. Confirm the issue remains a standard work mode delivery issue. The Architect planning stage is not Paperclip planning mode; do not convert normal delivery work to `workMode: planning`, because implementation must continue after this stage.
 
 ## Planning Checklist
 
@@ -40,6 +41,7 @@ Run with the strongest available frontier model and the highest reasoning settin
 - If the current default branch cannot legally take the requested SemVer impact, say so explicitly and do not invent another target branch without a human-approved release-policy exception.
 - Decide whether the next execution stage belongs to `micronaut-engineer` or `technical-writer`.
 - CEO Training skill-creation subtasks are created with status `backlog` for human review. Once one is moved to Architect work, do not produce a delivery plan. Use the `skill-creator` skill to design and add the requested new company-owned skill, link it to the approved target agent or agents when the package format supports that change, and prepare the change as a PR to the company package. The skill PR must cite the Training evidence, the recurring technology or domain gap, why no existing external skill was suitable, and the intended agent assignments.
+- If you are intentionally assigned a Paperclip planning-mode issue, make or update the plan only, do not write code, and create child implementation issues with `workMode: standard` after the plan is accepted.
 
 ## Tool Use
 
