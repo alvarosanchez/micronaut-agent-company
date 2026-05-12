@@ -61,6 +61,10 @@ const PR_ISSUE_LINK_BEFORE_METRIC_PATTERN =
   /issue-link[\s\S]{0,700}(?:company-metrics\/events|pull_request_created)/i;
 const PR_ISSUE_LINK_VERIFICATION_PATTERN =
   /(?:PR creation metric is not the issue link|metric is not the issue link)[\s\S]{0,220}(?:status:\s*"linked"|`status: "linked"`)|(?:status:\s*"linked"|`status: "linked"`)[\s\S]{0,220}(?:tracked by GitHub Sync|GitHub Sync can track)/i;
+const GITHUB_SYNC_AGENT_UNLINK_FORBIDDEN_PATTERN =
+  /GitHub Sync[\s\S]{0,240}(?:links|issue-link|pull-request-link)[\s\S]{0,240}durable[\s\S]{0,400}Agents[\s\S]{0,240}must not[\s\S]{0,240}(?:unlink|tombstone|delete|deactivate)/i;
+const GITHUB_SYNC_OPERATOR_UNLINK_PATTERN =
+  /intentional unlinking[\s\S]{0,160}operator UI action|operator UI action[\s\S]{0,160}intentional unlinking/i;
 const KPI_API_ROUTE_AGENT_PATHS = [
   "agents/ceo/AGENTS.md",
   "agents/code-reviewer/AGENTS.md",
@@ -169,6 +173,19 @@ function assertPullRequestMetricApiRoutePolicy(markdown, label) {
     markdown,
     KPI_API_ROUTE_LEGACY_WEBHOOK_PATH_PATTERN,
     `${label} must not mention the old company metric webhook path.`,
+  );
+}
+
+function assertGitHubSyncAgentUnlinkPolicy(markdown, label) {
+  assert.match(
+    markdown,
+    GITHUB_SYNC_AGENT_UNLINK_FORBIDDEN_PATTERN,
+    `${label} must forbid agents from unlinking or tombstoning GitHub Sync issue/PR links.`,
+  );
+  assert.match(
+    markdown,
+    GITHUB_SYNC_OPERATOR_UNLINK_PATTERN,
+    `${label} must preserve intentional operator UI unlinking as distinct from agent behavior.`,
   );
 }
 
@@ -308,6 +325,24 @@ test("Shared Micronaut repo operations explain PR KPI API route attribution", as
     markdown,
     "skills/micronaut-repo-operations/SKILL.md",
   );
+});
+
+test("GitHub Sync link policy forbids agent unlinking while preserving operator unlinking", async () => {
+  const sharedOperations = await readFile(
+    new URL("../skills/micronaut-repo-operations/SKILL.md", import.meta.url),
+    "utf8",
+  );
+  assertGitHubSyncAgentUnlinkPolicy(
+    sharedOperations,
+    "skills/micronaut-repo-operations/SKILL.md",
+  );
+
+  const ceoInstructions = await readFile(
+    new URL("../agents/ceo/AGENTS.md", import.meta.url),
+    "utf8",
+  );
+  const { body } = parseFrontmatter(ceoInstructions);
+  assertGitHubSyncAgentUnlinkPolicy(body, "agents/ceo/AGENTS.md");
 });
 
 test("PR-creating agents explain the authenticated PR KPI API route rule", async () => {
