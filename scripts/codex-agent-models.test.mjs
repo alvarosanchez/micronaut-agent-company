@@ -55,3 +55,25 @@ test("Codex local agents explicitly bypass the git repository trust check", asyn
     "README must document the explicit Codex git repository trust check argument.",
   );
 });
+
+test("Codex local agents disable the cheap model profile", async () => {
+  const extension = YAML.parse(await read("../.paperclip.yaml"));
+  const readme = await read("../README.md");
+
+  for (const [agentSlug, agent] of Object.entries(extension.agents ?? {})) {
+    assert.deepEqual(
+      agent?.runtime?.modelProfiles?.cheap,
+      {
+        enabled: false,
+        adapterConfig: {},
+      },
+      `${agentSlug} must explicitly disable the Paperclip cheap model profile.`,
+    );
+  }
+
+  assert.match(
+    readme,
+    /cheap model profile[\s\S]{0,260}(?:disabled|enabled:\s*false)|enabled:\s*false[\s\S]{0,260}cheap model profile/i,
+    "README must document that the cheap model profile is disabled for package agents.",
+  );
+});
