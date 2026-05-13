@@ -1133,6 +1133,19 @@ function assertImportedCodexAdapterConfig(actualAgent, expectedAdapter, agentSlu
   );
 }
 
+function assertImportedAgentRuntimeConfig(actualAgent, expectedRuntime, agentSlug) {
+  const expectedCheapProfile = expectedRuntime?.modelProfiles?.cheap ?? null;
+  if (!expectedCheapProfile) {
+    return;
+  }
+
+  assert.deepEqual(
+    actualAgent?.runtimeConfig?.modelProfiles?.cheap ?? null,
+    expectedCheapProfile,
+    `Runtime cheap model profile config mismatch for imported agent ${agentSlug}`,
+  );
+}
+
 function normalizeSkillReference(skillReference) {
   return skillReference.includes("/")
     ? skillReference.split("/").at(-1) ?? skillReference
@@ -1509,6 +1522,7 @@ async function loadSourceExpectations(rootDir) {
         reportsTo: frontmatter.reportsTo ?? null,
         skills: Array.isArray(frontmatter.skills) ? frontmatter.skills : [],
         adapter: extension?.agents?.[slug]?.adapter ?? null,
+        runtime: extension?.agents?.[slug]?.runtime ?? null,
         paperclipAgentIcon,
         path: relativePath,
         body: normalizeText(body),
@@ -1938,6 +1952,11 @@ async function main() {
         assertImportedCodexAdapterConfig(
           importedAgent,
           expectedAgent.adapter,
+          expectedAgent.slug,
+        );
+        assertImportedAgentRuntimeConfig(
+          importedAgent,
+          expectedAgent.runtime,
           expectedAgent.slug,
         );
         return [expectedAgent.slug, importedAgent.id];

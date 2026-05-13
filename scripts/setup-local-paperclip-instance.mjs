@@ -468,20 +468,29 @@ async function stopPaperclip(child) {
 }
 
 async function ensurePlugin(apiBase, packageName, pluginKey) {
-  const installed = await apiRequest(apiBase, "GET", "/api/plugins");
-  const existing = installed.find((plugin) => plugin.pluginKey === pluginKey);
-  if (!existing) {
+  const findInstalledPlugin = async () => {
+    const installed = await apiRequest(apiBase, "GET", "/api/plugins");
+    return installed.find((plugin) => plugin.pluginKey === pluginKey) ?? null;
+  };
+
+  let plugin = await findInstalledPlugin();
+  if (!plugin) {
     await apiRequest(apiBase, "POST", "/api/plugins/install", { packageName });
-  } else if (existing.status !== "ready") {
-    await apiRequest(apiBase, "POST", `/api/plugins/${pluginKey}/enable`, {});
+    plugin = await findInstalledPlugin();
+  } else if (plugin.status !== "ready") {
+    await apiRequest(apiBase, "POST", `/api/plugins/${plugin.id}/enable`, {});
+  }
+  if (!plugin?.id) {
+    throw new Error(`Plugin ${pluginKey} was not installed.`);
   }
 
   for (let attempt = 0; attempt < 60; attempt += 1) {
-    const health = await apiRequest(apiBase, "GET", `/api/plugins/${pluginKey}/health`);
+    const health = await apiRequest(apiBase, "GET", `/api/plugins/${plugin.id}/health`);
     if (health?.healthy) {
-      return health;
+      return { ...plugin, health };
     }
     await new Promise((resolve) => setTimeout(resolve, 1000));
+    plugin = await findInstalledPlugin() ?? plugin;
   }
   throw new Error(`Plugin ${pluginKey} did not become ready.`);
 }
@@ -665,7 +674,7 @@ async function launchChromiumHeadless() {
   }
 }
 
-async function importCompanyWithAgentCompaniesPlugin(apiBase, opts) {
+async function importCompanyWithAgentCompaniesPlugin(apiBase, opts, agentCompaniesPluginId) {
   const browser = await launchChromiumHeadless();
   try {
     const page = await browser.newPage();
@@ -765,7 +774,7 @@ async function importCompanyWithAgentCompaniesPlugin(apiBase, opts) {
       {
         apiBase,
         companySource: opts.companySource,
-        pluginKey: DEFAULT_AGENT_COMPANIES_PLUGIN_KEY,
+        pluginKey: agentCompaniesPluginId,
       },
     );
 
@@ -948,7 +957,7 @@ async function importCompanyWithAgentCompaniesPlugin(apiBase, opts) {
         companyName: opts.companyName,
         issueOnlyInclude,
         issueOnlySource,
-        pluginKey: DEFAULT_AGENT_COMPANIES_PLUGIN_KEY,
+        pluginKey: agentCompaniesPluginId,
         preIssueInclude,
         preIssueSource,
         selectedAgentSlugs,
@@ -987,13 +996,13 @@ async function ensureRepositoryProject(apiBase, companyId, repoUrl, projectName,
   });
 }
 
-async function saveGitHubMapping(apiBase, companyId, project, repoUrl) {
+async function saveGitHubMapping(apiBase, companyId, project, repoUrl, githubPluginId) {
   const currentConfig = await apiRequest(
     apiBase,
     "GET",
-    `/api/plugins/${DEFAULT_GITHUB_PLUGIN_KEY}/config`,
+    `/api/plugins/${githubPluginId}/config`,
   );
-  await apiRequest(apiBase, "POST", `/api/plugins/${DEFAULT_GITHUB_PLUGIN_KEY}/config`, {
+  await apiRequest(apiBase, "POST", `/api/plugins/${githubPluginId}/config`, {
     configJson: {
       ...(currentConfig?.configJson ?? {}),
       paperclipApiBaseUrl: apiBase,
@@ -1010,7 +1019,7 @@ async function saveGitHubMapping(apiBase, companyId, project, repoUrl) {
   return apiRequest(
     apiBase,
     "POST",
-    `/api/plugins/${DEFAULT_GITHUB_PLUGIN_KEY}/actions/settings.saveRegistration`,
+    `/api/plugins/${githubPluginId}/actions/settings.saveRegistration`,
     {
       companyId,
       params: {
@@ -1172,20 +1181,32 @@ async function main() {
     const experimentalSettings = await enableExperimentalInstanceSettings(apiBase);
 
     console.log(`Installing ${opts.agentCompaniesPluginPackage} from npm`);
-    await ensurePlugin(
+    const agentCompaniesPlugin = await ensurePlugin(
       apiBase,
       opts.agentCompaniesPluginPackage,
       DEFAULT_AGENT_COMPANIES_PLUGIN_KEY,
     );
 
     console.log(`Installing ${opts.githubPluginPackage} from npm`);
-    await ensurePlugin(apiBase, opts.githubPluginPackage, DEFAULT_GITHUB_PLUGIN_KEY);
+    const githubPlugin = await ensurePlugin(
+      apiBase,
+      opts.githubPluginPackage,
+      DEFAULT_GITHUB_PLUGIN_KEY,
+    );
 
     console.log(`Installing ${opts.micronautPluginPackage} from npm`);
-    await ensurePlugin(apiBase, opts.micronautPluginPackage, DEFAULT_MICRONAUT_PLUGIN_KEY);
+    const micronautPlugin = await ensurePlugin(
+      apiBase,
+      opts.micronautPluginPackage,
+      DEFAULT_MICRONAUT_PLUGIN_KEY,
+    );
 
     console.log(`Importing this company package from ${opts.companySource} with headless Playwright`);
-    const importedCompany = await importCompanyWithAgentCompaniesPlugin(apiBase, opts);
+    const importedCompany = await importCompanyWithAgentCompaniesPlugin(
+      apiBase,
+      opts,
+      agentCompaniesPlugin.id,
+    );
     const company = await apiRequest(apiBase, "GET", `/api/companies/${importedCompany.id}`);
     const dashboardUrl = buildCompanyDashboardUrl(apiBase, company);
 
@@ -1199,7 +1220,7 @@ async function main() {
     );
 
     console.log("Saving GitHub Sync repository mapping");
-    await saveGitHubMapping(apiBase, company.id, project, repoUrl);
+    await saveGitHubMapping(apiBase, company.id, project, repoUrl, githubPlugin.id);
 
     const summaryPath = await writeSummary(opts, {
       apiBase,
@@ -1219,9 +1240,18 @@ async function main() {
         source: opts.companySource,
       },
       plugins: {
-        agentCompanies: DEFAULT_AGENT_COMPANIES_PLUGIN_KEY,
-        github: DEFAULT_GITHUB_PLUGIN_KEY,
-        micronaut: DEFAULT_MICRONAUT_PLUGIN_KEY,
+        agentCompanies: {
+          key: DEFAULT_AGENT_COMPANIES_PLUGIN_KEY,
+          id: agentCompaniesPlugin.id,
+        },
+        github: {
+          key: DEFAULT_GITHUB_PLUGIN_KEY,
+          id: githubPlugin.id,
+        },
+        micronaut: {
+          key: DEFAULT_MICRONAUT_PLUGIN_KEY,
+          id: micronautPlugin.id,
+        },
       },
       registeredRepository: {
         repoUrl,

@@ -13,6 +13,11 @@ agents:
         dangerouslyBypassApprovalsAndSandbox: true
         extraArgs:
           - --skip-git-repo-check
+    runtime:
+      modelProfiles:
+        cheap:
+          enabled: false
+          adapterConfig: {}
   product-manager:
     adapter:
       type: codex_local
@@ -23,6 +28,11 @@ agents:
         dangerouslyBypassApprovalsAndSandbox: true
         extraArgs:
           - --skip-git-repo-check
+    runtime:
+      modelProfiles:
+        cheap:
+          enabled: false
+          adapterConfig: {}
   architect:
     adapter:
       type: codex_local
@@ -33,6 +43,11 @@ agents:
         dangerouslyBypassApprovalsAndSandbox: true
         extraArgs:
           - --skip-git-repo-check
+    runtime:
+      modelProfiles:
+        cheap:
+          enabled: false
+          adapterConfig: {}
   qa-engineer:
     adapter:
       type: codex_local
@@ -43,6 +58,11 @@ agents:
         dangerouslyBypassApprovalsAndSandbox: true
         extraArgs:
           - --skip-git-repo-check
+    runtime:
+      modelProfiles:
+        cheap:
+          enabled: false
+          adapterConfig: {}
   security-engineer:
     adapter:
       type: codex_local
@@ -53,6 +73,11 @@ agents:
         dangerouslyBypassApprovalsAndSandbox: true
         extraArgs:
           - --skip-git-repo-check
+    runtime:
+      modelProfiles:
+        cheap:
+          enabled: false
+          adapterConfig: {}
   micronaut-engineer:
     adapter:
       type: codex_local
@@ -63,6 +88,11 @@ agents:
         dangerouslyBypassApprovalsAndSandbox: true
         extraArgs:
           - --skip-git-repo-check
+    runtime:
+      modelProfiles:
+        cheap:
+          enabled: false
+          adapterConfig: {}
   code-reviewer:
     adapter:
       type: codex_local
@@ -73,6 +103,11 @@ agents:
         dangerouslyBypassApprovalsAndSandbox: true
         extraArgs:
           - --skip-git-repo-check
+    runtime:
+      modelProfiles:
+        cheap:
+          enabled: false
+          adapterConfig: {}
   technical-writer:
     adapter:
       type: codex_local
@@ -83,6 +118,11 @@ agents:
         dangerouslyBypassApprovalsAndSandbox: true
         extraArgs:
           - --skip-git-repo-check
+    runtime:
+      modelProfiles:
+        cheap:
+          enabled: false
+          adapterConfig: {}
 routines:
   weekly-product-discovery:
     status: active
