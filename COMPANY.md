@@ -3,7 +3,7 @@ name: Micronaut Agent Company
 description: Agent company for Micronaut open-source maintenance that drives a related repository cluster to zero open GitHub issues and pull requests through triage, planning, implementation, QA, security review, code review, and documentation.
 slug: micronaut-agent-company
 schema: agentcompanies/v1
-version: 1.5.2
+version: 1.5.3
 license: MIT
 authors:
   - name: Álvaro Sánchez-Mariscal
