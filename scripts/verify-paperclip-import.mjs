@@ -360,16 +360,16 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   {
     relativePath: "README.md",
     pattern:
-      /QA Engineer[\s\S]*default-branch and release-fact gathering[\s\S]*SemVer targeting[\s\S]*organization-project (?:set )?selection/i,
+      /QA Engineer[\s\S]*default-branch and release-fact gathering[\s\S]*SemVer(?:-delta)?(?: targeting|-delta target-branch selection| target-branch selection)[\s\S]*organization-project (?:set )?selection/i,
     message:
-      "README.md must explain that QA intake owns default-branch release facts, SemVer targeting, and organization-project selection.",
+      "README.md must explain that QA intake owns default-branch release facts, SemVer target-branch selection, and organization-project selection.",
   },
   {
     relativePath: "README.md",
     pattern:
-      /Trust the repository's actual current default branch[\s\S]*If the current default branch has never been released[\s\S]*If the current default branch has already been released/i,
+      /Trust the repository's actual current default branch[\s\S]*PR target branch is not automatically the default branch[\s\S]*major\/minor\/patch release target/i,
     message:
-      "README.md must explain that agents trust the live default branch and distinguish unreleased from already-released default branches.",
+      "README.md must explain that agents trust the live default branch as the next-release signal, but select the PR target branch from the major/minor/patch release target.",
   },
   {
     relativePath: "README.md",

@@ -203,10 +203,10 @@ Actionable issues and PRs should carry exactly one `type:` label:
 
 - `type: breaking` for changes that would require a major module version and explicit Architect approval
 - `type: enhancement` for new non-breaking feature work that normally implies a minor module version
-- `type: improvement` for small non-breaking product changes that should fit the current default branch when improvements are allowed there
+- `type: improvement` for small non-breaking product changes that should fit patch, minor, or major release targets when the approved target branch allows improvements
 - `type: docs` for documentation-only changes
 - `type: dependency-upgrade` for squad-originated version bumps that are not Dependabot work; route it by actual compatibility impact, not by label alone
-- `type: bug` for bug fixes that should fit the current default branch when bugfixes are allowed there
+- `type: bug` for bug fixes that should fit patch, minor, or major release targets when the approved target branch allows bugfixes
 - `type: question` for questions QA can answer directly or route into a clarification request
 
 Duplicate, stale, superseded, out-of-scope, and already-implemented issues are immediate-closure dispositions that may be closed without forcing a `type:` label if the closure path is well documented.
@@ -236,19 +236,21 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 
 ## Release Targeting And Branch Rules
 
-- Confirm the correct target repository, branch, and release line before planning or coding.
-- QA intake owns release targeting and Micronaut organization-project selection. Later stages consume and verify those facts instead of reinventing them from scratch.
-- Trust the repository's actual current default branch instead of assuming a generic Micronaut branch strategy.
-- Determine the next release from the repository's default branch plus the latest stable non-pre-release GitHub release.
+- Confirm the correct target repository, approved target branch, and release line before planning or coding.
+- QA intake owns release targeting, target-branch selection, and Micronaut organization-project selection. Later stages consume and verify those facts instead of reinventing them from scratch.
+- Trust the repository's actual current default branch as the signal for the next intended repository release instead of assuming a generic Micronaut branch strategy, but do not treat the PR target branch as automatically the default branch.
+- Determine the next release from the repository's default branch plus the latest stable non-pre-release GitHub release, then compute the SemVer delta from that latest stable release to the next release. That SemVer delta is what decides whether the default branch can be the PR target branch for the issue's `type:` label.
 - GitHub prereleases, including milestones such as `4.0.0-M1` and release candidates such as `4.0.0-RC1`, are early-testing releases and do not count as the default branch having already shipped.
-- If the default branch is `1.2.x` and the latest stable non-pre-release release is `1.1.5`, the next release on that branch is `1.2.0`, so that default branch has not shipped yet.
-- If the default branch is `1.2.x` and the latest stable non-pre-release release is `1.2.3`, the next release on that branch is `1.2.4`, so that default branch is already on a patch line.
-- If the current default branch has never been released, it may accept `type: bug`, `type: improvement`, `type: enhancement`, and docs, CI, or build-only changes. If that unreleased default branch is a new major line such as `5.0.x`, it may also accept `type: breaking` work with the required approvals.
-- If the current default branch has already been released, it may accept `type: bug`, `type: improvement`, and docs, CI, or build-only changes. `type: enhancement` and `type: breaking` do not target that branch unless a human-approved release-policy exception exists.
+- If the latest stable release is `1.2.3`, the default branch is `2.0.x`, and the next release is `2.0.0`, the SemVer delta is major. That default branch may accept `type: bug`, `type: improvement`, `type: enhancement`, docs, CI, build-only changes, and `type: breaking` work with the required Architect and human approvals.
+- If the latest stable release is `1.2.3`, the default branch is `1.2.x`, and the next release is `1.2.4`, the SemVer delta is patch. That default branch may accept `type: bug`, `type: improvement`, docs, CI, or build-only changes. `type: enhancement` and `type: breaking` do not fit that patch target branch unless a human-approved release-policy exception identifies a different target.
+- If the latest stable release is `1.2.3`, the default branch is `1.3.x`, and the next release is `1.3.0`, the SemVer delta is minor. That default branch may accept `type: bug`, `type: improvement`, `type: enhancement`, docs, CI, or build-only changes. `type: breaking` does not fit that minor target branch unless a human-approved release-policy exception identifies a different target.
+- If the current default branch has never been released, it may accept `type: bug`, `type: improvement`, `type: enhancement`, and docs, CI, or build-only changes when the SemVer delta is minor or major. If that unreleased default branch is a new major line such as `5.0.x`, it may also accept `type: breaking` work with the required approvals.
+- If the current default branch has already been released and the next release is only a patch, it may accept `type: bug`, `type: improvement`, and docs, CI, or build-only changes. `type: enhancement` and `type: breaking` do not target that branch unless a human-approved release-policy exception exists.
 - `type: dependency-upgrade` follows the actual compatibility impact of the resulting repository release, not the label alone.
-- Do not invent or create another target branch during triage just to fit SemVer. If the current default branch cannot legally take the requested SemVer impact, QA records that mismatch and routes the issue into planning or governance instead of targeting a non-default branch by default.
-- Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform releases.
-- QA should choose the best-fit Micronaut organization project set during intake from the open, public Micronaut organization projects (`is:open is:public`) by asking which Micronaut Platform release can first consume the repository's next release.
+- If the issue's SemVer impact does not fit the default branch's next release target, QA records that mismatch and routes the issue into planning or governance. Agents may target an alternative branch only when a maintainer, Architect-approved plan, or linked human approval names that alternative target branch and release-policy reason; do not invent or create another target branch during triage just to fit SemVer.
+- Micronaut organization projects under `https://github.com/orgs/micronaut-projects/projects` act as release boards for future Micronaut Platform BOM versions, not repository module or project versions.
+- QA should choose the best-fit Micronaut organization project set during intake from the open, public Micronaut organization projects (`is:open is:public`) by asking which Micronaut Platform BOM release can first consume the repository release produced by the approved target branch.
+- If the approved target branch or release target changes after QA intake, re-check the organization-project set because the earliest Micronaut Platform BOM release that can consume the repository release may also change.
 - If a GA release target has both matching milestone or release candidate projects and a GA release board open, select all matching projects so the PR can appear on both prerelease and GA boards; for example, a `5.0.0` target with open `5.0.0-M3` and `5.0.0 Release` projects should select both.
 - If the best-fit organization-project choice is somewhat ambiguous, including major-version upgrades that may or may not fit the next Platform minor board cleanly, still choose the best-fit project set and record the ambiguity in the QA artifact so the eventual PR description can repeat it.
 - `type: breaking` requires explicit Architect approval and, when necessary, a linked human approval before work proceeds.
