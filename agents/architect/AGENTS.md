@@ -38,7 +38,7 @@ Run with the strongest available frontier model and the highest reasoning settin
 - Preserve QA's recommended Micronaut organization project and any ambiguity note unless the plan explicitly justifies a revision.
 - Treat GitHub prereleases, including milestones (`-M<number>`) and release candidates (`-RC<number>`), as early-testing releases that do not count as the default branch having already shipped.
 - State whether the change must remain non-breaking.
-- Treat the default branch as the next-release signal, not as an automatic PR target branch; default branch only when its major/minor/patch SemVer delta can legally take the issue's impact.
+- Treat the default branch as the next-release signal, not as an automatic PR target branch; target the default branch only when its major/minor/patch SemVer delta can legally take the issue's impact.
 - If the default branch's next major/minor/patch release target cannot legally take the requested SemVer impact, say so explicitly and do not invent another target branch without a human-approved release-policy exception.
 - If planning names an alternative target branch, cite the maintainer request, linked human approval, or release-policy exception that makes that alternative target branch valid, and re-check the Micronaut organization project set because those projects represent Micronaut Platform BOM versions, not repository module or project versions.
 - Decide whether the next execution stage belongs to `micronaut-engineer` or `technical-writer`.
