@@ -21,10 +21,8 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 const paperclipCliPath = path.join(
   repoRoot,
-  "node_modules",
-  "paperclipai",
-  "dist",
-  "index.js",
+  "scripts",
+  "run-paperclip-cli.mjs",
 );
 
 const ROOT_PACKAGE_FILES = [".paperclip.yaml", "COMPANY.md", "README.md"];
@@ -1134,6 +1132,18 @@ function assertImportedCodexAdapterConfig(actualAgent, expectedAdapter, agentSlu
 }
 
 function assertImportedAgentRuntimeConfig(actualAgent, expectedRuntime, agentSlug) {
+  const expectedHeartbeat = expectedRuntime?.heartbeat ?? null;
+  if (expectedHeartbeat) {
+    const actualHeartbeat = actualAgent?.runtimeConfig?.heartbeat ?? {};
+    for (const [key, value] of Object.entries(expectedHeartbeat)) {
+      assert.deepEqual(
+        actualHeartbeat?.[key] ?? null,
+        value,
+        `Runtime heartbeat ${key} mismatch for imported agent ${agentSlug}`,
+      );
+    }
+  }
+
   const expectedCheapProfile = expectedRuntime?.modelProfiles?.cheap ?? null;
   if (!expectedCheapProfile) {
     return;
@@ -1735,9 +1745,9 @@ async function waitForConfigFile(configPath, serverHandle, timeoutMs = 60_000) {
   );
 }
 
-function spawnServer(args, { env = {} } = {}) {
+function spawnServer(args, { env = {}, cwd = repoRoot } = {}) {
   const child = spawn(process.execPath, [paperclipCliPath, ...args], {
-    cwd: repoRoot,
+    cwd,
     env: {
       ...process.env,
       CI: "true",
@@ -1815,7 +1825,7 @@ async function waitForHealth(baseUrl, serverHandle, timeoutMs = 180_000) {
 
 async function configureIsolatedInstance(dataDir) {
   const configPath = path.join(dataDir, "instances", "default", "config.json");
-  const onboardingHandle = spawnServer(["onboard", "-y", "-d", dataDir]);
+  const onboardingHandle = spawnServer(["onboard", "-y", "-d", dataDir], { cwd: dataDir });
   const config = await waitForConfigFile(configPath, onboardingHandle);
   await stopServer(onboardingHandle.child);
   config.server.port = await getFreePort();
@@ -1835,9 +1845,12 @@ function assertExportedBody(exportFiles, relativePath, expectedBody, expectedSlu
     // Paperclip exports all issues through the issue list path, whose description
     // projection is capped at 1200 chars. The import remains correct, so keep the
     // source text human-readable and accept exactly that prefix-only export.
+    const expectedTruncatedPrefix = normalizeText(
+      expectedBody.slice(0, PAPERCLIP_ISSUE_LIST_DESCRIPTION_EXPORT_MAX_CHARS),
+    );
     const minimumExpectedLength = Math.min(
       expectedBody.length,
-      PAPERCLIP_ISSUE_LIST_DESCRIPTION_EXPORT_MAX_CHARS,
+      expectedTruncatedPrefix.length,
     );
     assert.ok(
       actualBody.length >= minimumExpectedLength,
@@ -1878,7 +1891,7 @@ async function main() {
     const baseUrl = `http://127.0.0.1:${port}`;
 
     console.log(`Starting Paperclip on ${baseUrl}...`);
-    serverHandle = spawnServer(["run", "-d", dataDir]);
+    serverHandle = spawnServer(["run", "-d", dataDir], { cwd: dataDir });
     await waitForHealth(baseUrl, serverHandle);
 
     console.log("Verifying the instance starts empty...");
@@ -2226,6 +2239,15 @@ async function main() {
         expectedAgentConfig?.adapter ?? null,
         `Adapter config was not preserved for ${agentSlug}`,
       );
+      for (const [key, value] of Object.entries(
+        expectedAgentConfig?.runtime?.heartbeat ?? {},
+      )) {
+        assert.deepEqual(
+          exportedExtension?.agents?.[agentSlug]?.runtime?.heartbeat?.[key] ?? null,
+          value,
+          `Runtime heartbeat ${key} was not preserved for ${agentSlug}`,
+        );
+      }
     }
     assertStringArrayEqual(
       Object.keys(exportedExtension?.routines ?? {}),

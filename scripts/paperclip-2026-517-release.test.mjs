@@ -5,20 +5,42 @@ import { readFile } from "node:fs/promises";
 import YAML from "yaml";
 
 const TEN_MIB = 10 * 1024 * 1024;
-const PAPERCLIP_RELEASE_UNDER_TEST = "2026.512.0";
+const PAPERCLIP_RELEASE_UNDER_TEST = "2026.517.0";
+const PACKAGE_AGENT_MAX_CONCURRENT_RUNS = 1;
 
 async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("package pins the Paperclip v2026.512.0 runtime for local verification", async () => {
+test("package pins the Paperclip v2026.517.0 runtime for local verification", async () => {
   const packageJson = JSON.parse(await read("../package.json"));
   const setupScript = await read("./setup-local-paperclip-instance.mjs");
 
   assert.equal(packageJson.devDependencies.paperclipai, PAPERCLIP_RELEASE_UNDER_TEST);
   assert.match(
     setupScript,
-    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.512\.0"/,
+    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.517\.0"/,
+  );
+});
+
+test("package agents explicitly cap heartbeat concurrency to one run", async () => {
+  const extension = YAML.parse(await read("../.paperclip.yaml"));
+  const readme = await read("../README.md");
+  const agents = Object.entries(extension.agents ?? {});
+
+  assert.ok(agents.length > 0, "Expected package agents in .paperclip.yaml.");
+  for (const [agentSlug, agent] of agents) {
+    assert.equal(
+      agent?.runtime?.heartbeat?.maxConcurrentRuns,
+      PACKAGE_AGENT_MAX_CONCURRENT_RUNS,
+      `${agentSlug} must override Paperclip v2026.517.0's 20-run default.`,
+    );
+  }
+
+  assert.match(
+    readme,
+    /Paperclip v2026\.517\.0[\s\S]{0,320}20[\s\S]{0,320}maxConcurrentRuns[\s\S]{0,320}1/i,
+    "README must document the explicit single-run heartbeat concurrency override.",
   );
 });
 

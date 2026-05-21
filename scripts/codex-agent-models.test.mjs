@@ -45,7 +45,7 @@ test("Codex local agents explicitly bypass the git repository trust check", asyn
     assert.deepEqual(
       agent?.adapter?.config?.extraArgs,
       ["--skip-git-repo-check"],
-      `${agentSlug} must explicitly set the Paperclip 2026.512 Codex import argument.`,
+      `${agentSlug} must explicitly set the Paperclip Codex import argument.`,
     );
   }
 

@@ -14,6 +14,8 @@ agents:
         extraArgs:
           - --skip-git-repo-check
     runtime:
+      heartbeat:
+        maxConcurrentRuns: 1
       modelProfiles:
         cheap:
           enabled: false
@@ -29,6 +31,8 @@ agents:
         extraArgs:
           - --skip-git-repo-check
     runtime:
+      heartbeat:
+        maxConcurrentRuns: 1
       modelProfiles:
         cheap:
           enabled: false
@@ -44,6 +48,8 @@ agents:
         extraArgs:
           - --skip-git-repo-check
     runtime:
+      heartbeat:
+        maxConcurrentRuns: 1
       modelProfiles:
         cheap:
           enabled: false
@@ -59,6 +65,8 @@ agents:
         extraArgs:
           - --skip-git-repo-check
     runtime:
+      heartbeat:
+        maxConcurrentRuns: 1
       modelProfiles:
         cheap:
           enabled: false
@@ -74,6 +82,8 @@ agents:
         extraArgs:
           - --skip-git-repo-check
     runtime:
+      heartbeat:
+        maxConcurrentRuns: 1
       modelProfiles:
         cheap:
           enabled: false
@@ -89,6 +99,8 @@ agents:
         extraArgs:
           - --skip-git-repo-check
     runtime:
+      heartbeat:
+        maxConcurrentRuns: 1
       modelProfiles:
         cheap:
           enabled: false
@@ -104,6 +116,8 @@ agents:
         extraArgs:
           - --skip-git-repo-check
     runtime:
+      heartbeat:
+        maxConcurrentRuns: 1
       modelProfiles:
         cheap:
           enabled: false
@@ -119,6 +133,8 @@ agents:
         extraArgs:
           - --skip-git-repo-check
     runtime:
+      heartbeat:
+        maxConcurrentRuns: 1
       modelProfiles:
         cheap:
           enabled: false
