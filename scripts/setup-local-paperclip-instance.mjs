@@ -11,9 +11,10 @@ import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, "..");
+const LOCAL_PAPERCLIP_CLI_RUNNER = path.join(SCRIPT_DIR, "run-paperclip-cli.mjs");
 const DEFAULT_DATA_DIR = path.join(REPO_ROOT, ".paperclip-local");
 const DEFAULT_PORT = 3100;
-const DEFAULT_PAPERCLIP_PACKAGE = "paperclipai@2026.512.0";
+const DEFAULT_PAPERCLIP_PACKAGE = "paperclipai@2026.517.0";
 const DEFAULT_AGENT_COMPANIES_PLUGIN_PACKAGE = "paperclip-agent-companies-plugin";
 const DEFAULT_AGENT_COMPANIES_PLUGIN_KEY = "paperclip-agent-companies-plugin";
 const DEFAULT_GITHUB_PLUGIN_PACKAGE = "paperclip-github-plugin";
@@ -41,7 +42,7 @@ Options:
   --company-name <name>      Imported company name override
   --company-source <source>  Agent Companies source path/repo (default: current checkout)
   --github-token <token>     Optional GitHub token for GitHub Sync fallback config
-  --paperclip-package <pkg>  Paperclip CLI package (default: paperclipai@2026.512.0)
+  --paperclip-package <pkg>  Paperclip CLI package (default: paperclipai@2026.517.0)
   --agent-companies-plugin <pkg>
                              Agent Companies plugin npm package (default: paperclip-agent-companies-plugin)
   --github-plugin <pkg>      GitHub plugin npm package (default: paperclip-github-plugin)
@@ -424,30 +425,43 @@ async function ensureLocalPaperclipConfig(opts, configPath) {
 }
 
 async function startPaperclip(opts, configPath, logPath) {
+  const cliCwd = path.join(opts.dataDir, ".paperclip-cli-cwd");
+  await fs.rm(cliCwd, { recursive: true, force: true });
+  await fs.mkdir(cliCwd, { recursive: true });
+
+  const useLocalPaperclipRunner = opts.paperclipPackage === DEFAULT_PAPERCLIP_PACKAGE;
+  const command = useLocalPaperclipRunner ? process.execPath : "npx";
+  const args = useLocalPaperclipRunner
+    ? [
+        LOCAL_PAPERCLIP_CLI_RUNNER,
+        "run",
+        "--data-dir",
+        opts.dataDir,
+        "--config",
+        configPath,
+      ]
+    : [
+        "--yes",
+        opts.paperclipPackage,
+        "run",
+        "--data-dir",
+        opts.dataDir,
+        "--config",
+        configPath,
+      ];
+
   const logFd = fsSync.openSync(logPath, "a");
-  const child = spawn(
-    "npx",
-    [
-      "--yes",
-      opts.paperclipPackage,
-      "run",
-      "--data-dir",
-      opts.dataDir,
-      "--config",
-      configPath,
-    ],
-    {
-      cwd: REPO_ROOT,
-      env: {
-        ...process.env,
-        BROWSER: "none",
-        PORT: String(opts.port),
-        PAPERCLIP_HOME: opts.dataDir,
-        PAPERCLIP_OPEN_ON_LISTEN: "false",
-      },
-      stdio: ["ignore", logFd, logFd],
+  const child = spawn(command, args, {
+    cwd: cliCwd,
+    env: {
+      ...process.env,
+      BROWSER: "none",
+      PORT: String(opts.port),
+      PAPERCLIP_HOME: opts.dataDir,
+      PAPERCLIP_OPEN_ON_LISTEN: "false",
     },
-  );
+    stdio: ["ignore", logFd, logFd],
+  });
 
   await fs.writeFile(path.join(opts.dataDir, "paperclip.pid"), `${child.pid}\n`);
   return child;
