@@ -23,6 +23,21 @@ test("package pins the Paperclip v2026.517.0 runtime for local verification", as
   );
 });
 
+test("import verification fails fast when the Paperclip package is missing", async () => {
+  const source = await read("./verify-paperclip-import.mjs");
+
+  assert.match(
+    source,
+    /paperclipPackageEntrypointPath\s*=\s*path\.join\([\s\S]{0,240}"node_modules"[\s\S]{0,240}"paperclipai"[\s\S]{0,240}"dist"[\s\S]{0,240}"index\.js"/,
+    "verify-paperclip-import must keep an explicit pointer to the installed Paperclip package entrypoint.",
+  );
+  assert.match(
+    source,
+    /existsSync\(paperclipPackageEntrypointPath\)/,
+    "verify-paperclip-import must check the installed Paperclip package, not just the committed CLI wrapper.",
+  );
+});
+
 test("package agents explicitly cap heartbeat concurrency to one run", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const readme = await read("../README.md");

@@ -24,6 +24,13 @@ const paperclipCliPath = path.join(
   "scripts",
   "run-paperclip-cli.mjs",
 );
+const paperclipPackageEntrypointPath = path.join(
+  repoRoot,
+  "node_modules",
+  "paperclipai",
+  "dist",
+  "index.js",
+);
 
 const ROOT_PACKAGE_FILES = [".paperclip.yaml", "COMPANY.md", "README.md"];
 const ROOT_PACKAGE_DIRS = ["agents", "projects", "tasks", "skills"];
@@ -1871,8 +1878,12 @@ function assertExportedBody(exportFiles, relativePath, expectedBody, expectedSlu
 
 async function main() {
   assert.ok(
-    existsSync(paperclipCliPath),
+    existsSync(paperclipPackageEntrypointPath),
     "paperclipai is not installed. Run `npm install` first.",
+  );
+  assert.ok(
+    existsSync(paperclipCliPath),
+    "Paperclip CLI wrapper is missing.",
   );
 
   const nodeMajor = Number(process.versions.node.split(".")[0]);
