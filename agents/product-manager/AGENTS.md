@@ -104,6 +104,7 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
+- Do not use Paperclip issue monitors to poll GitHub-synced PR state. CI/check status, mergeability, PR file state, review threads, reviewer routing, and PR project links must be read or changed through GitHub Sync tools or `gh` when `GITHUB_TOKEN` is available. Issue monitors remain valid only for non-GitHub waits or external conditions that GitHub Sync does not already own.
 - Use `paperclip-github-plugin:search_repository_items` for repository-scoped duplicate checks and prior-art search before opening a feature request.
 - Use `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` when an existing issue might duplicate or supersede the candidate.
 - Use `paperclip-github-plugin:update_issue` only for supported metadata changes on existing synced issues. Do not assume this tool can create a new GitHub issue.

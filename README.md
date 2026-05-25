@@ -297,6 +297,8 @@ The GitHub sync plugin exposes these GitHub workflow tools to agents. Use the ex
 - Organization project lookup: `paperclip-github-plugin:list_organization_projects` against the open, public Micronaut organization projects (`is:open is:public`)
 - PR project association: `paperclip-github-plugin:add_pull_request_to_project`
 
+Do not use Paperclip issue monitors to poll GitHub-synced PR state. CI/check status, mergeability, PR file state, review threads, reviewer routing, and PR project links must be read or changed through GitHub Sync tools or `gh` when `GITHUB_TOKEN` is available. Issue monitors remain valid only for non-GitHub waits or external conditions that GitHub Sync does not already own.
+
 Use `paperclipIssueId` whenever work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository. If you publish maintainer-visible GitHub body text directly through `gh` or another `GITHUB_TOKEN`-backed write path, separate the footer from the previous sentence with one blank line and append this exact GitHub-flavored Markdown footer yourself:
 
 When `GITHUB_TOKEN` is available, use `gh` for Micronaut organization-project lookup and PR project association. If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:list_organization_projects` and `paperclip-github-plugin:add_pull_request_to_project` for every selected organization project so the live PR associations exist in GitHub rather than only in comments or summaries. Here `GITHUB_TOKEN` means the environment variable with that exact name; do not search the filesystem, plugin config, or other files for a token.
