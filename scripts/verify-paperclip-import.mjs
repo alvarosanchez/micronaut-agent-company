@@ -16,6 +16,8 @@ import { fileURLToPath } from "node:url";
 
 import YAML from "yaml";
 
+import { ROUTINE_VERIFIED_NO_OP_PATTERN } from "./routine-no-op-patterns.mjs";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
@@ -661,6 +663,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "README.md",
+    pattern: ROUTINE_VERIFIED_NO_OP_PATTERN,
+    message:
+      "README.md must explain that verified routine no-diff/no-PR work can close without board approval instead of routing through empty QA/Security/Review gates.",
+  },
+  {
+    relativePath: "README.md",
     pattern: GITHUB_NOT_PLANNED_CLOSE_PATTERN,
     message:
       "README.md must explain that direct non-duplicate QA closures use native `Close as not planned` instead of `Close as completed`.",
@@ -796,6 +804,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "COMPANY.md",
+    pattern: ROUTINE_VERIFIED_NO_OP_PATTERN,
+    message:
+      "COMPANY.md must explain that verified routine no-diff/no-PR work can close without board approval instead of routing through empty QA/Security/Review gates.",
+  },
+  {
+    relativePath: "COMPANY.md",
     pattern: GITHUB_NOT_PLANNED_CLOSE_PATTERN,
     message:
       "COMPANY.md must explain that direct non-duplicate QA closures use native `Close as not planned` instead of `Close as completed`.",
@@ -823,6 +837,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: REVIEW_THREAD_REPLY_POLICY_PATTERN,
     message:
       "Micronaut Engineer instructions must require a decision-explaining reply before resolving review threads.",
+  },
+  {
+    relativePath: "agents/micronaut-engineer/AGENTS.md",
+    pattern: ROUTINE_VERIFIED_NO_OP_PATTERN,
+    message:
+      "Micronaut Engineer instructions must close verified routine no-diff/no-PR work without board approval instead of routing through empty QA/Security/Review gates.",
   },
   {
     relativePath: "agents/micronaut-engineer/AGENTS.md",
