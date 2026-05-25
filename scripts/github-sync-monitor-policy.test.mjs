@@ -9,7 +9,7 @@ async function read(relativePath) {
 const MONITOR_BOUNDARY_PATTERN =
   /(?:do not|must not|never)[\s\S]{0,160}(?:Paperclip )?issue monitors?[\s\S]{0,260}(?:GitHub[- ]synced PR state|PR CI|CI\/check status|review threads?|mergeability)|(?:Paperclip )?issue monitors?[\s\S]{0,180}(?:only|remain)[\s\S]{0,180}(?:non-GitHub|external conditions)/i;
 const GITHUB_SYNC_PR_STATE_PATTERN =
-  /(?:CI\/check status|mergeability|PR file state|review threads?)[\s\S]{0,260}(?:GitHub Sync|GitHub sync|paperclip-github-plugin|`gh`|gh)/i;
+  /(?:CI\/check status|mergeability|PR file state|review threads?)[\s\S]{0,260}(?:GitHub Sync|GitHub sync|paperclip-github-plugin|`gh`|\bgh\b)/i;
 
 test("GitHub-synced PR state is not monitored with Paperclip issue monitors", async () => {
   const requiredPaths = [
