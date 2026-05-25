@@ -87,7 +87,7 @@ GitHub sync plugin tools:
 2. After `approved`, confirm the current stage participant is no longer you and the issue routing matches the live workflow: the next `currentParticipant` is correct if another review stage remains, otherwise the documented next owner is assigned for a non-policy work phase.
 3. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
 4. After `changes_requested`, confirm the issue execution state shows `changes_requested` and your implementation artifact names the exact blocker.
-5. If implementation produced repository changes and no acceptable linked PR exists, confirm the issue is not `done`; it should be in `in_review` under the active execution policy or in `TODO` for the next reviewer/PR-creation owner with a clear next-action comment.
+5. If implementation produced repository changes and no acceptable linked PR exists, confirm the issue is not `DONE`; it should be in `in_review` under the active execution policy or in `TODO` for the next reviewer/PR-creation owner with a clear next-action comment.
 6. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the routing is correct instead of assuming the new reviewer was woken automatically.
 7. If a PR exists, confirm the PR, checks, labels, project links, and review-thread replies and state match the artifact you just produced. If QA chose organization projects and GitHub tooling can apply them, every selected live PR association should already be correct; otherwise record the exact no-match or tooling gap.
 

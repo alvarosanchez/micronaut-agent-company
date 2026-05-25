@@ -138,7 +138,8 @@ stateDiagram-v2
     BLOCKED --> TODO: Unblocked
     IN_REVIEW --> IN_PROGRESS: Changes requested or follow-through resumes
     IN_REVIEW --> BLOCKED: Waiting on external clarification or dependency
-    IN_REVIEW --> DONE: Final stage approves or closure sync lands
+    IN_REVIEW --> TODO: Final stage approves PR-based work; follow-through owner waits
+    IN_REVIEW --> DONE: GitHub close sync for non-PR closure
     IN_PROGRESS --> DONE: GitHub merge or close sync
     TODO --> CANCELLED: duplicate|stale|out-of-scope
     IN_PROGRESS --> CANCELLED: duplicate|stale|out-of-scope
