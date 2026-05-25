@@ -1,0 +1,2 @@
+export const ROUTINE_VERIFIED_NO_OP_PATTERN =
+  /routine-created[\s\S]{0,420}(?:no-diff|empty-diff|no-PR)[\s\S]{0,420}(?:without|no|does not require)[\s\S]{0,180}board approval[\s\S]{0,420}(?:QA verification|Security Engineer|Code Reviewer)|(?:QA verification|Security Engineer|Code Reviewer)[\s\S]{0,420}routine-created[\s\S]{0,420}(?:no-diff|empty-diff|no-PR)[\s\S]{0,420}(?:without|no|does not require)[\s\S]{0,180}board approval/i;

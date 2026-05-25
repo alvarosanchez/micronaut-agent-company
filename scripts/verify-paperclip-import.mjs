@@ -16,6 +16,8 @@ import { fileURLToPath } from "node:url";
 
 import YAML from "yaml";
 
+import { ROUTINE_VERIFIED_NO_OP_PATTERN } from "./routine-no-op-patterns.mjs";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
@@ -122,8 +124,6 @@ const SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN =
   /references to `?\.paperclip\.yaml`? describe source-package defaults for future imports[\s\S]{0,240}(?:not a guarantee that every managed imported workspace exposes `?\.paperclip\.yaml`? locally)|(?:managed imported workspace exposes `?\.paperclip\.yaml`? locally)[\s\S]{0,240}references to `?\.paperclip\.yaml`? describe source-package defaults for future imports/i;
 const ALREADY_IMPLEMENTED_DIRECT_CLOSE_PATTERN =
   /already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval[\s\S]*\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b|\bcit(?:e|es)\b[\s\S]*\bexact\b[\s\S]*\b(?:version|PR|release|documentation)\b[\s\S]*already-implemented[\s\S]*(?:without|do not need)(?: separate)? board approval/i;
-const ROUTINE_VERIFIED_NO_OP_PATTERN =
-  /routine-created[\s\S]{0,420}(?:no-diff|empty-diff|no-PR)[\s\S]{0,420}(?:without|no|does not require)[\s\S]{0,180}board approval[\s\S]{0,420}(?:QA verification|Security Engineer|Code Reviewer)|(?:QA verification|Security Engineer|Code Reviewer)[\s\S]{0,420}routine-created[\s\S]{0,420}(?:no-diff|empty-diff|no-PR)[\s\S]{0,420}(?:without|no|does not require)[\s\S]{0,180}board approval/i;
 const GITHUB_NOT_PLANNED_CLOSE_PATTERN =
   /Close as not planned[\s\S]{0,240}Close as completed|Close as completed[\s\S]{0,240}Close as not planned/i;
 const GITHUB_DUPLICATE_CLOSE_PATTERN =
