@@ -7,6 +7,7 @@ skills:
   - micronaut-repo-operations
   - micronaut-quality-gates
   - gradle
+  - micronaut-test-resources-provider-development
   - gh-cli
 metadata:
   paperclip:
