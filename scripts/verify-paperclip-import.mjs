@@ -1122,40 +1122,33 @@ function assertStringArrayEqual(actual, expected, message) {
   assert.deepEqual(sortStrings(actual), sortStrings(expected), message);
 }
 
-function assertImportedCodexAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
+function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
   assert.equal(
     actualAgent?.adapterType ?? null,
     expectedAdapter?.type ?? null,
     `Adapter type mismatch for imported agent ${agentSlug}`,
   );
 
-  if (expectedAdapter?.type !== "codex_local") {
+  if (expectedAdapter?.type !== "opencode_local") {
     return;
   }
 
   const actualConfig = actualAgent?.adapterConfig ?? {};
   const expectedConfig = expectedAdapter?.config ?? {};
 
-  assert.equal(
-    actualConfig.model ?? null,
-    expectedConfig.model ?? null,
-    `Codex model mismatch for imported agent ${agentSlug}`,
-  );
-  assert.equal(
-    actualConfig.modelReasoningEffort ?? null,
-    expectedConfig.modelReasoningEffort ?? null,
-    `Codex reasoning effort mismatch for imported agent ${agentSlug}`,
-  );
-  assert.equal(
-    actualConfig.search ?? null,
-    expectedConfig.search ?? null,
-    `Codex search flag mismatch for imported agent ${agentSlug}`,
-  );
-  assert.equal(
-    actualConfig.dangerouslyBypassApprovalsAndSandbox ?? null,
-    expectedConfig.dangerouslyBypassApprovalsAndSandbox ?? null,
-    `Codex bypass flag mismatch for imported agent ${agentSlug}`,
-  );
+  for (const key of [
+    "model",
+    "variant",
+    "dangerouslySkipPermissions",
+    "timeoutSec",
+    "graceSec",
+  ]) {
+    assert.deepEqual(
+      actualConfig[key] ?? null,
+      expectedConfig[key] ?? null,
+      `OpenCode ${key} mismatch for imported agent ${agentSlug}`,
+    );
+  }
 }
 
 function assertImportedAgentRuntimeConfig(actualAgent, expectedRuntime, agentSlug) {
@@ -2004,7 +1997,7 @@ async function main() {
           expectedAgent.role,
           `Role mismatch for imported agent ${expectedAgent.slug}`,
         );
-        assertImportedCodexAdapterConfig(
+        assertImportedAdapterConfig(
           importedAgent,
           expectedAgent.adapter,
           expectedAgent.slug,

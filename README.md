@@ -26,20 +26,20 @@ Pass script options after npm's `--` separator when possible. The script also ho
 
 ## Runtime Defaults
 
-All agents are configured to use `codex_local` with live web search enabled. The package pins each agent's model and reasoning effort explicitly in `.paperclip.yaml`.
+All agents are configured to use `opencode_local`. The package pins each agent's OpenCode model, variant, and operational timeout explicitly in `.paperclip.yaml`.
 
-- Architect: `gpt-5.5-pro`, `xhigh`
-- Security Engineer: `gpt-5.5-pro`, `xhigh`
-- QA Engineer: `gpt-5.5`, `xhigh`
-- Code Reviewer: `gpt-5.5-pro`, `xhigh`
-- Product Manager: `gpt-5.5`, `xhigh`
-- CEO: `gpt-5.5`, `high`
-- Micronaut Engineer: `gpt-5.5`, `xhigh`
-- Technical Writer: `gpt-5.5`, `medium`
+- Architect: `openai/gpt-5.5`, `xhigh`
+- Security Engineer: `openai/gpt-5.5`, `xhigh`
+- QA Engineer: `openai/gpt-5.5`, `xhigh`
+- Code Reviewer: `openai/gpt-5.5`, `xhigh`
+- Product Manager: `openai/gpt-5.5`, `xhigh`
+- CEO: `openai/gpt-5.5`, `high`
+- Micronaut Engineer: `openai/gpt-5.5`, `xhigh`
+- Technical Writer: `openai/gpt-5.5`, `medium`
 
-Each `codex_local` adapter config also sets `extraArgs: ["--skip-git-repo-check"]`. Paperclip v2026.512.0 adds the same Codex import argument automatically for package imports; keeping it explicit in the source package makes the git repository trust check behavior visible and preserves clean export/import round trips.
+Each `opencode_local` adapter config sets `dangerouslySkipPermissions: true` and passes `extraArgs: ["--dangerously-skip-permissions"]` so unattended Paperclip runs do not wait indefinitely for OpenCode permission prompts. It also sets `timeoutSec: 14400` and `graceSec: 20`. The four-hour timeout is only a last-resort safety bound for genuinely wedged runs; the primary unattended-run guard is the explicit OpenCode permission bypass.
 
-Each agent also disables Paperclip's cheap model profile in `.paperclip.yaml` with `runtime.modelProfiles.cheap.enabled: false`. The profile is enabled by default when the runtime profile entry is absent, and in this package the agents already pin the intended model and reasoning lane explicitly; disabling the cheap profile keeps recovery or low-stakes wakeups from silently switching to a misconfigured cheaper model.
+Each agent also configures Paperclip's cheap model profile in `.paperclip.yaml` with `runtime.modelProfiles.cheap.enabled: true`, `model: openai/gpt-5.4-mini`, and `variant: medium`. The primary adapter remains `openai/gpt-5.5`; the cheap profile is available for low-cost Paperclip wakeups or orchestration paths that explicitly request the cheap profile.
 
 Paperclip v2026.517.0 raises the default agent heartbeat concurrency to 20 concurrent runs per agent. This package deliberately overrides that runtime default for every package-owned agent with `runtime.heartbeat.maxConcurrentRuns: 1` in `.paperclip.yaml` while the Micronaut workflow is tuned for one owned work item per agent at a time. Operators can raise that value in a live company later when the queue and machine capacity are ready for wider parallelism.
 
