@@ -5,140 +5,172 @@ company:
 agents:
   ceo:
     adapter:
-      type: codex_local
+      type: opencode_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: high
-        search: true
-        dangerouslyBypassApprovalsAndSandbox: true
+        model: openai/gpt-5.5
+        variant: high
+        dangerouslySkipPermissions: true
         extraArgs:
-          - --skip-git-repo-check
+          - --dangerously-skip-permissions
+        timeoutSec: 14400
+        graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
       modelProfiles:
         cheap:
-          enabled: false
-          adapterConfig: {}
+          enabled: true
+          label: GPT-5.4 mini
+          adapterConfig:
+            model: openai/gpt-5.4-mini
+            variant: medium
   product-manager:
     adapter:
-      type: codex_local
+      type: opencode_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: xhigh
-        search: true
-        dangerouslyBypassApprovalsAndSandbox: true
+        model: openai/gpt-5.5
+        variant: xhigh
+        dangerouslySkipPermissions: true
         extraArgs:
-          - --skip-git-repo-check
+          - --dangerously-skip-permissions
+        timeoutSec: 14400
+        graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
       modelProfiles:
         cheap:
-          enabled: false
-          adapterConfig: {}
+          enabled: true
+          label: GPT-5.4 mini
+          adapterConfig:
+            model: openai/gpt-5.4-mini
+            variant: medium
   architect:
     adapter:
-      type: codex_local
+      type: opencode_local
       config:
-        model: gpt-5.5-pro
-        modelReasoningEffort: xhigh
-        search: true
-        dangerouslyBypassApprovalsAndSandbox: true
+        model: openai/gpt-5.5
+        variant: xhigh
+        dangerouslySkipPermissions: true
         extraArgs:
-          - --skip-git-repo-check
+          - --dangerously-skip-permissions
+        timeoutSec: 14400
+        graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
       modelProfiles:
         cheap:
-          enabled: false
-          adapterConfig: {}
+          enabled: true
+          label: GPT-5.4 mini
+          adapterConfig:
+            model: openai/gpt-5.4-mini
+            variant: medium
   qa-engineer:
     adapter:
-      type: codex_local
+      type: opencode_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: xhigh
-        search: true
-        dangerouslyBypassApprovalsAndSandbox: true
+        model: openai/gpt-5.5
+        variant: xhigh
+        dangerouslySkipPermissions: true
         extraArgs:
-          - --skip-git-repo-check
+          - --dangerously-skip-permissions
+        timeoutSec: 14400
+        graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
       modelProfiles:
         cheap:
-          enabled: false
-          adapterConfig: {}
+          enabled: true
+          label: GPT-5.4 mini
+          adapterConfig:
+            model: openai/gpt-5.4-mini
+            variant: medium
   security-engineer:
     adapter:
-      type: codex_local
+      type: opencode_local
       config:
-        model: gpt-5.5-pro
-        modelReasoningEffort: xhigh
-        search: true
-        dangerouslyBypassApprovalsAndSandbox: true
+        model: openai/gpt-5.5
+        variant: xhigh
+        dangerouslySkipPermissions: true
         extraArgs:
-          - --skip-git-repo-check
+          - --dangerously-skip-permissions
+        timeoutSec: 14400
+        graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
       modelProfiles:
         cheap:
-          enabled: false
-          adapterConfig: {}
+          enabled: true
+          label: GPT-5.4 mini
+          adapterConfig:
+            model: openai/gpt-5.4-mini
+            variant: medium
   micronaut-engineer:
     adapter:
-      type: codex_local
+      type: opencode_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: xhigh
-        search: true
-        dangerouslyBypassApprovalsAndSandbox: true
+        model: openai/gpt-5.5
+        variant: xhigh
+        dangerouslySkipPermissions: true
         extraArgs:
-          - --skip-git-repo-check
+          - --dangerously-skip-permissions
+        timeoutSec: 14400
+        graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
       modelProfiles:
         cheap:
-          enabled: false
-          adapterConfig: {}
+          enabled: true
+          label: GPT-5.4 mini
+          adapterConfig:
+            model: openai/gpt-5.4-mini
+            variant: medium
   code-reviewer:
     adapter:
-      type: codex_local
+      type: opencode_local
       config:
-        model: gpt-5.5-pro
-        modelReasoningEffort: xhigh
-        search: true
-        dangerouslyBypassApprovalsAndSandbox: true
+        model: openai/gpt-5.5
+        variant: xhigh
+        dangerouslySkipPermissions: true
         extraArgs:
-          - --skip-git-repo-check
+          - --dangerously-skip-permissions
+        timeoutSec: 14400
+        graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
       modelProfiles:
         cheap:
-          enabled: false
-          adapterConfig: {}
+          enabled: true
+          label: GPT-5.4 mini
+          adapterConfig:
+            model: openai/gpt-5.4-mini
+            variant: medium
   technical-writer:
     adapter:
-      type: codex_local
+      type: opencode_local
       config:
-        model: gpt-5.5
-        modelReasoningEffort: medium
-        search: true
-        dangerouslyBypassApprovalsAndSandbox: true
+        model: openai/gpt-5.5
+        variant: medium
+        dangerouslySkipPermissions: true
         extraArgs:
-          - --skip-git-repo-check
+          - --dangerously-skip-permissions
+        timeoutSec: 14400
+        graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
       modelProfiles:
         cheap:
-          enabled: false
-          adapterConfig: {}
+          enabled: true
+          label: GPT-5.4 mini
+          adapterConfig:
+            model: openai/gpt-5.4-mini
+            variant: medium
 routines:
   weekly-product-discovery:
     status: active
