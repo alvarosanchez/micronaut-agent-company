@@ -9,6 +9,7 @@ skills:
   - micronaut-security-review
   - coding
   - gradle
+  - micronaut-test-resources-provider-development
   - gh-cli
 metadata:
   paperclip:

@@ -9,6 +9,7 @@ skills:
   - coding
   - docs
   - gradle
+  - micronaut-test-resources-provider-development
   - skill-creator
   - gh-cli
 metadata:

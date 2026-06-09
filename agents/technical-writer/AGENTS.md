@@ -8,6 +8,7 @@ skills:
   - micronaut-quality-gates
   - docs
   - guides
+  - micronaut-test-resources-provider-development
   - agent-md-refactor
   - gh-cli
 metadata:
