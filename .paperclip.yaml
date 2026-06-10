@@ -5,14 +5,15 @@ company:
 agents:
   ceo:
     adapter:
-      type: opencode_local
+      type: hermes_local
       config:
-        model: openai/gpt-5.5
-        variant: high
-        dangerouslySkipPermissions: true
+        provider: openai-codex
+        model: gpt-5.5
         extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+          - -p
+          - paperclip
+        hermesCommand: hermes
+        timeoutSec: 3600
         graceSec: 20
     runtime:
       heartbeat:
@@ -22,18 +23,19 @@ agents:
           enabled: true
           label: GPT-5.4 mini
           adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
+            provider: openai-codex
+            model: gpt-5.4-mini
   product-manager:
     adapter:
-      type: opencode_local
+      type: hermes_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
+        provider: openai-codex
+        model: gpt-5.5
         extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+          - -p
+          - paperclip
+        hermesCommand: hermes
+        timeoutSec: 3600
         graceSec: 20
     runtime:
       heartbeat:
@@ -43,18 +45,19 @@ agents:
           enabled: true
           label: GPT-5.4 mini
           adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
+            provider: openai-codex
+            model: gpt-5.4-mini
   architect:
     adapter:
-      type: opencode_local
+      type: hermes_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
+        provider: openai-codex
+        model: gpt-5.5
         extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+          - -p
+          - paperclip
+        hermesCommand: hermes
+        timeoutSec: 3600
         graceSec: 20
     runtime:
       heartbeat:
@@ -64,18 +67,19 @@ agents:
           enabled: true
           label: GPT-5.4 mini
           adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
+            provider: openai-codex
+            model: gpt-5.4-mini
   qa-engineer:
     adapter:
-      type: opencode_local
+      type: hermes_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
+        provider: openai-codex
+        model: gpt-5.5
         extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+          - -p
+          - paperclip
+        hermesCommand: hermes
+        timeoutSec: 3600
         graceSec: 20
     runtime:
       heartbeat:
@@ -85,18 +89,19 @@ agents:
           enabled: true
           label: GPT-5.4 mini
           adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
+            provider: openai-codex
+            model: gpt-5.4-mini
   security-engineer:
     adapter:
-      type: opencode_local
+      type: hermes_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
+        provider: openai-codex
+        model: gpt-5.5
         extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+          - -p
+          - paperclip
+        hermesCommand: hermes
+        timeoutSec: 3600
         graceSec: 20
     runtime:
       heartbeat:
@@ -106,18 +111,19 @@ agents:
           enabled: true
           label: GPT-5.4 mini
           adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
+            provider: openai-codex
+            model: gpt-5.4-mini
   micronaut-engineer:
     adapter:
-      type: opencode_local
+      type: hermes_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
+        provider: openai-codex
+        model: gpt-5.5
         extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+          - -p
+          - paperclip
+        hermesCommand: hermes
+        timeoutSec: 3600
         graceSec: 20
     runtime:
       heartbeat:
@@ -127,18 +133,19 @@ agents:
           enabled: true
           label: GPT-5.4 mini
           adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
+            provider: openai-codex
+            model: gpt-5.4-mini
   code-reviewer:
     adapter:
-      type: opencode_local
+      type: hermes_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
+        provider: openai-codex
+        model: gpt-5.5
         extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+          - -p
+          - paperclip
+        hermesCommand: hermes
+        timeoutSec: 3600
         graceSec: 20
     runtime:
       heartbeat:
@@ -148,18 +155,19 @@ agents:
           enabled: true
           label: GPT-5.4 mini
           adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
+            provider: openai-codex
+            model: gpt-5.4-mini
   technical-writer:
     adapter:
-      type: opencode_local
+      type: hermes_local
       config:
-        model: openai/gpt-5.5
-        variant: medium
-        dangerouslySkipPermissions: true
+        provider: openai-codex
+        model: gpt-5.5
         extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+          - -p
+          - paperclip
+        hermesCommand: hermes
+        timeoutSec: 3600
         graceSec: 20
     runtime:
       heartbeat:
@@ -169,8 +177,8 @@ agents:
           enabled: true
           label: GPT-5.4 mini
           adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
+            provider: openai-codex
+            model: gpt-5.4-mini
 routines:
   weekly-product-discovery:
     status: active

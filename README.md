@@ -26,20 +26,20 @@ Pass script options after npm's `--` separator when possible. The script also ho
 
 ## Runtime Defaults
 
-All agents are configured to use `opencode_local`. The package pins each agent's OpenCode model, variant, and operational timeout explicitly in `.paperclip.yaml`.
+All package-owned agents are configured to use the Paperclip `hermes_local` adapter with the dedicated Hermes `paperclip` profile. The package pins each agent's Hermes provider, model, profile arguments, and operational timeout explicitly in `.paperclip.yaml`, while leaving workspace and tool selection to Paperclip/Hermes runtime defaults.
 
-- Architect: `openai/gpt-5.5`, `xhigh`
-- Security Engineer: `openai/gpt-5.5`, `xhigh`
-- QA Engineer: `openai/gpt-5.5`, `xhigh`
-- Code Reviewer: `openai/gpt-5.5`, `xhigh`
-- Product Manager: `openai/gpt-5.5`, `xhigh`
-- CEO: `openai/gpt-5.5`, `high`
-- Micronaut Engineer: `openai/gpt-5.5`, `xhigh`
-- Technical Writer: `openai/gpt-5.5`, `medium`
+- Architect: `openai-codex`, `gpt-5.5`, profile `paperclip`
+- Security Engineer: `openai-codex`, `gpt-5.5`, profile `paperclip`
+- QA Engineer: `openai-codex`, `gpt-5.5`, profile `paperclip`
+- Code Reviewer: `openai-codex`, `gpt-5.5`, profile `paperclip`
+- Product Manager: `openai-codex`, `gpt-5.5`, profile `paperclip`
+- CEO: `openai-codex`, `gpt-5.5`, profile `paperclip`
+- Micronaut Engineer: `openai-codex`, `gpt-5.5`, profile `paperclip`
+- Technical Writer: `openai-codex`, `gpt-5.5`, profile `paperclip`
 
-Each `opencode_local` adapter config sets `dangerouslySkipPermissions: true` and passes `extraArgs: ["--dangerously-skip-permissions"]` so unattended Paperclip runs do not wait indefinitely for OpenCode permission prompts. It also sets `timeoutSec: 14400` and `graceSec: 20`. The four-hour timeout is only a last-resort safety bound for genuinely wedged runs; the primary unattended-run guard is the explicit OpenCode permission bypass.
+Each `hermes_local` adapter config sets `hermesCommand: hermes`, `extraArgs: ["-p", "paperclip"]`, `timeoutSec: 3600`, and `graceSec: 20`. The adapters intentionally rely on Paperclip project workspaces, so they do not set `cwd`, and they do not pin `toolsets`; Hermes can load its default/all tool behavior for the dedicated profile. This keeps unattended Paperclip runs on the dedicated Hermes profile while preserving a one-hour execution bound and a 20-second termination grace period.
 
-Each agent also configures Paperclip's cheap model profile in `.paperclip.yaml` with `runtime.modelProfiles.cheap.enabled: true`, `model: openai/gpt-5.4-mini`, and `variant: medium`. The primary adapter remains `openai/gpt-5.5`; the cheap profile is available for low-cost Paperclip wakeups or orchestration paths that explicitly request the cheap profile.
+Each agent also configures Paperclip's cheap model profile in `.paperclip.yaml` with `runtime.modelProfiles.cheap.enabled: true`, `provider: openai-codex`, and `model: gpt-5.4-mini`. The primary adapter remains `gpt-5.5`; the cheap profile is available for low-cost Paperclip wakeups or orchestration paths that explicitly request the cheap profile.
 
 Paperclip v2026.517.0 raises the default agent heartbeat concurrency to 20 concurrent runs per agent. This package deliberately overrides that runtime default for every package-owned agent with `runtime.heartbeat.maxConcurrentRuns: 1` in `.paperclip.yaml` while the Micronaut workflow is tuned for one owned work item per agent at a time. Operators can raise that value in a live company later when the queue and machine capacity are ready for wider parallelism.
 

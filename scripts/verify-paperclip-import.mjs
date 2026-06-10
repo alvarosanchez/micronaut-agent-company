@@ -1129,24 +1129,38 @@ function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
     `Adapter type mismatch for imported agent ${agentSlug}`,
   );
 
-  if (expectedAdapter?.type !== "opencode_local") {
+  if (expectedAdapter?.type !== "opencode_local" && expectedAdapter?.type !== "hermes_local") {
     return;
   }
 
   const actualConfig = actualAgent?.adapterConfig ?? {};
   const expectedConfig = expectedAdapter?.config ?? {};
+  const comparedKeys = expectedAdapter?.type === "hermes_local"
+    ? [
+        "provider",
+        "model",
+        "extraArgs",
+        "hermesCommand",
+        "cwd",
+        "toolsets",
+        "timeoutSec",
+        "graceSec",
+        "checkpoints",
+        "persistSession",
+      ]
+    : [
+        "model",
+        "variant",
+        "dangerouslySkipPermissions",
+        "timeoutSec",
+        "graceSec",
+      ];
 
-  for (const key of [
-    "model",
-    "variant",
-    "dangerouslySkipPermissions",
-    "timeoutSec",
-    "graceSec",
-  ]) {
+  for (const key of comparedKeys) {
     assert.deepEqual(
       actualConfig[key] ?? null,
       expectedConfig[key] ?? null,
-      `OpenCode ${key} mismatch for imported agent ${agentSlug}`,
+      `${expectedAdapter.type} ${key} mismatch for imported agent ${agentSlug}`,
     );
   }
 }
@@ -1696,16 +1710,27 @@ async function stopServer(child) {
   }
 }
 
+
+function isolatedPaperclipEnv(overrides = {}) {
+  const baseEnv = { ...process.env };
+  for (const key of Object.keys(baseEnv)) {
+    if (key.startsWith("PAPERCLIP_") || key === "DATABASE_URL" || key === "BETTER_AUTH_SECRET") {
+      delete baseEnv[key];
+    }
+  }
+  return {
+    ...baseEnv,
+    CI: "true",
+    PAPERCLIP_OPEN_ON_LISTEN: "false",
+    ...overrides,
+  };
+}
+
 async function runCli(args, { env = {} } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [paperclipCliPath, ...args], {
       cwd: repoRoot,
-      env: {
-        ...process.env,
-        CI: "true",
-        PAPERCLIP_OPEN_ON_LISTEN: "false",
-        ...env,
-      },
+      env: isolatedPaperclipEnv(env),
       stdio: ["ignore", "pipe", "pipe"],
     });
 
@@ -1768,12 +1793,7 @@ async function waitForConfigFile(configPath, serverHandle, timeoutMs = 60_000) {
 function spawnServer(args, { env = {}, cwd = repoRoot } = {}) {
   const child = spawn(process.execPath, [paperclipCliPath, ...args], {
     cwd,
-    env: {
-      ...process.env,
-      CI: "true",
-      PAPERCLIP_OPEN_ON_LISTEN: "false",
-      ...env,
-    },
+    env: isolatedPaperclipEnv(env),
     stdio: ["ignore", "pipe", "pipe"],
   });
 

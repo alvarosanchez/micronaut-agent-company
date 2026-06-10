@@ -86,11 +86,11 @@ test("Weekly Product Discovery routine is active and owned by Product Manager", 
   const routine = extension.routines?.["weekly-product-discovery"];
   const trigger = routine?.triggers?.[0];
 
-  assert.equal(adapter?.type, "opencode_local");
-  assert.equal(adapter?.config?.model, "openai/gpt-5.5");
-  assert.equal(adapter?.config?.variant, "xhigh");
-  assert.equal(adapter?.config?.dangerouslySkipPermissions, true);
-  assert.equal(adapter?.config?.timeoutSec, 14400);
+  assert.equal(adapter?.type, "hermes_local");
+  assert.equal(adapter?.config?.provider, "openai-codex");
+  assert.equal(adapter?.config?.model, "gpt-5.5");
+  assert.deepEqual(adapter?.config?.extraArgs, ["-p", "paperclip"]);
+  assert.equal(adapter?.config?.timeoutSec, 3600);
   assert.equal(adapter?.config?.graceSec, 20);
 
   assert.equal(routine?.status, "active");
@@ -127,7 +127,7 @@ test("Product Manager role and routine are documented", async () => {
   const company = await read("../COMPANY.md");
   const team = await read("../teams/engineering/TEAM.md");
 
-  assertContains(readme, /Product Manager: `openai\/gpt-5\.5`, `xhigh`/, "README should document Product Manager OpenCode model and xhigh variant.");
+  assertContains(readme, /Product Manager: `openai-codex`, `gpt-5\.5`, profile `paperclip`/, "README should document Product Manager Hermes provider, model, and profile.");
   assertContains(readme, /\| Product Manager \| `radar` \|/, "README should document the Product Manager radar icon.");
   assertContains(readme, /\| Product Manager \| `pm` \|/, "README should document the Product Manager pm role.");
   assertContains(readme, /\| `Weekly Product Discovery` \| Product Manager \| Mondays at 01:00 `Europe\/Madrid` \|/, "README should document the Weekly Product Discovery schedule.");
