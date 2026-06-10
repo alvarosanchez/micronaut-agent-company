@@ -26,20 +26,20 @@ Pass script options after npm's `--` separator when possible. The script also ho
 
 ## Runtime Defaults
 
-All agents are configured to use `opencode_local`. The package pins each agent's OpenCode model, variant, and operational timeout explicitly in `.paperclip.yaml`.
+All package-owned agents are configured to use Paperclip's built-in `acpx_local` adapter with Hermes ACP and the dedicated Hermes `paperclip` profile. The package pins the custom ACP command explicitly in `.paperclip.yaml`, while leaving workspace and tool selection to Paperclip/Hermes runtime defaults.
 
-- Architect: `openai/gpt-5.5`, `xhigh`
-- Security Engineer: `openai/gpt-5.5`, `xhigh`
-- QA Engineer: `openai/gpt-5.5`, `xhigh`
-- Code Reviewer: `openai/gpt-5.5`, `xhigh`
-- Product Manager: `openai/gpt-5.5`, `xhigh`
-- CEO: `openai/gpt-5.5`, `high`
-- Micronaut Engineer: `openai/gpt-5.5`, `xhigh`
-- Technical Writer: `openai/gpt-5.5`, `medium`
+- Architect: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
+- Security Engineer: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
+- QA Engineer: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
+- Code Reviewer: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
+- Product Manager: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
+- CEO: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
+- Micronaut Engineer: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
+- Technical Writer: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
 
-Each `opencode_local` adapter config sets `dangerouslySkipPermissions: true` and passes `extraArgs: ["--dangerously-skip-permissions"]` so unattended Paperclip runs do not wait indefinitely for OpenCode permission prompts. It also sets `timeoutSec: 14400` and `graceSec: 20`. The four-hour timeout is only a last-resort safety bound for genuinely wedged runs; the primary unattended-run guard is the explicit OpenCode permission bypass.
+Each `acpx_local` adapter config sets `agent: custom`, `agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks`, `mode: persistent`, `permissionMode: approve-all`, `nonInteractivePermissions: deny`, `timeoutSec: 0`, and `graceSec: 20`. The adapters intentionally rely on Paperclip project workspaces, so they do not set `cwd`, and they do not pin `toolsets`; Hermes can load its default/all tool behavior for the dedicated profile. This keeps unattended Paperclip runs on the dedicated Hermes profile through ACPX/Hermes ACP instead of the deprecated local-adapter working-directory fallback.
 
-Each agent also configures Paperclip's cheap model profile in `.paperclip.yaml` with `runtime.modelProfiles.cheap.enabled: true`, `model: openai/gpt-5.4-mini`, and `variant: medium`. The primary adapter remains `openai/gpt-5.5`; the cheap profile is available for low-cost Paperclip wakeups or orchestration paths that explicitly request the cheap profile.
+Each agent also configures Paperclip's cheap model profile in `.paperclip.yaml` with `runtime.modelProfiles.cheap.enabled: true`, `provider: openai-codex`, and `model: gpt-5.4-mini`. The primary ACPX adapter delegates model selection to the dedicated Hermes `paperclip` profile, which is expected to use `gpt-5.5`; the cheap profile remains available for low-cost Paperclip wakeups or orchestration paths that explicitly request it.
 
 Paperclip v2026.517.0 raises the default agent heartbeat concurrency to 20 concurrent runs per agent. This package deliberately overrides that runtime default for every package-owned agent with `runtime.heartbeat.maxConcurrentRuns: 1` in `.paperclip.yaml` while the Micronaut workflow is tuned for one owned work item per agent at a time. Operators can raise that value in a live company later when the queue and machine capacity are ready for wider parallelism.
 
