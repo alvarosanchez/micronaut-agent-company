@@ -5,16 +5,16 @@ company:
 agents:
   ceo:
     adapter:
-      type: hermes_local
+      type: acpx_local
       config:
-        provider: openai-codex
-        model: gpt-5.5
-        extraArgs:
-          - -p
-          - paperclip
-        hermesCommand: hermes
-        timeoutSec: 3600
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        mode: persistent
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -27,16 +27,16 @@ agents:
             model: gpt-5.4-mini
   product-manager:
     adapter:
-      type: hermes_local
+      type: acpx_local
       config:
-        provider: openai-codex
-        model: gpt-5.5
-        extraArgs:
-          - -p
-          - paperclip
-        hermesCommand: hermes
-        timeoutSec: 3600
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        mode: persistent
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -49,16 +49,16 @@ agents:
             model: gpt-5.4-mini
   architect:
     adapter:
-      type: hermes_local
+      type: acpx_local
       config:
-        provider: openai-codex
-        model: gpt-5.5
-        extraArgs:
-          - -p
-          - paperclip
-        hermesCommand: hermes
-        timeoutSec: 3600
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        mode: persistent
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -71,16 +71,16 @@ agents:
             model: gpt-5.4-mini
   qa-engineer:
     adapter:
-      type: hermes_local
+      type: acpx_local
       config:
-        provider: openai-codex
-        model: gpt-5.5
-        extraArgs:
-          - -p
-          - paperclip
-        hermesCommand: hermes
-        timeoutSec: 3600
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        mode: persistent
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -93,16 +93,16 @@ agents:
             model: gpt-5.4-mini
   security-engineer:
     adapter:
-      type: hermes_local
+      type: acpx_local
       config:
-        provider: openai-codex
-        model: gpt-5.5
-        extraArgs:
-          - -p
-          - paperclip
-        hermesCommand: hermes
-        timeoutSec: 3600
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        mode: persistent
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -115,16 +115,16 @@ agents:
             model: gpt-5.4-mini
   micronaut-engineer:
     adapter:
-      type: hermes_local
+      type: acpx_local
       config:
-        provider: openai-codex
-        model: gpt-5.5
-        extraArgs:
-          - -p
-          - paperclip
-        hermesCommand: hermes
-        timeoutSec: 3600
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        mode: persistent
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -137,16 +137,16 @@ agents:
             model: gpt-5.4-mini
   code-reviewer:
     adapter:
-      type: hermes_local
+      type: acpx_local
       config:
-        provider: openai-codex
-        model: gpt-5.5
-        extraArgs:
-          - -p
-          - paperclip
-        hermesCommand: hermes
-        timeoutSec: 3600
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        mode: persistent
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -159,16 +159,16 @@ agents:
             model: gpt-5.4-mini
   technical-writer:
     adapter:
-      type: hermes_local
+      type: acpx_local
       config:
-        provider: openai-codex
-        model: gpt-5.5
-        extraArgs:
-          - -p
-          - paperclip
-        hermesCommand: hermes
-        timeoutSec: 3600
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        mode: persistent
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1

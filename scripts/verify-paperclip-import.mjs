@@ -1129,7 +1129,7 @@ function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
     `Adapter type mismatch for imported agent ${agentSlug}`,
   );
 
-  if (expectedAdapter?.type !== "opencode_local" && expectedAdapter?.type !== "hermes_local") {
+  if (!["opencode_local", "hermes_local", "acpx_local"].includes(expectedAdapter?.type)) {
     return;
   }
 
@@ -1148,7 +1148,20 @@ function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
         "checkpoints",
         "persistSession",
       ]
-    : [
+    : expectedAdapter?.type === "acpx_local"
+      ? [
+          "agent",
+          "agentCommand",
+          "mode",
+          "permissionMode",
+          "nonInteractivePermissions",
+          "cwd",
+          "toolsets",
+          "timeoutSec",
+          "graceSec",
+          "warmHandleIdleMs",
+        ]
+      : [
         "model",
         "variant",
         "dangerouslySkipPermissions",
