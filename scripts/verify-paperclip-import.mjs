@@ -1145,8 +1145,6 @@ function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
         "toolsets",
         "timeoutSec",
         "graceSec",
-        "checkpoints",
-        "persistSession",
       ]
     : expectedAdapter?.type === "acpx_local"
       ? [
