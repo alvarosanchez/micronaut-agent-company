@@ -1129,7 +1129,7 @@ function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
     `Adapter type mismatch for imported agent ${agentSlug}`,
   );
 
-  if (expectedAdapter?.type !== "opencode_local") {
+  if (expectedAdapter?.type !== "acpx_local") {
     return;
   }
 
@@ -1137,18 +1137,31 @@ function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
   const expectedConfig = expectedAdapter?.config ?? {};
 
   for (const key of [
-    "model",
-    "variant",
-    "dangerouslySkipPermissions",
+    "mode",
+    "agent",
+    "agentCommand",
+    "permissionMode",
+    "nonInteractivePermissions",
     "timeoutSec",
     "graceSec",
+    "warmHandleIdleMs",
   ]) {
     assert.deepEqual(
       actualConfig[key] ?? null,
       expectedConfig[key] ?? null,
-      `OpenCode ${key} mismatch for imported agent ${agentSlug}`,
+      `Hermes ACP ${key} mismatch for imported agent ${agentSlug}`,
     );
   }
+  assert.equal(
+    Object.hasOwn(actualConfig, "cwd"),
+    false,
+    `Imported Hermes ACP agent ${agentSlug} must not set deprecated adapter cwd`,
+  );
+  assert.equal(
+    Object.hasOwn(actualConfig, "toolsets"),
+    false,
+    `Imported Hermes ACP agent ${agentSlug} must not hardcode Hermes toolsets`,
+  );
 }
 
 function assertImportedAgentRuntimeConfig(actualAgent, expectedRuntime, agentSlug) {

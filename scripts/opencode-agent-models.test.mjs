@@ -19,81 +19,44 @@ async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("README runtime defaults match the package OpenCode model and variant settings", async () => {
+test("README runtime defaults match the package Hermes ACP adapter settings", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const readme = await read("../README.md");
 
   for (const [agentSlug, agent] of Object.entries(extension.agents ?? {})) {
     const displayName = AGENT_DISPLAY_NAMES[agentSlug];
-    const model = agent?.adapter?.config?.model;
-    const variant = agent?.adapter?.config?.variant;
-
     assert.ok(displayName, `Missing display name for ${agentSlug}.`);
-    assert.equal(agent?.adapter?.type, "opencode_local", `${agentSlug} must use opencode_local.`);
-    assert.match(
-      readme,
-      new RegExp(`- ${displayName}: \`${model}\`, \`${variant}\``),
-      `README should document ${displayName} ${model} with ${variant} OpenCode variant.`,
-    );
+    assert.equal(agent?.adapter?.type, "acpx_local", `${agentSlug} must use acpx_local.`);
+    assert.match(readme, /acpx_local[\s\S]{0,240}hermes -p paperclip acp --accept-hooks/i);
   }
 });
 
-test("OpenCode local agents are bounded for unattended execution", async () => {
+test("Hermes ACP agents are bounded for unattended execution without deprecated cwd or toolsets", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const readme = await read("../README.md");
 
   for (const [agentSlug, agent] of Object.entries(extension.agents ?? {})) {
-    assert.equal(
-      agent?.adapter?.config?.dangerouslySkipPermissions,
-      true,
-      `${agentSlug} must skip interactive OpenCode permission prompts for unattended Paperclip runs.`,
-    );
-    assert.deepEqual(
-      agent?.adapter?.config?.extraArgs,
-      ["--dangerously-skip-permissions"],
-      `${agentSlug} must pass OpenCode's non-interactive permission bypass flag.`,
-    );
-    assert.equal(
-      agent?.adapter?.config?.timeoutSec,
-      14400,
-      `${agentSlug} must set a four-hour OpenCode run timeout.`,
-    );
-    assert.equal(
-      agent?.adapter?.config?.graceSec,
-      20,
-      `${agentSlug} must set the OpenCode termination grace period.`,
-    );
+    assert.equal(agent?.adapter?.config?.agentCommand, "/usr/local/bin/hermes -p paperclip acp --accept-hooks", `${agentSlug} must use the Hermes paperclip ACP command.`);
+    assert.equal(agent?.adapter?.config?.permissionMode, "approve-all", `${agentSlug} must avoid interactive permission prompts.`);
+    assert.equal(agent?.adapter?.config?.nonInteractivePermissions, "deny", `${agentSlug} must deny non-interactive escalations.`);
+    assert.equal(agent?.adapter?.config?.timeoutSec, 0, `${agentSlug} must not set an adapter hard timeout.`);
+    assert.equal(agent?.adapter?.config?.graceSec, 20, `${agentSlug} must set the termination grace period.`);
+    assert.equal(Object.hasOwn(agent?.adapter?.config ?? {}, "cwd"), false, `${agentSlug} must not set deprecated adapter cwd.`);
+    assert.equal(Object.hasOwn(agent?.adapter?.config ?? {}, "toolsets"), false, `${agentSlug} must not hardcode Hermes toolsets.`);
   }
 
-  assert.match(
-    readme,
-    /opencode_local[\s\S]{0,520}extraArgs:\s*\["--dangerously-skip-permissions"\][\s\S]{0,260}timeoutSec:\s*14400[\s\S]{0,160}graceSec:\s*20/i,
-    "README must document the explicit OpenCode timeout and grace period.",
-  );
+  assert.match(readme, /does \*\*not\*\* set deprecated adapter `cwd` or hardcoded `toolsets`/i);
 });
 
-test("OpenCode local agents configure the cheap model profile", async () => {
+test("Hermes ACP agents leave model selection to the paperclip Hermes profile", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const readme = await read("../README.md");
 
   for (const [agentSlug, agent] of Object.entries(extension.agents ?? {})) {
-    assert.deepEqual(
-      agent?.runtime?.modelProfiles?.cheap,
-      {
-        enabled: true,
-        label: "GPT-5.4 mini",
-        adapterConfig: {
-          model: "openai/gpt-5.4-mini",
-          variant: "medium",
-        },
-      },
-      `${agentSlug} must configure the Paperclip cheap model profile.`,
-    );
+    assert.equal(agent?.runtime?.modelProfiles, undefined, `${agentSlug} must not configure OpenCode model profiles.`);
+    assert.equal(Object.hasOwn(agent?.adapter?.config ?? {}, "model"), false, `${agentSlug} must not pin a model in adapter config.`);
+    assert.equal(Object.hasOwn(agent?.adapter?.config ?? {}, "variant"), false, `${agentSlug} must not pin an OpenCode variant.`);
   }
 
-  assert.match(
-    readme,
-    /cheap model profile[\s\S]{0,220}openai\/gpt-5\.4-mini[\s\S]{0,120}variant:\s*medium/i,
-    "README must document the configured cheap model profile for package agents.",
-  );
+  assert.match(readme, /active model\/provider are owned by the Hermes `paperclip` profile/i);
 });

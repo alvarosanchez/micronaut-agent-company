@@ -5,172 +5,124 @@ company:
 agents:
   ceo:
     adapter:
-      type: opencode_local
+      type: acpx_local
       config:
-        model: openai/gpt-5.5
-        variant: high
-        dangerouslySkipPermissions: true
-        extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+        mode: persistent
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: GPT-5.4 mini
-          adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
   product-manager:
     adapter:
-      type: opencode_local
+      type: acpx_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
-        extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+        mode: persistent
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: GPT-5.4 mini
-          adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
   architect:
     adapter:
-      type: opencode_local
+      type: acpx_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
-        extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+        mode: persistent
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: GPT-5.4 mini
-          adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
   qa-engineer:
     adapter:
-      type: opencode_local
+      type: acpx_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
-        extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+        mode: persistent
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: GPT-5.4 mini
-          adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
   security-engineer:
     adapter:
-      type: opencode_local
+      type: acpx_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
-        extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+        mode: persistent
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: GPT-5.4 mini
-          adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
   micronaut-engineer:
     adapter:
-      type: opencode_local
+      type: acpx_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
-        extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+        mode: persistent
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: GPT-5.4 mini
-          adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
   code-reviewer:
     adapter:
-      type: opencode_local
+      type: acpx_local
       config:
-        model: openai/gpt-5.5
-        variant: xhigh
-        dangerouslySkipPermissions: true
-        extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+        mode: persistent
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: GPT-5.4 mini
-          adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
   technical-writer:
     adapter:
-      type: opencode_local
+      type: acpx_local
       config:
-        model: openai/gpt-5.5
-        variant: medium
-        dangerouslySkipPermissions: true
-        extraArgs:
-          - --dangerously-skip-permissions
-        timeoutSec: 14400
+        mode: persistent
+        agent: custom
+        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        permissionMode: approve-all
+        nonInteractivePermissions: deny
+        timeoutSec: 0
         graceSec: 20
+        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: GPT-5.4 mini
-          adapterConfig:
-            model: openai/gpt-5.4-mini
-            variant: medium
 routines:
   weekly-product-discovery:
     status: active

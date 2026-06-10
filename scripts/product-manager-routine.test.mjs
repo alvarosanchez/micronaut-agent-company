@@ -86,12 +86,13 @@ test("Weekly Product Discovery routine is active and owned by Product Manager", 
   const routine = extension.routines?.["weekly-product-discovery"];
   const trigger = routine?.triggers?.[0];
 
-  assert.equal(adapter?.type, "opencode_local");
-  assert.equal(adapter?.config?.model, "openai/gpt-5.5");
-  assert.equal(adapter?.config?.variant, "xhigh");
-  assert.equal(adapter?.config?.dangerouslySkipPermissions, true);
-  assert.equal(adapter?.config?.timeoutSec, 14400);
+  assert.equal(adapter?.type, "acpx_local");
+  assert.equal(adapter?.config?.agentCommand, "/usr/local/bin/hermes -p paperclip acp --accept-hooks");
+  assert.equal(adapter?.config?.permissionMode, "approve-all");
+  assert.equal(adapter?.config?.timeoutSec, 0);
   assert.equal(adapter?.config?.graceSec, 20);
+  assert.equal(Object.hasOwn(adapter?.config ?? {}, "cwd"), false);
+  assert.equal(Object.hasOwn(adapter?.config ?? {}, "toolsets"), false);
 
   assert.equal(routine?.status, "active");
   assert.equal(trigger?.kind, "schedule");
@@ -127,7 +128,7 @@ test("Product Manager role and routine are documented", async () => {
   const company = await read("../COMPANY.md");
   const team = await read("../teams/engineering/TEAM.md");
 
-  assertContains(readme, /Product Manager: `openai\/gpt-5\.5`, `xhigh`/, "README should document Product Manager OpenCode model and xhigh variant.");
+  assertContains(readme, /acpx_local[\s\S]{0,240}hermes -p paperclip acp --accept-hooks/i, "README should document the Product Manager Hermes ACP adapter default.");
   assertContains(readme, /\| Product Manager \| `radar` \|/, "README should document the Product Manager radar icon.");
   assertContains(readme, /\| Product Manager \| `pm` \|/, "README should document the Product Manager pm role.");
   assertContains(readme, /\| `Weekly Product Discovery` \| Product Manager \| Mondays at 01:00 `Europe\/Madrid` \|/, "README should document the Weekly Product Discovery schedule.");
