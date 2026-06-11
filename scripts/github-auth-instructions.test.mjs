@@ -47,7 +47,7 @@ const KPI_API_ROUTE_REASON_PATTERN =
 const KPI_API_ROUTE_KIND_PATTERN =
   /native plugin JSON route[\s\S]*agent auth[\s\S]*not a plugin-tool call or webhook|not a plugin-tool call or webhook[\s\S]*native plugin JSON route[\s\S]*agent auth/i;
 const KPI_API_ROUTE_BEARER_AUTH_PATTERN =
-  /Authorization:\s*Bearer\s*\$\{PAPERCLIP_API_KEY\}|authorization:\s*Bearer\s*\$\{PAPERCLIP_API_KEY\}|Bearer\s+\$\{PAPERCLIP_API_KEY\}/i;
+  /Authorization:\s*Bearer\s*(?:\$\{PAPERCLIP_API_KEY\}|<PAPERCLIP_API_KEY>)|authorization:\s*Bearer\s*(?:\$\{PAPERCLIP_API_KEY\}|<PAPERCLIP_API_KEY>)|Bearer\s+(?:\$\{PAPERCLIP_API_KEY\}|<PAPERCLIP_API_KEY>)/i;
 const KPI_API_ROUTE_AGENT_TOKEN_PATTERN = /PAPERCLIP_API_KEY/i;
 const KPI_API_ROUTE_HOST_SCOPE_PATTERN =
   /Paperclip host[\s\S]*authenticates[\s\S]*bearer token[\s\S]*scopes[\s\S]*calling agent's company[\s\S]*rejects[\s\S]*(?:non-agent|cross-company)|host[\s\S]*rejects[\s\S]*(?:non-agent|cross-company)[\s\S]*before (?:the )?(?:plugin )?worker/i;
@@ -55,12 +55,12 @@ const KPI_API_ROUTE_COMPANY_ID_PATTERN =
   /companyId[\s\S]*(?:must match|matches) the calling agent's company/i;
 const KPI_API_ROUTE_LEGACY_WEBHOOK_PATH_PATTERN =
   /\/api\/plugins\/paperclip-github-plugin\/webhooks\/record-company-metric-event|\/webhooks\/record-company-metric-event/i;
-const PR_ISSUE_LINK_ROUTE_PATTERN =
-  /\/api\/plugins\/paperclip-github-plugin\/api\/issue-link[\s\S]{0,500}paperclipIssueId[\s\S]{0,500}(?:pullRequestUrl|reference)/i;
+const PR_ISSUE_LINK_TOOL_PATTERN =
+  /paperclip-github-plugin:link_github_item[\s\S]{0,500}kind[\s\S]{0,120}pull_request[\s\S]{0,500}paperclipIssueId[\s\S]{0,500}(?:pullRequestUrl|reference)/i;
 const PR_ISSUE_LINK_BEFORE_METRIC_PATTERN =
-  /issue-link[\s\S]{0,700}(?:company-metrics\/events|pull_request_created)/i;
+  /(?:link_github_item|durable PR-to-Paperclip link)[\s\S]{0,700}(?:company-metrics\/events|pull_request_created)/i;
 const PR_ISSUE_LINK_VERIFICATION_PATTERN =
-  /(?:PR creation metric is not the issue link|metric is not the issue link)[\s\S]{0,220}(?:status:\s*"linked"|`status: "linked"`)|(?:status:\s*"linked"|`status: "linked"`)[\s\S]{0,220}(?:tracked by GitHub Sync|GitHub Sync can track)/i;
+  /(?:PR creation metric is not the issue link|metric is not the issue link)[\s\S]{0,260}(?:link_github_item|tool)[\s\S]{0,220}(?:status:\s*"linked"|`status: "linked"`)|(?:status:\s*"linked"|`status: "linked"`)[\s\S]{0,260}(?:tracked by GitHub Sync|GitHub Sync can track)/i;
 const GITHUB_SYNC_AGENT_UNLINK_FORBIDDEN_PATTERN =
   /GitHub Sync[\s\S]{0,240}(?:links|issue-link|pull-request-link)[\s\S]{0,240}durable[\s\S]{0,400}Agents[\s\S]{0,240}must not[\s\S]{0,240}(?:unlink|tombstone|delete|deactivate)/i;
 const GITHUB_SYNC_OPERATOR_UNLINK_PATTERN =
@@ -101,8 +101,8 @@ function assertDirectGithubFooterPolicy(markdown, label) {
 function assertPullRequestMetricApiRoutePolicy(markdown, label) {
   assert.match(
     markdown,
-    PR_ISSUE_LINK_ROUTE_PATTERN,
-    `${label} must create the durable PR-to-Paperclip issue link for gh-created PRs.`,
+    PR_ISSUE_LINK_TOOL_PATTERN,
+    `${label} must create the durable PR-to-Paperclip issue link through the GitHub Sync agent tool for gh-created PRs.`,
   );
   assert.match(
     markdown,

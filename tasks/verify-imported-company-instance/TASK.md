@@ -12,7 +12,7 @@ Check at least these points:
 - `Product Manager` exists with role `pm`, title `Product Manager`, icon `radar`, reporting chain to `ceo`, and the expected product-discovery skills
 - `Technical Writer` includes the referenced `guides` skill for standalone Micronaut Guides work
 - the imported company preserves the package's Paperclip v2026.428 defaults: `attachmentMaxBytes` is 10 MiB, `requireBoardApprovalForNewAgents` is explicitly false, and the process-level attachment cap is understood as the final ceiling
-- every package-owned agent has `runtime.heartbeat.maxConcurrentRuns` set to 1, preserving the package's single-run concurrency override against Paperclip v2026.517.0's wider default
+- every package-owned agent has `runtime.heartbeat.maxConcurrentRuns` set to 1, preserving the package's single-run concurrency override against Paperclip v2026.609.0's wider default
 - each imported agent instruction bundle contains the expected runtime guidance and no missing package-only `references/` files
 - the `company-operations` project exists
 - this bootstrap issue exists in `TODO` on the CEO queue

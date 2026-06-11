@@ -24,8 +24,8 @@ const EXISTING_PROJECT_PATTERN =
   /project exists in Paperclip|Paperclip project exists|existing Paperclip project/i;
 const LINK_TOOL_PATTERN =
   /paperclip-github-plugin:link_github_item[\s\S]{0,500}(?:kind[\s\S]{0,80}pull_request|pull_request[\s\S]{0,80}kind)[\s\S]{0,500}paperclipIssueId[\s\S]{0,500}(?:pullRequestUrl|reference)/i;
-const ISSUE_LINK_API_PATTERN =
-  /\/api\/plugins\/paperclip-github-plugin\/api\/issue-link[\s\S]{0,500}PAPERCLIP_API_KEY[\s\S]{0,500}paperclipIssueId[\s\S]{0,500}(?:pullRequestUrl|reference)/i;
+const REMOVED_ISSUE_LINK_REST_FALLBACK_PATTERN =
+  /\/api\/plugins\/paperclip-github-plugin\/api\/issue-link|issue-link API route fallback|when plugin tools are unavailable, call|when plugin tools are unavailable[\s\S]{0,240}REST fallback/i;
 const SUBTASK_IN_REVIEW_AFTER_PR_PATTERN =
   /(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:PR|pull request)[\s\S]{0,260}(?:in_review|in review)[\s\S]{0,260}(?:do not|must not|never)[\s\S]{0,160}(?:close|mark(?:ed)? done|status: done|DONE)|(?:do not|must not|never)[\s\S]{0,160}(?:close|mark(?:ed)? done|status: done|DONE)[\s\S]{0,260}(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:PR|pull request)[\s\S]{0,260}(?:in_review|in review)/i;
 const TARGET_BRANCH_BEFORE_WORK_PATTERN =
@@ -82,10 +82,10 @@ test("shared guidance scopes out-of-pipeline PRs into linked Paperclip subtasks"
       LINK_TOOL_PATTERN,
       `${relativePath} must document the paperclip-github-plugin:link_github_item tool for PR links.`,
     );
-    assert.match(
+    assert.doesNotMatch(
       markdown,
-      ISSUE_LINK_API_PATTERN,
-      `${relativePath} must document the plugin-scoped /issue-link API route fallback.`,
+      REMOVED_ISSUE_LINK_REST_FALLBACK_PATTERN,
+      `${relativePath} must not document the removed plugin-scoped /issue-link REST fallback.`,
     );
     assert.match(
       markdown,
@@ -129,10 +129,10 @@ test("routine PR surfaces require a Paperclip subtask and PR link", async () => 
       LINK_TOOL_PATTERN,
       `${relativePath} must document the paperclip-github-plugin:link_github_item tool for PR links.`,
     );
-    assert.match(
+    assert.doesNotMatch(
       markdown,
-      ISSUE_LINK_API_PATTERN,
-      `${relativePath} must document the plugin-scoped /issue-link API route fallback.`,
+      REMOVED_ISSUE_LINK_REST_FALLBACK_PATTERN,
+      `${relativePath} must not document the removed plugin-scoped /issue-link REST fallback.`,
     );
     assert.match(
       markdown,
