@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "opencode-ai": "1.16.2",
-    "paperclipai": "2026.517.0",
+    "paperclipai": "2026.609.0",
     "playwright": "^1.59.1",
     "yaml": "2.9.0"
   }
