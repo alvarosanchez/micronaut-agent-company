@@ -10,6 +10,7 @@ skills:
   - docs
   - gradle
   - micronaut-test-resources-provider-development
+  - micronaut-graalvm-native-development
   - gh-cli
 metadata:
   paperclip:
