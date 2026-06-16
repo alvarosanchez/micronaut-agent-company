@@ -91,12 +91,12 @@ test("CEO self-improvement routine reconciles Paperclip runtime skills into Herm
   );
   assert.match(
     markdown,
-    /all company agents|not only the CEO|\/api\/companies\/\{companyId\}\/agents[\s\S]{0,260}\/api\/agents\/\{agentId\}\/skills/i,
+    /all company agents[\s\S]{0,260}not only the CEO[\s\S]{0,360}\/api\/companies\/\{companyId\}\/agents[\s\S]{0,260}\/api\/agents\/\{agentId\}\/skills/i,
     "Daily CEO routine must inspect Paperclip-managed company skills across all company agents, not only the CEO's selected skills.",
   );
   assert.match(
     markdown,
-    /__catalog__[\s\S]{0,260}(?:no runtime|runtime materialization|fallback)|(?:no runtime|runtime materialization|fallback)[\s\S]{0,260}__catalog__/i,
+    /no runtime materialization[\s\S]{0,220}fall back[\s\S]{0,260}__catalog__/i,
     "Daily CEO routine must fall back to the Paperclip catalog materialization when a company skill has no runtime copy.",
   );
 });
