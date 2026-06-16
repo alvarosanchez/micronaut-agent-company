@@ -89,6 +89,16 @@ test("CEO self-improvement routine reconciles Paperclip runtime skills into Herm
     /PAPERCLIP_COMPANY_ID[\s\S]{0,260}__runtime__/i,
     "Daily CEO routine must identify the Paperclip runtime skill source directory.",
   );
+  assert.match(
+    markdown,
+    /all company agents|not only the CEO|\/api\/companies\/\{companyId\}\/agents[\s\S]{0,260}\/api\/agents\/\{agentId\}\/skills/i,
+    "Daily CEO routine must inspect Paperclip-managed company skills across all company agents, not only the CEO's selected skills.",
+  );
+  assert.match(
+    markdown,
+    /__catalog__[\s\S]{0,260}(?:no runtime|runtime materialization|fallback)|(?:no runtime|runtime materialization|fallback)[\s\S]{0,260}__catalog__/i,
+    "Daily CEO routine must fall back to the Paperclip catalog materialization when a company skill has no runtime copy.",
+  );
 });
 
 test("README and COMPANY explain .company-runtime overlays in plain language", async () => {
