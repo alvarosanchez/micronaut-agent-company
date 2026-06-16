@@ -18,6 +18,7 @@ Focus on:
 - missing or outdated repo-level `AGENTS.md` guidance in managed Micronaut repositories
 - live workspace or runtime-service gaps where repo work keeps stalling because jobs or services were assumed to auto-start
 - gaps or upgrade opportunities in the company's imported skill inventory that would materially improve delivery and can be turned into a concrete approval or implementation step now
+- Hermes ACP skill visibility gaps where Paperclip-managed runtime skills are selected for agents but are not visible through the dedicated Hermes `paperclip` profile's local `skills/` storage or `skill_view`
 - CEO-opened PRs from earlier routine runs, linked approvals, or open PR searches that still need follow-up because CI is not green, checks are failing, or review threads remain unresolved
 - whether local extension instructions or `.company-runtime/` overlays should be added, simplified, or pruned
 - whether any reusable company learning should be promoted into the package core with a PR to `alvarosanchez/micronaut-agent-company`
@@ -32,6 +33,7 @@ Produce one Paperclip report that includes:
 - any productivity review issue you handled, the linked source issue, the trigger evidence such as no-comment, long-active, or high-churn behavior, and the concrete manager decision you recorded for the source work
 - any issue-thread interaction you created for a non-governance decision, including its kind, idempotency key, and expected continuation behavior
 - any managed Micronaut repository `AGENTS.md` updates you made using `agent-md-refactor`, including the Paperclip child issue or subtask that scopes the out-of-pipeline PR, the PR you opened or updated in that managed repository, and the PR-to-Paperclip issue link status
+- a **Hermes Runtime Skill Sync** section that lists each selected Paperclip runtime skill you checked, whether the corresponding Hermes profile skill already existed, was copied, was updated, or was blocked, the source runtime-skill path, the target Hermes local skill path, and the `skills_list`/`skill_view` verification result
 - a **Managed Repository AGENTS.md Audit** section that lists each active managed Micronaut repository you considered, whether root `AGENTS.md` exists, whether it is durable/current or stale/generated/missing, and the concrete outcome for each repository: no action needed, repo-local PR opened or updated, linked follow-up issue created, linked approval requested, or blocker named
 - any CEO-opened PRs you rechecked or followed up, including CI/check status, unresolved review-thread status, and the next action if the PR is not green and review-thread-clean yet
 - any proposed additive extension-instruction or `.company-runtime/` changes
@@ -45,6 +47,8 @@ For each improvement candidate, finish the routine with one of these states inst
 - manager decision recorded on the productivity review and source issue route corrected
 
 Treat Paperclip's bundled system skills `paperclip`, `paperclip-create-agent`, `paperclip-create-plugin`, and `para-memory-files` as immutable runtime capabilities. Do not propose editing them from this routine. If one of those capabilities needs better examples or safer defaults, add company-owned guidance or a company-owned skill in this package instead.
+
+When Paperclip shows a selected company/runtime skill for a Hermes ACP agent but the dedicated Hermes `paperclip` profile cannot load it through `skills_list` or `skill_view`, reconcile the skill into Hermes local skill storage during the routine instead of leaving the finding as a report-only blocker. Use the Paperclip runtime skill materialization under `${PAPERCLIP_HOME:-~/.paperclip}/instances/${PAPERCLIP_INSTANCE_ID:-default}/skills/${PAPERCLIP_COMPANY_ID}/__runtime__/` as the source of truth, and copy or update the skill into the dedicated Hermes profile's `skills/` tree, normally under a company category such as `skills/micronaut/<runtimeName>/`. Preserve the source `SKILL.md` and any referenced `references/`, `templates/`, `scripts/`, or `assets/` files; add or preserve metadata that names the Paperclip managed-skill source path; do not overwrite an unrelated user-authored Hermes skill unless it is already marked as a Paperclip managed-skill bridge for the same runtime skill. After copying or updating, verify the Hermes profile can see the skill with `skills_list`/`skill_view` or the equivalent `hermes -p paperclip skills list`, and record the source path, target path, copied/updated/no-op/blocked status, and verification result in the **Hermes Runtime Skill Sync** report section.
 
 If you mention a `.company-runtime/` overlay in the report, explain plainly whether it exists in the current workspace and that it is just an optional local sidecar folder for instance-specific instructions that survive package reimports.
 

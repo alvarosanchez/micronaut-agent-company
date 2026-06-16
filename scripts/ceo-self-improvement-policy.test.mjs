@@ -58,6 +58,39 @@ test("CEO self-improvement guidance requires action and respects bundled system 
   }
 });
 
+test("CEO self-improvement routine reconciles Paperclip runtime skills into Hermes local skill storage", async () => {
+  const markdown = await readFile(
+    new URL("../tasks/daily-ceo-self-improvement/TASK.md", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(
+    markdown,
+    /Hermes Runtime Skill Sync/i,
+    "Daily CEO report must include a Hermes Runtime Skill Sync section.",
+  );
+  assert.match(
+    markdown,
+    /Paperclip[\s\S]{0,180}runtime skill[\s\S]{0,260}Hermes[\s\S]{0,180}(?:local )?skill storage|Hermes[\s\S]{0,180}(?:local )?skill storage[\s\S]{0,260}Paperclip[\s\S]{0,180}runtime skill/i,
+    "Daily CEO routine must connect Paperclip runtime skills to Hermes local skill storage.",
+  );
+  assert.match(
+    markdown,
+    /copy or update|copied, was updated|copied\/updated|copied or updated/i,
+    "Daily CEO routine must require copying or updating missing Hermes-visible skills.",
+  );
+  assert.match(
+    markdown,
+    /skills_list[\s\S]{0,160}skill_view|skill_view[\s\S]{0,160}skills_list/i,
+    "Daily CEO routine must verify copied skills through Hermes skill listing/viewing.",
+  );
+  assert.match(
+    markdown,
+    /PAPERCLIP_COMPANY_ID[\s\S]{0,260}__runtime__/i,
+    "Daily CEO routine must identify the Paperclip runtime skill source directory.",
+  );
+});
+
 test("README and COMPANY explain .company-runtime overlays in plain language", async () => {
   for (const relativePath of ["../README.md", "../COMPANY.md"]) {
     const markdown = await readFile(new URL(relativePath, import.meta.url), "utf8");
