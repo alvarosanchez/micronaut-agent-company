@@ -5,21 +5,21 @@ import { readFile } from "node:fs/promises";
 import YAML from "yaml";
 
 const TEN_MIB = 10 * 1024 * 1024;
-const PAPERCLIP_RELEASE_UNDER_TEST = "2026.609.0";
+const PAPERCLIP_RELEASE_UNDER_TEST = "2026.618.0";
 const PACKAGE_AGENT_MAX_CONCURRENT_RUNS = 1;
 
 async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("package pins the Paperclip v2026.609.0 runtime for local verification", async () => {
+test("package pins the Paperclip v2026.618.0 runtime for local verification", async () => {
   const packageJson = JSON.parse(await read("../package.json"));
   const setupScript = await read("./setup-local-paperclip-instance.mjs");
 
   assert.equal(packageJson.devDependencies.paperclipai, PAPERCLIP_RELEASE_UNDER_TEST);
   assert.match(
     setupScript,
-    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.609\.0"/,
+    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.618\.0"/,
   );
 });
 
@@ -48,7 +48,7 @@ test("package agents explicitly cap heartbeat concurrency to one run", async () 
     assert.equal(
       agent?.runtime?.heartbeat?.maxConcurrentRuns,
       PACKAGE_AGENT_MAX_CONCURRENT_RUNS,
-      `${agentSlug} must override Paperclip v2026.609.0's 20-run default.`,
+      `${agentSlug} must override Paperclip v2026.618.0's wider heartbeat default.`,
     );
   }
 
@@ -179,4 +179,16 @@ test("source verification enforces the Paperclip v2026.428 migration guidance", 
     source,
     /README\.md must explain Paperclip productivity review issues\./,
   );
+});
+
+
+test("guidance covers Paperclip v2026.618 runtime surfaces without hard-coding deployment choices", async () => {
+  const readme = await read("../README.md");
+  const verifyTask = await read("../tasks/verify-imported-company-instance/TASK.md");
+
+  assert.match(readme, /Paperclip v2026\.618\.0[\s\S]{0,900}Skills Store[\s\S]{0,900}(?:company skills|runtime skills|skill inventory)/i);
+  assert.match(readme, /workspace file viewer|artifact links|PR-visible artifacts/i);
+  assert.match(readme, /self-hostable sandbox|sandbox-backed|environment-driver plugin/i);
+  assert.match(verifyTask, /Skills Store|runtime skill/i);
+  assert.match(verifyTask, /workspace file viewer|artifact links|PR-visible/i);
 });

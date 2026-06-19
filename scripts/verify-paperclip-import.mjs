@@ -1933,7 +1933,7 @@ async function main() {
   const nodeMajor = Number(process.versions.node.split(".")[0]);
   assert.ok(
     nodeMajor >= 20,
-    `Node ${process.version} is unsupported for Paperclip. Use Node 20-22.`,
+    `Node ${process.version} is unsupported for Paperclip. Use Node 20 or newer.`,
   );
 
   const expected = await loadSourceExpectations(repoRoot);
