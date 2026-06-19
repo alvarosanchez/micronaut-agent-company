@@ -1920,6 +1920,18 @@ function assertExportedBody(exportFiles, relativePath, expectedBody, expectedSlu
   );
 }
 
+function isSupportedPaperclipNodeVersion(version = process.versions.node) {
+  const [major = 0, minor = 0] = version.split(".").map((part) => Number(part));
+
+  if (major === 20) {
+    return minor >= 19;
+  }
+  if (major === 22) {
+    return minor >= 12;
+  }
+  return major >= 24;
+}
+
 async function main() {
   assert.ok(
     existsSync(paperclipPackageEntrypointPath),
@@ -1930,10 +1942,9 @@ async function main() {
     "Paperclip CLI wrapper is missing.",
   );
 
-  const nodeMajor = Number(process.versions.node.split(".")[0]);
   assert.ok(
-    nodeMajor >= 20,
-    `Node ${process.version} is unsupported for Paperclip. Use Node 20-22.`,
+    isSupportedPaperclipNodeVersion(),
+    `Node ${process.version} is unsupported for Paperclip. Use Node ^20.19.0, ^22.12.0, or >=24.0.0.`,
   );
 
   const expected = await loadSourceExpectations(repoRoot);
