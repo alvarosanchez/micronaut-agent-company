@@ -433,7 +433,7 @@ You can still run `Release Company` manually from the GitHub Actions UI:
 
 ## Validation
 
-Run the end-to-end import verifier locally with Node 24 or another Node version supported by the pinned Paperclip runtime:
+Run the end-to-end import verifier locally with the Node 22 compatibility script:
 
 ```bash
 npm run test:node22

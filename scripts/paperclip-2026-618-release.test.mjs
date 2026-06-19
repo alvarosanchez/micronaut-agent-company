@@ -36,6 +36,11 @@ test("import verification fails fast when the Paperclip package is missing", asy
     /existsSync\(paperclipPackageEntrypointPath\)/,
     "verify-paperclip-import must check the installed Paperclip package, not just the committed CLI wrapper.",
   );
+  assert.match(
+    source,
+    /\^20\.19\.0[\s\S]{0,120}\^22\.12\.0[\s\S]{0,120}>=24\.0\.0/,
+    "verify-paperclip-import must enforce the pinned Paperclip runtime's Node engine floor.",
+  );
 });
 
 test("package agents explicitly cap heartbeat concurrency to one run", async () => {
