@@ -26,6 +26,7 @@ Check at least these points:
 - when repo work depends on services or jobs, the live project workspace or execution workspace configuration is intentionally operator-owned instead of being assumed to come from this package
 - live Paperclip environments, including local, SSH-backed, or sandbox-backed providers, are intentionally operator-owned and not hard-coded into this package
 - Paperclip v2026.618 runtime surfaces are understood: package skills can be reconciled through the Skills Store/runtime skill inventory, PR-visible evidence can use workspace file viewer or artifact links, and sandbox provider choices remain live deployment configuration rather than portable package defaults
+- the imported company includes the package-adopted Paperclip catalog skills `issue-triage`, `task-planning`, `qa-acceptance`, `github-pr-workflow`, and `doc-maintenance`, and the expected agents reference those skills in their runtime skill inventory
 - operator-selected live company names, descriptions, and issue prefixes are valid import choices as long as they do not break routing, governance visibility, or package-owned entity mapping
 - references to `.paperclip.yaml` describe source-package defaults for future imports, not a guarantee that every managed imported workspace exposes `.paperclip.yaml` locally
 

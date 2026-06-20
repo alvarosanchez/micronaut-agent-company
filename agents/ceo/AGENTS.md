@@ -9,6 +9,9 @@ skills:
   - agent-md-refactor
   - gh-cli
   - find-skills
+  - issue-triage
+  - task-planning
+  - github-pr-workflow
 metadata:
   paperclip:
     agentIcon: crown

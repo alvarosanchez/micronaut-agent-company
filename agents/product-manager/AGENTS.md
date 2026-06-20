@@ -8,6 +8,8 @@ skills:
   - micronaut-repo-operations
   - docs
   - gh-cli
+  - qa-acceptance
+  - task-planning
 metadata:
   paperclip:
     agentIcon: radar

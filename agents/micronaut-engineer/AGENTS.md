@@ -12,6 +12,8 @@ skills:
   - micronaut-test-resources-provider-development
   - micronaut-graalvm-native-development
   - gh-cli
+  - github-pr-workflow
+  - doc-maintenance
 metadata:
   paperclip:
     agentIcon: hammer

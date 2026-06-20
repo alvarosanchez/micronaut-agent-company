@@ -11,6 +11,8 @@ skills:
   - micronaut-test-resources-provider-development
   - agent-md-refactor
   - gh-cli
+  - doc-maintenance
+  - github-pr-workflow
 metadata:
   paperclip:
     agentIcon: message-square

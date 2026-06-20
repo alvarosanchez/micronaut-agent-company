@@ -62,6 +62,8 @@ test("Product Manager agent is configured for product discovery", async () => {
     "micronaut-repo-operations",
     "docs",
     "gh-cli",
+    "qa-acceptance",
+    "task-planning",
   ]);
   assert.equal(frontmatter.metadata?.paperclip?.agentIcon, "radar");
   assertContains(body, /market[\s\S]{0,160}competitor|competitor[\s\S]{0,160}market/i, "Product Manager instructions should mention market and competitor research.");

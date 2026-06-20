@@ -12,6 +12,8 @@ skills:
   - micronaut-test-resources-provider-development
   - skill-creator
   - gh-cli
+  - task-planning
+  - qa-acceptance
 metadata:
   paperclip:
     agentIcon: telescope

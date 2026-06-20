@@ -10,6 +10,7 @@ skills:
   - micronaut-test-resources-provider-development
   - micronaut-graalvm-native-development
   - gh-cli
+  - qa-acceptance
 metadata:
   paperclip:
     agentIcon: eye

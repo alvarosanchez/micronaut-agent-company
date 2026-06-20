@@ -1215,6 +1215,26 @@ function normalizeSkillSourceMetadataEntry(source) {
   };
 }
 
+function normalizeSkillCatalogMetadata(catalog) {
+  if (!isPlainObject(catalog)) {
+    return null;
+  }
+
+  return {
+    skillKey: catalog.skillKey ?? null,
+    catalogId: catalog.catalogId ?? null,
+    catalogKey: catalog.catalogKey ?? null,
+    catalogKind: catalog.catalogKind ?? null,
+    catalogCategory: catalog.catalogCategory ?? null,
+    catalogPath: catalog.catalogPath ?? null,
+    packageName: catalog.packageName ?? null,
+    packageVersion: String(catalog.packageVersion ?? ""),
+    originVersion: String(catalog.originVersion ?? ""),
+    originHash: catalog.originHash ?? null,
+    sourceRef: catalog.sourceRef ?? null,
+  };
+}
+
 function normalizePaperclipAgentIcon(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
@@ -1594,6 +1614,9 @@ async function loadSourceExpectations(rootDir) {
         description: frontmatter.description ?? null,
         metadataSources: (frontmatter.metadata?.sources ?? []).map(
           normalizeSkillSourceMetadataEntry,
+        ),
+        metadataCatalog: normalizeSkillCatalogMetadata(
+          frontmatter.metadata?.paperclip?.catalog,
         ),
         path: relativePath,
         body: normalizeText(body),
@@ -2241,6 +2264,11 @@ async function main() {
         ),
         expectedSkill.metadataSources,
         `Source metadata mismatch for skill ${expectedSkill.slug}`,
+      );
+      assert.deepEqual(
+        normalizeSkillCatalogMetadata(exportedSkillFrontmatter.metadata?.paperclip?.catalog),
+        expectedSkill.metadataCatalog,
+        `Paperclip catalog metadata mismatch for skill ${expectedSkill.slug}`,
       );
       assertExportedBody(exportResult.files, actualSkill.path, expectedSkill.body);
     }
