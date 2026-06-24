@@ -2,7 +2,7 @@
 
 Micronaut Agent Company is an importable Agent Companies template package for Paperclip. It is built for a subset of related repositories in the `micronaut-projects` GitHub organization and is optimized for the long-running maintenance problem: keep the issue and PR inbox empty without sacrificing code quality, compatibility, security, or documentation quality.
 
-It combines company-local governance skills with referenced maintainer skills pinned to `micronaut-project-template`, so the agents reuse upstream Micronaut coding, docs, and Gradle guidance instead of vendoring those instructions here.
+It combines company-local governance skills, selected Paperclip Skills Store catalog skills with provenance, and referenced maintainer skills pinned to `micronaut-project-template`, so the agents reuse upstream Micronaut coding, docs, Gradle, triage, planning, QA, PR, and documentation-maintenance guidance instead of vendoring those instructions here.
 
 This package assumes the [paperclip-github-plugin](https://github.com/alvarosanchez/paperclip-github-plugin) is installed in the target Paperclip instance and is responsible for syncing GitHub issues and PRs into Paperclip and exposing GitHub operations as agent tools.
 
@@ -47,7 +47,7 @@ The package also pins two Paperclip company settings in `.paperclip.yaml`: `atta
 
 Paperclip v2026.512.0, still true in the current `paperclipai@2026.618.0` runtime, also carries issue `workMode` and applies status defaults during issue creation: assigned issue status defaults to `todo` when status is omitted, while unassigned issues default to `backlog`; an explicit `backlog` status still wins. This company's normal delivery issues, routine child issues, PR follow-through issues, and Product Manager-created product development issues use standard work mode. Do not set `workMode: planning` for the normal Architect planning stage, because those delivery issues must continue into implementation after the plan. Planning mode is for planning-only issues: make or update the plan, do not write code or start implementation there, and after an accepted plan create child implementation issues as standard delivery issues.
 
-Paperclip v2026.618.0 adds the Skills Store, workspace file viewer/artifact links, and self-hostable sandbox execution. This package continues to publish portable company skills as source-package defaults; live operators may install or reconcile them through the Skills Store, but agents must still audit the imported runtime skill inventory and the dedicated Hermes profile skill visibility before assuming a skill is usable. Visual evidence, generated reports, and browser artifacts should prefer Paperclip workspace file viewer or PR-visible artifact links over local-only paths. Sandbox-backed environments remain live deployment configuration: choose local, SSH-backed, Kubernetes, E2B, Novita, or other environment-driver plugins in the Paperclip instance, not in this portable package.
+Paperclip v2026.618.0 adds the Skills Store, workspace file viewer/artifact links, and self-hostable sandbox execution. This package now grants selected Paperclip catalog skill keys in agent frontmatter without vendoring the catalog skill bodies; operators must install those Skills Store entries in the target company so the preserved grants become configured runtime skills. Agents must still audit the imported runtime skill inventory and the dedicated Hermes profile skill visibility before assuming a skill is usable. Visual evidence, generated reports, and browser artifacts should prefer Paperclip workspace file viewer or PR-visible artifact links over local-only paths. Sandbox-backed environments remain live deployment configuration: choose local, SSH-backed, Kubernetes, E2B, Novita, or other environment-driver plugins in the Paperclip instance, not in this portable package.
 
 ## Paperclip Agent Icons
 
@@ -384,6 +384,21 @@ flowchart TD
 | `micronaut-repo-operations` | Shared operating rules for lifecycle state, labels, SemVer targeting, PR rules, tool boundaries, internal routines, and reimport-safe runtime overlays |
 | `micronaut-quality-gates` | Common definition of done across triage, planning, implementation, QA, security review, code review, and PR follow-through |
 | `micronaut-security-review` | Security review checklist for Micronaut source code, dependencies, build logic, CI/CD, release automation, secure defaults, and proactive deep scans |
+| `micronaut-test-resources-provider-development` | Micronaut Test Resources provider development, resolver lifecycle, service-loader registration, Testcontainers integration, and provider docs |
+| `micronaut-graalvm-native-development` | Micronaut-specific GraalVM native-image diagnostics, generated AOT/native assets, reachability metadata, and CI evidence |
+
+## Paperclip Catalog Skills
+
+These are Paperclip 2026.618 Skills Store catalog prerequisites, not vendored source-package skills. This package grants agents the catalog skill **keys** so the assignment survives import/export without duplicating upstream skill bodies. On a fresh imported company, install the catalog skills from the Skills Store; before installation Paperclip preserves the desired grants but reports those runtime skills as missing. Micronaut-specific corrections live in the relevant agent instructions below rather than in copied catalog skill bodies.
+
+| Catalog Skill | Assigned To | Purpose |
+| --- | --- | --- |
+| `paperclipai/bundled/paperclip-operations/issue-triage` | CEO, QA Engineer | Paperclip inbox, intake, and productivity-review triage with Micronaut-specific safeguards for synced GitHub issue closure and agent ownership |
+| `paperclipai/bundled/paperclip-operations/task-planning` | CEO, Architect, Product Manager | Structured `plan` documents, child task breakdowns, blockers, owners, acceptance criteria, and plan-confirmation interactions without turning normal delivery issues into planning mode |
+| `paperclipai/bundled/quality/qa-acceptance` | Architect, Product Manager, QA Engineer | Given/when/then acceptance criteria, manual validation plans, edge cases, error states, and durable pass/fail evidence for feature-level QA |
+| `paperclipai/bundled/software-development/github-pr-workflow` | CEO, Code Reviewer, Micronaut Engineer, Technical Writer | Branch hygiene, PR body evidence, review-thread replies, CI/readiness checks, and PR follow-through while preserving the normal Code Reviewer PR-creation gate |
+| `paperclipai/bundled/docs/doc-maintenance` | Code Reviewer, Micronaut Engineer, Technical Writer | Minimum-churn documentation drift detection and updates for user-visible behavior, configuration, API, release-line, and tooling changes |
+| `paperclipai/optional/browser/agent-browser` | QA Engineer, Product Manager, Micronaut Engineer, Technical Writer | Browser-backed verification for dynamic pages, generated docs, preview/deployed UI, screenshots, console and network evidence; not unattended scraping |
 
 ## Referenced External Skills
 

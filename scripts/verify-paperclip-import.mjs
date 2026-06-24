@@ -39,6 +39,14 @@ const ROOT_PACKAGE_DIRS = ["agents", "projects", "tasks", "skills"];
 const DISALLOWED_PACKAGE_DIRS = ["references"];
 const DEFAULT_COMPANY_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
 const PAPERCLIP_ISSUE_LIST_DESCRIPTION_EXPORT_MAX_CHARS = 1200;
+const CATALOG_SKILL_KEYS_NOT_VENDORED_BY_PACKAGE = new Set([
+  "paperclipai/bundled/paperclip-operations/issue-triage",
+  "paperclipai/bundled/paperclip-operations/task-planning",
+  "paperclipai/bundled/quality/qa-acceptance",
+  "paperclipai/bundled/software-development/github-pr-workflow",
+  "paperclipai/bundled/docs/doc-maintenance",
+  "paperclipai/optional/browser/agent-browser",
+]);
 const PORTABLE_RUNTIME_FILE_PATTERNS = [
   /^agents\/[^/]+\/AGENTS\.md$/,
   /^skills\/[^/]+\/SKILL\.md$/,
@@ -1215,6 +1223,26 @@ function normalizeSkillSourceMetadataEntry(source) {
   };
 }
 
+function normalizeSkillCatalogMetadata(catalog) {
+  if (!isPlainObject(catalog)) {
+    return null;
+  }
+
+  return {
+    skillKey: catalog.skillKey ?? null,
+    catalogId: catalog.catalogId ?? null,
+    catalogKey: catalog.catalogKey ?? null,
+    catalogKind: catalog.catalogKind ?? null,
+    catalogCategory: catalog.catalogCategory ?? null,
+    catalogPath: catalog.catalogPath ?? null,
+    packageName: catalog.packageName ?? null,
+    packageVersion: String(catalog.packageVersion ?? ""),
+    originVersion: String(catalog.originVersion ?? ""),
+    originHash: catalog.originHash ?? null,
+    sourceRef: catalog.sourceRef ?? null,
+  };
+}
+
 function normalizePaperclipAgentIcon(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
@@ -1594,6 +1622,9 @@ async function loadSourceExpectations(rootDir) {
         description: frontmatter.description ?? null,
         metadataSources: (frontmatter.metadata?.sources ?? []).map(
           normalizeSkillSourceMetadataEntry,
+        ),
+        metadataCatalog: normalizeSkillCatalogMetadata(
+          frontmatter.metadata?.paperclip?.catalog,
         ),
         path: relativePath,
         body: normalizeText(body),
@@ -1994,7 +2025,21 @@ async function main() {
     });
 
     assert.ok(importResult?.company?.id, "Import did not return a company id");
-    assert.deepEqual(importResult.warnings ?? [], [], "Import should not emit warnings");
+    const expectedCatalogSkillWarnings = [];
+    for (const expectedAgent of expected.agents.values()) {
+      for (const skillKey of expectedAgent.skills) {
+        if (CATALOG_SKILL_KEYS_NOT_VENDORED_BY_PACKAGE.has(skillKey)) {
+          expectedCatalogSkillWarnings.push(
+            `Agent ${expectedAgent.slug} references skill ${skillKey}, but that skill is not present in the package.`,
+          );
+        }
+      }
+    }
+    assertStringArrayEqual(
+      importResult.warnings ?? [],
+      expectedCatalogSkillWarnings,
+      "Import should only warn for non-vendored Paperclip catalog skills that must be installed from the Skills Store",
+    );
     const importedCompanyId = importResult.company.id;
 
     console.log("Checking created entities through company, agent, project, and issue APIs...");
@@ -2241,6 +2286,11 @@ async function main() {
         ),
         expectedSkill.metadataSources,
         `Source metadata mismatch for skill ${expectedSkill.slug}`,
+      );
+      assert.deepEqual(
+        normalizeSkillCatalogMetadata(exportedSkillFrontmatter.metadata?.paperclip?.catalog),
+        expectedSkill.metadataCatalog,
+        `Paperclip catalog metadata mismatch for skill ${expectedSkill.slug}`,
       );
       assertExportedBody(exportResult.files, actualSkill.path, expectedSkill.body);
     }
