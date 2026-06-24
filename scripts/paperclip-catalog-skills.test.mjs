@@ -139,9 +139,12 @@ test("documentation and bootstrap verification describe catalog-skill adoption",
 
   assert.match(readme, /## Paperclip Catalog Skills/);
   assert.match(readme, /metadata\.paperclip\.catalog/);
+  assert.match(readme, /does \*\*not\*\* dynamically inject, include, or append the upstream catalog body/i);
   assert.match(readme, /Skills Store/i);
   assert.match(company, /selected Paperclip 2026\.618 Skills Store catalog skills with provenance/i);
+  assert.match(company, /provenance is bookkeeping, not a dynamic include/i);
   assert.match(company, /must not weaken QA's GitHub-backed closure evidence/i);
+  assert.match(bootstrap, /package-copied catalog bodies plus Micronaut usage notes rather than dynamically appended Skills Store content/);
   assert.match(bootstrap, /`issue-triage`, `task-planning`, `qa-acceptance`, `github-pr-workflow`, `doc-maintenance`, and `agent-browser`/);
 
   for (const { slug } of CATALOG_SKILLS) {
