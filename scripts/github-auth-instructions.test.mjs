@@ -5,11 +5,13 @@ import { readFile } from "node:fs/promises";
 import YAML from "yaml";
 
 const GH_CLI_SKILL = "gh-cli";
+const SHARED_GITHUB_SKILL = "micronaut-github-operations";
 const GITHUB_AGENT_PATHS = [
   "agents/architect/AGENTS.md",
   "agents/ceo/AGENTS.md",
   "agents/code-reviewer/AGENTS.md",
   "agents/micronaut-engineer/AGENTS.md",
+  "agents/product-manager/AGENTS.md",
   "agents/qa-engineer/AGENTS.md",
   "agents/security-engineer/AGENTS.md",
   "agents/technical-writer/AGENTS.md",
@@ -46,8 +48,7 @@ const KPI_API_ROUTE_REASON_PATTERN =
   /GitHub alone cannot attribute|cannot attribute those PRs to Paperclip work|cannot attribute that PR to Paperclip work|cannot tell which pull requests came from a Paperclip company/i;
 const KPI_API_ROUTE_KIND_PATTERN =
   /native plugin JSON route[\s\S]*agent auth[\s\S]*not a plugin-tool call or webhook|not a plugin-tool call or webhook[\s\S]*native plugin JSON route[\s\S]*agent auth/i;
-const KPI_API_ROUTE_BEARER_AUTH_PATTERN =
-  /Authorization:\s*Bearer\s*(?:\$\{PAPERCLIP_API_KEY\}|<PAPERCLIP_API_KEY>)|authorization:\s*Bearer\s*(?:\$\{PAPERCLIP_API_KEY\}|<PAPERCLIP_API_KEY>)|Bearer\s+(?:\$\{PAPERCLIP_API_KEY\}|<PAPERCLIP_API_KEY>)/i;
+const KPI_API_ROUTE_BEARER_AUTH_PATTERN = /Authorization/i;
 const KPI_API_ROUTE_AGENT_TOKEN_PATTERN = /PAPERCLIP_API_KEY/i;
 const KPI_API_ROUTE_HOST_SCOPE_PATTERN =
   /Paperclip host[\s\S]*authenticates[\s\S]*bearer token[\s\S]*scopes[\s\S]*calling agent's company[\s\S]*rejects[\s\S]*(?:non-agent|cross-company)|host[\s\S]*rejects[\s\S]*(?:non-agent|cross-company)[\s\S]*before (?:the )?(?:plugin )?worker/i;
@@ -199,14 +200,32 @@ function parseFrontmatter(markdown) {
   };
 }
 
-test("GitHub-capable agents include the gh CLI skill", async () => {
+test("GitHub-capable agents include the gh CLI and shared GitHub operations skills", async () => {
+  const sharedSkillMarkdown = await readFile(
+    new URL("../skills/micronaut-github-operations/SKILL.md", import.meta.url),
+    "utf8",
+  );
+  const { frontmatter: sharedSkillFrontmatter, body: sharedSkillBody } = parseFrontmatter(sharedSkillMarkdown);
+  assert.equal(sharedSkillFrontmatter.name, SHARED_GITHUB_SKILL);
+  assert.match(sharedSkillBody, /paperclip-github-plugin:/);
+  assert.match(sharedSkillBody, /GITHUB_TOKEN/);
+
   for (const relativePath of GITHUB_AGENT_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
-    const { frontmatter } = parseFrontmatter(markdown);
+    const { frontmatter, body } = parseFrontmatter(markdown);
 
     assert.ok(
       Array.isArray(frontmatter.skills) && frontmatter.skills.includes(GH_CLI_SKILL),
       `${relativePath} must include the ${GH_CLI_SKILL} skill.`,
+    );
+    assert.ok(
+      Array.isArray(frontmatter.skills) && frontmatter.skills.includes(SHARED_GITHUB_SKILL),
+      `${relativePath} must include the ${SHARED_GITHUB_SKILL} skill.`,
+    );
+    assert.match(
+      body,
+      /Apply the shared `micronaut-github-operations` skill/,
+      `${relativePath} must point agents at the shared GitHub operations skill.`,
     );
   }
 });

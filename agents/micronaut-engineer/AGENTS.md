@@ -5,6 +5,7 @@ title: Micronaut Engineer
 reportsTo: ceo
 skills:
   - micronaut-repo-operations
+  - micronaut-github-operations
   - micronaut-quality-gates
   - coding
   - docs
@@ -68,19 +69,14 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
-- When `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association.
-- If `GITHUB_TOKEN` is not available, use the agent tools below for GitHub operations they cover, including Micronaut organization-project lookup and live PR association.
-- By `GITHUB_TOKEN`, mean the environment variable with that exact name. Do not search the filesystem, plugin config, or other files for a token.
-- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
-- Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
-- Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
-- Do not use Paperclip issue monitors to poll GitHub-synced PR state. CI/check status, mergeability, PR file state, review threads, reviewer routing, and PR project links must be read or changed through GitHub Sync tools or `gh` when `GITHUB_TOKEN` is available. Issue monitors remain valid only for non-GitHub waits or external conditions that GitHub Sync does not already own.
+- Apply the shared `micronaut-github-operations` skill for the full GitHub access, footer, GitHub Sync tool, monitor-boundary, PR-linking, KPI, link-immutability, review-thread, and asset-upload rules.
+- Compact reminder: when `GITHUB_TOKEN` is present use the `gh` CLI; if `GITHUB_TOKEN` is not available use the GitHub sync plugin agent tools (`paperclip-github-plugin:*`). `GITHUB_TOKEN` means that environment variable only; do not search the filesystem, plugin config, or other files for a token.
+- Direct maintainer-visible `gh` writes need the shared GitHub-flavored Markdown footer after one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`. Do not add that footer manually for GitHub Sync plugin tools; the plugin appends it automatically.
+- Do not use Paperclip issue monitors for GitHub-synced PR state; use GitHub Sync tools or `gh` for CI/check status, mergeability, PR file state, review threads, reviewer routing, PR assets, and project links.
 - In `GITHUB_TOKEN`-backed runs, use `gh` to re-check the selected Micronaut organization-project set when the release target changes, and use `gh` again to repair every live PR-to-project association when it drifted because of agent metadata drift. Micronaut organization projects represent Micronaut Platform BOM release boards, not repository module or project versions. Do not use this repair path to undo a maintainer project change.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to keep the linked GitHub issue context accurate while you implement.
 - `paperclip-github-plugin:get_pull_request` and `paperclip-github-plugin:update_pull_request` when a PR already exists and you need to keep its title, body, base branch, or draft state aligned with the approved work.
 - `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to inspect the live diff, CI state, and open review feedback.
-- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:list_organization_projects` when the QA-selected Micronaut organization-project set needs re-verification because the release target changes.
-- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:add_pull_request_to_project` when the surviving PR is missing any selected organization project or an agent retarget requires live project links to be repaired. If a maintainer changed the organization project, preserve the maintainer's project choice instead of restoring the original selected set.
 - `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` to answer reviewer feedback and keep review-thread state honest during PR follow-through. Do not silently resolve a thread; reply first with the decision, then resolve it only when the thread is actually settled.
 - Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.5`; the plugin appends the footer automatically.
 - Use the local git CLI for branch, commit, rebase, and push work; the GitHub sync plugin does not replace git.

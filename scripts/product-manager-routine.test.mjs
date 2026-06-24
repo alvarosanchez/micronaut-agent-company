@@ -60,6 +60,7 @@ test("Product Manager agent is configured for product discovery", async () => {
   assert.deepEqual(frontmatter.skills, [
     "product-discovery",
     "micronaut-repo-operations",
+    "micronaut-github-operations",
     "docs",
     "gh-cli",
     "paperclipai/bundled/quality/qa-acceptance",
