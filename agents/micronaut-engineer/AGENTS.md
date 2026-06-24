@@ -14,6 +14,7 @@ skills:
   - gh-cli
   - github-pr-workflow
   - doc-maintenance
+  - agent-browser
 metadata:
   paperclip:
     agentIcon: hammer

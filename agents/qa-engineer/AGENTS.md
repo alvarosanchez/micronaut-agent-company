@@ -11,6 +11,8 @@ skills:
   - micronaut-graalvm-native-development
   - gh-cli
   - qa-acceptance
+  - issue-triage
+  - agent-browser
 metadata:
   paperclip:
     agentIcon: eye

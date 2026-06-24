@@ -13,6 +13,7 @@ skills:
   - gh-cli
   - doc-maintenance
   - github-pr-workflow
+  - agent-browser
 metadata:
   paperclip:
     agentIcon: message-square

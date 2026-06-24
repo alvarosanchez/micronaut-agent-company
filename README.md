@@ -393,11 +393,12 @@ These skills are imported from the Paperclip 2026.618 Skills Store catalog into 
 
 | Catalog Skill | Assigned To | Purpose |
 | --- | --- | --- |
-| `issue-triage` | CEO | Paperclip inbox and productivity-review triage with Micronaut-specific safeguards for synced GitHub issue closure and agent ownership |
+| `issue-triage` | CEO, QA Engineer | Paperclip inbox, intake, and productivity-review triage with Micronaut-specific safeguards for synced GitHub issue closure and agent ownership |
 | `task-planning` | CEO, Architect, Product Manager | Structured `plan` documents, child task breakdowns, blockers, owners, acceptance criteria, and plan-confirmation interactions without turning normal delivery issues into planning mode |
 | `qa-acceptance` | Architect, Product Manager, QA Engineer | Given/when/then acceptance criteria, manual validation plans, edge cases, error states, and durable pass/fail evidence for feature-level QA |
 | `github-pr-workflow` | CEO, Code Reviewer, Micronaut Engineer, Technical Writer | Branch hygiene, PR body evidence, review-thread replies, CI/readiness checks, and PR follow-through while preserving the normal Code Reviewer PR-creation gate |
 | `doc-maintenance` | Code Reviewer, Micronaut Engineer, Technical Writer | Minimum-churn documentation drift detection and updates for user-visible behavior, configuration, API, release-line, and tooling changes |
+| `agent-browser` | QA Engineer, Product Manager, Micronaut Engineer, Technical Writer | Browser-backed verification for dynamic pages, generated docs, preview/deployed UI, screenshots, console and network evidence; not unattended scraping |
 
 ## Referenced External Skills
 

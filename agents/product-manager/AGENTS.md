@@ -10,6 +10,7 @@ skills:
   - gh-cli
   - qa-acceptance
   - task-planning
+  - agent-browser
 metadata:
   paperclip:
     agentIcon: radar

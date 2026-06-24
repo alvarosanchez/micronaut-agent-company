@@ -75,16 +75,26 @@ const CATALOG_SKILLS = [
     phrase: /# Doc Maintenance/i,
     override: /Micronaut `docs` and `guides` skills|minimum-churn documentation updates/i,
   },
+  {
+    slug: "agent-browser",
+    catalogId: "paperclipai:optional:browser:agent-browser",
+    key: "paperclipai/optional/browser/agent-browser",
+    kind: "optional",
+    category: "browser",
+    originHash: "sha256:eabb2c9f7b5e1a27ebb1e05a711d61433a266478154cd671a685e99e67aadea2",
+    phrase: /# Agent Browser/i,
+    override: /Browser-backed verification|not unattended scraping/i,
+  },
 ];
 
 const AGENT_ASSIGNMENTS = {
   ceo: ["issue-triage", "task-planning", "github-pr-workflow"],
   architect: ["task-planning", "qa-acceptance"],
-  "product-manager": ["qa-acceptance", "task-planning"],
-  "qa-engineer": ["qa-acceptance"],
-  "micronaut-engineer": ["github-pr-workflow", "doc-maintenance"],
+  "product-manager": ["qa-acceptance", "task-planning", "agent-browser"],
+  "qa-engineer": ["qa-acceptance", "issue-triage", "agent-browser"],
+  "micronaut-engineer": ["github-pr-workflow", "doc-maintenance", "agent-browser"],
   "code-reviewer": ["github-pr-workflow", "doc-maintenance"],
-  "technical-writer": ["doc-maintenance", "github-pr-workflow"],
+  "technical-writer": ["doc-maintenance", "github-pr-workflow", "agent-browser"],
 };
 
 test("selected Paperclip catalog skills ship with catalog provenance and usable bodies", async () => {
@@ -132,7 +142,7 @@ test("documentation and bootstrap verification describe catalog-skill adoption",
   assert.match(readme, /Skills Store/i);
   assert.match(company, /selected Paperclip 2026\.618 Skills Store catalog skills with provenance/i);
   assert.match(company, /must not weaken QA's GitHub-backed closure evidence/i);
-  assert.match(bootstrap, /`issue-triage`, `task-planning`, `qa-acceptance`, `github-pr-workflow`, and `doc-maintenance`/);
+  assert.match(bootstrap, /`issue-triage`, `task-planning`, `qa-acceptance`, `github-pr-workflow`, `doc-maintenance`, and `agent-browser`/);
 
   for (const { slug } of CATALOG_SKILLS) {
     assert.match(readme, new RegExp(`\\${slug}\\`.replace(/\u007f/g, "`")));
