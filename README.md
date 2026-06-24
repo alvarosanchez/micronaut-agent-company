@@ -389,7 +389,7 @@ flowchart TD
 
 ## Paperclip Catalog Skills
 
-These skills are copied from the Paperclip 2026.618 Skills Store catalog into the source package with `metadata.paperclip.catalog` provenance. The metadata marks the skill as catalog-origin for inventory/export/update bookkeeping; it does **not** dynamically inject, include, or append the upstream catalog body at import or runtime. The package therefore keeps the catalog body in each skill file so imported companies receive usable runtime skill content, then adds Micronaut-specific usage notes that preserve this company's stricter GitHub Sync, QA, PR, planning, and documentation rules.
+These skills are copied from the Paperclip 2026.618 Skills Store catalog into the source package with `metadata.paperclip.catalog` provenance. The metadata marks the skill as catalog-origin for inventory/export/provenance bookkeeping; it does **not** dynamically inject, include, or append the upstream catalog body at import or runtime. The package therefore keeps the catalog body in each skill file so imported companies receive usable runtime skill content, then adds Micronaut-specific usage notes that preserve this company's stricter GitHub Sync, QA, PR, planning, and documentation rules.
 
 | Catalog Skill | Assigned To | Purpose |
 | --- | --- | --- |
