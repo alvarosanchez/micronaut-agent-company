@@ -119,6 +119,54 @@ test("guidance handles Paperclip v2026.512 issue defaults and planning mode", as
   );
 });
 
+test("guidance uses Paperclip planning mode for explicit precursor issues", async () => {
+  const planningBoundaryPaths = [
+    "../README.md",
+    "../COMPANY.md",
+    "../agents/ceo/AGENTS.md",
+    "../agents/product-manager/AGENTS.md",
+    "../agents/architect/AGENTS.md",
+  ];
+
+  for (const relativePath of planningBoundaryPaths) {
+    const markdown = await read(relativePath);
+    assert.match(
+      markdown,
+      /planning[- ]only precursor/i,
+      `${relativePath} must name explicit planning-only precursor issues.`,
+    );
+    assert.match(
+      markdown,
+      /workMode:\s*planning/i,
+      `${relativePath} must use workMode: planning only for the precursor case.`,
+    );
+  }
+});
+
+test("guidance converts accepted plans through Paperclip accepted-plan decomposition", async () => {
+  const decompositionPaths = [
+    "../README.md",
+    "../COMPANY.md",
+    "../agents/architect/AGENTS.md",
+    "../skills/micronaut-repo-operations/SKILL.md",
+    "../tasks/verify-imported-company-instance/TASK.md",
+  ];
+
+  for (const relativePath of decompositionPaths) {
+    const markdown = await read(relativePath);
+    assert.match(
+      markdown,
+      /accepted-plan-decompositions/i,
+      `${relativePath} must mention /accepted-plan-decompositions.`,
+    );
+    assert.match(
+      markdown,
+      /standard[- ]mode child implementation issues|workMode:\s*standard/i,
+      `${relativePath} must create standard-mode child implementation issues from accepted plans.`,
+    );
+  }
+});
+
 test("docs explain v2026.428 company-level attachment and hiring semantics", async () => {
   for (const relativePath of ["../README.md", "../COMPANY.md"]) {
     const markdown = await read(relativePath);

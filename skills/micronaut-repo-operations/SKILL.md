@@ -103,11 +103,12 @@ Example keyed-document flow:
 2. Write the updated artifact with `PUT /api/issues/{issueId}/documents/ceo` so the stage output stays anchored to the same durable key.
 3. Use `GET /api/issues/{issueId}/documents/ceo/revisions` when you need the audit trail for an earlier version.
 
-Plan-confirmation flow:
+Plan-confirmation and decomposition flow:
 
 1. Write or update the `plan` document and read back its latest revision id.
 2. Create `POST /api/issues/{issueId}/interactions` with `kind: request_confirmation`, `target.type: issue_document`, `target.key: plan`, the latest `revisionId`, `idempotencyKey: confirmation:{issueId}:plan:{revisionId}`, and `continuationPolicy: wake_assignee_on_accept`.
 3. Wait for acceptance before creating implementation child issues. If a later user or board comment supersedes the plan, update the document and create a fresh confirmation instead of reusing the stale card.
+4. For accepted planning-mode precursor issues, create the implementation child set with `POST /api/issues/{issueId}/accepted-plan-decompositions`, passing the accepted `plan` revision id and child drafts with `workMode: standard`. Treat the endpoint as idempotent for the same accepted revision and child set; do not manually duplicate the same decomposition.
 
 ## Execution Workspaces And Runtime Services
 

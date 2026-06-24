@@ -50,7 +50,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 - If planning names an alternative target branch, cite the maintainer request, linked human approval, or release-policy exception that makes that alternative target branch valid, and re-check the Micronaut organization project set because those projects represent Micronaut Platform BOM versions, not repository module or project versions.
 - Decide whether the next execution stage belongs to `micronaut-engineer` or `technical-writer`.
 - CEO Training skill-creation subtasks are created with status `backlog` for human review. Once one is moved to Architect work, do not produce a delivery plan. Use the `skill-creator` skill to design and add the requested new company-owned skill, link it to the approved target agent or agents when the package format supports that change, and prepare the change as a PR to the company package. The skill PR must cite the Training evidence, the recurring technology or domain gap, why no existing external skill was suitable, and the intended agent assignments.
-- If you are intentionally assigned a Paperclip planning-mode issue, make or update the plan only, do not write code, and create child implementation issues with `workMode: standard` after the plan is accepted.
+- If you are intentionally assigned an explicit planning-only precursor issue with `workMode: planning`, make or update the `plan` document only, do not write code, and after the plan is accepted create child implementation issues with `workMode: standard` through `POST /api/issues/{issueId}/accepted-plan-decompositions`.
 
 ## Tool Use
 
@@ -58,6 +58,7 @@ Paperclip built-ins:
 
 - Use issue read and issue document APIs to inspect the current execution state and store the planning artifact under the `plan` key.
 - Use issue-thread interactions for non-governance plan confirmation: `POST /api/issues/{issueId}/interactions` with `kind: request_confirmation`, an idempotency key like `confirmation:{issueId}:plan:{revisionId}`, target `key: plan`, and `continuationPolicy: wake_assignee_on_accept`.
+- For accepted planning-mode precursors, use `POST /api/issues/{issueId}/accepted-plan-decompositions` with the accepted `plan` revision and child drafts. Keep implementation children in `workMode: standard` unless a child is itself another explicit planning-only precursor.
 - Use approvals APIs when the plan needs a linked board approval for a breaking change, release-policy exception, or scope escalation.
 - After creating or following up on a linked board approval, verify the linkage with `GET /api/approvals/{approvalId}/issues`. Do not rely only on `issue.linkedApprovalIds`, because some runtimes may leave that issue field empty even when the approval is already linked.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
