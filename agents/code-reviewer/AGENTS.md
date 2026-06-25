@@ -5,6 +5,7 @@ title: Code Reviewer
 reportsTo: ceo
 skills:
   - micronaut-repo-operations
+  - micronaut-github-operations
   - micronaut-quality-gates
   - coding
   - docs
@@ -59,13 +60,10 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
-- When `GITHUB_TOKEN` is present, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association.
-- If `GITHUB_TOKEN` is not available, use the agent tools below for GitHub operations they cover, including Micronaut organization-project lookup and live PR association.
-- By `GITHUB_TOKEN`, mean the environment variable with that exact name. Do not search the filesystem, plugin config, or other files for a token.
-- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
-- Do not add that footer manually when you use the GitHub sync plugin tools; they append it automatically.
-- Use these exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
-- Do not use Paperclip issue monitors to poll GitHub-synced PR state. CI/check status, mergeability, PR file state, review threads, reviewer routing, and PR project links must be read or changed through GitHub Sync tools or `gh` when `GITHUB_TOKEN` is available. Issue monitors remain valid only for non-GitHub waits or external conditions that GitHub Sync does not already own.
+- Apply the shared `micronaut-github-operations` skill for the full GitHub access, footer, GitHub Sync tool, monitor-boundary, PR-linking, KPI, link-immutability, review-thread, and asset-upload rules.
+- Compact reminder: when `GITHUB_TOKEN` is present use the `gh` CLI; if `GITHUB_TOKEN` is not available use the GitHub sync plugin agent tools (`paperclip-github-plugin:*`). `GITHUB_TOKEN` means that environment variable only; do not search the filesystem, plugin config, or other files for a token.
+- Direct maintainer-visible `gh` writes need the shared GitHub-flavored Markdown footer after one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`. Do not add that footer manually for GitHub Sync plugin tools; the plugin appends it automatically.
+- Do not use Paperclip issue monitors for GitHub-synced PR state; use GitHub Sync tools or `gh` for CI/check status, mergeability, PR file state, review threads, reviewer routing, PR assets, and project links.
 - In authenticated runs, use `gh` to confirm the recommended Micronaut organization project set when the upstream QA or plan artifact carries ambiguity or the live target changed, and use `gh` again to create or repair each live PR-to-project association. Before repairing an existing PR's project links, inspect whether the live change came from a human maintainer; maintainer project retargeting is authoritative and agents must preserve it.
 - If an authenticated run creates a PR with `gh pr create` or another non-plugin GitHub client in a repository mapped to the current company, immediately create the durable PR-to-Paperclip link with `paperclip-github-plugin:link_github_item` using `kind: "pull_request"`, `paperclipIssueId`, and `pullRequestUrl` or `reference`, then separately `POST /api/plugins/paperclip-github-plugin/api/company-metrics/events` with `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`. Include `companyId` only when useful for disambiguation; if present, it must match the calling agent's company. GitHub alone cannot attribute non-plugin PR creation to Paperclip work, so both the durable tool link and the metric event are required.
 - The PR creation metric is not the issue link. Confirm `paperclip-github-plugin:link_github_item` returns `status: "linked"` before reporting the PR as tracked by GitHub Sync.
@@ -79,8 +77,6 @@ GitHub sync plugin tools:
 - `paperclip-github-plugin:upload_pull_request_asset` to upload PR-visible assets, including images, PDFs, logs, archives, or reports, when plugin tools are available. Pass `repository` or `paperclipIssueId`, `pullRequestNumber`, `fileName`, `contentBase64` or `dataUrl`, and optionally `label`, `alt`, `caption`, or `mimeType`; then embed the returned `asset.markdown` in the PR body with `update_pull_request`.
 - If `upload_pull_request_asset` is unavailable or fails, record the concrete blocker instead of using the removed REST fallback.
 - `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to perform the review and confirm CI and thread state.
-- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:list_organization_projects` to confirm the recommended Micronaut organization project set when the upstream QA or plan artifact carries ambiguity or the live target changed.
-- If `GITHUB_TOKEN` is not available, use `paperclip-github-plugin:add_pull_request_to_project` after PR creation or when keeping an existing surviving PR so the PR is actually associated with all selected Micronaut organization projects instead of only naming them in prose, a review note, or a Paperclip comment. If the selected organization-project set carried ambiguity, keep the links and make sure the PR description records it. If a maintainer later changed the organization project, preserve the maintainer's project choice instead of restoring the original selected set.
 - `paperclip-github-plugin:request_pull_request_reviewers` when the PR needs GitHub reviewers after creation or after a scope change, including the linked GitHub issue creator when you created a PR that fixes that issue. In `GITHUB_TOKEN`-backed runs, use the equivalent `gh pr edit <number> --add-reviewer <issue-creator-login>` fallback when you are managing reviewers through `gh`.
 - Prefer `paperclipIssueId` for synced work.
 - Do not say assets are unavailable merely because GitHub's browser attachment uploader is unavailable; use the GitHub Sync asset tool first, and only record an asset-upload blocker when that upload path fails with a concrete permission, token, size, MIME, or runtime error.

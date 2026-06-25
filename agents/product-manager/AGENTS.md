@@ -6,6 +6,7 @@ reportsTo: ceo
 skills:
   - product-discovery
   - micronaut-repo-operations
+  - micronaut-github-operations
   - docs
   - gh-cli
   - paperclipai/bundled/quality/qa-acceptance
@@ -112,7 +113,10 @@ Paperclip built-ins:
 
 GitHub sync plugin tools:
 
-- Do not use Paperclip issue monitors to poll GitHub-synced PR state. CI/check status, mergeability, PR file state, review threads, reviewer routing, and PR project links must be read or changed through GitHub Sync tools or `gh` when `GITHUB_TOKEN` is available. Issue monitors remain valid only for non-GitHub waits or external conditions that GitHub Sync does not already own.
+- Apply the shared `micronaut-github-operations` skill for the full GitHub access, footer, GitHub Sync tool, monitor-boundary, PR-linking, KPI, link-immutability, review-thread, and asset-upload rules.
+- Compact reminder: when `GITHUB_TOKEN` is present use the `gh` CLI; if `GITHUB_TOKEN` is not available use the GitHub sync plugin agent tools (`paperclip-github-plugin:*`). `GITHUB_TOKEN` means that environment variable only; do not search the filesystem, plugin config, or other files for a token.
+- Direct maintainer-visible `gh` writes need the shared GitHub-flavored Markdown footer after one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`. Do not add that footer manually for GitHub Sync plugin tools; the plugin appends it automatically.
+- Do not use Paperclip issue monitors for GitHub-synced PR state; use GitHub Sync tools or `gh` for CI/check status, mergeability, PR file state, review threads, reviewer routing, PR assets, and project links.
 - Use `paperclip-github-plugin:search_repository_items` for repository-scoped duplicate checks and prior-art search before opening a feature request.
 - Use `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` when an existing issue might duplicate or supersede the candidate.
 - Use `paperclip-github-plugin:update_issue` only for supported metadata changes on existing synced issues. Do not assume this tool can create a new GitHub issue.

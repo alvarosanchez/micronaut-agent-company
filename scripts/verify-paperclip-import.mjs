@@ -50,6 +50,7 @@ const CATALOG_SKILL_KEYS_NOT_VENDORED_BY_PACKAGE = new Set([
 const PORTABLE_RUNTIME_FILE_PATTERNS = [
   /^agents\/[^/]+\/AGENTS\.md$/,
   /^skills\/[^/]+\/SKILL\.md$/,
+  /^skills\/[^/]+\/references\/[^/]+\.md$/,
   /^projects\/[^/]+\/PROJECT\.md$/,
   /^projects\/[^/]+\/tasks\/[^/]+\/TASK\.md$/,
   /^tasks\/[^/]+\/TASK\.md$/,
@@ -1364,6 +1365,13 @@ function assertPortableRuntimeFilesAvoidUnimportedPackageReferences(files) {
 
     const matches = content.match(/\breferences\/[A-Za-z0-9._/-]+/g) ?? [];
     for (const match of matches) {
+      const skillMatch = relativePath.match(/^skills\/([^/]+)\//);
+      if (skillMatch) {
+        const sameSkillReference = `skills/${skillMatch[1]}/${match}`;
+        if (typeof files[sameSkillReference] === "string") {
+          continue;
+        }
+      }
       violations.push({ relativePath, match });
     }
   }
@@ -1372,7 +1380,7 @@ function assertPortableRuntimeFilesAvoidUnimportedPackageReferences(files) {
     violations.length,
     0,
     [
-      "Portable runtime instruction files may not reference package files under references/, because those files are not available in imported company instances.",
+      "Portable runtime instruction files may not reference package files under references/ unless the reference lives under the same imported skill.",
       formatRuntimeReferenceViolations(violations),
     ].filter(Boolean).join("\n\n"),
   );
