@@ -51,3 +51,20 @@ test("package.json keeps nextVersion ahead of the current released version", asy
     true,
   );
 });
+
+test("root agent instructions delegate normal version bumps to release automation", async () => {
+  const instructions = await readFile(new URL("../AGENTS.md", import.meta.url), "utf8");
+
+  assert.match(
+    instructions,
+    /Do not manually bump package or company versions in normal pull requests/i,
+  );
+  assert.match(
+    instructions,
+    /Version updates are handled automatically by the release workflow after PRs merge to `main`/i,
+  );
+  assert.match(
+    instructions,
+    /Only change release-version fields when a human explicitly asks/i,
+  );
+});

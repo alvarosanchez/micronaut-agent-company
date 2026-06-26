@@ -8,7 +8,7 @@ agents:
       type: acpx_local
       config:
         agent: custom
-        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        agentCommand: /usr/local/bin/hermes-paperclip-acp
         mode: persistent
         permissionMode: approve-all
         nonInteractivePermissions: deny
@@ -30,7 +30,7 @@ agents:
       type: acpx_local
       config:
         agent: custom
-        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        agentCommand: /usr/local/bin/hermes-paperclip-acp
         mode: persistent
         permissionMode: approve-all
         nonInteractivePermissions: deny
@@ -52,7 +52,7 @@ agents:
       type: acpx_local
       config:
         agent: custom
-        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        agentCommand: /usr/local/bin/hermes-paperclip-acp
         mode: persistent
         permissionMode: approve-all
         nonInteractivePermissions: deny
@@ -74,7 +74,7 @@ agents:
       type: acpx_local
       config:
         agent: custom
-        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        agentCommand: /usr/local/bin/hermes-paperclip-acp
         mode: persistent
         permissionMode: approve-all
         nonInteractivePermissions: deny
@@ -96,7 +96,7 @@ agents:
       type: acpx_local
       config:
         agent: custom
-        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        agentCommand: /usr/local/bin/hermes-paperclip-acp
         mode: persistent
         permissionMode: approve-all
         nonInteractivePermissions: deny
@@ -118,7 +118,7 @@ agents:
       type: acpx_local
       config:
         agent: custom
-        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        agentCommand: /usr/local/bin/hermes-paperclip-acp
         mode: persistent
         permissionMode: approve-all
         nonInteractivePermissions: deny
@@ -140,7 +140,7 @@ agents:
       type: acpx_local
       config:
         agent: custom
-        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        agentCommand: /usr/local/bin/hermes-paperclip-acp
         mode: persistent
         permissionMode: approve-all
         nonInteractivePermissions: deny
@@ -162,7 +162,7 @@ agents:
       type: acpx_local
       config:
         agent: custom
-        agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks
+        agentCommand: /usr/local/bin/hermes-paperclip-acp
         mode: persistent
         permissionMode: approve-all
         nonInteractivePermissions: deny

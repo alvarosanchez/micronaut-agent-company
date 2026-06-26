@@ -15,7 +15,7 @@ const AGENT_DISPLAY_NAMES = {
   "technical-writer": "Technical Writer",
 };
 
-const HERMES_ACP_COMMAND = "/usr/local/bin/hermes -p paperclip acp --accept-hooks";
+const HERMES_ACP_COMMAND = "/usr/local/bin/hermes-paperclip-acp";
 
 async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
@@ -60,7 +60,7 @@ test("ACPX/Hermes ACP agents are bounded by Paperclip ACP runtime settings", asy
 
   assert.match(
     readme,
-    /acpx_local[\s\S]{0,520}agentCommand:\s*\/usr\/local\/bin\/hermes -p paperclip acp --accept-hooks[\s\S]{0,260}timeoutSec:\s*0[\s\S]{0,160}graceSec:\s*20/i,
+    /acpx_local[\s\S]{0,520}agentCommand:\s*\/usr\/local\/bin\/hermes-paperclip-acp[\s\S]{0,260}timeoutSec:\s*0[\s\S]{0,160}graceSec:\s*20/i,
     "README must document the explicit Hermes ACP command, timeout, and grace period.",
   );
   assert.match(
