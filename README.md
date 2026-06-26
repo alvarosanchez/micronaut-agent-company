@@ -28,16 +28,16 @@ Pass script options after npm's `--` separator when possible. The script also ho
 
 All package-owned agents are configured to use Paperclip's built-in `acpx_local` adapter with Hermes ACP and the dedicated Hermes `paperclip` profile. The package pins the custom ACP command explicitly in `.paperclip.yaml`, while leaving workspace and tool selection to Paperclip/Hermes runtime defaults.
 
-- Architect: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
-- Security Engineer: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
-- QA Engineer: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
-- Code Reviewer: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
-- Product Manager: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
-- CEO: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
-- Micronaut Engineer: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
-- Technical Writer: `/usr/local/bin/hermes -p paperclip acp --accept-hooks`
+- Architect: `/usr/local/bin/hermes-paperclip-acp`
+- Security Engineer: `/usr/local/bin/hermes-paperclip-acp`
+- QA Engineer: `/usr/local/bin/hermes-paperclip-acp`
+- Code Reviewer: `/usr/local/bin/hermes-paperclip-acp`
+- Product Manager: `/usr/local/bin/hermes-paperclip-acp`
+- CEO: `/usr/local/bin/hermes-paperclip-acp`
+- Micronaut Engineer: `/usr/local/bin/hermes-paperclip-acp`
+- Technical Writer: `/usr/local/bin/hermes-paperclip-acp`
 
-Each `acpx_local` adapter config sets `agent: custom`, `agentCommand: /usr/local/bin/hermes -p paperclip acp --accept-hooks`, `mode: persistent`, `permissionMode: approve-all`, `nonInteractivePermissions: deny`, `timeoutSec: 0`, and `graceSec: 20`. The adapters intentionally rely on Paperclip project workspaces, so they do not set `cwd`, and they do not pin `toolsets`; Hermes can load its default/all tool behavior for the dedicated profile. This keeps unattended Paperclip runs on the dedicated Hermes profile through ACPX/Hermes ACP instead of the deprecated local-adapter working-directory fallback.
+Each `acpx_local` adapter config sets `agent: custom`, `agentCommand: /usr/local/bin/hermes-paperclip-acp`, `mode: persistent`, `permissionMode: approve-all`, `nonInteractivePermissions: deny`, `timeoutSec: 0`, and `graceSec: 20`. The deployment-provided wrapper runs `hermes -p paperclip acp --accept-hooks` and may set deployment-specific routing such as `HERMES_CODEX_BASE_URL: http://headroom:8787/v1` before execing Hermes. The dedicated Hermes home mount itself remains deployment configuration; the Paperclip runtime must expose the `paperclip` Hermes profile at the path selected by the service environment. The adapters intentionally rely on Paperclip project workspaces, so they do not set `cwd`, and they do not pin `toolsets`; Hermes can load its default/all tool behavior for the dedicated profile. This keeps unattended Paperclip runs on the dedicated Hermes profile through ACPX/Hermes ACP instead of the deprecated local-adapter working-directory fallback.
 
 Each agent also configures Paperclip's cheap model profile in `.paperclip.yaml` with `runtime.modelProfiles.cheap.enabled: true`, `provider: openai-codex`, and `model: gpt-5.4-mini`. The primary ACPX adapter delegates model selection to the dedicated Hermes `paperclip` profile, which is expected to use `gpt-5.5`; the cheap profile remains available for low-cost Paperclip wakeups or orchestration paths that explicitly request it.
 
