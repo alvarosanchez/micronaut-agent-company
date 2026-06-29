@@ -15,13 +15,13 @@ const AGENT_DISPLAY_NAMES = {
   "technical-writer": "Technical Writer",
 };
 
-const HERMES_ACP_COMMAND = "/usr/local/bin/hermes-paperclip-acp";
+const HERMES_CHAT_COMMAND = "/usr/local/bin/hermes-paperclip";
 
 async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("README runtime defaults match the package ACPX/Hermes ACP adapter settings", async () => {
+test("README runtime defaults match the package built-in Hermes adapter settings", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const readme = await read("../README.md");
 
@@ -30,43 +30,41 @@ test("README runtime defaults match the package ACPX/Hermes ACP adapter settings
     const config = agent?.adapter?.config ?? {};
 
     assert.ok(displayName, `Missing display name for ${agentSlug}.`);
-    assert.equal(agent?.adapter?.type, "acpx_local", `${agentSlug} must use acpx_local.`);
-    assert.equal(config.agent, "custom", `${agentSlug} must use a custom ACPX agent command.`);
-    assert.equal(config.agentCommand, HERMES_ACP_COMMAND, `${agentSlug} must select the dedicated Hermes paperclip ACP profile.`);
+    assert.equal(agent?.adapter?.type, "hermes_local", `${agentSlug} must use hermes_local.`);
+    assert.equal(config.hermesCommand, HERMES_CHAT_COMMAND, `${agentSlug} must select the dedicated Hermes paperclip chat command.`);
+    assert.equal(config.provider, "openai-codex", `${agentSlug} must use the configured Hermes provider.`);
+    assert.equal(config.model, "gpt-5.5", `${agentSlug} must use the configured primary Hermes model.`);
     assert.ok(
-      readme.includes("- " + displayName + ": `" + HERMES_ACP_COMMAND + "`"),
-      `README should document ${displayName} ACPX/Hermes ACP command defaults.`,
+      readme.includes("- " + displayName + ": `hermes_local` via `" + HERMES_CHAT_COMMAND + "`"),
+      `README should document ${displayName} built-in Hermes command defaults.`,
     );
   }
 });
 
-test("ACPX/Hermes ACP agents are bounded by Paperclip ACP runtime settings", async () => {
+test("built-in Hermes agents are bounded by Paperclip runtime settings", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const readme = await read("../README.md");
 
   for (const [agentSlug, agent] of Object.entries(extension.agents ?? {})) {
     const config = agent?.adapter?.config ?? {};
-    assert.equal(config.mode, "persistent", `${agentSlug} must use persistent ACPX mode.`);
-    assert.equal(config.permissionMode, "approve-all", `${agentSlug} must allow Paperclip-approved ACP tool execution.`);
-    assert.equal(config.nonInteractivePermissions, "deny", `${agentSlug} must deny non-interactive permission prompts.`);
-    assert.equal(config.timeoutSec, 0, `${agentSlug} must leave ACPX process timeout unbounded for persistent mode.`);
-    assert.equal(config.graceSec, 20, `${agentSlug} must set the ACPX termination grace period.`);
-    assert.equal(config.warmHandleIdleMs, 0, `${agentSlug} must keep the persistent ACP handle warm.`);
+    assert.equal(config.hermesCommand, HERMES_CHAT_COMMAND, `${agentSlug} must use the deployment Hermes CLI wrapper.`);
+    assert.equal(config.persistSession, true, `${agentSlug} must persist Hermes sessions across Paperclip wakes.`);
+    assert.equal(config.quiet, true, `${agentSlug} must use quiet Hermes output for Paperclip transcripts.`);
+    assert.equal(config.timeoutSec, 7200, `${agentSlug} must set an explicit long Hermes run timeout.`);
+    assert.equal(config.graceSec, 20, `${agentSlug} must set the Hermes termination grace period.`);
     assert.equal(config.cwd, undefined, `${agentSlug} must rely on Paperclip project workspaces instead of adapter cwd.`);
     assert.equal(config.toolsets, undefined, `${agentSlug} must allow Hermes to load its default/all toolsets.`);
-    assert.equal(config.provider, undefined, `${agentSlug} must delegate model/provider selection to the Hermes paperclip profile.`);
-    assert.equal(config.model, undefined, `${agentSlug} must delegate model/provider selection to the Hermes paperclip profile.`);
   }
 
   assert.match(
     readme,
-    /acpx_local[\s\S]{0,520}agentCommand:\s*\/usr\/local\/bin\/hermes-paperclip-acp[\s\S]{0,260}timeoutSec:\s*0[\s\S]{0,160}graceSec:\s*20/i,
-    "README must document the explicit Hermes ACP command, timeout, and grace period.",
+    /hermes_local[\s\S]{0,520}hermesCommand:\s*\/usr\/local\/bin\/hermes-paperclip[\s\S]{0,260}timeoutSec:\s*7200[\s\S]{0,160}graceSec:\s*20/i,
+    "README must document the explicit Hermes CLI command, timeout, and grace period.",
   );
   assert.match(
     readme,
     /Paperclip project workspaces[\s\S]{0,260}do not set `cwd`[\s\S]{0,260}do not pin `toolsets`|do not set `cwd`[\s\S]{0,260}Paperclip project workspaces[\s\S]{0,260}do not pin `toolsets`/i,
-    "README must document that Hermes ACP agents rely on Paperclip workspaces and default toolsets.",
+    "README must document that Hermes agents rely on Paperclip workspaces and default toolsets.",
   );
   assert.match(
     readme,
@@ -83,7 +81,7 @@ test("repo operations guidance tells agents to use CodeGraph when available", as
   assert.match(skill, /fall back to normal search\/read/i);
 });
 
-test("ACPX/Hermes ACP agents configure the cheap model profile", async () => {
+test("built-in Hermes agents configure the cheap model profile", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const readme = await read("../README.md");
 

@@ -22,7 +22,7 @@ function assertContains(value, pattern, message) {
   assert.ok(pattern.test(value), message);
 }
 
-const HERMES_ACP_COMMAND = "/usr/local/bin/hermes-paperclip-acp";
+const HERMES_CHAT_COMMAND = "/usr/local/bin/hermes-paperclip";
 const PROJECT_DISCOVERY_SUBTASK_PATTERN =
   /(?:one|1)[\s\S]{0,120}(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,180}(?:per|for each)[\s\S]{0,160}Micronaut-related[\s\S]{0,120}project|Micronaut-related[\s\S]{0,120}project[\s\S]{0,180}(?:per|for each)[\s\S]{0,160}(?:Paperclip )?(?:sub-issue|child issue|subtask)/i;
 const ACTUAL_PROJECT_SUBTASK_PATTERN =
@@ -91,11 +91,11 @@ test("Weekly Product Discovery routine is active and owned by Product Manager", 
   const routine = extension.routines?.["weekly-product-discovery"];
   const trigger = routine?.triggers?.[0];
 
-  assert.equal(adapter?.type, "acpx_local");
-  assert.equal(adapter?.config?.agent, "custom");
-  assert.equal(adapter?.config?.agentCommand, HERMES_ACP_COMMAND);
-  assert.equal(adapter?.config?.mode, "persistent");
-  assert.equal(adapter?.config?.timeoutSec, 0);
+  assert.equal(adapter?.type, "hermes_local");
+  assert.equal(adapter?.config?.hermesCommand, HERMES_CHAT_COMMAND);
+  assert.equal(adapter?.config?.provider, "openai-codex");
+  assert.equal(adapter?.config?.model, "gpt-5.5");
+  assert.equal(adapter?.config?.timeoutSec, 7200);
   assert.equal(adapter?.config?.graceSec, 20);
 
   assert.equal(routine?.status, "active");
@@ -132,7 +132,7 @@ test("Product Manager role and routine are documented", async () => {
   const company = await read("../COMPANY.md");
   const team = await read("../teams/engineering/TEAM.md");
 
-  assertContains(readme, /Product Manager: `\/usr\/local\/bin\/hermes-paperclip-acp`/, "README should document Product Manager ACPX/Hermes ACP command.");
+  assertContains(readme, /Product Manager: `hermes_local` via `\/usr\/local\/bin\/hermes-paperclip`/, "README should document Product Manager built-in Hermes command.");
   assertContains(readme, /\| Product Manager \| `radar` \|/, "README should document the Product Manager radar icon.");
   assertContains(readme, /\| Product Manager \| `pm` \|/, "README should document the Product Manager pm role.");
   assertContains(readme, /\| `Weekly Product Discovery` \| Product Manager \| Mondays at 01:00 `Europe\/Madrid` \|/, "README should document the Weekly Product Discovery schedule.");

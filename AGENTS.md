@@ -20,7 +20,7 @@ Keep changes portable across Paperclip installations. Machine-local paths, token
 
 Do not repair a live Paperclip company by only editing DB rows, generated imported files, or live profile drift when the durable owner is this package. If a runtime behavior should survive Agent Companies reimport/sync, update the package source and tests here.
 
-Deployment-specific wiring belongs outside the portable package. For example, `.paperclip.yaml` may point agents at a stable command such as `/usr/local/bin/hermes-paperclip-acp`, while the deployment provides that wrapper and sets environment such as `HERMES_HOME` or `HERMES_CODEX_BASE_URL`.
+Deployment-specific wiring belongs outside the portable package. For example, `.paperclip.yaml` may point agents at a stable command such as `/usr/local/bin/hermes-paperclip`, while the deployment provides that wrapper and sets environment such as `HERMES_HOME` or `HERMES_CODEX_BASE_URL`.
 
 Before adding adapter config fields, verify that Paperclip import and export round-trip them. If a field is stripped during export, do not rely on it for durable sync behavior.
 
@@ -67,7 +67,7 @@ npm run test:node22
 
 ## Runtime defaults to preserve
 
-The package currently uses Paperclip `acpx_local` custom agents that invoke Hermes ACP through `/usr/local/bin/hermes-paperclip-acp`. Keep README, `.paperclip.yaml`, and tests in sync when changing this contract.
+The package currently uses Paperclip `hermes_local` agents that invoke the deployment Hermes CLI wrapper `/usr/local/bin/hermes-paperclip`. Keep README, `.paperclip.yaml`, and tests in sync when changing this contract.
 
 The package intentionally caps package-owned agent heartbeat concurrency at one active run per agent via `.paperclip.yaml` while the workflow is tuned for one owned work item per role. Do not raise this casually.
 
