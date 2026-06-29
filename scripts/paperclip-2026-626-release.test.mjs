@@ -5,21 +5,21 @@ import { readFile } from "node:fs/promises";
 import YAML from "yaml";
 
 const TEN_MIB = 10 * 1024 * 1024;
-const PAPERCLIP_RELEASE_UNDER_TEST = "2026.618.0";
+const PAPERCLIP_RELEASE_UNDER_TEST = "2026.626.0";
 const PACKAGE_AGENT_MAX_CONCURRENT_RUNS = 1;
 
 async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("package pins the Paperclip v2026.618.0 runtime for local verification", async () => {
+test("package pins the Paperclip v2026.626.0 runtime for local verification", async () => {
   const packageJson = JSON.parse(await read("../package.json"));
   const setupScript = await read("./setup-local-paperclip-instance.mjs");
 
   assert.equal(packageJson.devDependencies.paperclipai, PAPERCLIP_RELEASE_UNDER_TEST);
   assert.match(
     setupScript,
-    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.618\.0"/,
+    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.626\.0"/,
   );
 });
 
@@ -53,7 +53,7 @@ test("package agents explicitly cap heartbeat concurrency to one run", async () 
     assert.equal(
       agent?.runtime?.heartbeat?.maxConcurrentRuns,
       PACKAGE_AGENT_MAX_CONCURRENT_RUNS,
-      `${agentSlug} must override Paperclip v2026.618.0's wider heartbeat default.`,
+      `${agentSlug} must keep this package's explicit single-run heartbeat override.`,
     );
   }
 
@@ -235,13 +235,18 @@ test("source verification enforces the Paperclip v2026.428 migration guidance", 
 });
 
 
-test("guidance covers Paperclip v2026.618 runtime surfaces without hard-coding deployment choices", async () => {
+test("guidance covers Paperclip v2026.626 runtime surfaces without hard-coding deployment choices", async () => {
   const readme = await read("../README.md");
   const verifyTask = await read("../tasks/verify-imported-company-instance/TASK.md");
 
-  assert.match(readme, /Paperclip v2026\.618\.0[\s\S]{0,900}Skills Store[\s\S]{0,900}(?:company skills|runtime skills|skill inventory)/i);
-  assert.match(readme, /workspace file viewer|artifact links|PR-visible artifacts/i);
-  assert.match(readme, /self-hostable sandbox|sandbox-backed|environment-driver plugin/i);
+  assert.match(readme, /Paperclip v2026\.626\.0[\s\S]{0,1200}Skills Store[\s\S]{0,1200}(?:company skills|runtime skills|skill inventory)/i);
+  assert.match(readme, /built-in Hermes|hermes_local|hermes_gateway/i);
+  assert.match(readme, /task watchdog|watchdog control plane/i);
+  assert.match(readme, /ask work mode|question-and-answer/i);
+  assert.match(readme, /routine date variables|date variable/i);
+  assert.match(readme, /workspace file viewer|artifact links|PR-visible artifacts|workspace file downloads/i);
+  assert.match(readme, /Teams Catalog|teams catalog|catalog teams/i);
   assert.match(verifyTask, /Skills Store|runtime skill/i);
-  assert.match(verifyTask, /workspace file viewer|artifact links|PR-visible/i);
+  assert.match(verifyTask, /built-in Hermes adapter migration is intentionally deferred/i);
+  assert.match(verifyTask, /task watchdogs are limited to non-GitHub waits/i);
 });
