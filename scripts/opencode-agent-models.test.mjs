@@ -68,6 +68,19 @@ test("ACPX/Hermes ACP agents are bounded by Paperclip ACP runtime settings", asy
     /Paperclip project workspaces[\s\S]{0,260}do not set `cwd`[\s\S]{0,260}do not pin `toolsets`|do not set `cwd`[\s\S]{0,260}Paperclip project workspaces[\s\S]{0,260}do not pin `toolsets`/i,
     "README must document that Hermes ACP agents rely on Paperclip workspaces and default toolsets.",
   );
+  assert.match(
+    readme,
+    /CodeGraph MCP[\s\S]{0,220}\/usr\/local\/bin\/paperclip-codegraph-mcp[\s\S]{0,220}PAPERCLIP_CODEGRAPH=off/i,
+    "README must document the deployment-provided CodeGraph MCP default and opt-out.",
+  );
+});
+
+test("repo operations guidance tells agents to use CodeGraph when available", async () => {
+  const skill = await read("../skills/micronaut-repo-operations/SKILL.md");
+
+  assert.match(skill, /CodeGraph MCP is expected to be available by default/i);
+  assert.match(skill, /codegraph_explore/i);
+  assert.match(skill, /fall back to normal search\/read/i);
 });
 
 test("ACPX/Hermes ACP agents configure the cheap model profile", async () => {
