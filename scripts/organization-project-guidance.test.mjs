@@ -132,8 +132,8 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     repoOperations,
-    /Do not use `?gh`? as (?:an API |a )?fallback|use the deployment-configured native git credential helper/i,
-    "Repo operations should keep GitHub API work on plugin tools while allowing configured native git transport credentials.",
+    /Do not use `?gh`? as (?:an API |a )?fallback|do not[\s\S]{0,120}`?git push`?/i,
+    "Repo operations should keep GitHub API work and branch publication on plugin tools.",
   );
 });
 

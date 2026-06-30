@@ -30,12 +30,12 @@ const NO_PROPAGATED_TOKEN_PATTERN =
   /do not depend on a propagated `?GITHUB_TOKEN`?|never depend on a propagated `?GITHUB_TOKEN`?/i;
 const NO_FILESYSTEM_TOKEN_SEARCH_PATTERN =
   /do not search the filesystem, plugin config, or other files for a token|must not search the filesystem, plugin config, or other files for a token/i;
-const GIT_TRANSPORT_CREDENTIAL_PATTERN =
-  /(?:deployment-configured|configured|native) (?:git )?credential helper[\s\S]{0,180}(?:fetch\/push|HTTPS fetch\/push|git transport)|(?:fetch\/push|HTTPS fetch\/push|git transport)[\s\S]{0,180}(?:deployment-configured|configured|native) (?:git )?credential helper/i;
-const REMOTE_BRANCH_BEFORE_PR_PATTERN =
-  /(?:push|publish)[\s\S]{0,140}(?:verify|exists?)[\s\S]{0,140}(?:remote branch|branch exists remotely|commit exists on the remote)|(?:verify|exists?)[\s\S]{0,140}(?:remote branch|branch exists remotely|commit exists on the remote)[\s\S]{0,140}(?:create_pull_request|create the PR|PR creation)/i;
+const ATOMIC_CREATE_PULL_REQUEST_PATTERN =
+  /create_pull_request[\s\S]{0,900}(?:headCommitSha|exact full (?:branch-tip )?(?:commit )?SHA)[\s\S]{0,900}(?:publishes|publish)[\s\S]{0,400}(?:creates|creating|PR)/i;
+const NO_AGENT_GIT_PUSH_PATTERN =
+  /do not[\s\S]{0,120}(?:run )?`?git push`?|must not[\s\S]{0,120}(?:run )?`?git push`?/i;
 const NO_CREDENTIAL_INSPECTION_PATTERN =
-  /do not inspect credentials|or inspect credentials|must not (?:print|inspect|copy|pass) (?:the )?(?:token|credentials?)/i;
+  /do not inspect credentials|(?:or|,)\s*inspect credentials|must not (?:print|inspect|copy|pass) (?:the )?(?:token|credentials?)/i;
 const GFM_FOOTER_PATTERN = /GitHub-flavored Markdown footer|Markdown footer/i;
 const HORIZONTAL_RULE_PATTERN = /`---` on its own line|`---` plus|^---$/m;
 const BLANK_LINE_PATTERN =
@@ -208,7 +208,7 @@ function parseFrontmatter(markdown) {
   };
 }
 
-test("GitHub-capable agents include the exception-only gh CLI reference and shared GitHub operations skills", async () => {
+test("GitHub-capable agents include the exception-only gh CLI reference and atomic GitHub operations skill", async () => {
   const sharedSkillMarkdown = await readFile(
     new URL("../skills/micronaut-github-operations/SKILL.md", import.meta.url),
     "utf8",
@@ -216,7 +216,8 @@ test("GitHub-capable agents include the exception-only gh CLI reference and shar
   const { frontmatter: sharedSkillFrontmatter, body: sharedSkillBody } = parseFrontmatter(sharedSkillMarkdown);
   assert.equal(sharedSkillFrontmatter.name, SHARED_GITHUB_SKILL);
   assert.match(sharedSkillBody, /paperclip-github-plugin:/);
-  assert.match(sharedSkillBody, /GITHUB_TOKEN/);
+  assert.match(sharedSkillBody, /headCommitSha/);
+  assert.doesNotMatch(sharedSkillBody, /GITHUB_TOKEN/);
 
   for (const relativePath of GITHUB_AGENT_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
@@ -238,7 +239,7 @@ test("GitHub-capable agents include the exception-only gh CLI reference and shar
   }
 });
 
-test("GitHub-capable agents separate native git transport from GitHub API tools", async () => {
+test("GitHub-capable agents use atomic plugin branch publication and PR creation", async () => {
   for (const relativePath of GITHUB_AGENT_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { body } = parseFrontmatter(markdown);
@@ -260,13 +261,13 @@ test("GitHub-capable agents separate native git transport from GitHub API tools"
     );
     assert.match(
       body,
-      GIT_TRANSPORT_CREDENTIAL_PATTERN,
-      `${relativePath} must use the configured native git credential helper for authenticated fetch/push.`,
+      ATOMIC_CREATE_PULL_REQUEST_PATTERN,
+      `${relativePath} must create and publish the PR in one create_pull_request call.`,
     );
     assert.match(
       body,
-      REMOTE_BRANCH_BEFORE_PR_PATTERN,
-      `${relativePath} must verify the branch exists remotely before PR creation.`,
+      NO_AGENT_GIT_PUSH_PATTERN,
+      `${relativePath} must forbid agent-side git push.`,
     );
     assert.match(
       body,
@@ -292,7 +293,7 @@ test("GitHub-capable agents separate native git transport from GitHub API tools"
   }
 });
 
-test("Shared Micronaut repo operations separate git transport from GitHub API tools", async () => {
+test("Shared Micronaut repo operations use atomic branch publication and PR creation", async () => {
   const markdown = await readFile(
     new URL("../skills/micronaut-repo-operations/SKILL.md", import.meta.url),
     "utf8",
@@ -301,8 +302,8 @@ test("Shared Micronaut repo operations separate git transport from GitHub API to
   assert.match(markdown, NO_GH_FALLBACK_PATTERN);
   assert.match(markdown, PLUGIN_TOOLS_REQUIRED_PATTERN);
   assert.match(markdown, MCP_BRIDGED_TOOL_PATTERN);
-  assert.match(markdown, GIT_TRANSPORT_CREDENTIAL_PATTERN);
-  assert.match(markdown, REMOTE_BRANCH_BEFORE_PR_PATTERN);
+  assert.match(markdown, ATOMIC_CREATE_PULL_REQUEST_PATTERN);
+  assert.match(markdown, NO_AGENT_GIT_PUSH_PATTERN);
   assert.match(markdown, NO_CREDENTIAL_INSPECTION_PATTERN);
   assert.doesNotMatch(
     markdown,
@@ -327,8 +328,8 @@ test("README documents the direct GitHub footer rule and GitHub Sync tool requir
   assert.match(markdown, NO_GH_FALLBACK_PATTERN);
   assert.match(markdown, PLUGIN_TOOLS_REQUIRED_PATTERN);
   assert.match(markdown, MCP_BRIDGED_TOOL_PATTERN);
-  assert.match(markdown, GIT_TRANSPORT_CREDENTIAL_PATTERN);
-  assert.match(markdown, REMOTE_BRANCH_BEFORE_PR_PATTERN);
+  assert.match(markdown, ATOMIC_CREATE_PULL_REQUEST_PATTERN);
+  assert.match(markdown, NO_AGENT_GIT_PUSH_PATTERN);
   assert.match(markdown, NO_CREDENTIAL_INSPECTION_PATTERN);
   assertDirectGithubFooterPolicy(markdown, "README.md");
   assertPullRequestMetricApiRoutePolicy(markdown, "README.md");

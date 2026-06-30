@@ -11,10 +11,10 @@ Use this shared skill for repeated GitHub rules that apply across Micronaut comp
 
 - Use the GitHub Sync plugin agent tools for GitHub API reads and writes that the plugin covers, including issue/PR reads, comments, review threads, PR creation/updates, checks, assets, and Micronaut organization-project lookup and live PR association.
 - In Hermes deployments, those tools may be exposed through the Paperclip plugin-tools MCP bridge with sanitized names such as `mcp_paperclip_plugin_tools_paperclip_github_plugin_search_repository_items`; use the actual runtime tool schema name while following the `paperclip-github-plugin:*` contract below.
-- Do not use `gh` as a fallback for GitHub API reads/writes, do not inspect credentials, and do not use deployment-provided Git transport credentials for ad hoc GitHub API calls.
-- Use the local git CLI for branch creation, commits, rebases, cherry-picks, fetches, and pushes. GitHub Sync tools do not replace git transport or publish a local branch. Before calling `create_pull_request`, push the branch and verify that the expected commit exists on the remote.
-- A deployment may provide a scoped `GITHUB_TOKEN` only through the native git credential-helper path so HTTPS fetch/push can authenticate. Agents may rely on that configured transport but must not print, inspect, copy, or pass the token explicitly, and must still use GitHub Sync tools for GitHub API operations.
-- If authenticated `git push` fails, stop and report a Git transport credential blocker. Do not fall back to `gh`, SSH, direct API scripts, or searching for credentials.
+- Do not use `gh` as a fallback for GitHub API reads/writes, inspect credentials, run `git push`, or search for a GitHub token.
+- Use the local git CLI without GitHub credentials for branch creation, commits, rebases, cherry-picks, and public fetches. Resolve the plain local branch name and exact full branch-tip commit SHA before PR creation.
+- Call `paperclip-github-plugin:create_pull_request` once with `paperclipIssueId`, `head`, `headCommitSha`, `base`, `title`, and any body/draft metadata. The trusted plugin resolves the issue-scoped workspace and secret, publishes and verifies the exact branch SHA, then creates, links, and attributes the PR.
+- If the atomic tool reports a publication failure, preserve the local branch and report the exact plugin error. Do not fall back to `git push`, `gh`, SSH, direct API scripts, or credential searches.
 
 ## Footer For Maintainer-Visible GitHub Writes
 
