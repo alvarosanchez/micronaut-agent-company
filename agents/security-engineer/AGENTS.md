@@ -58,7 +58,7 @@ GitHub sync plugin tools:
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the maintainer-visible issue history before you escalate or approve anything.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to inspect code, build logic, CI, and existing review findings.
 - `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` when recording or rechecking PR-thread security findings. Reply before resolving, and explain the decision in the reply, such as committed the requested change, not applicable, or disagreement with the feedback.
-- Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.5-pro`; the plugin appends the footer automatically.
+- Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.6-sol`; the plugin appends the footer automatically.
 
 ## Possible Outcomes
 

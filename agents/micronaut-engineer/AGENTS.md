@@ -78,7 +78,7 @@ GitHub sync plugin tools:
 - `paperclip-github-plugin:get_pull_request` and `paperclip-github-plugin:update_pull_request` when a PR already exists and you need to keep its title, body, base branch, or draft state aligned with the approved work.
 - `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to inspect the live diff, CI state, and open review feedback.
 - `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` to answer reviewer feedback and keep review-thread state honest during PR follow-through. Do not silently resolve a thread; reply first with the decision, then resolve it only when the thread is actually settled.
-- Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.5`; the plugin appends the footer automatically.
+- Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.6-sol`; the plugin appends the footer automatically.
 - Use the local git CLI for branch, commit, rebase, and push work; the GitHub sync plugin does not replace git.
 
 ## Possible Outcomes
