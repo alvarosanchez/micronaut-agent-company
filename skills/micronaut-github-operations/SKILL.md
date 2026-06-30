@@ -11,8 +11,10 @@ Use this shared skill for repeated GitHub rules that apply across Micronaut comp
 
 - Use the GitHub Sync plugin agent tools for GitHub API reads and writes that the plugin covers, including issue/PR reads, comments, review threads, PR creation/updates, checks, assets, and Micronaut organization-project lookup and live PR association.
 - In Hermes deployments, those tools may be exposed through the Paperclip plugin-tools MCP bridge with sanitized names such as `mcp_paperclip_plugin_tools_paperclip_github_plugin_search_repository_items`; use the actual runtime tool schema name while following the `paperclip-github-plugin:*` contract below.
-- Do not use `gh` as a fallback for GitHub API reads/writes, do not depend on a propagated `GITHUB_TOKEN`, and do not search the filesystem, plugin config, or other files for a token.
-- Use the local git CLI for branch creation, commits, rebases, cherry-picks, and pushes. GitHub Sync tools do not replace git.
+- Do not use `gh` as a fallback for GitHub API reads/writes, do not inspect credentials, and do not use deployment-provided Git transport credentials for ad hoc GitHub API calls.
+- Use the local git CLI for branch creation, commits, rebases, cherry-picks, fetches, and pushes. GitHub Sync tools do not replace git transport or publish a local branch. Before calling `create_pull_request`, push the branch and verify that the expected commit exists on the remote.
+- A deployment may provide a scoped `GITHUB_TOKEN` only through the native git credential-helper path so HTTPS fetch/push can authenticate. Agents may rely on that configured transport but must not print, inspect, copy, or pass the token explicitly, and must still use GitHub Sync tools for GitHub API operations.
+- If authenticated `git push` fails, stop and report a Git transport credential blocker. Do not fall back to `gh`, SSH, direct API scripts, or searching for credentials.
 
 ## Footer For Maintainer-Visible GitHub Writes
 
