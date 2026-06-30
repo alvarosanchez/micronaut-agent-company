@@ -1,19 +1,19 @@
 {
   "name": "micronaut-agent-company",
   "version": "1.7.9",
-  "nextVersion": "1.7.10",
+  "nextVersion": "1.8.0",
   "private": true,
   "description": "Paperclip company package for Micronaut inbox-zero maintenance.",
   "license": "MIT",
   "scripts": {
     "setup:local-paperclip": "node scripts/setup-local-paperclip-instance.mjs",
     "test": "npm run test:unit && node scripts/verify-paperclip-import.mjs",
-    "test:node22": "npx -y node@22 --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/board-approval-comment-requirements.test.mjs scripts/organization-project-guidance.test.mjs scripts/release-targeting-guidance.test.mjs scripts/verify-paperclip-import-patterns.test.mjs scripts/qa-direct-github-issue-actions.test.mjs scripts/github-issue-ownership-and-reviewers.test.mjs scripts/github-sync-monitor-policy.test.mjs scripts/ceo-self-improvement-policy.test.mjs scripts/ceo-training-routine.test.mjs scripts/product-manager-routine.test.mjs scripts/technical-writer-routines.test.mjs scripts/paperclip-2026-618-release.test.mjs scripts/paperclip-catalog-skills.test.mjs scripts/out-of-pipeline-pr-linking.test.mjs scripts/routine-managed-repo-routing.test.mjs scripts/opencode-agent-models.test.mjs scripts/micronaut-test-resources-provider-skill.test.mjs scripts/micronaut-graalvm-native-development-skill.test.mjs && npx -y node@22 scripts/verify-paperclip-import.mjs",
-    "test:unit": "node --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/board-approval-comment-requirements.test.mjs scripts/organization-project-guidance.test.mjs scripts/release-targeting-guidance.test.mjs scripts/verify-paperclip-import-patterns.test.mjs scripts/qa-direct-github-issue-actions.test.mjs scripts/github-issue-ownership-and-reviewers.test.mjs scripts/github-sync-monitor-policy.test.mjs scripts/ceo-self-improvement-policy.test.mjs scripts/ceo-training-routine.test.mjs scripts/product-manager-routine.test.mjs scripts/technical-writer-routines.test.mjs scripts/paperclip-2026-618-release.test.mjs scripts/paperclip-catalog-skills.test.mjs scripts/out-of-pipeline-pr-linking.test.mjs scripts/routine-managed-repo-routing.test.mjs scripts/opencode-agent-models.test.mjs scripts/micronaut-test-resources-provider-skill.test.mjs scripts/micronaut-graalvm-native-development-skill.test.mjs"
+    "test:node22": "npx -y node@22 --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/board-approval-comment-requirements.test.mjs scripts/organization-project-guidance.test.mjs scripts/release-targeting-guidance.test.mjs scripts/verify-paperclip-import-patterns.test.mjs scripts/qa-direct-github-issue-actions.test.mjs scripts/github-issue-ownership-and-reviewers.test.mjs scripts/github-sync-monitor-policy.test.mjs scripts/ceo-self-improvement-policy.test.mjs scripts/ceo-training-routine.test.mjs scripts/product-manager-routine.test.mjs scripts/technical-writer-routines.test.mjs scripts/paperclip-2026-626-release.test.mjs scripts/paperclip-catalog-skills.test.mjs scripts/out-of-pipeline-pr-linking.test.mjs scripts/routine-managed-repo-routing.test.mjs scripts/opencode-agent-models.test.mjs scripts/micronaut-test-resources-provider-skill.test.mjs scripts/micronaut-graalvm-native-development-skill.test.mjs && npx -y node@22 scripts/verify-paperclip-import.mjs",
+    "test:unit": "node --test scripts/company-version.test.mjs scripts/github-auth-instructions.test.mjs scripts/board-approval-comment-requirements.test.mjs scripts/organization-project-guidance.test.mjs scripts/release-targeting-guidance.test.mjs scripts/verify-paperclip-import-patterns.test.mjs scripts/qa-direct-github-issue-actions.test.mjs scripts/github-issue-ownership-and-reviewers.test.mjs scripts/github-sync-monitor-policy.test.mjs scripts/ceo-self-improvement-policy.test.mjs scripts/ceo-training-routine.test.mjs scripts/product-manager-routine.test.mjs scripts/technical-writer-routines.test.mjs scripts/paperclip-2026-626-release.test.mjs scripts/paperclip-catalog-skills.test.mjs scripts/out-of-pipeline-pr-linking.test.mjs scripts/routine-managed-repo-routing.test.mjs scripts/opencode-agent-models.test.mjs scripts/micronaut-test-resources-provider-skill.test.mjs scripts/micronaut-graalvm-native-development-skill.test.mjs"
   },
   "devDependencies": {
     "opencode-ai": "1.17.11",
-    "paperclipai": "2026.618.0",
+    "paperclipai": "2026.626.0",
     "playwright": "^1.59.1",
     "yaml": "2.9.0"
   }

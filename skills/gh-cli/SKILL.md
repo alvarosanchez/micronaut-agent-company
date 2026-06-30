@@ -1,6 +1,6 @@
 ---
 name: gh-cli
-description: Reference the upstream GitHub gh CLI skill for GitHub workflows that use gh when the `GITHUB_TOKEN` environment variable is available. If that environment variable is not available, use the GitHub sync plugin agent tools instead. Do not search the filesystem, plugin config, or other files for a token. Direct gh writes still require the manual GitHub-flavored Markdown footer on maintainer-visible GitHub body text, such as issue or PR bodies, comments, and review replies. The footer must be separated from the previous sentence by one blank line, then use `---` on its own line plus `###### ✨ This message was AI-generated using <exact model id>`.
+description: "Reference the upstream GitHub gh CLI skill only for explicit human/operator exceptions where a non-plugin GitHub client is authorized. Normal GitHub API operations must use the GitHub Sync plugin tools, including the Hermes MCP-bridged runtime names when present. Do not depend on a propagated GITHUB_TOKEN and do not search the filesystem, plugin config, or other files for a token. Any maintainer-visible non-plugin GitHub write still requires the manual GitHub-flavored Markdown footer: one blank line, `---` on its own line, then `###### \u2728 This message was AI-generated using <exact model id>`."
 metadata:
   sources:
     - kind: url

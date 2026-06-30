@@ -18,7 +18,7 @@ Focus on:
 - missing or outdated repo-level `AGENTS.md` guidance in managed Micronaut repositories
 - live workspace or runtime-service gaps where repo work keeps stalling because jobs or services were assumed to auto-start
 - gaps or upgrade opportunities in the company's imported skill inventory that would materially improve delivery and can be turned into a concrete approval or implementation step now
-- Hermes ACP skill visibility gaps where Paperclip-managed company skills from any company agent are not visible through the dedicated Hermes `paperclip` profile's local `skills/` storage, `skills_list`, or `skill_view`
+- Hermes runtime skill visibility gaps where Paperclip-managed company skills from any company agent are not visible through the dedicated Hermes `paperclip` profile's local `skills/` storage, `skills_list`, or `skill_view`
 - CEO-opened PRs from earlier routine runs, linked approvals, or open PR searches that still need follow-up because CI is not green, checks are failing, or review threads remain unresolved
 - whether local extension instructions or `.company-runtime/` overlays should be added, simplified, or pruned
 - whether any reusable company learning should be promoted into the package core with a PR to `alvarosanchez/micronaut-agent-company`

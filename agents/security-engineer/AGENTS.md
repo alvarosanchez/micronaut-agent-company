@@ -51,14 +51,14 @@ Paperclip built-ins:
 GitHub sync plugin tools:
 
 - Apply the shared `micronaut-github-operations` skill for the full GitHub access, footer, GitHub Sync tool, monitor-boundary, PR-linking, KPI, link-immutability, review-thread, and asset-upload rules.
-- Compact reminder: when `GITHUB_TOKEN` is present use the `gh` CLI; if `GITHUB_TOKEN` is not available use the GitHub sync plugin agent tools (`paperclip-github-plugin:*`). `GITHUB_TOKEN` means that environment variable only; do not search the filesystem, plugin config, or other files for a token.
-- Direct maintainer-visible `gh` writes need the shared GitHub-flavored Markdown footer after one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`. Do not add that footer manually for GitHub Sync plugin tools; the plugin appends it automatically.
-- Do not use Paperclip issue monitors for GitHub-synced PR state; use GitHub Sync tools or `gh` for CI/check status, mergeability, PR file state, review threads, reviewer routing, PR assets, and project links.
+- Compact reminder: use GitHub Sync plugin agent tools for GitHub API operations; in Hermes deployments these may appear as MCP-bridged names such as `mcp_paperclip_plugin_tools_paperclip_github_plugin_*` even though the contract names are `paperclip-github-plugin:*`. Do not use `gh` as a fallback, do not depend on a propagated `GITHUB_TOKEN`, and do not search the filesystem, plugin config, or other files for a token.
+- Explicit non-plugin maintainer-visible GitHub writes need the shared GitHub-flavored Markdown footer after one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`. Do not add that footer manually for GitHub Sync plugin tools; the plugin appends it automatically.
+- Do not use Paperclip issue monitors for GitHub-synced PR state; use GitHub Sync tools for CI/check status, mergeability, PR file state, review threads, reviewer routing, PR assets, and project links.
 - `paperclip-github-plugin:search_repository_items` for deduplicating weekly deep-scan findings and checking whether the same synced repository already tracks the security concern.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the maintainer-visible issue history before you escalate or approve anything.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to inspect code, build logic, CI, and existing review findings.
 - `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` when recording or rechecking PR-thread security findings. Reply before resolving, and explain the decision in the reply, such as committed the requested change, not applicable, or disagreement with the feedback.
-- Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.5-pro`; the plugin appends the footer automatically.
+- Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.6-sol`; the plugin appends the footer automatically.
 
 ## Possible Outcomes
 

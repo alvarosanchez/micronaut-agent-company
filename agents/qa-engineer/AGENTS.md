@@ -40,7 +40,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 Intake mode:
 
 - decide whether the issue is actionable, blocked on clarification, duplicate, stale, out-of-scope, unreproducible, or already-implemented
-- before you make the triage decision for an imported or synced GitHub issue, assign the GitHub issue to the current user: use `paperclip-github-plugin:assign_to_current_user` when that agent tool is available, otherwise use `gh issue edit <number> --repo <owner>/<repo> --add-assignee "@me"` or the equivalent issue URL form
+- before you make the triage decision for an imported or synced GitHub issue, assign the GitHub issue to the current user with `paperclip-github-plugin:assign_to_current_user` when that agent tool is available; if it is unavailable, record the concrete GitHub Sync tool-surface blocker instead of falling back to `gh` or browser edits
 - perform deduplication against open and closed GitHub issues in the same synced repository through the GitHub sync plugin, not against unrelated Paperclip issues; for closed GitHub issues, review why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence, then use that history to form the triage opinion
 - if the imported issue already has a linked PR from an external contributor, inspect that PR before you finalize routing
 - if a question can be answered with confidence, post the answer on GitHub, label the issue `type: question` and `closed: question`, and close the issue with GitHub's native `Close as not planned` reason instead of `Close as completed`
@@ -89,11 +89,11 @@ Paperclip built-ins:
 GitHub sync plugin tools:
 
 - Apply the shared `micronaut-github-operations` skill for the full GitHub access, footer, GitHub Sync tool, monitor-boundary, PR-linking, KPI, link-immutability, review-thread, and asset-upload rules.
-- Compact reminder: when `GITHUB_TOKEN` is present use the `gh` CLI; if `GITHUB_TOKEN` is not available use the GitHub sync plugin agent tools (`paperclip-github-plugin:*`). `GITHUB_TOKEN` means that environment variable only; do not search the filesystem, plugin config, or other files for a token.
-- Direct maintainer-visible `gh` writes need the shared GitHub-flavored Markdown footer after one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`. Do not add that footer manually for GitHub Sync plugin tools; the plugin appends it automatically.
-- Do not use Paperclip issue monitors for GitHub-synced PR state; use GitHub Sync tools or `gh` for CI/check status, mergeability, PR file state, review threads, reviewer routing, PR assets, and project links.
-- For current-user assignment during imported GitHub issue triage, prefer `paperclip-github-plugin:assign_to_current_user` when the runtime exposes that tool even in authenticated runs; if that tool is unavailable, fall back to `gh issue edit <number> --repo <owner>/<repo> --add-assignee "@me"` when `GITHUB_TOKEN` is available.
-- Use authenticated GitHub reads such as `gh repo view` and `gh release list` or equivalent API-backed commands to determine the live default branch and latest stable non-pre-release release before you finalize release targeting.
+- Compact reminder: use GitHub Sync plugin agent tools for GitHub API operations; in Hermes deployments these may appear as MCP-bridged names such as `mcp_paperclip_plugin_tools_paperclip_github_plugin_*` even though the contract names are `paperclip-github-plugin:*`. Do not use `gh` as a fallback, do not depend on a propagated `GITHUB_TOKEN`, and do not search the filesystem, plugin config, or other files for a token.
+- Explicit non-plugin maintainer-visible GitHub writes need the shared GitHub-flavored Markdown footer after one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`. Do not add that footer manually for GitHub Sync plugin tools; the plugin appends it automatically.
+- Do not use Paperclip issue monitors for GitHub-synced PR state; use GitHub Sync tools for CI/check status, mergeability, PR file state, review threads, reviewer routing, PR assets, and project links.
+- For current-user assignment during imported GitHub issue triage, prefer `paperclip-github-plugin:assign_to_current_user` when the runtime exposes that tool even in authenticated runs; if that tool is unavailable, record the concrete GitHub Sync tool-surface blocker instead of falling back to `gh`.
+- Use GitHub Sync plugin reads, or an explicit approved non-plugin API read when the plugin lacks the release metadata, to determine the live default branch and latest stable non-pre-release release before you finalize release targeting.
 - `paperclip-github-plugin:search_repository_items` for deduplication against open and closed GitHub issues in the same synced repository and for already-implemented prior-art checks; closed issue results must be evaluated by why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the synced GitHub issue before you classify, verify, close, or answer anything.
 - `paperclip-github-plugin:assign_to_current_user` to assign or claim the synced GitHub issue for the current user before QA triage proceeds.
@@ -101,7 +101,7 @@ GitHub sync plugin tools:
 - `paperclip-github-plugin:update_issue` to set the single actionable `type:` label, close or reopen the GitHub issue, and apply approved metadata changes. When QA closes an issue directly, use GitHub's native `Close as not planned` reason for non-duplicate triage closures and `Close as duplicate` for duplicate closures instead of falling back to `Close as completed`.
 - `paperclip-github-plugin:add_issue_comment` when QA is publishing a maintainer-visible answer, clarification request, or closure note on GitHub.
 - `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` when QA is verifying an implementation that already has a PR.
-- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.5`; the plugin appends the footer automatically.
+- Prefer `paperclipIssueId` for synced work. When you use `paperclip-github-plugin:add_issue_comment`, send only the human-facing body and set `llmModel: gpt-5.6-terra`; the plugin appends the footer automatically.
 
 ## Possible Outcomes
 
@@ -125,7 +125,7 @@ GitHub sync plugin tools:
 - Stay independent. You are not here to rescue a weak plan or rationalize an incomplete implementation.
 - Board approval always means a real Paperclip approval linked to the issue or proposal, not a free-form comment.
 - Board approval requests for maintainer-visible GitHub comments, closure notes, or action payloads with `commentBody` must put the exact proposed comment body in `recommendedAction` so approvers can review the literal text that will be posted from the default Paperclip view.
-- Use `gh` only when `GITHUB_TOKEN` is available. Otherwise, use the GitHub sync plugin tools, not the browser. Direct `gh` writes still need the required Markdown footer, separated from the previous sentence by one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`.
+- Use GitHub Sync plugin tools for normal GitHub API operations, not the browser or `gh`. Explicit non-plugin maintainer-visible GitHub writes still need the required Markdown footer, separated from the previous sentence by one blank line: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>`.
 - All actionable issues should end up with exactly one `type:` label.
 - Deduplication is repository-local GitHub work. Search the synced repository's open and closed GitHub issues first and treat that result as the source of truth. Closed issues are evidence too: inspect why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence, before deciding whether the new report is a duplicate, already implemented, stale, out of scope, or still actionable.
 - QA intake owns release targeting, the target branch decision, and the initial Micronaut organization-project choice for the eventual PR.

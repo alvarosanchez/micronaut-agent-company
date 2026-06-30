@@ -5,16 +5,18 @@ company:
 agents:
   ceo:
     adapter:
-      type: acpx_local
+      type: hermes_local
       config:
-        agent: custom
-        agentCommand: /usr/local/bin/hermes-paperclip-acp
-        mode: persistent
-        permissionMode: approve-all
-        nonInteractivePermissions: deny
-        timeoutSec: 0
+        hermesCommand: /usr/local/bin/hermes-paperclip
+        provider: openai-codex
+        model: gpt-5.6-terra
+        extraArgs:
+          - --reasoning-effort
+          - medium
+        persistSession: true
+        quiet: true
+        timeoutSec: 7200
         graceSec: 20
-        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -27,16 +29,18 @@ agents:
             model: gpt-5.4-mini
   product-manager:
     adapter:
-      type: acpx_local
+      type: hermes_local
       config:
-        agent: custom
-        agentCommand: /usr/local/bin/hermes-paperclip-acp
-        mode: persistent
-        permissionMode: approve-all
-        nonInteractivePermissions: deny
-        timeoutSec: 0
+        hermesCommand: /usr/local/bin/hermes-paperclip
+        provider: openai-codex
+        model: gpt-5.6-terra
+        extraArgs:
+          - --reasoning-effort
+          - high
+        persistSession: true
+        quiet: true
+        timeoutSec: 7200
         graceSec: 20
-        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -49,16 +53,18 @@ agents:
             model: gpt-5.4-mini
   architect:
     adapter:
-      type: acpx_local
+      type: hermes_local
       config:
-        agent: custom
-        agentCommand: /usr/local/bin/hermes-paperclip-acp
-        mode: persistent
-        permissionMode: approve-all
-        nonInteractivePermissions: deny
-        timeoutSec: 0
+        hermesCommand: /usr/local/bin/hermes-paperclip
+        provider: openai-codex
+        model: gpt-5.6-sol
+        extraArgs:
+          - --reasoning-effort
+          - high
+        persistSession: true
+        quiet: true
+        timeoutSec: 7200
         graceSec: 20
-        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -71,16 +77,18 @@ agents:
             model: gpt-5.4-mini
   qa-engineer:
     adapter:
-      type: acpx_local
+      type: hermes_local
       config:
-        agent: custom
-        agentCommand: /usr/local/bin/hermes-paperclip-acp
-        mode: persistent
-        permissionMode: approve-all
-        nonInteractivePermissions: deny
-        timeoutSec: 0
+        hermesCommand: /usr/local/bin/hermes-paperclip
+        provider: openai-codex
+        model: gpt-5.6-terra
+        extraArgs:
+          - --reasoning-effort
+          - high
+        persistSession: true
+        quiet: true
+        timeoutSec: 7200
         graceSec: 20
-        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -93,16 +101,18 @@ agents:
             model: gpt-5.4-mini
   security-engineer:
     adapter:
-      type: acpx_local
+      type: hermes_local
       config:
-        agent: custom
-        agentCommand: /usr/local/bin/hermes-paperclip-acp
-        mode: persistent
-        permissionMode: approve-all
-        nonInteractivePermissions: deny
-        timeoutSec: 0
+        hermesCommand: /usr/local/bin/hermes-paperclip
+        provider: openai-codex
+        model: gpt-5.6-sol
+        extraArgs:
+          - --reasoning-effort
+          - high
+        persistSession: true
+        quiet: true
+        timeoutSec: 7200
         graceSec: 20
-        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -115,16 +125,18 @@ agents:
             model: gpt-5.4-mini
   micronaut-engineer:
     adapter:
-      type: acpx_local
+      type: hermes_local
       config:
-        agent: custom
-        agentCommand: /usr/local/bin/hermes-paperclip-acp
-        mode: persistent
-        permissionMode: approve-all
-        nonInteractivePermissions: deny
-        timeoutSec: 0
+        hermesCommand: /usr/local/bin/hermes-paperclip
+        provider: openai-codex
+        model: gpt-5.6-sol
+        extraArgs:
+          - --reasoning-effort
+          - high
+        persistSession: true
+        quiet: true
+        timeoutSec: 7200
         graceSec: 20
-        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -137,16 +149,18 @@ agents:
             model: gpt-5.4-mini
   code-reviewer:
     adapter:
-      type: acpx_local
+      type: hermes_local
       config:
-        agent: custom
-        agentCommand: /usr/local/bin/hermes-paperclip-acp
-        mode: persistent
-        permissionMode: approve-all
-        nonInteractivePermissions: deny
-        timeoutSec: 0
+        hermesCommand: /usr/local/bin/hermes-paperclip
+        provider: openai-codex
+        model: gpt-5.6-sol
+        extraArgs:
+          - --reasoning-effort
+          - high
+        persistSession: true
+        quiet: true
+        timeoutSec: 7200
         graceSec: 20
-        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
@@ -159,16 +173,18 @@ agents:
             model: gpt-5.4-mini
   technical-writer:
     adapter:
-      type: acpx_local
+      type: hermes_local
       config:
-        agent: custom
-        agentCommand: /usr/local/bin/hermes-paperclip-acp
-        mode: persistent
-        permissionMode: approve-all
-        nonInteractivePermissions: deny
-        timeoutSec: 0
+        hermesCommand: /usr/local/bin/hermes-paperclip
+        provider: openai-codex
+        model: gpt-5.6-luna
+        extraArgs:
+          - --reasoning-effort
+          - medium
+        persistSession: true
+        quiet: true
+        timeoutSec: 7200
         graceSec: 20
-        warmHandleIdleMs: 0
     runtime:
       heartbeat:
         maxConcurrentRuns: 1

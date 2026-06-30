@@ -20,12 +20,14 @@ const ORGANIZATION_PROJECT_AGENT_PATHS = new Set([
   "agents/code-reviewer/AGENTS.md",
   "agents/micronaut-engineer/AGENTS.md",
 ]);
-const TOKEN_PRESENT_GH_PATTERN =
-  /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*(?:prefer|use)[\s\S]*\bgh\b|`?GITHUB_TOKEN`?-backed runs[\s\S]*\bgh\b/i;
-const TOKEN_ABSENT_AGENT_TOOLS_PATTERN =
-  /(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available[\s\S]*(?:use the agent tools below|use the GitHub sync plugin tools|use the GitHub sync plugin agent tools|use the agent tools|must use the GitHub agent tools provided by the sync plugin)|(?:use the agent tools below|use the GitHub sync plugin tools|use the GitHub sync plugin agent tools|use the agent tools|must use the GitHub agent tools provided by the sync plugin)[\s\S]*(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available/i;
-const ENV_VAR_ONLY_PATTERN =
-  /GITHUB_TOKEN[\s\S]*(environment variable|env var)|environment variable[\s\S]*GITHUB_TOKEN/i;
+const NO_GH_FALLBACK_PATTERN =
+  /do not use `?gh`? as a fallback|do not use \bgh\b as a fallback/i;
+const PLUGIN_TOOLS_REQUIRED_PATTERN =
+  /use (?:the )?(?:GitHub Sync plugin agent tools|GitHub Sync plugin tools|GitHub agent tools provided by the sync plugin)[\s\S]{0,240}(?:GitHub API|reads and writes|operations)/i;
+const MCP_BRIDGED_TOOL_PATTERN =
+  /mcp_paperclip_plugin_tools|MCP-bridged runtime names|Paperclip plugin-tools MCP bridge/i;
+const NO_PROPAGATED_TOKEN_PATTERN =
+  /do not depend on a propagated `?GITHUB_TOKEN`?|never depend on a propagated `?GITHUB_TOKEN`?/i;
 const NO_FILESYSTEM_TOKEN_SEARCH_PATTERN =
   /do not search the filesystem, plugin config, or other files for a token|must not search the filesystem, plugin config, or other files for a token/i;
 const GFM_FOOTER_PATTERN = /GitHub-flavored Markdown footer|Markdown footer/i;
@@ -39,7 +41,7 @@ const KPI_API_ROUTE_ENDPOINT_PATTERN =
   /\/api\/plugins\/paperclip-github-plugin\/api\/company-metrics\/events/i;
 const KPI_API_ROUTE_METRIC_PATTERN = /pull_request_created/i;
 const KPI_API_ROUTE_AUTH_PATTERN =
-  /authenticated (?:run|runs|deployment|deployments)[\s\S]*(?:gh|gh pr create)|(?:gh|gh pr create)[\s\S]*authenticated/i;
+  /explicit human\/operator exception[\s\S]*(?:non-plugin GitHub client|non-plugin PR creation)|non-plugin GitHub client[\s\S]*explicit human\/operator exception/i;
 const KPI_API_ROUTE_PLUGIN_EXCEPTION_PATTERN =
   /create_pull_request[\s\S]*(?:records?|recording|automatically)|do not (?:send|post|call)[\s\S]*create_pull_request/i;
 const KPI_API_ROUTE_SCOPE_PATTERN =
@@ -103,7 +105,7 @@ function assertPullRequestMetricApiRoutePolicy(markdown, label) {
   assert.match(
     markdown,
     PR_ISSUE_LINK_TOOL_PATTERN,
-    `${label} must create the durable PR-to-Paperclip issue link through the GitHub Sync agent tool for gh-created PRs.`,
+    `${label} must create the durable PR-to-Paperclip issue link through the GitHub Sync agent tool for non-plugin PR creation exceptions.`,
   );
   assert.match(
     markdown,
@@ -128,7 +130,7 @@ function assertPullRequestMetricApiRoutePolicy(markdown, label) {
   assert.match(
     markdown,
     KPI_API_ROUTE_AUTH_PATTERN,
-    `${label} must tie the API route to authenticated gh-based PR creation.`,
+    `${label} must tie the API route to explicit non-plugin PR creation exceptions.`,
   );
   assert.match(
     markdown,
@@ -200,7 +202,7 @@ function parseFrontmatter(markdown) {
   };
 }
 
-test("GitHub-capable agents include the gh CLI and shared GitHub operations skills", async () => {
+test("GitHub-capable agents include the exception-only gh CLI reference and shared GitHub operations skills", async () => {
   const sharedSkillMarkdown = await readFile(
     new URL("../skills/micronaut-github-operations/SKILL.md", import.meta.url),
     "utf8",
@@ -230,7 +232,7 @@ test("GitHub-capable agents include the gh CLI and shared GitHub operations skil
   }
 });
 
-test("GitHub-capable agents describe GITHUB_TOKEN-based GitHub access behavior", async () => {
+test("GitHub-capable agents require GitHub Sync tools and forbid gh/token fallback", async () => {
   for (const relativePath of GITHUB_AGENT_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { body } = parseFrontmatter(markdown);
@@ -242,23 +244,23 @@ test("GitHub-capable agents describe GITHUB_TOKEN-based GitHub access behavior",
     );
     assert.match(
       body,
-      /\bgh\b.*CLI|CLI.*\bgh\b/i,
-      `${relativePath} must mention the gh CLI.`,
+      NO_GH_FALLBACK_PATTERN,
+      `${relativePath} must forbid using gh as a fallback for GitHub API work.`,
     );
     assert.match(
       body,
-      TOKEN_PRESENT_GH_PATTERN,
-      `${relativePath} must explain that gh is used only when GITHUB_TOKEN is available.`,
+      PLUGIN_TOOLS_REQUIRED_PATTERN,
+      `${relativePath} must tell agents to use GitHub Sync plugin tools for GitHub API work.`,
     );
     assert.match(
       body,
-      TOKEN_ABSENT_AGENT_TOOLS_PATTERN,
-      `${relativePath} must tell agents to use the GitHub sync agent tools when GITHUB_TOKEN is unavailable.`,
+      MCP_BRIDGED_TOOL_PATTERN,
+      `${relativePath} must mention Hermes MCP-bridged GitHub Sync tool names.`,
     );
     assert.match(
       body,
-      ENV_VAR_ONLY_PATTERN,
-      `${relativePath} must clarify that GITHUB_TOKEN refers to the environment variable.`,
+      NO_PROPAGATED_TOKEN_PATTERN,
+      `${relativePath} must say not to depend on a propagated GITHUB_TOKEN.`,
     );
     assert.match(
       body,
@@ -273,13 +275,8 @@ test("GitHub-capable agents describe GITHUB_TOKEN-based GitHub access behavior",
       );
       assert.match(
         body,
-        /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)|`?GITHUB_TOKEN`?-backed runs[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)/i,
-        `${relativePath} must keep organization-project actions on gh when GITHUB_TOKEN is available.`,
-      );
-      assert.match(
-        body,
-        /(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available[\s\S]*(list_organization_projects|add_pull_request_to_project|organization project)|(?:list_organization_projects|add_pull_request_to_project)[\s\S]*(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available/i,
-        `${relativePath} must use sync plugin tools for organization-project work when GITHUB_TOKEN is unavailable.`,
+        /list_organization_projects[\s\S]{0,260}add_pull_request_to_project|add_pull_request_to_project[\s\S]{0,260}list_organization_projects/i,
+        `${relativePath} must use sync plugin tools for organization-project lookup and PR project links.`,
       );
     }
     assertDirectGithubFooterPolicy(
@@ -289,17 +286,17 @@ test("GitHub-capable agents describe GITHUB_TOKEN-based GitHub access behavior",
   }
 });
 
-test("Shared Micronaut repo operations explain the GITHUB_TOKEN GitHub access split", async () => {
+test("Shared Micronaut repo operations require GitHub Sync tools and forbid gh/token fallback", async () => {
   const markdown = await readFile(
     new URL("../skills/micronaut-repo-operations/SKILL.md", import.meta.url),
     "utf8",
   );
 
   assert.match(markdown, /GITHUB_TOKEN/);
-  assert.match(markdown, /\bgh\b.*CLI|CLI.*\bgh\b/i);
-  assert.match(markdown, TOKEN_PRESENT_GH_PATTERN);
-  assert.match(markdown, TOKEN_ABSENT_AGENT_TOOLS_PATTERN);
-  assert.match(markdown, ENV_VAR_ONLY_PATTERN);
+  assert.match(markdown, NO_GH_FALLBACK_PATTERN);
+  assert.match(markdown, PLUGIN_TOOLS_REQUIRED_PATTERN);
+  assert.match(markdown, MCP_BRIDGED_TOOL_PATTERN);
+  assert.match(markdown, NO_PROPAGATED_TOKEN_PATTERN);
   assert.match(markdown, NO_FILESYSTEM_TOKEN_SEARCH_PATTERN);
   assert.doesNotMatch(
     markdown,
@@ -307,11 +304,7 @@ test("Shared Micronaut repo operations explain the GITHUB_TOKEN GitHub access sp
   );
   assert.match(
     markdown,
-    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)|`?GITHUB_TOKEN`?-backed runs[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
-  );
-  assert.match(
-    markdown,
-    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available[\s\S]*(organization-project lookup|PR-to-project association|add_pull_request_to_project|list_organization_projects)/i,
+    /list_organization_projects[\s\S]{0,260}add_pull_request_to_project|add_pull_request_to_project[\s\S]{0,260}list_organization_projects/i,
   );
   assertDirectGithubFooterPolicy(
     markdown,
@@ -319,16 +312,17 @@ test("Shared Micronaut repo operations explain the GITHUB_TOKEN GitHub access sp
   );
 });
 
-test("README documents the direct GitHub footer rule and plugin fallback", async () => {
+test("README documents the direct GitHub footer rule and GitHub Sync tool requirement", async () => {
   const markdown = await readFile(
     new URL("../README.md", import.meta.url),
     "utf8",
   );
 
   assert.match(markdown, /GITHUB_TOKEN/);
-  assert.match(markdown, /\bgh\b.*GitHub|GitHub.*\bgh\b/i);
-  assert.match(markdown, TOKEN_ABSENT_AGENT_TOOLS_PATTERN);
-  assert.match(markdown, ENV_VAR_ONLY_PATTERN);
+  assert.match(markdown, NO_GH_FALLBACK_PATTERN);
+  assert.match(markdown, PLUGIN_TOOLS_REQUIRED_PATTERN);
+  assert.match(markdown, MCP_BRIDGED_TOOL_PATTERN);
+  assert.match(markdown, NO_PROPAGATED_TOKEN_PATTERN);
   assert.match(markdown, NO_FILESYSTEM_TOKEN_SEARCH_PATTERN);
   assertDirectGithubFooterPolicy(markdown, "README.md");
   assertPullRequestMetricApiRoutePolicy(markdown, "README.md");
@@ -382,11 +376,10 @@ test("Local gh-cli skill points to the requested upstream skill", async () => {
 
   assert.match(frontmatter.description, /GITHUB_TOKEN/);
   assert.match(frontmatter.description, /\bgh\b/i);
-  assert.match(
-    frontmatter.description,
-    /If (?:`?GITHUB_TOKEN`?|that environment variable) is not available, use the GitHub sync plugin agent tools instead/i,
-  );
-  assert.match(frontmatter.description, ENV_VAR_ONLY_PATTERN);
+  assert.match(frontmatter.description, /explicit human\/operator exceptions/i);
+  assert.match(frontmatter.description, /Normal GitHub API operations must use the GitHub Sync plugin tools/i);
+  assert.match(frontmatter.description, /MCP-bridged runtime names/i);
+  assert.match(frontmatter.description, NO_PROPAGATED_TOKEN_PATTERN);
   assert.match(frontmatter.description, NO_FILESYSTEM_TOKEN_SEARCH_PATTERN);
   assert.match(frontmatter.description, GFM_FOOTER_PATTERN);
   assert.match(frontmatter.description, HORIZONTAL_RULE_PATTERN);
