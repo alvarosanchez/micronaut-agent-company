@@ -9,14 +9,14 @@ Use this shared skill for repeated GitHub rules that apply across Micronaut comp
 
 ## Access Selection
 
-- When `GITHUB_TOKEN` is present in the environment, prefer the `gh` CLI for GitHub reads and writes, including Micronaut organization-project lookup and live PR association.
-- If `GITHUB_TOKEN` is not available, use the GitHub Sync plugin agent tools for the GitHub operations they cover.
-- By `GITHUB_TOKEN`, mean the environment variable with that exact name. Do not search the filesystem, plugin config, or other files for a token.
+- Use the GitHub Sync plugin agent tools for GitHub API reads and writes that the plugin covers, including issue/PR reads, comments, review threads, PR creation/updates, checks, assets, and Micronaut organization-project lookup and live PR association.
+- In Hermes deployments, those tools may be exposed through the Paperclip plugin-tools MCP bridge with sanitized names such as `mcp_paperclip_plugin_tools_paperclip_github_plugin_search_repository_items`; use the actual runtime tool schema name while following the `paperclip-github-plugin:*` contract below.
+- Do not use `gh` as a fallback for GitHub API reads/writes, do not depend on a propagated `GITHUB_TOKEN`, and do not search the filesystem, plugin config, or other files for a token.
 - Use the local git CLI for branch creation, commits, rebases, cherry-picks, and pushes. GitHub Sync tools do not replace git.
 
 ## Footer For Maintainer-Visible GitHub Writes
 
-- When you publish maintainer-visible GitHub body text directly with `gh` or another `GITHUB_TOKEN`-backed write, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer:
+- When an explicit human/operator exception requires a non-plugin GitHub write client, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer:
 
 ```markdown
 ---
@@ -27,7 +27,7 @@ Use this shared skill for repeated GitHub rules that apply across Micronaut comp
 
 ## GitHub Sync Tool Surface
 
-- Use exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
+- Use exact runtime tool IDs. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`; Hermes MCP bridge deployments expose the same contracts with sanitized names prefixed by `mcp_paperclip_plugin_tools_`.
 - Core tool IDs: `paperclip-github-plugin:search_repository_items`, `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`, `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:update_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`, `paperclip-github-plugin:request_pull_request_reviewers`, `paperclip-github-plugin:list_organization_projects`, `paperclip-github-plugin:add_pull_request_to_project`, `paperclip-github-plugin:upload_pull_request_asset`, and `paperclip-github-plugin:link_github_item`.
 - Prefer `paperclipIssueId` whenever you are acting from a synced Paperclip issue so the plugin can infer the linked GitHub item and repository.
 - Provide `repository` only when the plugin cannot infer it; the repository may be omitted when the current Paperclip project maps to exactly one repository.
@@ -38,7 +38,7 @@ Use this shared skill for repeated GitHub rules that apply across Micronaut comp
 ## Monitoring Boundary
 
 - Do not use Paperclip issue monitors to poll GitHub-synced PR state.
-- CI/check status, mergeability, PR file state, review threads, reviewer routing, PR-visible assets, and PR project links must be read or changed through GitHub Sync tools or `gh` when `GITHUB_TOKEN` is available.
+- CI/check status, mergeability, PR file state, review threads, reviewer routing, PR-visible assets, and PR project links must be read or changed through GitHub Sync tools.
 - Issue monitors remain valid only for non-GitHub waits or external conditions that GitHub Sync does not already own.
 
 ## PR-To-Paperclip Links And KPI Attribution
@@ -47,7 +47,7 @@ Use this shared skill for repeated GitHub rules that apply across Micronaut comp
 - For out-of-pipeline PRs, including routine PRs, package-evolution PRs, managed repository `AGENTS.md` PRs, upstream dependency PRs, and any other PR outside the normal delivery pipeline, create the required affected-project Paperclip child issue or subtask first.
 - Link an out-of-pipeline PR to that Paperclip child issue or subtask with `paperclip-github-plugin:link_github_item`. Pass `kind: "pull_request"`, `paperclipIssueId`, and either `pullRequestUrl` or `reference`; include `repository` when using a number-only reference outside a mapped project.
 - The PR creation metric is not the issue link. Confirm `paperclip-github-plugin:link_github_item` returns `status: "linked"` before reporting the PR as tracked by GitHub Sync.
-- In authenticated runs, if `gh` or another non-plugin GitHub client creates a PR in a repository mapped to the current company, create the durable `link_github_item` PR-to-Paperclip link first, then separately record attribution with `POST /api/plugins/paperclip-github-plugin/api/company-metrics/events` using `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`.
+- In authenticated runs, prefer `paperclip-github-plugin:create_pull_request` for PR creation because the plugin records the PR creation metric automatically. If an explicit human/operator exception uses a non-plugin GitHub client to create a PR in a repository mapped to the current company, create the durable `link_github_item` PR-to-Paperclip link first, then separately record attribution with `POST /api/plugins/paperclip-github-plugin/api/company-metrics/events` using `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`.
 - The company metric endpoint is a native plugin JSON route with agent auth, not a plugin-tool call or webhook. Authenticate the native metric route with `Authorization: Bearer ${PAPERCLIP_API_KEY}`; `PAPERCLIP_API_KEY` is the agent credential for authenticated runs.
 - The Paperclip host authenticates the bearer token, scopes the request to the calling agent's company, and rejects missing, expired, invalid, non-agent, or cross-company calls before worker dispatch. Include `companyId` only when useful for disambiguation; if present, it must match the calling agent's company.
 - Do not post the metric route when `paperclip-github-plugin:create_pull_request` created the PR, because the plugin records `pull_request_created` automatically. Do not send it for PR edits, comments, review replies, or merges.

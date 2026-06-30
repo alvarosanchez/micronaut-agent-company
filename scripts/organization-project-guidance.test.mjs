@@ -64,34 +64,24 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     codeReviewer,
-    /(?:gh|add_pull_request_to_project)[\s\S]*(?:after PR creation|existing surviving PR|keeping an existing surviving PR|live PR-to-project association)/i,
-    "Code Reviewer guidance should require using live GitHub tooling for newly created and already-existing surviving PRs.",
+    /add_pull_request_to_project[\s\S]*(?:after PR creation|existing surviving PR|keeping an existing surviving PR|live PR-to-project association)|(?:live PR-to-project association)[\s\S]*add_pull_request_to_project/i,
+    "Code Reviewer guidance should require using GitHub Sync tooling for newly created and already-existing surviving PRs.",
   );
   assert.match(
     codeReviewer,
     /instead of only naming (?:it|them) in prose|not a substitute for applying (?:the live PR project link|every selected live PR project link)/i,
     "Code Reviewer guidance should say prose-only organization-project notes are insufficient when the live link can be applied.",
   );
-  assert.match(
-    codeReviewer,
-    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)|`?GITHUB_TOKEN`?-backed runs[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
-    "Code Reviewer guidance should keep organization-project lookup and linking on gh when GITHUB_TOKEN is available.",
-  );
 
   assert.match(
     micronautEngineer,
-    /gh|add_pull_request_to_project/i,
-    "Micronaut Engineer guidance should include live GitHub tooling for PR follow-through repairs.",
+    /add_pull_request_to_project/i,
+    "Micronaut Engineer guidance should include GitHub Sync tooling for PR follow-through repairs.",
   );
   assert.match(
     micronautEngineer,
     /missing the chosen organization project|wrong one after retargeting|repair the live link|instead of only noting the mismatch in comments/i,
     "Micronaut Engineer guidance should repair missing or wrong PR project links instead of only commenting on them.",
-  );
-  assert.match(
-    micronautEngineer,
-    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)|`?GITHUB_TOKEN`?-backed runs[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|project link)/i,
-    "Micronaut Engineer guidance should keep organization-project lookup and linking on gh when GITHUB_TOKEN is available.",
   );
 
   assert.doesNotMatch(
@@ -132,8 +122,8 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     repoOperations,
-    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+(?:is present|is available)[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)|`?GITHUB_TOKEN`?-backed runs[\s\S]*gh[\s\S]*(organization-project lookup|live PR association|PR-to-project association)/i,
-    "Repo operations should keep organization-project lookup and linking on gh when GITHUB_TOKEN is available.",
+    /list_organization_projects[\s\S]*(?:organization-project lookup|PR-to-project association|add_pull_request_to_project)|add_pull_request_to_project[\s\S]*(?:organization-project lookup|PR-to-project association|list_organization_projects)/i,
+    "Repo operations should keep organization-project lookup and linking on GitHub Sync tools.",
   );
   assert.match(
     repoOperations,
@@ -142,8 +132,8 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     repoOperations,
-    /(?:when|if)\s+`?GITHUB_TOKEN`?\s+is not available[\s\S]*(list_organization_projects|add_pull_request_to_project|organization-project lookup|PR-to-project association)/i,
-    "Repo operations should reserve sync plugin agent tools for runs without GITHUB_TOKEN.",
+    /Do not use `?gh`? as a fallback|do not depend on a propagated `?GITHUB_TOKEN`?/i,
+    "Repo operations should forbid gh/token fallback instead of reserving plugin tools for no-token runs.",
   );
 });
 
