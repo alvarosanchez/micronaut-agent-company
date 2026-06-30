@@ -11,8 +11,10 @@ Use this shared skill for repeated GitHub rules that apply across Micronaut comp
 
 - Use the GitHub Sync plugin agent tools for GitHub API reads and writes that the plugin covers, including issue/PR reads, comments, review threads, PR creation/updates, checks, assets, and Micronaut organization-project lookup and live PR association.
 - In Hermes deployments, those tools may be exposed through the Paperclip plugin-tools MCP bridge with sanitized names such as `mcp_paperclip_plugin_tools_paperclip_github_plugin_search_repository_items`; use the actual runtime tool schema name while following the `paperclip-github-plugin:*` contract below.
-- Do not use `gh` as a fallback for GitHub API reads/writes, do not depend on a propagated `GITHUB_TOKEN`, and do not search the filesystem, plugin config, or other files for a token.
-- Use the local git CLI for branch creation, commits, rebases, cherry-picks, and pushes. GitHub Sync tools do not replace git.
+- Do not use `gh` as a fallback for GitHub API reads/writes, inspect credentials, run `git push`, or search for a GitHub token.
+- Use the local git CLI without GitHub credentials for branch creation, commits, rebases, cherry-picks, and public fetches. Resolve the plain local branch name and exact full branch-tip commit SHA before PR creation.
+- Call `paperclip-github-plugin:create_pull_request` once with `paperclipIssueId`, `head`, `headCommitSha`, `base`, `title`, and any body/draft metadata. The trusted plugin resolves the issue-scoped workspace and secret, publishes and verifies the exact branch SHA, then creates, links, and attributes the PR.
+- If the atomic tool reports a publication failure, preserve the local branch and report the exact plugin error. Do not fall back to `git push`, `gh`, SSH, direct API scripts, or credential searches.
 
 ## Footer For Maintainer-Visible GitHub Writes
 

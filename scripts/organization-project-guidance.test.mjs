@@ -132,8 +132,8 @@ test("runtime instructions keep organization-project linkage best effort", async
   );
   assert.match(
     repoOperations,
-    /Do not use `?gh`? as a fallback|do not depend on a propagated `?GITHUB_TOKEN`?/i,
-    "Repo operations should forbid gh/token fallback instead of reserving plugin tools for no-token runs.",
+    /Do not use `?gh`? as (?:an API |a )?fallback|do not[\s\S]{0,120}`?git push`?/i,
+    "Repo operations should keep GitHub API work and branch publication on plugin tools.",
   );
 });
 

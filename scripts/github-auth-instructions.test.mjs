@@ -21,7 +21,7 @@ const ORGANIZATION_PROJECT_AGENT_PATHS = new Set([
   "agents/micronaut-engineer/AGENTS.md",
 ]);
 const NO_GH_FALLBACK_PATTERN =
-  /do not use `?gh`? as a fallback|do not use \bgh\b as a fallback/i;
+  /do not use `?gh`? as (?:an API |a )?fallback|do not use \bgh\b as (?:an API |a )?fallback/i;
 const PLUGIN_TOOLS_REQUIRED_PATTERN =
   /use (?:the )?(?:GitHub Sync plugin agent tools|GitHub Sync plugin tools|GitHub agent tools provided by the sync plugin)[\s\S]{0,240}(?:GitHub API|reads and writes|operations)/i;
 const MCP_BRIDGED_TOOL_PATTERN =
@@ -30,6 +30,12 @@ const NO_PROPAGATED_TOKEN_PATTERN =
   /do not depend on a propagated `?GITHUB_TOKEN`?|never depend on a propagated `?GITHUB_TOKEN`?/i;
 const NO_FILESYSTEM_TOKEN_SEARCH_PATTERN =
   /do not search the filesystem, plugin config, or other files for a token|must not search the filesystem, plugin config, or other files for a token/i;
+const ATOMIC_CREATE_PULL_REQUEST_PATTERN =
+  /create_pull_request[\s\S]{0,900}(?:headCommitSha|exact full (?:branch-tip )?(?:commit )?SHA)[\s\S]{0,900}(?:publishes|publish)[\s\S]{0,400}(?:creates|creating|PR)/i;
+const NO_AGENT_GIT_PUSH_PATTERN =
+  /do not[\s\S]{0,120}(?:run )?`?git push`?|must not[\s\S]{0,120}(?:run )?`?git push`?/i;
+const NO_CREDENTIAL_INSPECTION_PATTERN =
+  /do not inspect credentials|(?:or|,)\s*inspect credentials|must not (?:print|inspect|copy|pass) (?:the )?(?:token|credentials?)/i;
 const GFM_FOOTER_PATTERN = /GitHub-flavored Markdown footer|Markdown footer/i;
 const HORIZONTAL_RULE_PATTERN = /`---` on its own line|`---` plus|^---$/m;
 const BLANK_LINE_PATTERN =
@@ -202,7 +208,7 @@ function parseFrontmatter(markdown) {
   };
 }
 
-test("GitHub-capable agents include the exception-only gh CLI reference and shared GitHub operations skills", async () => {
+test("GitHub-capable agents include the exception-only gh CLI reference and atomic GitHub operations skill", async () => {
   const sharedSkillMarkdown = await readFile(
     new URL("../skills/micronaut-github-operations/SKILL.md", import.meta.url),
     "utf8",
@@ -210,7 +216,8 @@ test("GitHub-capable agents include the exception-only gh CLI reference and shar
   const { frontmatter: sharedSkillFrontmatter, body: sharedSkillBody } = parseFrontmatter(sharedSkillMarkdown);
   assert.equal(sharedSkillFrontmatter.name, SHARED_GITHUB_SKILL);
   assert.match(sharedSkillBody, /paperclip-github-plugin:/);
-  assert.match(sharedSkillBody, /GITHUB_TOKEN/);
+  assert.match(sharedSkillBody, /headCommitSha/);
+  assert.doesNotMatch(sharedSkillBody, /GITHUB_TOKEN/);
 
   for (const relativePath of GITHUB_AGENT_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
@@ -232,16 +239,11 @@ test("GitHub-capable agents include the exception-only gh CLI reference and shar
   }
 });
 
-test("GitHub-capable agents require GitHub Sync tools and forbid gh/token fallback", async () => {
+test("GitHub-capable agents use atomic plugin branch publication and PR creation", async () => {
   for (const relativePath of GITHUB_AGENT_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { body } = parseFrontmatter(markdown);
 
-    assert.match(
-      body,
-      /GITHUB_TOKEN/,
-      `${relativePath} must mention GITHUB_TOKEN.`,
-    );
     assert.match(
       body,
       NO_GH_FALLBACK_PATTERN,
@@ -259,13 +261,18 @@ test("GitHub-capable agents require GitHub Sync tools and forbid gh/token fallba
     );
     assert.match(
       body,
-      NO_PROPAGATED_TOKEN_PATTERN,
-      `${relativePath} must say not to depend on a propagated GITHUB_TOKEN.`,
+      ATOMIC_CREATE_PULL_REQUEST_PATTERN,
+      `${relativePath} must create and publish the PR in one create_pull_request call.`,
     );
     assert.match(
       body,
-      NO_FILESYSTEM_TOKEN_SEARCH_PATTERN,
-      `${relativePath} must forbid searching the filesystem or plugin config for a token.`,
+      NO_AGENT_GIT_PUSH_PATTERN,
+      `${relativePath} must forbid agent-side git push.`,
+    );
+    assert.match(
+      body,
+      NO_CREDENTIAL_INSPECTION_PATTERN,
+      `${relativePath} must forbid inspecting transport credentials.`,
     );
     if (ORGANIZATION_PROJECT_AGENT_PATHS.has(relativePath)) {
       assert.match(
@@ -286,18 +293,18 @@ test("GitHub-capable agents require GitHub Sync tools and forbid gh/token fallba
   }
 });
 
-test("Shared Micronaut repo operations require GitHub Sync tools and forbid gh/token fallback", async () => {
+test("Shared Micronaut repo operations use atomic branch publication and PR creation", async () => {
   const markdown = await readFile(
     new URL("../skills/micronaut-repo-operations/SKILL.md", import.meta.url),
     "utf8",
   );
 
-  assert.match(markdown, /GITHUB_TOKEN/);
   assert.match(markdown, NO_GH_FALLBACK_PATTERN);
   assert.match(markdown, PLUGIN_TOOLS_REQUIRED_PATTERN);
   assert.match(markdown, MCP_BRIDGED_TOOL_PATTERN);
-  assert.match(markdown, NO_PROPAGATED_TOKEN_PATTERN);
-  assert.match(markdown, NO_FILESYSTEM_TOKEN_SEARCH_PATTERN);
+  assert.match(markdown, ATOMIC_CREATE_PULL_REQUEST_PATTERN);
+  assert.match(markdown, NO_AGENT_GIT_PUSH_PATTERN);
+  assert.match(markdown, NO_CREDENTIAL_INSPECTION_PATTERN);
   assert.doesNotMatch(
     markdown,
     /only unauthenticated Paperclip instances can call the sync plugin agent tools directly|On unauthenticated deployments, use the agent tools below/i,
@@ -318,12 +325,12 @@ test("README documents the direct GitHub footer rule and GitHub Sync tool requir
     "utf8",
   );
 
-  assert.match(markdown, /GITHUB_TOKEN/);
   assert.match(markdown, NO_GH_FALLBACK_PATTERN);
   assert.match(markdown, PLUGIN_TOOLS_REQUIRED_PATTERN);
   assert.match(markdown, MCP_BRIDGED_TOOL_PATTERN);
-  assert.match(markdown, NO_PROPAGATED_TOKEN_PATTERN);
-  assert.match(markdown, NO_FILESYSTEM_TOKEN_SEARCH_PATTERN);
+  assert.match(markdown, ATOMIC_CREATE_PULL_REQUEST_PATTERN);
+  assert.match(markdown, NO_AGENT_GIT_PUSH_PATTERN);
+  assert.match(markdown, NO_CREDENTIAL_INSPECTION_PATTERN);
   assertDirectGithubFooterPolicy(markdown, "README.md");
   assertPullRequestMetricApiRoutePolicy(markdown, "README.md");
 });
