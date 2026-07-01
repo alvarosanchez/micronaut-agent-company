@@ -194,7 +194,7 @@ test("operating guidance handles productivity review issues as first-class queue
     "../README.md",
     "../COMPANY.md",
     "../agents/ceo/AGENTS.md",
-    "../tasks/daily-ceo-self-improvement/TASK.md",
+    "../tasks/monthly-ceo-self-improvement/TASK.md",
     "../tasks/verify-imported-company-instance/TASK.md",
     "../skills/micronaut-repo-operations/SKILL.md",
     "../skills/micronaut-quality-gates/SKILL.md",

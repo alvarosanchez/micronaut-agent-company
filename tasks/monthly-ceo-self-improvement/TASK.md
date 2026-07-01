@@ -1,5 +1,5 @@
 ---
-name: Daily CEO Self-Improvement
+name: Monthly CEO Self-Improvement
 assignee: ceo
 project: company-operations
 recurring: true

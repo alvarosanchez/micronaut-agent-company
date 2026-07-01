@@ -14,29 +14,29 @@ function parseFrontmatter(markdown) {
   };
 }
 
-test("CEO self-improvement routine runs daily", async () => {
+test("CEO self-improvement routine runs monthly", async () => {
   const source = await readFile(new URL("../.paperclip.yaml", import.meta.url), "utf8");
   const config = YAML.parse(source);
-  const trigger = config.routines?.["daily-ceo-self-improvement"]?.triggers?.[0];
+  const trigger = config.routines?.["monthly-ceo-self-improvement"]?.triggers?.[0];
 
-  assert.ok(trigger, "Expected daily-ceo-self-improvement routine trigger.");
-  assert.equal(trigger.label, "Daily CEO Self-Improvement");
-  assert.equal(trigger.cronExpression, "0 3 * * *");
+  assert.ok(trigger, "Expected monthly-ceo-self-improvement routine trigger.");
+  assert.equal(trigger.label, "Monthly CEO Self-Improvement");
+  assert.equal(trigger.cronExpression, "0 3 20 * *");
   assert.equal(trigger.timezone, "Europe/Madrid");
 
   const taskMarkdown = await readFile(
-    new URL("../tasks/daily-ceo-self-improvement/TASK.md", import.meta.url),
+    new URL("../tasks/monthly-ceo-self-improvement/TASK.md", import.meta.url),
     "utf8",
   );
   const { frontmatter } = parseFrontmatter(taskMarkdown);
 
-  assert.equal(frontmatter.name, "Daily CEO Self-Improvement");
+  assert.equal(frontmatter.name, "Monthly CEO Self-Improvement");
 });
 
 test("CEO self-improvement guidance requires action and respects bundled system skills", async () => {
   const requiredPaths = [
     "../agents/ceo/AGENTS.md",
-    "../tasks/daily-ceo-self-improvement/TASK.md",
+    "../tasks/monthly-ceo-self-improvement/TASK.md",
     "../skills/company-package-evolution/SKILL.md",
     "../README.md",
     "../COMPANY.md",
@@ -60,7 +60,7 @@ test("CEO self-improvement guidance requires action and respects bundled system 
 
 test("CEO self-improvement routine reconciles Paperclip runtime skills into Hermes local skill storage", async () => {
   const markdown = await readFile(
-    new URL("../tasks/daily-ceo-self-improvement/TASK.md", import.meta.url),
+    new URL("../tasks/monthly-ceo-self-improvement/TASK.md", import.meta.url),
     "utf8",
   );
 
@@ -121,7 +121,7 @@ test("README and COMPANY explain .company-runtime overlays in plain language", a
 test("managed Micronaut repo AGENTS.md updates require a PR path", async () => {
   const requiredPaths = [
     "../agents/ceo/AGENTS.md",
-    "../tasks/daily-ceo-self-improvement/TASK.md",
+    "../tasks/monthly-ceo-self-improvement/TASK.md",
     "../skills/company-package-evolution/SKILL.md",
     "../README.md",
     "../COMPANY.md",
@@ -156,7 +156,7 @@ test("managed Micronaut repo AGENTS.md updates require a PR path", async () => {
 test("CEO-opened PRs require CI and review-thread follow-up from the daily routine", async () => {
   const requiredPaths = [
     "../agents/ceo/AGENTS.md",
-    "../tasks/daily-ceo-self-improvement/TASK.md",
+    "../tasks/monthly-ceo-self-improvement/TASK.md",
     "../skills/company-package-evolution/SKILL.md",
     "../README.md",
     "../COMPANY.md",

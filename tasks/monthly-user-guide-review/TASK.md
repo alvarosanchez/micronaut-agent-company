@@ -1,5 +1,5 @@
 ---
-name: Weekly User Guide Review
+name: Monthly User Guide Review
 assignee: technical-writer
 project: company-operations
 recurring: true

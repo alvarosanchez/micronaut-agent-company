@@ -1,5 +1,5 @@
 ---
-name: Weekly Product Discovery
+name: Monthly Product Discovery
 assignee: product-manager
 project: company-operations
 recurring: true
