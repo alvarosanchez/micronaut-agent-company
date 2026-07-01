@@ -50,7 +50,7 @@ When the change belongs in a managed Micronaut repository's `AGENTS.md`:
 - if repository access or required governance approval is unavailable, create the linked board approval request or record the blocker instead of editing silently
 - before opening a managed Micronaut repository `AGENTS.md` PR outside the normal delivery pipeline, create one Paperclip child issue or subtask per affected project when the project exists in Paperclip, put the subtask in the actual corresponding project, set assignee to CEO, decide inside the subtask whether the repo-local guidance change needs a PR, then link the PR to that Paperclip issue through GitHub Sync
 
-The daily CEO self-improvement report must include a `Managed Repository AGENTS.md Audit` section. For each active managed Micronaut repository considered, record whether root `AGENTS.md` exists, whether it is durable/current or stale/generated/missing, and the exact outcome: no action needed, repo-local PR opened or updated, linked follow-up issue created, linked approval requested, or blocker named. A bounded metadata/readability check is enough unless recent execution evidence points to a deeper repository-specific guidance problem.
+The monthly CEO self-improvement report must include a `Managed Repository AGENTS.md Audit` section. For each active managed Micronaut repository considered, record whether root `AGENTS.md` exists, whether it is durable/current or stale/generated/missing, and the exact outcome: no action needed, repo-local PR opened or updated, linked follow-up issue created, linked approval requested, or blocker named. A bounded metadata/readability check is enough unless recent execution evidence points to a deeper repository-specific guidance problem.
 
 When the change belongs in a company-owned upstream dependency:
 
@@ -66,7 +66,7 @@ For all package-core, managed repository, upstream dependency, or other PRs crea
 
 ## CEO PR Follow-Up Without Heartbeats
 
-Because CEO heartbeats may be disabled, the daily CEO self-improvement routine is the follow-up mechanism for PRs opened by the CEO. Each run should rediscover open CEO-opened PRs from the prior routine report, linked board approvals, recorded PR URLs, and open PR searches, then either update the PR, answer review threads with a decision before resolving them, or record the blocker. Do not treat a CEO-opened PR as finished until CI is green and no unresolved review threads remain.
+Because CEO heartbeats may be disabled, the monthly CEO self-improvement routine is the follow-up mechanism for PRs opened by the CEO. Each run should rediscover open CEO-opened PRs from the prior routine report, linked board approvals, recorded PR URLs, and open PR searches, then either update the PR, answer review threads with a decision before resolving them, or record the blocker. Do not treat a CEO-opened PR as finished until CI is green and no unresolved review threads remain.
 
 ## When The Repo Or PR Path Is Unavailable
 
@@ -99,7 +99,7 @@ When you send a managed Micronaut repository `AGENTS.md` PR, explain:
 - the CI/check status and unresolved review-thread status for the CEO-opened PR
 - whether any companion package-core change is still needed for future imports
 
-When the daily routine only opens or routes follow-up work for managed repository `AGENTS.md` guidance, still include the audit section in the package report so the next pass can rediscover the repository, status, and follow-up issue or PR.
+When the monthly routine only opens or routes follow-up work for managed repository `AGENTS.md` guidance, still include the audit section in the package report so the next pass can rediscover the repository, status, and follow-up issue or PR.
 
 When you send an upstream dependency fix from the CEO routine, explain:
 

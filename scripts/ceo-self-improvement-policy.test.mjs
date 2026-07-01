@@ -67,37 +67,37 @@ test("CEO self-improvement routine reconciles Paperclip runtime skills into Herm
   assert.match(
     markdown,
     /Hermes Runtime Skill Sync/i,
-    "Daily CEO report must include a Hermes Runtime Skill Sync section.",
+    "Monthly CEO report must include a Hermes Runtime Skill Sync section.",
   );
   assert.match(
     markdown,
     /Paperclip[\s\S]{0,180}runtime skill[\s\S]{0,260}Hermes[\s\S]{0,180}(?:local )?skill storage|Hermes[\s\S]{0,180}(?:local )?skill storage[\s\S]{0,260}Paperclip[\s\S]{0,180}runtime skill/i,
-    "Daily CEO routine must connect Paperclip runtime skills to Hermes local skill storage.",
+    "Monthly CEO routine must connect Paperclip runtime skills to Hermes local skill storage.",
   );
   assert.match(
     markdown,
     /copy or update|copied, was updated|copied\/updated|copied or updated/i,
-    "Daily CEO routine must require copying or updating missing Hermes-visible skills.",
+    "Monthly CEO routine must require copying or updating missing Hermes-visible skills.",
   );
   assert.match(
     markdown,
     /skills_list[\s\S]{0,160}skill_view|skill_view[\s\S]{0,160}skills_list/i,
-    "Daily CEO routine must verify copied skills through Hermes skill listing/viewing.",
+    "Monthly CEO routine must verify copied skills through Hermes skill listing/viewing.",
   );
   assert.match(
     markdown,
     /PAPERCLIP_COMPANY_ID[\s\S]{0,260}__runtime__/i,
-    "Daily CEO routine must identify the Paperclip runtime skill source directory.",
+    "Monthly CEO routine must identify the Paperclip runtime skill source directory.",
   );
   assert.match(
     markdown,
     /all company agents[\s\S]{0,260}not only the CEO[\s\S]{0,360}\/api\/companies\/\{companyId\}\/agents[\s\S]{0,260}\/api\/agents\/\{agentId\}\/skills/i,
-    "Daily CEO routine must inspect Paperclip-managed company skills across all company agents, not only the CEO's selected skills.",
+    "Monthly CEO routine must inspect Paperclip-managed company skills across all company agents, not only the CEO's selected skills.",
   );
   assert.match(
     markdown,
     /no runtime materialization[\s\S]{0,220}fall back[\s\S]{0,260}__catalog__/i,
-    "Daily CEO routine must fall back to the Paperclip catalog materialization when a company skill has no runtime copy.",
+    "Monthly CEO routine must fall back to the Paperclip catalog materialization when a company skill has no runtime copy.",
   );
 });
 
@@ -153,7 +153,7 @@ test("managed Micronaut repo AGENTS.md updates require a PR path", async () => {
   }
 });
 
-test("CEO-opened PRs require CI and review-thread follow-up from the daily routine", async () => {
+test("CEO-opened PRs require CI and review-thread follow-up from the monthly routine", async () => {
   const requiredPaths = [
     "../agents/ceo/AGENTS.md",
     "../tasks/monthly-ceo-self-improvement/TASK.md",
@@ -182,8 +182,8 @@ test("CEO-opened PRs require CI and review-thread follow-up from the daily routi
     );
     assert.match(
       markdown,
-      /daily (?:CEO )?self-improvement routine[\s\S]{0,360}(?:follow up|rediscover|recheck|inspect)|(?:follow up|rediscover|recheck|inspect)[\s\S]{0,360}daily (?:CEO )?self-improvement routine/i,
-      `${relativePath} must make the daily CEO self-improvement routine the follow-up mechanism.`,
+      /monthly (?:CEO )?self-improvement routine[\s\S]{0,360}(?:follow up|rediscover|recheck|inspect)|(?:follow up|rediscover|recheck|inspect)[\s\S]{0,360}monthly (?:CEO )?self-improvement routine/i,
+      `${relativePath} must make the monthly CEO self-improvement routine the follow-up mechanism.`,
     );
   }
 });

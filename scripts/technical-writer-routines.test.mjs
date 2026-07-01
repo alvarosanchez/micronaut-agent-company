@@ -45,7 +45,7 @@ const UPDATE_FROM_TARGET_BRANCH_PATTERN =
 const CONFLICT_BLOCKER_PATTERN =
   /(?:conflict|merge conflict|rebase conflict)[\s\S]{0,220}(?:blocker|blocked|do not open|do not update|must not open|must not update)|(?:do not open|do not update|must not open|must not update|blocker|blocked)[\s\S]{0,220}(?:conflict|merge conflict|rebase conflict)/i;
 
-test("Technical Writer owns weekly guide review and topic discovery routines", async () => {
+test("Technical Writer owns monthly guide review and topic discovery routines", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const guideReview = extension.routines?.["monthly-user-guide-review"];
   const guideTopic = extension.routines?.["monthly-guide-topic-discovery"];
@@ -65,7 +65,7 @@ test("Technical Writer owns weekly guide review and topic discovery routines", a
   assert.equal(guideTopic?.triggers?.[0]?.timezone, "Europe/Madrid");
 });
 
-test("Weekly User Guide Review task requires fact-checked guide validation", async () => {
+test("Monthly User Guide Review task requires fact-checked guide validation", async () => {
   const taskMarkdown = await read("../tasks/monthly-user-guide-review/TASK.md");
   const { frontmatter, body } = parseFrontmatter(taskMarkdown);
 
@@ -84,7 +84,7 @@ test("Weekly User Guide Review task requires fact-checked guide validation", asy
   assertContains(body, /PR/i, "User guide review project subtasks should be allowed to open or update PRs.");
 });
 
-test("Weekly Guide Topic Discovery task uses the Micronaut Guides skill", async () => {
+test("Monthly Guide Topic Discovery task uses the Micronaut Guides skill", async () => {
   const taskMarkdown = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const { frontmatter, body } = parseFrontmatter(taskMarkdown);
 

@@ -207,7 +207,7 @@ routines:
     status: active
     triggers:
       - kind: schedule
-        label: Monthly security deep scan
+        label: Monthly Security Deep Scan
         cronExpression: "0 1 5 * *"
         timezone: Europe/Madrid
   monthly-user-guide-review:
