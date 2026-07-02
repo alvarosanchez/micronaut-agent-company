@@ -239,57 +239,31 @@ test("GitHub-capable agents include the exception-only gh CLI reference and atom
   }
 });
 
-test("GitHub-capable agents use atomic plugin branch publication and PR creation", async () => {
+test("GitHub-capable agents delegate common transport policy to the shared skill", async () => {
+  const sharedMarkdown = await readFile(
+    new URL("../skills/micronaut-github-operations/SKILL.md", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(sharedMarkdown, NO_GH_FALLBACK_PATTERN);
+  assert.match(sharedMarkdown, PLUGIN_TOOLS_REQUIRED_PATTERN);
+  assert.match(sharedMarkdown, MCP_BRIDGED_TOOL_PATTERN);
+  assert.match(sharedMarkdown, ATOMIC_CREATE_PULL_REQUEST_PATTERN);
+  assert.match(sharedMarkdown, NO_AGENT_GIT_PUSH_PATTERN);
+  assert.match(sharedMarkdown, NO_CREDENTIAL_INSPECTION_PATTERN);
+  assertDirectGithubFooterPolicy(sharedMarkdown, "skills/micronaut-github-operations/SKILL.md");
+
   for (const relativePath of GITHUB_AGENT_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { body } = parseFrontmatter(markdown);
-
-    assert.match(
-      body,
-      NO_GH_FALLBACK_PATTERN,
-      `${relativePath} must forbid using gh as a fallback for GitHub API work.`,
-    );
-    assert.match(
-      body,
-      PLUGIN_TOOLS_REQUIRED_PATTERN,
-      `${relativePath} must tell agents to use GitHub Sync plugin tools for GitHub API work.`,
-    );
-    assert.match(
-      body,
-      MCP_BRIDGED_TOOL_PATTERN,
-      `${relativePath} must mention Hermes MCP-bridged GitHub Sync tool names.`,
-    );
-    assert.match(
-      body,
-      ATOMIC_CREATE_PULL_REQUEST_PATTERN,
-      `${relativePath} must create and publish the PR in one create_pull_request call.`,
-    );
-    assert.match(
-      body,
-      NO_AGENT_GIT_PUSH_PATTERN,
-      `${relativePath} must forbid agent-side git push.`,
-    );
-    assert.match(
-      body,
-      NO_CREDENTIAL_INSPECTION_PATTERN,
-      `${relativePath} must forbid inspecting transport credentials.`,
-    );
+    assert.match(body, /Apply the shared `micronaut-github-operations` skill/);
     if (ORGANIZATION_PROJECT_AGENT_PATHS.has(relativePath)) {
+      assert.match(body, /organization-project lookup|live PR association|project link/i);
       assert.match(
         body,
-        /organization-project lookup|live PR association|project link/i,
-        `${relativePath} must mention organization-project lookup or linking.`,
-      );
-      assert.match(
-        body,
-        /list_organization_projects[\s\S]{0,260}add_pull_request_to_project|add_pull_request_to_project[\s\S]{0,260}list_organization_projects/i,
-        `${relativePath} must use sync plugin tools for organization-project lookup and PR project links.`,
+        /list_organization_projects[\s\S]{0,520}add_pull_request_to_project|add_pull_request_to_project[\s\S]{0,520}list_organization_projects/i,
       );
     }
-    assertDirectGithubFooterPolicy(
-      body,
-      relativePath,
-    );
   }
 });
 

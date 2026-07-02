@@ -17,6 +17,14 @@ Use this skill whenever you act on synced GitHub issues or pull requests for thi
 
 If you are about to mutate issue state, publish to GitHub, open/update a PR, close an issue, create routine follow-up work, or handle an uncommon branch/release/approval case, load the matching reference first.
 
+## Efficient Evidence Collection
+
+- For local repository preflight, run `node <skill-directory>/scripts/repo-evidence.mjs --base <ref>` once (omit `--base` until the approved target is known) instead of issuing separate calls for repository root, branch, HEAD SHA, upstream, worktree changes, base divergence, changed files, build markers, and instruction files. Resolve `<skill-directory>` from the loaded `micronaut-repo-operations` skill inventory. The script is read-only and returns compact machine-readable JSON; use its fields directly and inspect raw git output only when `errors` is non-empty or a decision needs evidence the report does not contain.
+- Batch independent reads and GitHub Sync lookups. Consume existing QA, plan, implementation, and review artifacts rather than rediscovering facts already recorded upstream.
+- For source localization or impact analysis, make one focused CodeGraph query per hypothesis before broad search. Treat source returned by CodeGraph as already read; do not fetch the same lines again unless exact context is missing or the index may be stale.
+- Prefer structured JSON or stable issue documents over prose copied between stages. Keep only decision-relevant fields in the stage artifact and link to larger evidence instead of pasting it.
+- Do not narrow Hermes toolsets in this portable package: deployment MCP server names are operator-owned, and omitting the GitHub Sync or CodeGraph MCP toolset would remove required capability. Deployments may narrow toolsets in their wrapper only after preserving both MCP surfaces and validating representative workflows.
+
 ## Non-Negotiable Workflow Rules
 
 - Work only inside repositories configured in this company's GitHub sync plugin. Use plugin configuration, optional `.company-runtime/` overlays, and repo-local docs or `AGENTS.md` as supplemental facts, not as proof of repository membership.
