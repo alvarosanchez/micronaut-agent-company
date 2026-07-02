@@ -7,6 +7,7 @@ skills:
   - micronaut-repo-operations
   - micronaut-github-operations
   - company-package-evolution
+  - ceo-issue-history
   - agent-md-refactor
   - gh-cli
   - find-skills
@@ -40,6 +41,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 - keep the backlog small enough that active issues have a real next stage
 - make sure the live execution-policy stage sequence still matches the intended company workflow
 - when Paperclip opens a productivity review for a no-comment streak, long-active duration, or high-churn loop, inspect the linked source issue, sampled runs, latest comments, cost signal, and recorded next action before deciding whether to close the review, decompose the source work, reroute it, block it with a named unblock owner, or stop/cancel the loop
+- during the monthly self-improvement routine, run the CEO-only `ceo-issue-history` collector for the fixed 30-day window before interpreting history; fail closed on incomplete coverage, treat a complete `no_change` as success, and inspect only ranked issue-level evidence for new package proposals
 - during the monthly self-improvement routine, inspect agent-to-agent handoffs for mismatches between expected next owner, issue status, assignee, `executionState.currentParticipant`, and `executionState.returnAssignee`, and correct those handoffs when possible
 - surface human governance decisions through linked Paperclip approvals instead of free-form comments
 - when a linked board approval is gating a maintainer-visible GitHub comment or a GitHub action with `commentBody`, make the approval request put the exact proposed comment body in `recommendedAction`

@@ -58,17 +58,18 @@ test("CEO self-improvement guidance requires action and respects bundled system 
   }
 });
 
-test("CEO self-improvement routine reconciles Paperclip runtime skills into Hermes local skill storage", async () => {
-  const markdown = await readFile(
+test("CEO self-improvement routine routes Paperclip-to-Hermes skill reconciliation to its maintenance reference", async () => {
+  const task = await readFile(
     new URL("../tasks/monthly-ceo-self-improvement/TASK.md", import.meta.url),
     "utf8",
   );
-
-  assert.match(
-    markdown,
-    /Hermes Runtime Skill Sync/i,
-    "Monthly CEO report must include a Hermes Runtime Skill Sync section.",
+  const markdown = await readFile(
+    new URL("../skills/ceo-issue-history/references/maintenance-lanes.md", import.meta.url),
+    "utf8",
   );
+
+  assert.match(task, /maintenance-lanes\.md[\s\S]{0,80}ceo-issue-history|ceo-issue-history[\s\S]{0,80}maintenance-lanes\.md/i);
+  assert.match(task, /Hermes Runtime Skill Sync/i);
   assert.match(
     markdown,
     /Paperclip[\s\S]{0,180}runtime skill[\s\S]{0,260}Hermes[\s\S]{0,180}(?:local )?skill storage|Hermes[\s\S]{0,180}(?:local )?skill storage[\s\S]{0,260}Paperclip[\s\S]{0,180}runtime skill/i,
@@ -121,7 +122,7 @@ test("README and COMPANY explain .company-runtime overlays in plain language", a
 test("managed Micronaut repo AGENTS.md updates require a PR path", async () => {
   const requiredPaths = [
     "../agents/ceo/AGENTS.md",
-    "../tasks/monthly-ceo-self-improvement/TASK.md",
+    "../skills/ceo-issue-history/references/maintenance-lanes.md",
     "../skills/company-package-evolution/SKILL.md",
     "../README.md",
     "../COMPANY.md",
@@ -156,7 +157,7 @@ test("managed Micronaut repo AGENTS.md updates require a PR path", async () => {
 test("CEO-opened PRs require CI and review-thread follow-up from the monthly routine", async () => {
   const requiredPaths = [
     "../agents/ceo/AGENTS.md",
-    "../tasks/monthly-ceo-self-improvement/TASK.md",
+    "../skills/ceo-issue-history/references/maintenance-lanes.md",
     "../skills/company-package-evolution/SKILL.md",
     "../README.md",
     "../COMPANY.md",

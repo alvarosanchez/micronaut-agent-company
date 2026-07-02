@@ -2301,6 +2301,21 @@ async function main() {
         `Paperclip catalog metadata mismatch for skill ${expectedSkill.slug}`,
       );
       assertExportedBody(exportResult.files, actualSkill.path, expectedSkill.body);
+      if (expectedSkill.slug === "ceo-issue-history") {
+        const exportedScriptPath = path.posix.join(
+          path.posix.dirname(actualSkill.path),
+          "scripts/issue-history-evidence.mjs",
+        );
+        const expectedScript = await readFile(
+          path.join(repoRoot, "skills", expectedSkill.slug, "scripts", "issue-history-evidence.mjs"),
+          "utf8",
+        );
+        assert.equal(
+          getTextFile(exportResult.files, exportedScriptPath),
+          expectedScript,
+          "CEO issue-history collector must survive package import/export unchanged",
+        );
+      }
     }
 
     assert.equal(exportResult.manifest.projects.length, expected.projects.size);
