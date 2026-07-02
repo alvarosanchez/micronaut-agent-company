@@ -14,7 +14,7 @@ function parseFrontmatter(markdown) {
   };
 }
 
-test("CEO Training routine runs every other day", async () => {
+test("CEO Training routine runs monthly", async () => {
   const source = await readFile(new URL("../.paperclip.yaml", import.meta.url), "utf8");
   const config = YAML.parse(source);
   const trigger = config.routines?.training?.triggers?.[0];
@@ -22,7 +22,7 @@ test("CEO Training routine runs every other day", async () => {
   assert.ok(trigger, "Expected training routine trigger.");
   assert.equal(config.routines.training.status, "active");
   assert.equal(trigger.label, "Training");
-  assert.equal(trigger.cronExpression, "0 2 */2 * *");
+  assert.equal(trigger.cronExpression, "0 2 25 * *");
   assert.equal(trigger.timezone, "Europe/Madrid");
 
   const taskMarkdown = await readFile(new URL("../tasks/training/TASK.md", import.meta.url), "utf8");

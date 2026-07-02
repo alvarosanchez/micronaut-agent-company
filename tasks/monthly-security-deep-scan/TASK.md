@@ -1,5 +1,5 @@
 ---
-name: Weekly Security Deep Scan
+name: Monthly Security Deep Scan
 assignee: security-engineer
 project: company-operations
 recurring: true

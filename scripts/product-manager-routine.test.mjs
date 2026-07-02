@@ -85,10 +85,10 @@ test("Product Manager agent is configured for product discovery", async () => {
   assertContains(body, /outside the managed Micronaut-related boundary/i, "Product Manager instructions should record out-of-bound project skips.");
 });
 
-test("Weekly Product Discovery routine is active and owned by Product Manager", async () => {
+test("Monthly Product Discovery routine is active and owned by Product Manager", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const adapter = extension.agents?.["product-manager"]?.adapter;
-  const routine = extension.routines?.["weekly-product-discovery"];
+  const routine = extension.routines?.["monthly-product-discovery"];
   const trigger = routine?.triggers?.[0];
 
   assert.equal(adapter?.type, "hermes_local");
@@ -101,14 +101,14 @@ test("Weekly Product Discovery routine is active and owned by Product Manager", 
 
   assert.equal(routine?.status, "active");
   assert.equal(trigger?.kind, "schedule");
-  assert.equal(trigger?.label, "Weekly Product Discovery");
-  assert.equal(trigger?.cronExpression, "0 1 * * 1");
+  assert.equal(trigger?.label, "Monthly Product Discovery");
+  assert.equal(trigger?.cronExpression, "0 1 1 * *");
   assert.equal(trigger?.timezone, "Europe/Madrid");
 
-  const taskMarkdown = await read("../tasks/weekly-product-discovery/TASK.md");
+  const taskMarkdown = await read("../tasks/monthly-product-discovery/TASK.md");
   const { frontmatter, body } = parseFrontmatter(taskMarkdown);
 
-  assert.equal(frontmatter.name, "Weekly Product Discovery");
+  assert.equal(frontmatter.name, "Monthly Product Discovery");
   assert.equal(frontmatter.assignee, "product-manager");
   assert.equal(frontmatter.project, "company-operations");
   assert.equal(frontmatter.recurring, true);
@@ -136,13 +136,13 @@ test("Product Manager role and routine are documented", async () => {
   assertContains(readme, /Product Manager: `hermes_local` via `\/usr\/local\/bin\/hermes-paperclip`/, "README should document Product Manager built-in Hermes command.");
   assertContains(readme, /\| Product Manager \| `radar` \|/, "README should document the Product Manager radar icon.");
   assertContains(readme, /\| Product Manager \| `pm` \|/, "README should document the Product Manager pm role.");
-  assertContains(readme, /\| `Weekly Product Discovery` \| Product Manager \| Mondays at 01:00 `Europe\/Madrid` \|/, "README should document the Weekly Product Discovery schedule.");
+  assertContains(readme, /\| `Monthly Product Discovery` \| Product Manager \| 1st of each month at 01:00 `Europe\/Madrid` \|/, "README should document the Monthly Product Discovery schedule.");
   assertContains(readme, /\| Product Manager \| Product Manager \| `ceo` \|/, "README should document Product Manager reporting to the CEO.");
   assertContains(readme, /research(?:es)?[\s\S]{0,160}(?:market|competitor|framework|technolog)[\s\S]{0,260}Paperclip issue/i, "README should describe Product Manager research leading to Paperclip issues.");
-  assertContains(readme, /Weekly Product Discovery[\s\S]{0,260}backlog/i, "README should describe Product Manager routine issues as backlog work.");
+  assertContains(readme, /\| `Monthly Product Discovery` \|[\s\S]{0,500}backlog/i, "README should describe Product Manager routine issues as backlog work.");
 
   assertContains(company, /Product Manager/i, "COMPANY.md should mention the Product Manager.");
-  assertContains(company, /Weekly Product Discovery/i, "COMPANY.md should mention Weekly Product Discovery.");
+  assertContains(company, /Monthly Product Discovery/i, "COMPANY.md should mention Monthly Product Discovery.");
   assertContains(company, /top-level Paperclip issue[\s\S]{0,220}backlog|backlog[\s\S]{0,220}top-level Paperclip issue/i, "COMPANY.md should describe backlog Paperclip product-discovery issues.");
 
   assertContains(team, /agents\/product-manager\/AGENTS\.md/, "Engineering team docs should link the Product Manager agent file.");
@@ -162,7 +162,7 @@ test("Product Manager is covered by internal company maintenance routines", asyn
 
 test("Product discovery excludes the Micronaut project template repository", async () => {
   const agentMarkdown = await read("../agents/product-manager/AGENTS.md");
-  const taskMarkdown = await read("../tasks/weekly-product-discovery/TASK.md");
+  const taskMarkdown = await read("../tasks/monthly-product-discovery/TASK.md");
   const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
@@ -185,7 +185,7 @@ test("Product discovery excludes the Micronaut project template repository", asy
 test("Product Manager uses a product-discovery skill for coordinator and subtask modes", async () => {
   const agentMarkdown = await read("../agents/product-manager/AGENTS.md");
   const { frontmatter: agentFrontmatter, body: agentBody } = parseFrontmatter(agentMarkdown);
-  const taskMarkdown = await read("../tasks/weekly-product-discovery/TASK.md");
+  const taskMarkdown = await read("../tasks/monthly-product-discovery/TASK.md");
   const { body: taskBody } = parseFrontmatter(taskMarkdown);
   const skillMarkdown = await read("../skills/product-discovery/SKILL.md");
   const { frontmatter: skillFrontmatter, body: skillBody } = parseFrontmatter(skillMarkdown);

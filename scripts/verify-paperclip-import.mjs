@@ -462,10 +462,10 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "CEO instructions must explain how to handle Paperclip productivity review issues.",
   },
   {
-    relativePath: "tasks/daily-ceo-self-improvement/TASK.md",
+    relativePath: "tasks/monthly-ceo-self-improvement/TASK.md",
     pattern: PRODUCTIVITY_REVIEW_PATTERN,
     message:
-      "Daily CEO self-improvement task must include productivity review queue-health work.",
+      "Monthly CEO self-improvement task must include productivity review queue-health work.",
   },
   {
     relativePath: "skills/micronaut-repo-operations/SKILL.md",
@@ -933,9 +933,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   {
     relativePath: "agents/ceo/AGENTS.md",
     pattern:
-      /daily self-improvement[\s\S]*(?:currentParticipant|current stage participant)[\s\S]*(?:returnAssignee|return assignee)[\s\S]*correct(?: those)? handoffs|correct(?: those)? handoffs[\s\S]*(?:currentParticipant|current stage participant)[\s\S]*(?:returnAssignee|return assignee)/i,
+      /monthly self-improvement[\s\S]*(?:currentParticipant|current stage participant)[\s\S]*(?:returnAssignee|return assignee)[\s\S]*correct(?: those)? handoffs|correct(?: those)? handoffs[\s\S]*(?:currentParticipant|current stage participant)[\s\S]*(?:returnAssignee|return assignee)/i,
     message:
-      "CEO instructions must require the daily self-improvement routine to review and correct broken handoffs using `currentParticipant` and `returnAssignee` when possible.",
+      "CEO instructions must require the monthly self-improvement routine to review and correct broken handoffs using `currentParticipant` and `returnAssignee` when possible.",
   },
   {
     relativePath: "agents/ceo/AGENTS.md",
@@ -950,17 +950,17 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "CEO instructions must prefer the live company skill library when a reusable external skill solves the gap better than package prose.",
   },
   {
-    relativePath: "tasks/daily-ceo-self-improvement/TASK.md",
+    relativePath: "tasks/monthly-ceo-self-improvement/TASK.md",
     pattern:
       /broken handoffs[\s\S]*(?:currentParticipant|current stage participant)[\s\S]*(?:returnAssignee|return assignee)[\s\S]*do not agree|stale handoff[\s\S]*(?:currentParticipant|current stage participant)[\s\S]*(?:returnAssignee|return assignee)/i,
     message:
-      "The daily CEO self-improvement task must require reviewing broken handoffs against `currentParticipant` and `returnAssignee` and correcting routing when possible.",
+      "The monthly CEO self-improvement task must require reviewing broken handoffs against `currentParticipant` and `returnAssignee` and correcting routing when possible.",
   },
   {
-    relativePath: "tasks/daily-ceo-self-improvement/TASK.md",
+    relativePath: "tasks/monthly-ceo-self-improvement/TASK.md",
     pattern: ISSUE_THREAD_INTERACTION_PATTERN,
     message:
-      "The daily CEO self-improvement task must review opportunities to use Paperclip issue-thread interactions.",
+      "The monthly CEO self-improvement task must review opportunities to use Paperclip issue-thread interactions.",
   },
   {
     relativePath: "README.md",

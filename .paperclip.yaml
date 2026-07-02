@@ -196,47 +196,47 @@ agents:
             provider: openai-codex
             model: gpt-5.4-mini
 routines:
-  weekly-product-discovery:
+  monthly-product-discovery:
     status: active
     triggers:
       - kind: schedule
-        label: Weekly Product Discovery
-        cronExpression: "0 1 * * 1"
+        label: Monthly Product Discovery
+        cronExpression: "0 1 1 * *"
         timezone: Europe/Madrid
-  weekly-security-deep-scan:
+  monthly-security-deep-scan:
     status: active
     triggers:
       - kind: schedule
-        label: Weekly security deep scan
-        cronExpression: "0 1 * * 2"
+        label: Monthly Security Deep Scan
+        cronExpression: "0 1 5 * *"
         timezone: Europe/Madrid
-  weekly-user-guide-review:
+  monthly-user-guide-review:
     status: active
     triggers:
       - kind: schedule
-        label: Weekly User Guide Review
-        cronExpression: "0 1 * * 3"
+        label: Monthly User Guide Review
+        cronExpression: "0 1 10 * *"
         timezone: Europe/Madrid
-  weekly-guide-topic-discovery:
+  monthly-guide-topic-discovery:
     status: active
     triggers:
       - kind: schedule
-        label: Weekly Guide Topic Discovery
-        cronExpression: "0 1 * * 4"
+        label: Monthly Guide Topic Discovery
+        cronExpression: "0 1 15 * *"
         timezone: Europe/Madrid
-  daily-ceo-self-improvement:
+  monthly-ceo-self-improvement:
     status: active
     triggers:
       - kind: schedule
-        label: Daily CEO Self-Improvement
-        cronExpression: "0 3 * * *"
+        label: Monthly CEO Self-Improvement
+        cronExpression: "0 3 20 * *"
         timezone: Europe/Madrid
   training:
     status: active
     triggers:
       - kind: schedule
         label: Training
-        cronExpression: "0 2 */2 * *"
+        cronExpression: "0 2 25 * *"
         timezone: Europe/Madrid
 tasks:
   verify-imported-company-instance:

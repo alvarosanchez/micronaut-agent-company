@@ -97,9 +97,9 @@ test("shared guidance scopes out-of-pipeline PRs into linked Paperclip subtasks"
 
 test("routine PR surfaces require a Paperclip subtask and PR link", async () => {
   const requiredPaths = [
-    "../tasks/weekly-user-guide-review/TASK.md",
-    "../tasks/weekly-guide-topic-discovery/TASK.md",
-    "../tasks/daily-ceo-self-improvement/TASK.md",
+    "../tasks/monthly-user-guide-review/TASK.md",
+    "../tasks/monthly-guide-topic-discovery/TASK.md",
+    "../tasks/monthly-ceo-self-improvement/TASK.md",
     "../agents/technical-writer/AGENTS.md",
     "../agents/ceo/AGENTS.md",
     "../skills/company-package-evolution/SKILL.md",
@@ -180,9 +180,9 @@ test("PR creators update from the target branch before starting work", async () 
     "../agents/code-reviewer/AGENTS.md",
     "../agents/ceo/AGENTS.md",
     "../agents/technical-writer/AGENTS.md",
-    "../tasks/daily-ceo-self-improvement/TASK.md",
-    "../tasks/weekly-user-guide-review/TASK.md",
-    "../tasks/weekly-guide-topic-discovery/TASK.md",
+    "../tasks/monthly-ceo-self-improvement/TASK.md",
+    "../tasks/monthly-user-guide-review/TASK.md",
+    "../tasks/monthly-guide-topic-discovery/TASK.md",
   ];
 
   for (const relativePath of requiredPaths) {

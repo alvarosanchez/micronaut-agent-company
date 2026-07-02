@@ -45,31 +45,31 @@ const UPDATE_FROM_TARGET_BRANCH_PATTERN =
 const CONFLICT_BLOCKER_PATTERN =
   /(?:conflict|merge conflict|rebase conflict)[\s\S]{0,220}(?:blocker|blocked|do not open|do not update|must not open|must not update)|(?:do not open|do not update|must not open|must not update|blocker|blocked)[\s\S]{0,220}(?:conflict|merge conflict|rebase conflict)/i;
 
-test("Technical Writer owns weekly guide review and topic discovery routines", async () => {
+test("Technical Writer owns monthly guide review and topic discovery routines", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
-  const guideReview = extension.routines?.["weekly-user-guide-review"];
-  const guideTopic = extension.routines?.["weekly-guide-topic-discovery"];
+  const guideReview = extension.routines?.["monthly-user-guide-review"];
+  const guideTopic = extension.routines?.["monthly-guide-topic-discovery"];
 
-  assert.equal(extension.routines?.["weekly-security-deep-scan"]?.triggers?.[0]?.cronExpression, "0 1 * * 2");
-  assert.equal(extension.routines?.["daily-ceo-self-improvement"]?.triggers?.[0]?.cronExpression, "0 3 * * *");
-  assert.equal(extension.routines?.training?.triggers?.[0]?.cronExpression, "0 2 */2 * *");
+  assert.equal(extension.routines?.["monthly-security-deep-scan"]?.triggers?.[0]?.cronExpression, "0 1 5 * *");
+  assert.equal(extension.routines?.["monthly-ceo-self-improvement"]?.triggers?.[0]?.cronExpression, "0 3 20 * *");
+  assert.equal(extension.routines?.training?.triggers?.[0]?.cronExpression, "0 2 25 * *");
 
   assert.equal(guideReview?.status, "active");
-  assert.equal(guideReview?.triggers?.[0]?.label, "Weekly User Guide Review");
-  assert.equal(guideReview?.triggers?.[0]?.cronExpression, "0 1 * * 3");
+  assert.equal(guideReview?.triggers?.[0]?.label, "Monthly User Guide Review");
+  assert.equal(guideReview?.triggers?.[0]?.cronExpression, "0 1 10 * *");
   assert.equal(guideReview?.triggers?.[0]?.timezone, "Europe/Madrid");
 
   assert.equal(guideTopic?.status, "active");
-  assert.equal(guideTopic?.triggers?.[0]?.label, "Weekly Guide Topic Discovery");
-  assert.equal(guideTopic?.triggers?.[0]?.cronExpression, "0 1 * * 4");
+  assert.equal(guideTopic?.triggers?.[0]?.label, "Monthly Guide Topic Discovery");
+  assert.equal(guideTopic?.triggers?.[0]?.cronExpression, "0 1 15 * *");
   assert.equal(guideTopic?.triggers?.[0]?.timezone, "Europe/Madrid");
 });
 
-test("Weekly User Guide Review task requires fact-checked guide validation", async () => {
-  const taskMarkdown = await read("../tasks/weekly-user-guide-review/TASK.md");
+test("Monthly User Guide Review task requires fact-checked guide validation", async () => {
+  const taskMarkdown = await read("../tasks/monthly-user-guide-review/TASK.md");
   const { frontmatter, body } = parseFrontmatter(taskMarkdown);
 
-  assert.equal(frontmatter.name, "Weekly User Guide Review");
+  assert.equal(frontmatter.name, "Monthly User Guide Review");
   assert.equal(frontmatter.assignee, "technical-writer");
   assert.equal(frontmatter.project, "company-operations");
   assert.equal(frontmatter.recurring, true);
@@ -84,11 +84,11 @@ test("Weekly User Guide Review task requires fact-checked guide validation", asy
   assertContains(body, /PR/i, "User guide review project subtasks should be allowed to open or update PRs.");
 });
 
-test("Weekly Guide Topic Discovery task uses the Micronaut Guides skill", async () => {
-  const taskMarkdown = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
+test("Monthly Guide Topic Discovery task uses the Micronaut Guides skill", async () => {
+  const taskMarkdown = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const { frontmatter, body } = parseFrontmatter(taskMarkdown);
 
-  assert.equal(frontmatter.name, "Weekly Guide Topic Discovery");
+  assert.equal(frontmatter.name, "Monthly Guide Topic Discovery");
   assert.equal(frontmatter.assignee, "technical-writer");
   assert.equal(frontmatter.project, "company-operations");
   assert.equal(frontmatter.recurring, true);
@@ -150,8 +150,8 @@ test("docs-only CI skip guidance is documented in shared package surfaces", asyn
 });
 
 test("guide routines exclude non-user-facing infrastructure repositories", async () => {
-  const guideReview = await read("../tasks/weekly-user-guide-review/TASK.md");
-  const guideTopic = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
+  const guideReview = await read("../tasks/monthly-user-guide-review/TASK.md");
+  const guideTopic = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const writer = await read("../agents/technical-writer/AGENTS.md");
   const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
   const readme = await read("../README.md");
@@ -179,8 +179,8 @@ test("guide routines exclude non-user-facing infrastructure repositories", async
 });
 
 test("guide routine issues only coordinate project subtasks", async () => {
-  const guideReview = await read("../tasks/weekly-user-guide-review/TASK.md");
-  const guideTopic = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
+  const guideReview = await read("../tasks/monthly-user-guide-review/TASK.md");
+  const guideTopic = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const writer = await read("../agents/technical-writer/AGENTS.md");
   const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
 
@@ -209,8 +209,8 @@ test("guide routine issues only coordinate project subtasks", async () => {
 });
 
 test("guide-related pull requests are labeled type docs", async () => {
-  const guideReview = await read("../tasks/weekly-user-guide-review/TASK.md");
-  const guideTopic = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
+  const guideReview = await read("../tasks/monthly-user-guide-review/TASK.md");
+  const guideTopic = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const writer = await read("../agents/technical-writer/AGENTS.md");
   const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
   const qualityGates = await read("../skills/micronaut-quality-gates/SKILL.md");
@@ -231,8 +231,8 @@ test("guide-related pull requests are labeled type docs", async () => {
 });
 
 test("guide and docs PR commits use skip ci when CI is not needed", async () => {
-  const guideReview = await read("../tasks/weekly-user-guide-review/TASK.md");
-  const guideTopic = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
+  const guideReview = await read("../tasks/monthly-user-guide-review/TASK.md");
+  const guideTopic = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const writer = await read("../agents/technical-writer/AGENTS.md");
   const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
   const qualityGates = await read("../skills/micronaut-quality-gates/SKILL.md");
@@ -257,8 +257,8 @@ test("guide and docs PR commits use skip ci when CI is not needed", async () => 
 });
 
 test("guide and docs PR branches are current with the target branch before publication", async () => {
-  const guideReview = await read("../tasks/weekly-user-guide-review/TASK.md");
-  const guideTopic = await read("../tasks/weekly-guide-topic-discovery/TASK.md");
+  const guideReview = await read("../tasks/monthly-user-guide-review/TASK.md");
+  const guideTopic = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const writer = await read("../agents/technical-writer/AGENTS.md");
   const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
   const qualityGates = await read("../skills/micronaut-quality-gates/SKILL.md");

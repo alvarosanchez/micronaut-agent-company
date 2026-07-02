@@ -1,5 +1,5 @@
 ---
-name: Weekly Guide Topic Discovery
+name: Monthly Guide Topic Discovery
 assignee: technical-writer
 project: company-operations
 recurring: true
