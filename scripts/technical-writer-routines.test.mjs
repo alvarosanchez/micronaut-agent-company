@@ -8,6 +8,14 @@ async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
+async function readGuidePolicy() {
+  return (await Promise.all([
+    read("../skills/micronaut-repo-operations/references/internal-routines-overlays.md"),
+    read("../skills/micronaut-repo-operations/references/intake-routing-release.md"),
+    read("../skills/micronaut-repo-operations/references/pr-delivery-evidence.md"),
+  ])).join("\n");
+}
+
 function parseFrontmatter(markdown) {
   const normalized = markdown.replace(/\r\n/g, "\n");
   const match = normalized.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
@@ -35,7 +43,7 @@ const ROUTINE_COORDINATOR_ONLY_PATTERN =
 const SUBTASK_PR_DECISION_PATTERN =
   /(?:PR|pull request|documentation fix|guide PR)[\s\S]{0,260}(?:only|exclusively)[\s\S]{0,180}(?:inside|from)[\s\S]{0,120}(?:sub-issue|child issue|subtask)|(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:only|exclusively)[\s\S]{0,180}(?:open|create|update|decide)[\s\S]{0,120}(?:PR|pull request|documentation fix|guide PR)/i;
 const NO_TOP_LEVEL_ROUTINE_FOLLOWUP_PATTERN =
-  /(?:do not|must not|never)[\s\S]{0,160}(?:create|open)[\s\S]{0,160}top-level[\s\S]{0,160}(?:project-specific )?(?:issue|Paperclip issue)[\s\S]{0,220}(?:Weekly User Guide Review|Weekly Guide Topic Discovery|guide routine|routine issue)|(?:Weekly User Guide Review|Weekly Guide Topic Discovery|guide routine|routine issue)[\s\S]{0,220}(?:do not|must not|never)[\s\S]{0,160}(?:create|open)[\s\S]{0,160}top-level[\s\S]{0,160}(?:project-specific )?(?:issue|Paperclip issue)/i;
+  /(?:do not|must not|never)[\s\S]{0,160}(?:create|open)[\s\S]{0,160}top-level[\s\S]{0,160}(?:project-specific )?(?:issue|Paperclip issue)[\s\S]{0,220}(?:monthly-user-guide-review|monthly-guide-topic-discovery|guide routine|routine issue)|(?:monthly-user-guide-review|monthly-guide-topic-discovery|guide routine|routine issue)[\s\S]{0,220}(?:do not|must not|never)[\s\S]{0,160}(?:create|open)[\s\S]{0,160}top-level[\s\S]{0,160}(?:project-specific )?(?:issue|Paperclip issue)/i;
 const GUIDE_PR_TYPE_DOCS_PATTERN =
   /(?:guide|documentation|docs)[\s\S]{0,220}(?:PR|pull request)[\s\S]{0,220}`?type: docs`?|`?type: docs`?[\s\S]{0,220}(?:guide|documentation|docs)[\s\S]{0,220}(?:PR|pull request)/i;
 const SKIP_CI_COMMIT_PATTERN =
@@ -111,8 +119,8 @@ test("Technical Writer has guide-routine and CI-skip guidance", async () => {
   const { frontmatter, body } = parseFrontmatter(writerMarkdown);
 
   assert.ok(frontmatter.skills.includes("guides"));
-  assertContains(body, /Weekly User Guide Review/i, "Technical Writer should know the user guide review mode.");
-  assertContains(body, /Weekly Guide Topic Discovery/i, "Technical Writer should know the guide topic discovery mode.");
+  assertContains(body, /monthly-user-guide-review/i, "Technical Writer should know the user guide review mode.");
+  assertContains(body, /monthly-guide-topic-discovery/i, "Technical Writer should know the guide topic discovery mode.");
   assertContains(body, /\.\/gradlew publishGuide/i, "Technical Writer should mention publishGuide.");
   assertContains(body, /throwaway (?:applications|apps|projects)/i, "Technical Writer should mention throwaway app fact-checking.");
   assertContains(body, /fact-check[\s\S]{0,160}proposed/i, "Technical Writer should fact-check proposed changes.");
@@ -136,7 +144,7 @@ test("Technical Writer has guide-routine and CI-skip guidance", async () => {
 test("docs-only CI skip guidance is documented in shared package surfaces", async () => {
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
-  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await readGuidePolicy();
 
   for (const [label, markdown] of [
     ["README", readme],
@@ -153,13 +161,13 @@ test("guide routines exclude non-user-facing infrastructure repositories", async
   const guideReview = await read("../tasks/monthly-user-guide-review/TASK.md");
   const guideTopic = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const writer = await read("../agents/technical-writer/AGENTS.md");
-  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await readGuidePolicy();
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
 
   for (const [label, markdown] of [
-    ["Weekly User Guide Review", guideReview],
-    ["Weekly Guide Topic Discovery", guideTopic],
+    ["monthly-user-guide-review", guideReview],
+    ["monthly-guide-topic-discovery", guideTopic],
     ["Technical Writer", writer],
     ["repo operations", repoOperations],
     ["README", readme],
@@ -182,11 +190,11 @@ test("guide routine issues only coordinate project subtasks", async () => {
   const guideReview = await read("../tasks/monthly-user-guide-review/TASK.md");
   const guideTopic = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const writer = await read("../agents/technical-writer/AGENTS.md");
-  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await readGuidePolicy();
 
   for (const [label, markdown] of [
-    ["Weekly User Guide Review", guideReview],
-    ["Weekly Guide Topic Discovery", guideTopic],
+    ["monthly-user-guide-review", guideReview],
+    ["monthly-guide-topic-discovery", guideTopic],
     ["Technical Writer", writer],
     ["repo operations", repoOperations],
   ]) {
@@ -212,12 +220,12 @@ test("guide-related pull requests are labeled type docs", async () => {
   const guideReview = await read("../tasks/monthly-user-guide-review/TASK.md");
   const guideTopic = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const writer = await read("../agents/technical-writer/AGENTS.md");
-  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await readGuidePolicy();
   const qualityGates = await read("../skills/micronaut-quality-gates/SKILL.md");
 
   for (const [label, markdown] of [
-    ["Weekly User Guide Review", guideReview],
-    ["Weekly Guide Topic Discovery", guideTopic],
+    ["monthly-user-guide-review", guideReview],
+    ["monthly-guide-topic-discovery", guideTopic],
     ["Technical Writer", writer],
     ["repo operations", repoOperations],
     ["quality gates", qualityGates],
@@ -234,14 +242,14 @@ test("guide and docs PR commits use skip ci when CI is not needed", async () => 
   const guideReview = await read("../tasks/monthly-user-guide-review/TASK.md");
   const guideTopic = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const writer = await read("../agents/technical-writer/AGENTS.md");
-  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await readGuidePolicy();
   const qualityGates = await read("../skills/micronaut-quality-gates/SKILL.md");
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
 
   for (const [label, markdown] of [
-    ["Weekly User Guide Review", guideReview],
-    ["Weekly Guide Topic Discovery", guideTopic],
+    ["monthly-user-guide-review", guideReview],
+    ["monthly-guide-topic-discovery", guideTopic],
     ["Technical Writer", writer],
     ["repo operations", repoOperations],
     ["quality gates", qualityGates],
@@ -260,14 +268,14 @@ test("guide and docs PR branches are current with the target branch before publi
   const guideReview = await read("../tasks/monthly-user-guide-review/TASK.md");
   const guideTopic = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
   const writer = await read("../agents/technical-writer/AGENTS.md");
-  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await readGuidePolicy();
   const qualityGates = await read("../skills/micronaut-quality-gates/SKILL.md");
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
 
   for (const [label, markdown] of [
-    ["Weekly User Guide Review", guideReview],
-    ["Weekly Guide Topic Discovery", guideTopic],
+    ["monthly-user-guide-review", guideReview],
+    ["monthly-guide-topic-discovery", guideTopic],
     ["Technical Writer", writer],
     ["repo operations", repoOperations],
     ["quality gates", qualityGates],

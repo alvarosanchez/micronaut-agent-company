@@ -15,7 +15,7 @@ During each run:
 - exclude `micronaut-projects/micronaut-build`; it contains internal Gradle plugins for Micronaut committers and is not intended for end-user projects, so skip it for user guide review, guide topic creation, standalone guide PRs, and other normal project documentation routines
 - record skip reasons for projects that cannot be mapped to a managed GitHub repository or fall outside the managed Micronaut-related boundary
 - create one Paperclip child issue or subtask per affected project when the project exists in Paperclip before any guide PR is opened; put each subtask in the actual corresponding project, set `parentId` to the routine issue when supported, set assignee to Technical Writer, and describe the project-specific guide-topic discovery to perform
-- do not create top-level project-specific Paperclip issues for Weekly Guide Topic Discovery follow-up; use the child issue or subtask as the project-owned work item
+- do not create top-level project-specific Paperclip issues for monthly-guide-topic-discovery follow-up; use the child issue or subtask as the project-owned work item
 - do not open or update a PR from the routine issue; any guide PR decision and PR creation must happen only inside the project-specific child issue or subtask
 - inside each project-specific subtask, inspect project capabilities, docs, examples, recent changes, issues, and common user workflows
 - inside each project-specific subtask, use the Micronaut `guides` skill when evaluating standalone tutorial-guide opportunities
@@ -28,7 +28,7 @@ During each run:
 - use `paperclip-github-plugin:link_github_item` with `kind: "pull_request"`, `paperclipIssueId`, and `pullRequestUrl` or `reference`; if the tool is unavailable or fails, record the concrete blocker instead of using the removed REST fallback
 - when a guide PR is opened or updated from the project-specific subtask, export the generated guide PDF and make that exact PDF PR-visible as an uploaded artifact or PR attachment link; do not commit the PDF to the repository
 
-Use the `guides` skill for standalone Micronaut Guides work in `micronaut-projects/micronaut-guides`. Do not use it for ordinary module documentation under `src/main/docs/guide`; those fixes belong to Weekly User Guide Review or normal synced `type: docs` work.
+Use the `guides` skill for standalone Micronaut Guides work in `micronaut-projects/micronaut-guides`. Do not use it for ordinary module documentation under `src/main/docs/guide`; those fixes belong to monthly-user-guide-review or normal synced `type: docs` work.
 
 Produce one Paperclip report that includes:
 

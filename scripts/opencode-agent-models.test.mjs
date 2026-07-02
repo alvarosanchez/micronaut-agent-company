@@ -94,9 +94,9 @@ test("built-in Hermes agents are bounded by Paperclip runtime settings", async (
 test("repo operations guidance tells agents to use CodeGraph when available", async () => {
   const skill = await read("../skills/micronaut-repo-operations/SKILL.md");
 
-  assert.match(skill, /CodeGraph MCP is expected to be available by default/i);
-  assert.match(skill, /codegraph_explore/i);
-  assert.match(skill, /fall back to normal search\/read/i);
+  assert.match(skill, /CodeGraph query per hypothesis/i);
+  assert.match(skill, /before broad search/i);
+  assert.match(skill, /index may be stale/i);
 });
 
 test("built-in Hermes agents configure the cheap model profile", async () => {

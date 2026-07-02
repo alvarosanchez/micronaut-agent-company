@@ -16,11 +16,11 @@ Check at least these points:
 - each imported agent instruction bundle contains the expected runtime guidance and no missing package-only `references/` files
 - the `company-operations` project exists
 - this bootstrap issue exists in `TODO` on the CEO queue
-- `Weekly Security Deep Scan` exists as an active routine owned by `security-engineer`
-- `Weekly Product Discovery` exists as an active routine owned by `product-manager`
-- `Weekly User Guide Review` exists as an active routine owned by `technical-writer`
-- `Weekly Guide Topic Discovery` exists as an active routine owned by `technical-writer`
-- `Daily CEO Self-Improvement` exists as an active routine owned by `ceo`
+- `monthly-security-deep-scan` exists as an active routine owned by `security-engineer`
+- `monthly-product-discovery` exists as an active routine owned by `product-manager`
+- `monthly-user-guide-review` exists as an active routine owned by `technical-writer`
+- `monthly-guide-topic-discovery` exists as an active routine owned by `technical-writer`
+- `monthly-ceo-self-improvement` exists as an active routine owned by `ceo`
 - the imported package still matches the intended workflow around native execution-policy routing, reviewer wake fallbacks, issue-thread interactions, resumable follow-up, liveness recovery, and linked approvals
 - productivity review issues created with `originKind: issue_productivity_review` for no-comment, long-active, or high-churn source work are treated as first-class queue-health work, with the CEO or manager deciding the source issue route rather than creating duplicate reviews
 - when repo work depends on services or jobs, the live project workspace or execution workspace configuration is intentionally operator-owned instead of being assumed to come from this package

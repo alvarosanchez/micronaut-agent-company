@@ -5,6 +5,8 @@ import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+import YAML from "yaml";
+
 const ROOT = new URL("../", import.meta.url);
 const AGENTS = [
   "ceo",
@@ -61,6 +63,42 @@ test("agent instructions include concise model-specific operating guidance", asy
 
   for (const [slug, pattern] of Object.entries(expected)) {
     assert.match(await read(`agents/${slug}/AGENTS.md`), pattern, `${slug} needs model-specific operating guidance.`);
+  }
+});
+
+test("shared repo operations stays compact and protects the cheap profile boundary", async () => {
+  const skill = await read("skills/micronaut-repo-operations/SKILL.md");
+  assert.ok(Buffer.byteLength(skill) <= 9_000, `Always-loaded repo operations skill is too large: ${Buffer.byteLength(skill)} bytes.`);
+  assert.match(skill, /The `cheap` profile[\s\S]{0,500}must not approve or reject a stage/i);
+  assert.match(skill, /load the matching reference/i);
+});
+
+test("routine instructions use canonical monthly routine keys", async () => {
+  const paths = [
+    "agents/product-manager/AGENTS.md",
+    "agents/security-engineer/AGENTS.md",
+    "agents/technical-writer/AGENTS.md",
+    "skills/product-discovery/SKILL.md",
+    "skills/micronaut-security-review/SKILL.md",
+    "tasks/verify-imported-company-instance/TASK.md",
+    "tasks/monthly-product-discovery/TASK.md",
+    "tasks/monthly-user-guide-review/TASK.md",
+    "tasks/monthly-guide-topic-discovery/TASK.md",
+  ];
+  const staleCadence = /Weekly (?:Product Discovery|Security Deep Scan|User Guide Review|Guide Topic Discovery)|Daily CEO Self-Improvement|weekly deep-scan/i;
+  for (const relativePath of paths) {
+    assert.doesNotMatch(await read(relativePath), staleCadence, `${relativePath} contains stale cadence terminology.`);
+  }
+});
+
+test("GitHub attribution literals match each agent's configured primary model", async () => {
+  const extension = YAML.parse(await read(".paperclip.yaml"));
+  for (const slug of AGENTS) {
+    const markdown = await read(`agents/${slug}/AGENTS.md`);
+    const literals = [...markdown.matchAll(/llmModel:\s*(gpt-[\w.-]+)/g)].map((match) => match[1]);
+    for (const literal of literals) {
+      assert.equal(literal, extension.agents[slug].adapter.config.model, `${slug} attribution model drifted.`);
+    }
   }
 });
 

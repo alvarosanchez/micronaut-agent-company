@@ -21,7 +21,7 @@ test("routine-created managed repository work enters QA and PR routing", async (
   const requiredPaths = [
     "../README.md",
     "../COMPANY.md",
-    "../skills/micronaut-repo-operations/SKILL.md",
+    "../skills/micronaut-repo-operations/references/internal-routines-overlays.md",
   ];
 
   for (const relativePath of requiredPaths) {

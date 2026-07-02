@@ -15,7 +15,7 @@ During each run:
 - exclude `micronaut-projects/micronaut-build`; it contains internal Gradle plugins for Micronaut committers and is not intended for end-user projects, so skip it for user guide review, guide topic creation, and other normal project documentation routines
 - record skip reasons for projects that cannot be mapped to a managed GitHub repository or fall outside the managed Micronaut-related boundary
 - create one Paperclip child issue or subtask per affected project when the project exists in Paperclip before any documentation PR is opened; put each subtask in the actual corresponding project, set `parentId` to the routine issue when supported, set assignee to Technical Writer, and describe the project-specific guide review to perform
-- do not create top-level project-specific Paperclip issues for Weekly User Guide Review follow-up; use the child issue or subtask as the project-owned work item
+- do not create top-level project-specific Paperclip issues for monthly-user-guide-review follow-up; use the child issue or subtask as the project-owned work item
 - do not open or update a PR from the routine issue; any documentation PR decision and PR creation must happen only inside the project-specific child issue or subtask
 - inside each project-specific subtask, read repo-local instructions, `.company-runtime/` project notes, and the repository's documentation build conventions
 - inside each project-specific subtask, assemble the user guide with `./gradlew publishGuide`

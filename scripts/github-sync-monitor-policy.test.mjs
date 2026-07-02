@@ -26,7 +26,6 @@ test("GitHub-synced PR monitor policy is centralized and delegated by every agen
   const authoritativePaths = [
     "../README.md",
     "../COMPANY.md",
-    "../skills/micronaut-repo-operations/SKILL.md",
     "../skills/micronaut-github-operations/SKILL.md",
   ];
 

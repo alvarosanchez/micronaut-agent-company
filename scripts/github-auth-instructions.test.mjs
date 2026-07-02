@@ -269,7 +269,7 @@ test("GitHub-capable agents delegate common transport policy to the shared skill
 
 test("Shared Micronaut repo operations use atomic branch publication and PR creation", async () => {
   const markdown = await readFile(
-    new URL("../skills/micronaut-repo-operations/SKILL.md", import.meta.url),
+    new URL("../skills/micronaut-github-operations/SKILL.md", import.meta.url),
     "utf8",
   );
 
@@ -311,7 +311,7 @@ test("README documents the direct GitHub footer rule and GitHub Sync tool requir
 
 test("Shared Micronaut repo operations explain PR KPI API route attribution", async () => {
   const markdown = await readFile(
-    new URL("../skills/micronaut-repo-operations/SKILL.md", import.meta.url),
+    new URL("../skills/micronaut-github-operations/SKILL.md", import.meta.url),
     "utf8",
   );
 
@@ -323,7 +323,7 @@ test("Shared Micronaut repo operations explain PR KPI API route attribution", as
 
 test("GitHub Sync link policy forbids agent unlinking while preserving operator unlinking", async () => {
   const sharedOperations = await readFile(
-    new URL("../skills/micronaut-repo-operations/SKILL.md", import.meta.url),
+    new URL("../skills/micronaut-github-operations/SKILL.md", import.meta.url),
     "utf8",
   );
   assertGitHubSyncAgentUnlinkPolicy(
