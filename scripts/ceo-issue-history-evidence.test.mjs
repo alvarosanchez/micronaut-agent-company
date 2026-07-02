@@ -70,6 +70,87 @@ test("is byte-stable under shuffled input and duplicate events do not inflate co
   assert.equal(first.candidates[0].threshold, "cross_issue_recurrence");
 });
 
+test("classifies real Paperclip issue.updated activity for GitHub plugin-operation issues", () => {
+  const evidence = [
+    { id: "a1", issueId: "i1", createdAt: "2026-06-10T00:00:00.000Z", action: "issue.updated", details: { status: "todo", reopened: true, reopenedFrom: "done", _previous: { status: "done" } } },
+    { id: "a2", issueId: "i2", createdAt: "2026-06-11T00:00:00.000Z", action: "issue.updated", details: { status: "in_progress", _previous: { status: "in_review" } } },
+    { id: "a3", issueId: "i2", createdAt: "2026-06-12T00:00:00.000Z", action: "issue.updated", details: { status: "todo", reopened: true, reopenedFrom: "done" } },
+    { id: "a4", issueId: "i1", createdAt: "2026-06-13T00:00:00.000Z", content: "recovery continuation resume" },
+  ];
+  const testInput = input(evidence);
+  testInput.issues = testInput.issues.map((issue) => ({
+    ...issue,
+    originKind: "plugin:paperclip-github-plugin",
+    surfaceVisibility: "plugin_operation",
+  }));
+  const report = analyzeEvidence(testInput);
+
+  assert.equal(report.inventory.eventCount, 4);
+  assert.equal(report.candidates.find((candidate) => candidate.problemKey === "github_sync_churn")?.eventCount, 3);
+});
+
+test("same-time prior decisions and bounded references remain deterministic and compact", () => {
+  const fields = { category: "workflow", problemKey: "handoff_mismatch", component: "paperclip", targetSurface: "company_package" };
+  const fingerprint = fingerprintFor(fields);
+  const issues = Array.from({ length: 20 }, (_, issueIndex) => ({
+    id: `issue-${String(issueIndex).padStart(2, "0")}`,
+    key: `MIC-${issueIndex + 1}`,
+    status: "done",
+    evidence: Array.from({ length: 20 }, (_, eventIndex) => event(
+      `event-${String(issueIndex).padStart(2, "0")}-${String(eventIndex).padStart(2, "0")}`,
+      `issue-${String(issueIndex).padStart(2, "0")}`,
+      `2026-06-${String((eventIndex % 28) + 1).padStart(2, "0")}T00:00:00.000Z`,
+      "handoff_mismatch"
+    )),
+  }));
+  const decisions = [
+    { fingerprint, status: "implemented", at: "2026-06-30T00:00:00.000Z" },
+    { fingerprint, status: "open", at: "2026-06-30T00:00:00.000Z" },
+  ];
+  const first = analyzeEvidence(input([], { issues, priorDecisions: decisions }));
+  const second = analyzeEvidence(input([], { issues: [...issues].reverse(), priorDecisions: [...decisions].reverse() }));
+
+  assert.equal(JSON.stringify(first), JSON.stringify(second));
+  assert.equal(first.candidates.length, 0);
+  assert.equal(first.rejected[0].reasonCode, "duplicate_active");
+  assert.equal(first.rejected[0].issues.length, 5);
+  assert.ok(first.rejected[0].issues.every((issue) => issue.eventIds.length <= 8));
+  assert.ok(Buffer.byteLength(JSON.stringify(first)) < 8_000);
+});
+
+test("unbounded secret-bearing identifiers fail closed or become bounded opaque references", () => {
+  const secret = `ghp_${"x".repeat(200_000)}`;
+  const report = analyzeEvidence(input([
+    event(secret, "i1", "2026-06-10T00:00:00.000Z", "handoff_mismatch"),
+    event(`${secret}-2`, "i1", "2026-06-11T00:00:00.000Z", "handoff_mismatch"),
+    event(`${secret}-3`, "i2", "2026-06-12T00:00:00.000Z", "handoff_mismatch"),
+  ], {
+    companyId: secret,
+    issues: [
+      { id: "i1", key: secret, evidence: [
+        event(secret, "i1", "2026-06-10T00:00:00.000Z", "handoff_mismatch"),
+        event(`${secret}-2`, "i1", "2026-06-11T00:00:00.000Z", "handoff_mismatch"),
+      ] },
+      { id: "i2", key: `${secret}-key`, evidence: [event(`${secret}-3`, "i2", "2026-06-12T00:00:00.000Z", "handoff_mismatch")] },
+    ],
+  }));
+  const serialized = JSON.stringify(report);
+  assert.ok(Buffer.byteLength(serialized) <= 32_000);
+  assert.doesNotMatch(serialized, /ghp_/);
+});
+
+test("malformed prior decisions cannot suppress a qualifying candidate", () => {
+  const fields = { category: "workflow", problemKey: "handoff_mismatch", component: "paperclip", targetSurface: "company_package" };
+  const fingerprint = fingerprintFor(fields);
+  const report = analyzeEvidence(input([
+    event("e1", "i1", "2026-06-10T00:00:00.000Z", "handoff_mismatch"),
+    event("e2", "i1", "2026-06-11T00:00:00.000Z", "handoff_mismatch"),
+    event("e3", "i2", "2026-06-12T00:00:00.000Z", "handoff_mismatch"),
+  ], { priorDecisions: [{ fingerprint, status: "open" }] }));
+  assert.equal(report.candidates[0]?.fingerprint, fingerprint);
+  assert.equal(report.candidates[0]?.dedupe, "new");
+});
+
 test("applies cross-issue, concentrated-loop, critical one-off, and below-threshold gates", () => {
   const report = analyzeEvidence(input([
     event("cross-1", "i1", "2026-06-02T00:00:00.000Z", "handoff_mismatch", "r1"),
@@ -175,7 +256,7 @@ test("bounds and redacts excerpts without exposing raw logs or secrets", () => {
 
 test("collector records issue-by-issue and canonical-agent coverage and fails closed when a resource read fails", async () => {
   const responses = new Map([
-    ["/api/companies/company-1/issues?limit=1000&offset=0", [{ id: "i1", identifier: "MIC-1", status: "done" }]],
+    ["/api/companies/company-1/issues?includePluginOperations=true&limit=1000&offset=0", [{ id: "i1", identifier: "MIC-1", status: "done" }]],
     ["/api/companies/company-1/agents", [
       { id: "a1", name: "Agent One", role: "engineer" },
       { id: "a2", name: "Agent Two", role: "qa" },
@@ -210,10 +291,10 @@ test("collector records issue-by-issue and canonical-agent coverage and fails cl
 
   assert.equal(report.outcome, "blocked_incomplete_evidence");
   assert.deepEqual(report.coverage.missing, ["issue:i1:comments"]);
-  assert.deepEqual(report.inventory.agents, [
-    { evidenceCount: 1, id: "a1", name: "Agent One", role: "engineer" },
-    { evidenceCount: 0, id: "a2", name: "Agent Two", role: "qa" },
-  ]);
+  assert.equal(report.inventory.agentCount, 2);
+  assert.equal(report.inventory.agentsWithEvidenceCount, 1);
+  assert.equal(report.inventory.agentsWithoutEvidenceCount, 1);
+  assert.match(report.inventory.agentInventoryFingerprint, /^sha256:[a-f0-9]{64}$/);
   assert.ok(fetchOptions.every((options) => options.redirect === "error"));
   assert.equal(JSON.stringify(report).includes("secret-token"), false);
 });
@@ -228,6 +309,7 @@ test("collector exhausts the offset-paginated company issue inventory", async ()
   const fetchImpl = async (url) => {
     const parsed = new URL(url);
     if (parsed.pathname === "/api/companies/company-1/issues") {
+      assert.equal(parsed.searchParams.get("includePluginOperations"), "true");
       issuePageReads += 1;
       const limit = Number(parsed.searchParams.get("limit"));
       const offset = Number(parsed.searchParams.get("offset"));

@@ -7,7 +7,15 @@ import { fileURLToPath } from "node:url";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WINDOW_MS = 30 * DAY_MS;
 const MAX_EXCERPT = 160;
+const MAX_IDENTIFIER = 96;
+const MAX_REPORT_BYTES = 32_000;
+const MAX_CANDIDATE_ISSUES = 5;
+const MAX_EVENT_IDS_PER_ISSUE = 8;
+const MAX_MISSING_RESOURCES = 100;
+const MAX_REJECTED = 5;
 const ACTIVE_DECISIONS = new Set(["active", "open", "pending", "blocked", "in_progress", "in_review"]);
+const TERMINAL_DECISIONS = new Set(["implemented", "rejected", "no_change", "not_worthwhile"]);
+const VALID_DECISIONS = new Set([...ACTIVE_DECISIONS, ...TERMINAL_DECISIONS]);
 const BAD_LOOP_REASONS = new Set(["failed", "blocked", "changes_requested"]);
 const CRITICAL_REASONS = new Set([
   "governance_control_failure",
@@ -59,9 +67,12 @@ function iso(value) {
 function redact(value) {
   if (typeof value !== "string" || value.length === 0) return undefined;
   return value
+    .replace(/-----BEGIN [^-]+ PRIVATE KEY-----[\s\S]*?(?:-----END [^-]+ PRIVATE KEY-----|$)/gi, "[REDACTED]")
+    .replace(/\b(?:https?:\/\/)[^\s/@:]+:[^\s/@]+@/gi, (match) => `${match.split("://")[0]}://[REDACTED]@`)
     .replace(/authorization\s*:\s*(?:bearer\s+)?\S+/gi, "[REDACTED]")
-    .replace(/\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,})\b/g, "[REDACTED]")
-    .replace(/\b(?:api[_-]?key|token|secret|password)\s*[=:]\s*\S+/gi, "[REDACTED]")
+    .replace(/\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|glpat-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[A-Z0-9]{16}|ASIA[A-Z0-9]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|npm_[A-Za-z0-9]{20,})\b/g, "[REDACTED]")
+    .replace(/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g, "[REDACTED]")
+    .replace(/\b(?:api[_-]?key|access[_-]?key|token|secret|password|passwd|private[_-]?key)\s*[=:]\s*\S+/gi, "[REDACTED]")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, MAX_EXCERPT) || undefined;
@@ -69,6 +80,33 @@ function redact(value) {
 
 function hash(parts) {
   return createHash("sha256").update(parts.join("\n")).digest("hex");
+}
+
+function boundedIdentifier(value, label = "ref") {
+  const raw = String(value ?? "");
+  const sanitized = redact(raw);
+  if (sanitized === raw && raw.length <= MAX_IDENTIFIER && /^[A-Za-z0-9][A-Za-z0-9_.:/@#-]*$/.test(raw)) return raw;
+  return `${label}:sha256:${hash([raw])}`;
+}
+
+function finalizeReport(report) {
+  const sorted = stableSort(report);
+  if (Buffer.byteLength(JSON.stringify(sorted), "utf8") <= MAX_REPORT_BYTES) return sorted;
+  return stableSort({
+    schemaVersion: 1,
+    companyId: boundedIdentifier(report.companyId, "company"),
+    asOf: report.asOf,
+    window: report.window,
+    coverage: {
+      complete: false,
+      missing: ["report_output_limit"],
+      missingCount: 1,
+    },
+    outcome: "blocked_incomplete_evidence",
+    inventory: report.inventory,
+    candidates: [],
+    rejected: [],
+  });
 }
 
 export function buildWindow(asOf) {
@@ -119,16 +157,44 @@ function canonicalEvent(raw, fallbackIssueId) {
     runId: runId == null ? null : String(runId),
     actorId: actorId == null ? null : String(actorId),
   };
-  const excerpt = redact(raw.excerpt ?? raw.summary ?? raw.message ?? raw.reason ?? raw.title);
-  if (excerpt) result.excerpt = excerpt;
   return result;
 }
 
+function evidenceText(raw) {
+  const values = [
+    raw.reasonCode,
+    raw.type,
+    raw.kind,
+    raw.action,
+    raw.status,
+    raw.outcome,
+    raw.reason,
+    raw.summary,
+    raw.message,
+    raw.title,
+    raw.body,
+    raw.content,
+    raw.details,
+    raw.issueOriginKind,
+    raw.issueSurfaceVisibility,
+  ];
+  if (raw.details && typeof raw.details === "object") values.push(JSON.stringify(stableSort(raw.details)).slice(0, 4_000));
+  return values.filter((value) => typeof value === "string").join(" ").toLowerCase();
+}
+
 function inferReasonCode(raw) {
-  const fields = [raw.reasonCode, raw.type, raw.kind, raw.status, raw.outcome, raw.reason, raw.summary, raw.message]
-    .filter((value) => typeof value === "string")
-    .join(" ")
-    .toLowerCase();
+  const fields = evidenceText(raw);
+  const originKind = String(raw.issueOriginKind ?? "").toLowerCase();
+  const details = raw.details && typeof raw.details === "object" ? raw.details : {};
+  const isGitHubPluginIssue = originKind.startsWith("plugin:") && /github/.test(originKind);
+  const previousStatus = details._previous?.status ?? details.reopenedFrom;
+  const currentStatus = details.status;
+  const statusRank = new Map([["backlog", 0], ["todo", 1], ["in_progress", 2], ["blocked", 2], ["in_review", 3], ["done", 4], ["cancelled", 4]]);
+  const isStatusRegression = typeof previousStatus === "string" && typeof currentStatus === "string"
+    && statusRank.has(previousStatus) && statusRank.has(currentStatus)
+    && statusRank.get(currentStatus) < statusRank.get(previousStatus);
+  const isChurnUpdate = raw.action === "issue.updated" && (details.reopened === true || isStatusRegression);
+  if (isGitHubPluginIssue && isChurnUpdate) return "github_sync_churn";
   if (/external.{0,20}write.{0,30}(without|missing).{0,20}approval/.test(fields)) return "external_write_without_approval";
   if (/data.{0,10}loss/.test(fields)) return "data_loss_risk";
   if (/security.{0,20}(control|guard).{0,20}(fail|missing|bypass)/.test(fields)) return "security_control_failure";
@@ -150,14 +216,19 @@ function candidateKey(policy) {
 function decisionMap(priorDecisions) {
   const result = new Map();
   for (const decision of priorDecisions ?? []) {
-    if (!decision?.fingerprint) continue;
+    if (typeof decision?.fingerprint !== "string" || !/^sha256:[a-f0-9]{64}$/.test(decision.fingerprint)) continue;
+    const status = String(decision.status ?? decision.outcome ?? "").toLowerCase();
+    const at = iso(decision.at ?? decision.decidedAt ?? decision.implementedAt ?? decision.updatedAt);
+    if (!VALID_DECISIONS.has(status) || !at) continue;
     const normalized = {
-      fingerprint: String(decision.fingerprint),
-      status: String(decision.status ?? decision.outcome ?? "unknown").toLowerCase(),
-      at: iso(decision.at ?? decision.decidedAt ?? decision.implementedAt ?? decision.updatedAt),
+      fingerprint: decision.fingerprint,
+      status,
+      at,
     };
     const current = result.get(normalized.fingerprint);
-    if (!current || String(normalized.at ?? "") > String(current.at ?? "")) result.set(normalized.fingerprint, normalized);
+    const normalizedKey = `${normalized.at ?? ""}\u0000${normalized.status}`;
+    const currentKey = current ? `${current.at ?? ""}\u0000${current.status}` : "";
+    if (!current || normalizedKey > currentKey) result.set(normalized.fingerprint, normalized);
   }
   return result;
 }
@@ -187,8 +258,18 @@ function issueEvidenceRows(events, issueById) {
     grouped.set(event.issueId, bucket);
   }
   return [...grouped.entries()]
-    .map(([id, eventIds]) => ({ id, key: issueById.get(id)?.key ?? id, eventIds: eventIds.sort() }))
-    .sort((a, b) => a.id.localeCompare(b.id));
+    .map(([id, eventIds]) => {
+      const sortedEventIds = eventIds.sort();
+      return {
+        id: boundedIdentifier(id, "issue"),
+        key: boundedIdentifier(issueById.get(id)?.key ?? id, "issue-key"),
+        eventCount: sortedEventIds.length,
+        eventIds: sortedEventIds.slice(0, MAX_EVENT_IDS_PER_ISSUE).map((eventId) => boundedIdentifier(eventId, "event")),
+        ...(sortedEventIds.length > MAX_EVENT_IDS_PER_ISSUE ? { eventIdsTruncated: true } : {}),
+      };
+    })
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .slice(0, MAX_CANDIDATE_ISSUES);
 }
 
 export function analyzeEvidence(input) {
@@ -225,7 +306,11 @@ export function analyzeEvidence(input) {
         invalidTimestampCount += 1;
         continue;
       }
-      const event = canonicalEvent(raw, sourceIssue.id);
+      const event = canonicalEvent({
+        ...raw,
+        issueOriginKind: raw.issueOriginKind ?? sourceIssue.originKind,
+        issueSurfaceVisibility: raw.issueSurfaceVisibility ?? sourceIssue.surfaceVisibility,
+      }, sourceIssue.id);
       if (event?.invalid) {
         invalidTimestampCount += 1;
         continue;
@@ -257,13 +342,21 @@ export function analyzeEvidence(input) {
     if (issue) issue.evidence.push(event);
   }
 
+  const allMissingResources = [...new Set(coverage.missing)].sort();
+  coverage.missing = allMissingResources.slice(0, MAX_MISSING_RESOURCES).map((entry) => boundedIdentifier(entry, "missing"));
+  coverage.missingCount = allMissingResources.length;
+  if (allMissingResources.length > coverage.missing.length) {
+    coverage.missingTruncated = true;
+    coverage.missingFingerprint = `sha256:${hash(allMissingResources)}`;
+  }
+
   const evidenceCountByAgent = new Map();
   for (const event of events) {
     if (event.actorId) evidenceCountByAgent.set(event.actorId, (evidenceCountByAgent.get(event.actorId) ?? 0) + 1);
   }
   const base = {
     schemaVersion: 1,
-    companyId: String(input.companyId),
+    companyId: boundedIdentifier(input.companyId, "company"),
     asOf: window.end,
     window,
     coverage,
@@ -271,14 +364,17 @@ export function analyzeEvidence(input) {
     inventory: {
       issueCount: issueRows.length,
       eventCount: events.length,
-      agents: agentRows.map((agent) => ({ ...agent, evidenceCount: evidenceCountByAgent.get(agent.id) ?? 0 })),
+      agentCount: agentRows.length,
+      agentsWithEvidenceCount: agentRows.filter((agent) => (evidenceCountByAgent.get(agent.id) ?? 0) > 0).length,
+      agentsWithoutEvidenceCount: agentRows.filter((agent) => (evidenceCountByAgent.get(agent.id) ?? 0) === 0).length,
+      agentInventoryFingerprint: `sha256:${hash(agentRows.map((agent) => agent.id))}`,
     },
     candidates: [],
     rejected: [],
   };
   if (!coverage.complete) {
     base.outcome = "blocked_incomplete_evidence";
-    return stableSort(base);
+    return finalizeReport(base);
   }
 
   const groups = new Map();
@@ -309,6 +405,7 @@ export function analyzeEvidence(input) {
       runCount,
       lastAt: groupEvents.at(-1).at,
       issues: issueEvidenceRows(groupEvents, issueById),
+      ...(issueCount > MAX_CANDIDATE_ISSUES ? { issueRefsTruncated: true } : {}),
     };
     if (!threshold) {
       base.rejected.push({ ...common, reasonCode: "below_threshold" });
@@ -340,8 +437,12 @@ export function analyzeEvidence(input) {
     for (const candidate of base.candidates.splice(3)) base.rejected.push({ ...candidate, reasonCode: "proposal_cap" });
   }
   base.rejected.sort(rank);
+  if (base.rejected.length > MAX_REJECTED) {
+    base.rejectedTruncated = base.rejected.length - MAX_REJECTED;
+    base.rejected = base.rejected.slice(0, MAX_REJECTED);
+  }
   base.outcome = base.candidates.length > 0 ? "ranked_candidates" : "no_change";
-  return stableSort(base);
+  return finalizeReport(base);
 }
 
 function collectionRows(body) {
@@ -418,11 +519,19 @@ function extractPriorDecisions(value, output = []) {
   return output;
 }
 
-function resourceEvents(rows, issueId, resource) {
+function resourceEvents(rows, issue, resource) {
   const events = [];
+  const issueId = String(issue.id);
   for (const row of rows) {
     if (!row || typeof row !== "object") continue;
-    const event = canonicalEvent({ ...row, issueId, resource, source: resource }, issueId);
+    const event = canonicalEvent({
+      ...row,
+      issueId,
+      resource,
+      source: resource,
+      issueOriginKind: issue.originKind,
+      issueSurfaceVisibility: issue.surfaceVisibility,
+    }, issueId);
     if (event?.invalid) events.push({ id: event.id, issueId, invalidTimestamp: true });
     else if (event) events.push(event);
   }
@@ -457,7 +566,7 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, fetchI
   let agents = [];
 
   try {
-    const pageSet = await apiGetOffsetPages(client, `/api/companies/${encodeURIComponent(companyId)}/issues`);
+    const pageSet = await apiGetOffsetPages(client, `/api/companies/${encodeURIComponent(companyId)}/issues?includePluginOperations=true`);
     issueList = pageSet.rows;
     resources.issues = { complete: true, count: issueList.length, pages: pageSet.pages };
   } catch {
@@ -472,11 +581,11 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, fetchI
     missing.push("company:agents");
   }
 
-  const priorDecisions = [];
   const sortedIssues = [...issueList].sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  const issues = await mapWithConcurrency(sortedIssues, COLLECTION_CONCURRENCY, async (issue) => {
+  const collectedIssues = await mapWithConcurrency(sortedIssues, COLLECTION_CONCURRENCY, async (issue) => {
     const issueId = String(issue.id);
     const evidence = [];
+    const issuePriorDecisions = [];
     resources.issueResources.issuesChecked += 1;
     await Promise.all(RESOURCE_NAMES.map(async (resource) => {
       try {
@@ -484,9 +593,9 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, fetchI
         const rows = collectionRows(body);
         if (collectionHasMore(body)) missing.push(`issue:${issueId}:${resource}:next_page`);
         else resources.issueResources.readsComplete += 1;
-        evidence.push(...resourceEvents(rows, issueId, resource));
+        evidence.push(...resourceEvents(rows, issue, resource));
         if (["documents", "approvals", "interactions", "work-products"].includes(resource)) {
-          extractPriorDecisions(body, priorDecisions);
+          extractPriorDecisions(body, issuePriorDecisions);
         }
       } catch {
         missing.push(`issue:${issueId}:${resource}`);
@@ -499,8 +608,11 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, fetchI
       projectId: issue.projectId ?? null,
       assigneeId: issue.assigneeAgentId ?? issue.assigneeId ?? null,
       evidence,
+      priorDecisions: issuePriorDecisions,
     };
   });
+  const priorDecisions = collectedIssues.flatMap((issue) => issue.priorDecisions);
+  const issues = collectedIssues.map(({ priorDecisions: _priorDecisions, ...issue }) => issue);
 
   return analyzeEvidence({
     companyId,

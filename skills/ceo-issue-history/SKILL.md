@@ -15,13 +15,13 @@ Choose an explicit UTC `asOf` from the routine's scheduled boundary and run:
 node skills/ceo-issue-history/scripts/issue-history-evidence.mjs --as-of <ISO-8601-UTC>
 ```
 
-The script uses `PAPERCLIP_API_URL`, `PAPERCLIP_API_KEY`, and `PAPERCLIP_COMPANY_ID`. It enumerates the canonical company issue and agent inventories, then reads each issue's comments, documents, runs, activity, cost summary, approvals, interactions, recovery actions, and work products with bounded concurrency. This avoids truncated company-wide activity/run endpoints and proves coverage for agents with zero evidence. It never reads raw heartbeat logs. GitHub Sync effects are recognized only when they are present in durable Paperclip issue activity; use `paperclip-github-plugin:get_issue_interaction_summary` as supplementary GitHub-specific evidence for a ranked issue, and keep its ledger coverage separate from Paperclip core coverage.
+The script uses `PAPERCLIP_API_URL`, `PAPERCLIP_API_KEY`, and `PAPERCLIP_COMPANY_ID`. It enumerates the canonical company issue inventory with plugin-operation issues included and the canonical agent inventory, then reads each issue's comments, documents, runs, activity, cost summary, approvals, interactions, recovery actions, and work products with bounded concurrency. This avoids truncated company-wide activity/run endpoints and proves coverage for agents with zero evidence. It never reads raw heartbeat logs. GitHub Sync plugin-operation churn is recognized from real Paperclip `issue.updated` activity, structured status/reopen details, and the issue's `plugin:*github*` origin; use `paperclip-github-plugin:get_issue_interaction_summary` as supplementary GitHub-specific evidence for a ranked issue, and keep its ledger coverage separate from Paperclip core coverage.
 
 The evidence interval is exactly `[asOf-30d,asOf)`. `asOf` is mandatory: never infer it from the model clock. Exit code `2` and outcome `blocked_incomplete_evidence` mean coverage was not provably complete. In that state, create no proposal, approval, PR, or other discovery mutation; report the sorted missing-resource ledger.
 
 ## Interpret Compact JSON
 
-The output is canonical compact JSON with controlled reason codes, redacted excerpts of at most 160 characters, stable `sha256:` fingerprints, issue-level event references, coverage metadata, and no secrets or raw logs.
+The output is canonical compact JSON capped at 32,000 UTF-8 bytes, with controlled reason codes, stable `sha256:` fingerprints, bounded/redacted identifiers and issue/event references, capped rejected details, aggregate canonical-agent coverage plus an inventory fingerprint, coverage metadata, and no raw evidence text, secrets, or logs. Only schema-valid prior decisions with a controlled status and valid timestamp can suppress or defer a candidate.
 
 Eligibility is objective:
 
