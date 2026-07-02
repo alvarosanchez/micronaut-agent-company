@@ -22,6 +22,10 @@ function input(events, overrides = {}) {
     companyId: "company-1",
     asOf: AS_OF,
     coverage: { complete: true, missing: [] },
+    agents: [
+      { id: "a1", name: "Agent One", role: "engineer" },
+      { id: "a2", name: "Agent Two", role: "qa" },
+    ],
     issues: [
       { id: "i1", key: "MIC-1", status: "done", evidence: events.filter((item) => item.issueId === "i1") },
       { id: "i2", key: "MIC-2", status: "done", evidence: events.filter((item) => item.issueId === "i2") },
@@ -164,22 +168,34 @@ test("bounds and redacts excerpts without exposing raw logs or secrets", () => {
 
   assert.doesNotMatch(serialized, /ghp_/);
   assert.doesNotMatch(serialized, /Authorization/i);
-  assert.ok(report.issues[0].evidence[0].excerpt.length <= 160);
-  assert.equal(Object.hasOwn(report.issues[0].evidence[0], "log"), false);
+  assert.equal(Object.hasOwn(report, "issues"), false, "Compact output must not return the full normalized issue inventory.");
+  assert.equal(report.inventory.issueCount, 2);
+  assert.ok(Buffer.byteLength(serialized) < 8_000, "The deterministic report should remain compact.");
 });
 
-test("collector records issue-by-issue coverage and fails closed when a resource read fails", async () => {
+test("collector records issue-by-issue and canonical-agent coverage and fails closed when a resource read fails", async () => {
   const responses = new Map([
-    ["/api/companies/company-1/issues", [{ id: "i1", identifier: "MIC-1", status: "done" }]],
-    ["/api/companies/company-1/heartbeat-runs?limit=1000&summary=true", []],
-    ["/api/companies/company-1/activity?limit=1000", { items: [], hasMore: true }],
+    ["/api/companies/company-1/issues?limit=1000&offset=0", [{ id: "i1", identifier: "MIC-1", status: "done" }]],
+    ["/api/companies/company-1/agents", [
+      { id: "a1", name: "Agent One", role: "engineer" },
+      { id: "a2", name: "Agent Two", role: "qa" },
+    ]],
   ]);
   for (const resource of ["comments", "documents", "runs", "activity", "cost-summary", "approvals", "interactions", "recovery-actions", "work-products"]) {
     responses.set(`/api/issues/i1/${resource}`, []);
   }
+  responses.set("/api/issues/i1/runs", [{
+    id: "run-1",
+    issueId: "i1",
+    agentId: "a1",
+    status: "failed",
+    createdAt: "2026-06-10T00:00:00.000Z",
+  }]);
   responses.delete("/api/issues/i1/comments");
+  const fetchOptions = [];
 
-  const fetchImpl = async (url) => {
+  const fetchImpl = async (url, options) => {
+    fetchOptions.push(options);
     const pathname = new URL(url).pathname + new URL(url).search;
     if (!responses.has(pathname)) return new Response("missing", { status: 503 });
     return Response.json(responses.get(pathname));
@@ -193,8 +209,52 @@ test("collector records issue-by-issue coverage and fails closed when a resource
   });
 
   assert.equal(report.outcome, "blocked_incomplete_evidence");
-  assert.deepEqual(report.coverage.missing, ["company_activity:page_after_1000", "issue:i1:comments"]);
+  assert.deepEqual(report.coverage.missing, ["issue:i1:comments"]);
+  assert.deepEqual(report.inventory.agents, [
+    { evidenceCount: 1, id: "a1", name: "Agent One", role: "engineer" },
+    { evidenceCount: 0, id: "a2", name: "Agent Two", role: "qa" },
+  ]);
+  assert.ok(fetchOptions.every((options) => options.redirect === "error"));
   assert.equal(JSON.stringify(report).includes("secret-token"), false);
+});
+
+test("collector exhausts the offset-paginated company issue inventory", async () => {
+  const allIssues = Array.from({ length: 1001 }, (_, index) => ({
+    id: `i-${String(index).padStart(4, "0")}`,
+    identifier: `MIC-${index + 1}`,
+    status: "done",
+  }));
+  let issuePageReads = 0;
+  const fetchImpl = async (url) => {
+    const parsed = new URL(url);
+    if (parsed.pathname === "/api/companies/company-1/issues") {
+      issuePageReads += 1;
+      const limit = Number(parsed.searchParams.get("limit"));
+      const offset = Number(parsed.searchParams.get("offset"));
+      return Response.json(allIssues.slice(offset, offset + limit));
+    }
+    if (parsed.pathname === "/api/companies/company-1/agents") {
+      return Response.json([{ id: "a1", name: "Agent One", role: "engineer" }]);
+    }
+    if (/^\/api\/issues\/i-\d{4}\/(?:comments|documents|runs|activity|cost-summary|approvals|interactions|recovery-actions|work-products)$/.test(parsed.pathname)) {
+      return Response.json([]);
+    }
+    return new Response("missing", { status: 503 });
+  };
+
+  const report = await collectEvidence({
+    baseUrl: "https://paperclip.invalid",
+    apiKey: "secret-token",
+    companyId: "company-1",
+    asOf: AS_OF,
+    fetchImpl,
+  });
+
+  assert.equal(report.outcome, "no_change");
+  assert.equal(report.inventory.issueCount, 1001);
+  assert.equal(report.coverage.resources.issues.pages, 2);
+  assert.equal(report.coverage.resources.issueResources.issuesChecked, 1001);
+  assert.equal(issuePageReads, 2);
 });
 
 test("CEO routine is wired to the CEO-only evidence skill and keeps broad maintenance mechanics out of the prompt", async () => {

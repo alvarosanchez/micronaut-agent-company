@@ -42,6 +42,7 @@ const RESOURCE_NAMES = [
   "recovery-actions",
   "work-products",
 ];
+const COLLECTION_CONCURRENCY = 8;
 
 function stableSort(value) {
   if (Array.isArray(value)) return value.map(stableSort);
@@ -107,8 +108,17 @@ function canonicalEvent(raw, fallbackIssueId) {
   if (!issueId) return null;
   const source = String(raw.source ?? raw.resource ?? raw.kind ?? "activity").slice(0, 48);
   const runId = raw.runId ?? raw.heartbeatRunId ?? raw.executionRunId ?? null;
-  const id = String(raw.id ?? `derived:${hash([source, issueId, at, reasonCode, String(runId ?? "")])}`);
-  const result = { id, issueId, at, source, reasonCode, runId: runId == null ? null : String(runId) };
+  const actorId = raw.agentId ?? raw.authorAgentId ?? raw.author_agent_id ?? raw.actorAgentId ?? raw.actorId ?? null;
+  const id = String(raw.id ?? `derived:${hash([source, issueId, at, reasonCode, String(runId ?? ""), String(actorId ?? "")])}`);
+  const result = {
+    id,
+    issueId,
+    at,
+    source,
+    reasonCode,
+    runId: runId == null ? null : String(runId),
+    actorId: actorId == null ? null : String(actorId),
+  };
   const excerpt = redact(raw.excerpt ?? raw.summary ?? raw.message ?? raw.reason ?? raw.title);
   if (excerpt) result.excerpt = excerpt;
   return result;
@@ -198,6 +208,13 @@ export function analyzeEvidence(input) {
       evidence: [],
     }])).values()].sort((a, b) => a.id.localeCompare(b.id));
   const issueById = new Map(issueRows.map((issue) => [issue.id, issue]));
+  const agentRows = [...new Map([...(input.agents ?? [])]
+    .filter((agent) => agent?.id)
+    .map((agent) => [String(agent.id), {
+      id: String(agent.id),
+      name: String(agent.name ?? agent.title ?? agent.id).slice(0, 120),
+      role: agent.role == null ? null : String(agent.role).slice(0, 80),
+    }])).values()].sort((a, b) => a.id.localeCompare(b.id));
   const eventsById = new Map();
   const conflictingEventIds = new Set();
   let invalidTimestampCount = 0;
@@ -240,6 +257,10 @@ export function analyzeEvidence(input) {
     if (issue) issue.evidence.push(event);
   }
 
+  const evidenceCountByAgent = new Map();
+  for (const event of events) {
+    if (event.actorId) evidenceCountByAgent.set(event.actorId, (evidenceCountByAgent.get(event.actorId) ?? 0) + 1);
+  }
   const base = {
     schemaVersion: 1,
     companyId: String(input.companyId),
@@ -247,7 +268,11 @@ export function analyzeEvidence(input) {
     window,
     coverage,
     outcome: "no_change",
-    issues: issueRows,
+    inventory: {
+      issueCount: issueRows.length,
+      eventCount: events.length,
+      agents: agentRows.map((agent) => ({ ...agent, evidenceCount: evidenceCountByAgent.get(agent.id) ?? 0 })),
+    },
     candidates: [],
     rejected: [],
   };
@@ -337,11 +362,34 @@ function collectionHasMore(body) {
 }
 
 async function apiGet({ baseUrl, apiKey, fetchImpl }, path) {
-  const response = await fetchImpl(new URL(path, `${baseUrl.replace(/\/$/, "")}/`), {
+  const configuredOrigin = new URL(baseUrl);
+  if (!["http:", "https:"].includes(configuredOrigin.protocol)) throw new Error("PAPERCLIP_API_URL must use HTTP or HTTPS.");
+  const target = new URL(path, `${configuredOrigin.href.replace(/\/$/, "")}/`);
+  if (target.origin !== configuredOrigin.origin) throw new Error("Refusing to send Paperclip credentials across origins.");
+  const response = await fetchImpl(target, {
+    redirect: "error",
     headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json();
+}
+
+async function apiGetOffsetPages(client, path, limit = 1000) {
+  const rows = [];
+  let offset = 0;
+  let pages = 0;
+  for (;;) {
+    const separator = path.includes("?") ? "&" : "?";
+    const body = await apiGet(client, `${path}${separator}limit=${limit}&offset=${offset}`);
+    const pageRows = collectionRows(body);
+    rows.push(...pageRows);
+    pages += 1;
+    const hasMore = collectionHasMore(body) || pageRows.length >= limit;
+    if (!hasMore) return { rows, pages };
+    if (pageRows.length === 0) throw new Error("Pagination claimed another page without returning rows.");
+    offset += pageRows.length;
+    if (pages >= 10_000) throw new Error("Pagination exceeded the safety page limit.");
+  }
 }
 
 function extractPriorDecisions(value, output = []) {
@@ -381,53 +429,56 @@ function resourceEvents(rows, issueId, resource) {
   return events;
 }
 
+async function mapWithConcurrency(values, limit, mapper) {
+  const output = new Array(values.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, values.length) }, async () => {
+    for (;;) {
+      const index = next;
+      next += 1;
+      if (index >= values.length) return;
+      output[index] = await mapper(values[index], index);
+    }
+  }));
+  return output;
+}
+
 export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, fetchImpl = fetch }) {
   if (!baseUrl || !apiKey || !companyId) throw new Error("PAPERCLIP_API_URL, PAPERCLIP_API_KEY, and PAPERCLIP_COMPANY_ID are required.");
   buildWindow(asOf);
   const client = { baseUrl, apiKey, fetchImpl };
   const missing = [];
   const resources = {
-    issues: { complete: false, count: 0 },
-    heartbeatRuns: { complete: false, count: 0 },
-    companyActivity: { complete: false, count: 0 },
+    issues: { complete: false, count: 0, pages: 0 },
+    agents: { complete: false, count: 0 },
     issueResources: { resourceCount: RESOURCE_NAMES.length, issuesChecked: 0, readsComplete: 0 },
   };
   let issueList = [];
-  let heartbeatRuns = [];
-  let companyActivity = [];
+  let agents = [];
 
   try {
-    const body = await apiGet(client, `/api/companies/${encodeURIComponent(companyId)}/issues`);
-    issueList = collectionRows(body);
-    resources.issues = { complete: !collectionHasMore(body), count: issueList.length };
-    if (collectionHasMore(body)) missing.push("company_issues:next_page");
+    const pageSet = await apiGetOffsetPages(client, `/api/companies/${encodeURIComponent(companyId)}/issues`);
+    issueList = pageSet.rows;
+    resources.issues = { complete: true, count: issueList.length, pages: pageSet.pages };
   } catch {
     missing.push("company:issues");
   }
   try {
-    const body = await apiGet(client, `/api/companies/${encodeURIComponent(companyId)}/heartbeat-runs?limit=1000&summary=true`);
-    heartbeatRuns = collectionRows(body);
-    resources.heartbeatRuns = { complete: heartbeatRuns.length < 1000 && !collectionHasMore(body), count: heartbeatRuns.length };
-    if (heartbeatRuns.length >= 1000 || collectionHasMore(body)) missing.push("heartbeat_runs:page_after_1000");
+    const body = await apiGet(client, `/api/companies/${encodeURIComponent(companyId)}/agents`);
+    agents = collectionRows(body);
+    resources.agents = { complete: !collectionHasMore(body), count: agents.length };
+    if (collectionHasMore(body)) missing.push("company_agents:next_page");
   } catch {
-    missing.push("company:heartbeat_runs");
-  }
-  try {
-    const body = await apiGet(client, `/api/companies/${encodeURIComponent(companyId)}/activity?limit=1000`);
-    companyActivity = collectionRows(body);
-    resources.companyActivity = { complete: companyActivity.length < 1000 && !collectionHasMore(body), count: companyActivity.length };
-    if (companyActivity.length >= 1000 || collectionHasMore(body)) missing.push("company_activity:page_after_1000");
-  } catch {
-    missing.push("company:activity");
+    missing.push("company:agents");
   }
 
   const priorDecisions = [];
-  const issues = [];
-  for (const issue of issueList.sort((a, b) => String(a.id).localeCompare(String(b.id)))) {
+  const sortedIssues = [...issueList].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  const issues = await mapWithConcurrency(sortedIssues, COLLECTION_CONCURRENCY, async (issue) => {
     const issueId = String(issue.id);
     const evidence = [];
     resources.issueResources.issuesChecked += 1;
-    for (const resource of RESOURCE_NAMES) {
+    await Promise.all(RESOURCE_NAMES.map(async (resource) => {
       try {
         const body = await apiGet(client, `/api/issues/${encodeURIComponent(issueId)}/${resource}`);
         const rows = collectionRows(body);
@@ -440,27 +491,22 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, fetchI
       } catch {
         missing.push(`issue:${issueId}:${resource}`);
       }
-    }
-    for (const row of companyActivity) {
-      if (String(row?.issueId ?? "") === issueId) evidence.push(...resourceEvents([row], issueId, "company_activity"));
-    }
-    for (const run of heartbeatRuns) {
-      if (String(run?.issueId ?? "") === issueId) evidence.push(...resourceEvents([run], issueId, "heartbeat_run"));
-    }
-    issues.push({
+    }));
+    return {
       id: issueId,
       key: issue.identifier ?? issue.key ?? issueId,
       status: issue.status ?? null,
       projectId: issue.projectId ?? null,
       assigneeId: issue.assigneeAgentId ?? issue.assigneeId ?? null,
       evidence,
-    });
-  }
+    };
+  });
 
   return analyzeEvidence({
     companyId,
     asOf,
     coverage: { complete: missing.length === 0, missing, resources },
+    agents,
     issues,
     priorDecisions,
   });

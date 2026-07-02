@@ -15,7 +15,7 @@ Choose the routine's explicit scheduled UTC boundary as `asOf`; do not infer the
 node skills/ceo-issue-history/scripts/issue-history-evidence.mjs --as-of <ISO-8601-UTC>
 ```
 
-The collector analyzes every company issue over the fixed half-open `[asOf-30d,asOf)` interval, including durable GitHub Sync effects, with issue-level evidence, controlled reason codes, stable fingerprints, deduplicated events, and complete-coverage metadata.
+The collector analyzes every issue and canonical agent over `[asOf-30d,asOf)` using issue-level evidence, controlled reason codes, stable fingerprints, and explicit coverage. For a ranked GitHub Sync issue, call `paperclip-github-plugin:get_issue_interaction_summary` for the same interval as supplementary evidence. Record its post-instrumentation coverage separately; it is not complete Paperclip history.
 
 - On `blocked_incomplete_evidence`, fail closed: create no discovery proposal, approval, PR, or interaction. Report the missing resources/pages.
 - On `no_change`, record a verified no-op. Complete evidence with no eligible candidate is successful completion.
