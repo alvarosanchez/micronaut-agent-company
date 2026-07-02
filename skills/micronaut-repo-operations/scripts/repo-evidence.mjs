@@ -4,7 +4,6 @@ import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
 
 function parseArgs(argv) {
   const options = { base: null };
@@ -140,7 +139,8 @@ function main() {
       errors.push({ code: "invalid_base", message: `Cannot resolve base ref ${options.base}.` });
     } else {
       const mergeBase = git(["merge-base", options.base, "HEAD"], root, { allowFailure: true })?.trim() || null;
-      const counts = git(["rev-list", "--left-right", "--count", `${options.base}...HEAD`], root, { allowFailure: true })?.trim().split(/\s+/).map(Number) ?? [];
+      const countOutput = git(["rev-list", "--left-right", "--count", `${options.base}...HEAD`], root, { allowFailure: true });
+      const counts = countOutput ? countOutput.trim().split(/\s+/).map(Number) : [];
       const diff = git(["diff", "--name-status", "-z", `${options.base}...HEAD`], root, { allowFailure: true, encoding: "buffer" });
       report.base = {
         ref: options.base,

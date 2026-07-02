@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import YAML from "yaml";
 
@@ -125,7 +126,7 @@ test("repo operations ships a deterministic JSON evidence collector", async () =
     await writeFile(path.join(fixture, "build.gradle"), "plugins { id 'java' }\n");
 
     const scriptPath = new URL("skills/micronaut-repo-operations/scripts/repo-evidence.mjs", ROOT);
-    const output = run(process.execPath, [scriptPath.pathname, "--base", baseCommit], fixture);
+    const output = run(process.execPath, [fileURLToPath(scriptPath), "--base", baseCommit], fixture);
     const report = JSON.parse(output);
 
     assert.equal(report.schemaVersion, 1);
