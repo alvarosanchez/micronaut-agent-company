@@ -126,6 +126,10 @@ test("repo operations ships a deterministic JSON evidence collector", async () =
     await writeFile(path.join(fixture, "build.gradle"), "plugins { id 'java' }\n");
 
     const scriptPath = new URL("skills/micronaut-repo-operations/scripts/repo-evidence.mjs", ROOT);
+    assert.throws(
+      () => run(process.execPath, [fileURLToPath(scriptPath), "--base"], fixture),
+      /--base requires a git ref/
+    );
     const output = run(process.execPath, [fileURLToPath(scriptPath), "--base", baseCommit], fixture);
     const report = JSON.parse(output);
 

@@ -10,7 +10,9 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index];
     if (value === "--base") {
-      options.base = argv[index + 1] ?? null;
+      const base = argv[index + 1];
+      if (!base || base.startsWith("-")) throw new Error("--base requires a git ref.");
+      options.base = base;
       index += 1;
     } else if (value === "--help" || value === "-h") {
       process.stdout.write("Usage: repo-evidence.mjs [--base <git-ref>]\n");

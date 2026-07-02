@@ -35,8 +35,10 @@ function input(events, overrides = {}) {
   };
 }
 
-test("uses an exact half-open 30-day UTC window", () => {
-  assert.deepEqual(buildWindow(AS_OF), {
+test("uses the exact UTC half-open 30-day window", () => {
+  assert.throws(() => buildWindow("2026-07-01T00:00:00"), /explicit UTC designator/);
+  assert.throws(() => buildWindow("2026-07-01T02:00:00+02:00"), /explicit UTC designator/);
+  assert.deepEqual(buildWindow("2026-07-01T00:00:00+00:00"), {
     start: "2026-06-01T00:00:00.000Z",
     end: AS_OF,
   });

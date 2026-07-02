@@ -110,6 +110,9 @@ function finalizeReport(report) {
 }
 
 export function buildWindow(asOf) {
+  if (typeof asOf !== "string" || !/(?:Z|\+00:00)$/i.test(asOf)) {
+    throw new Error("--as-of must include an explicit UTC designator (Z or +00:00).");
+  }
   const endMs = new Date(asOf).getTime();
   if (!Number.isFinite(endMs)) throw new Error("--as-of must be a valid ISO-8601 timestamp.");
   return { start: new Date(endMs - WINDOW_MS).toISOString(), end: new Date(endMs).toISOString() };
