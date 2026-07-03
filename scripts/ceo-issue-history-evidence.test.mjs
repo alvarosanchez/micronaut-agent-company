@@ -64,6 +64,59 @@ test("uses the exact UTC half-open 30-day window", () => {
   assert.deepEqual(report.candidates[0].issues.map((item) => item.id), ["i1", "i2"]);
 });
 
+test("uses a six-hour rolling containment window with a four-hour overlap", () => {
+  assert.deepEqual(buildWindow(AS_OF, "containment"), {
+    start: "2026-06-30T18:00:00.000Z",
+    end: AS_OF,
+  });
+
+  const sharedIncident = [
+    event("stale-a", "source-1", "2026-06-30T22:00:00.000Z", "stale_recovery_recursion", "run-root", {
+      sourceIssueId: "source-1",
+      existingEvaluationIssueId: "eval-1",
+      rootRunId: "run-root",
+    }),
+    event("stale-b", "source-1", "2026-06-30T22:01:00.000Z", "stale_recovery_recursion", "run-root", {
+      sourceIssueId: "source-1",
+      existingEvaluationIssueId: "eval-1",
+      rootRunId: "run-root",
+    }),
+  ];
+  const first = analyzeEvidence(input(sharedIncident, {
+    mode: "containment",
+    issues: [{ id: "source-1", key: "source-1", status: "in_progress", evidence: sharedIncident }],
+  }));
+  const second = analyzeEvidence(input(sharedIncident, {
+    asOf: "2026-07-01T02:00:00.000Z",
+    mode: "containment",
+    issues: [{ id: "source-1", key: "source-1", status: "in_progress", evidence: sharedIncident }],
+  }));
+
+  assert.equal(first.incidents.length, 1);
+  assert.equal(second.incidents.length, 1);
+  assert.equal(first.incidents[0].fingerprint, second.incidents[0].fingerprint);
+  const suppressed = analyzeEvidence(input(sharedIncident, {
+    asOf: "2026-07-01T02:00:00.000Z",
+    mode: "containment",
+    issues: [{ id: "source-1", key: "source-1", status: "in_progress", evidence: sharedIncident }],
+    priorDecisions: [{
+      fingerprint: first.incidents[0].fingerprint,
+      status: "implemented",
+      at: "2026-07-01T00:30:00.000Z",
+    }],
+  }));
+  assert.equal(suppressed.incidents.length, 0);
+
+  const monthlyOnlyEvidence = [
+    event("monthly-a", "i1", "2026-06-30T22:00:00.000Z", "handoff_mismatch", "run-a"),
+    event("monthly-b", "i1", "2026-06-30T22:01:00.000Z", "handoff_mismatch", "run-b"),
+    event("monthly-c", "i2", "2026-06-30T22:02:00.000Z", "handoff_mismatch", "run-c"),
+  ];
+  const containmentOnly = analyzeEvidence(input(monthlyOnlyEvidence, { mode: "containment" }));
+  assert.equal(containmentOnly.outcome, "no_change");
+  assert.deepEqual(containmentOnly.candidates, []);
+});
+
 test("is byte-stable under shuffled input and duplicate events do not inflate counts", () => {
   const events = [
     event("e3", "i2", "2026-06-20T00:00:00.000Z", "handoff_mismatch", "r3"),
@@ -763,7 +816,7 @@ test("containment collector reads bounded company activity and run surfaces with
 test("collector observes heartbeat-run stale recursion, dedupes activity, and reads only implicated issue runs", async () => {
   const stale = {
     id: "activity-stale", entityType: "heartbeat_run", entityId: "run-root", runId: "run-root",
-    action: "heartbeat.output_stale_recovery_recursion_refused", createdAt: "2026-06-10T00:00:00.000Z",
+    action: "heartbeat.output_stale_recovery_recursion_refused", createdAt: "2026-06-30T22:00:00.000Z",
     details: { sourceIssueId: "source-1", existingEvaluationIssueId: "eval-1" },
   };
   const paths = [];
@@ -807,19 +860,19 @@ test("containment collector recognizes real company-run issue context and real l
       if (path === "/api/companies/company-1/activity?entityType=issue&limit=500") {
         return Response.json([
           { id: "act-live-a", action: "issue.harness_liveness_escalation_created", entityType: "issue",
-            entityId: "eval-a", createdAt: "2026-06-12T00:00:00.000Z", runId: "live-run-a",
+            entityId: "eval-a", createdAt: "2026-06-30T22:01:00.000Z", runId: "live-run-a",
             details: { incidentKey: "incident-real", sourceIssueId: "source-live", escalationIssueId: "eval-a" } },
           { id: "act-live-b", action: "issue.harness_liveness_escalation_created", entityType: "issue",
-            entityId: "eval-b", createdAt: "2026-06-12T00:01:00.000Z", runId: "live-run-b",
+            entityId: "eval-b", createdAt: "2026-06-30T22:00:00.000Z", runId: "live-run-b",
             details: { incidentKey: "incident-real", sourceIssueId: "source-live", escalationIssueId: "eval-b" } },
         ]);
       }
       if (path === "/api/companies/company-1/heartbeat-runs?limit=1000") {
         return Response.json([
-          { id: "retry-a", createdAt: "2026-06-12T00:02:00.000Z", status: "failed",
+          { id: "retry-a", createdAt: "2026-06-30T22:03:00.000Z", status: "failed",
             errorCode: "adapter_failed", retryOfRunId: "root-1", scheduledRetryReason: "transient_failure",
             invocationSource: "automation", contextSnapshot: { issueId: "source-run", retryReason: "transient_failure", failureFingerprint: "fp-9" } },
-          { id: "retry-b", createdAt: "2026-06-12T00:03:00.000Z", status: "failed",
+          { id: "retry-b", createdAt: "2026-06-30T22:02:00.000Z", status: "failed",
             errorCode: "adapter_failed", retryOfRunId: "root-1", scheduledRetryReason: "max_turns_continuation",
             invocationSource: "automation", contextSnapshot: { issueId: "source-run", cause: "adapter_failed", failureFingerprint: "fp-9" } },
         ]);
@@ -837,10 +890,52 @@ test("containment collector recognizes real company-run issue context and real l
   assert.deepEqual(recovery?.runIds, ["retry-a", "retry-b"]);
 });
 
-test("containment collector fails closed when a capped company surface may be truncated", async () => {
+test("containment collector accepts an exact-cap response when its newest-first boundary covers the window", async () => {
+  const windowStartMs = Date.parse("2026-06-30T18:00:00.000Z");
+  const windowEndMs = Date.parse(AS_OF);
+  const heartbeatActivity = Array.from({ length: 500 }, (_, index) => ({
+    id: `activity-${index}`,
+    entityType: "heartbeat_run",
+    entityId: `run-${index}`,
+    action: "heartbeat.completed",
+    createdAt: new Date(windowEndMs - ((windowEndMs - windowStartMs + 1) * index) / 499).toISOString(),
+  }));
   const report = await collectEvidence({
     baseUrl: "https://paperclip.invalid",
-    apiKey: "fixture",
+    apiKey: "test-key",
+    companyId: "company-1",
+    asOf: AS_OF,
+    mode: "containment",
+    fetchImpl: async (url) => {
+      const path = new URL(url).pathname + new URL(url).search;
+      if (path === "/api/companies/company-1/activity?entityType=heartbeat_run&limit=500") {
+        return Response.json(heartbeatActivity);
+      }
+      return Response.json([]);
+    },
+  });
+
+  assert.equal(report.outcome, "no_change");
+  assert.equal(report.coverage.complete, true);
+  assert.deepEqual(report.coverage.resources.heartbeatRunActivity, {
+    boundaryReached: true,
+    cap: 500,
+    complete: true,
+    count: 500,
+    newestAt: AS_OF,
+    oldestAt: "2026-06-30T17:59:59.999Z",
+    reads: 1,
+    reason: "window_boundary_reached",
+    windowStart: "2026-06-30T18:00:00.000Z",
+  });
+});
+
+test("containment collector fails closed when an exact-cap response only reaches the inclusive window start", async () => {
+  const windowStartMs = Date.parse("2026-06-30T18:00:00.000Z");
+  const windowEndMs = Date.parse(AS_OF);
+  const report = await collectEvidence({
+    baseUrl: "https://paperclip.invalid",
+    apiKey: "test-key",
     companyId: "company-1",
     asOf: AS_OF,
     mode: "containment",
@@ -851,9 +946,8 @@ test("containment collector fails closed when a capped company surface may be tr
           id: `activity-${index}`,
           entityType: "heartbeat_run",
           entityId: `run-${index}`,
-          action: "heartbeat.output_stale_recovery_recursion_refused",
-          createdAt: "2026-06-10T00:00:00.000Z",
-          details: { sourceIssueId: `issue-${index}`, existingEvaluationIssueId: `eval-${index}` },
+          action: "heartbeat.completed",
+          createdAt: new Date(windowEndMs - ((windowEndMs - windowStartMs) * index) / 499).toISOString(),
         })));
       }
       return Response.json([]);
@@ -863,6 +957,67 @@ test("containment collector fails closed when a capped company surface may be tr
   assert.equal(report.outcome, "blocked_incomplete_evidence");
   assert.equal(report.coverage.complete, false);
   assert.ok(report.coverage.missing.includes("company:heartbeat_run_activity:truncated"));
+  assert.equal(report.coverage.resources.heartbeatRunActivity.reason, "window_boundary_not_reached");
+});
+
+test("containment collector fails closed on malformed cap timestamps and records newer than as-of", async () => {
+  for (const variant of ["malformed", "future"]) {
+    const rows = Array.from({ length: 500 }, (_, index) => ({
+      id: `activity-${index}`,
+      entityType: "heartbeat_run",
+      entityId: `run-${index}`,
+      action: "heartbeat.completed",
+      createdAt: new Date(Date.parse(AS_OF) - index * 60_000).toISOString(),
+    }));
+    rows[variant === "malformed" ? 250 : 0].createdAt = variant === "malformed"
+      ? "not-a-timestamp"
+      : "2026-07-01T00:00:01.000Z";
+    const report = await collectEvidence({
+      baseUrl: "https://paperclip.invalid",
+      apiKey: "test-key",
+      companyId: "company-1",
+      asOf: AS_OF,
+      mode: "containment",
+      fetchImpl: async (url) => {
+        const path = new URL(url).pathname + new URL(url).search;
+        return Response.json(path.includes("entityType=heartbeat_run") ? rows : []);
+      },
+    });
+
+    assert.equal(report.outcome, "blocked_incomplete_evidence");
+    assert.equal(report.coverage.resources.heartbeatRunActivity.reason,
+      variant === "malformed" ? "invalid_boundary_timestamp" : "record_after_as_of");
+  }
+});
+
+test("containment collector ignores invalid control operands outside the rolling window", async () => {
+  const report = await collectEvidence({
+    baseUrl: "https://paperclip.invalid",
+    apiKey: "test-key",
+    companyId: "company-1",
+    asOf: AS_OF,
+    mode: "containment",
+    fetchImpl: async (url) => {
+      const path = new URL(url).pathname + new URL(url).search;
+      if (path.includes("heartbeat-runs")) {
+        return Response.json([{
+          id: `old-${"x".repeat(200)}`,
+          issueId: "source-1",
+          status: "failed",
+          createdAt: "2026-06-30T17:59:59.000Z",
+          errorCode: "adapter_failed",
+          retryOfRunId: "root-1",
+          scheduledRetryReason: "transient_failure",
+          invocationSource: "automation",
+        }]);
+      }
+      return Response.json([]);
+    },
+  });
+
+  assert.equal(report.outcome, "no_change");
+  assert.equal(report.coverage.complete, true);
+  assert.equal(report.rejected.length, 0);
 });
 
 test("terminal run usage telemetry is explicit and unavailable totals stay unknown rather than zero", () => {
@@ -892,6 +1047,7 @@ test("CEO routine is wired to the CEO-only evidence skill and keeps broad mainte
   const root = new URL("../", import.meta.url);
   const ceo = await readFile(new URL("agents/ceo/AGENTS.md", root), "utf8");
   const routine = await readFile(new URL("tasks/monthly-ceo-self-improvement/TASK.md", root), "utf8");
+  const containmentRoutine = await readFile(new URL("tasks/frequent-ceo-incident-containment/TASK.md", root), "utf8");
   const skill = await readFile(new URL("skills/ceo-issue-history/SKILL.md", root), "utf8");
   const readme = await readFile(new URL("README.md", root), "utf8");
 
@@ -899,6 +1055,9 @@ test("CEO routine is wired to the CEO-only evidence skill and keeps broad mainte
   assert.match(routine, /issue-history-evidence\.mjs[\s\S]{0,300}--as-of/i);
   assert.match(routine, /blocked_incomplete_evidence[\s\S]{0,300}no_change/i);
   assert.match(skill, /\[asOf-30d,asOf\)/);
+  assert.match(skill, /\[asOf-6h,asOf\)/);
+  assert.match(containmentRoutine, /six-hour interval/);
+  assert.match(containmentRoutine, /oldest record is strictly before `asOf-6h`/);
   assert.match(readme, /deterministic 30-day issue-history/i);
   assert.ok(Buffer.byteLength(routine) < 6_000, "Routine should route to skills instead of embedding broad mechanics.");
 

@@ -5,7 +5,8 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const WINDOW_MS = 30 * DAY_MS;
+const FULL_WINDOW_MS = 30 * DAY_MS;
+const CONTAINMENT_WINDOW_MS = 6 * 60 * 60 * 1000;
 const MAX_EXCERPT = 160;
 const MAX_IDENTIFIER = 96;
 const MAX_REPORT_BYTES = 32_000;
@@ -124,13 +125,15 @@ function finalizeReport(report) {
   });
 }
 
-export function buildWindow(asOf) {
+export function buildWindow(asOf, mode = "full") {
   if (typeof asOf !== "string" || !/(?:Z|\+00:00)$/i.test(asOf)) {
     throw new Error("--as-of must include an explicit UTC designator (Z or +00:00).");
   }
+  if (!["full", "containment"].includes(mode)) throw new Error("mode must be full or containment.");
   const endMs = new Date(asOf).getTime();
   if (!Number.isFinite(endMs)) throw new Error("--as-of must be a valid ISO-8601 timestamp.");
-  return { start: new Date(endMs - WINDOW_MS).toISOString(), end: new Date(endMs).toISOString() };
+  const windowMs = mode === "containment" ? CONTAINMENT_WINDOW_MS : FULL_WINDOW_MS;
+  return { start: new Date(endMs - windowMs).toISOString(), end: new Date(endMs).toISOString() };
 }
 
 export function fingerprintFor(fields) {
@@ -769,7 +772,8 @@ function runUsageTelemetry(issues) {
 }
 
 export function analyzeEvidence(input) {
-  const window = buildWindow(input.asOf);
+  const mode = input.mode ?? input.collection?.mode ?? "full";
+  const window = buildWindow(input.asOf, mode);
   const coverage = {
     complete: input.coverage?.complete === true,
     missing: [...new Set(input.coverage?.missing ?? [])].sort(),
@@ -930,6 +934,10 @@ export function analyzeEvidence(input) {
     return buildOperationalIncidents(events.filter((event) => event.at > prior.at), base.companyId)
       .some((fresh) => fresh.fingerprint === incident.fingerprint);
   });
+  if (mode === "containment") {
+    base.outcome = base.incidents.length > 0 ? "operational_incidents" : "no_change";
+    return finalizeReport(base);
+  }
   for (const { policy, events: unsortedEvents } of groups.values()) {
     if (OPERATIONAL_PROBLEMS.has(policy.problemKey)) continue;
     const groupEvents = [...unsortedEvents].sort(compareEvidenceEvents);
@@ -1110,30 +1118,73 @@ async function mapWithConcurrency(values, limit, mapper) {
   return output;
 }
 
+function surfaceRowTimestamp(row) {
+  return iso(row?.createdAt ?? row?.updatedAt ?? row?.timestamp ?? row?.startedAt ?? row?.finishedAt);
+}
+
+function boundedSurfaceCoverage(rows, cap, window) {
+  const timestamps = rows.map(surfaceRowTimestamp);
+  const base = {
+    boundaryReached: false,
+    cap,
+    complete: false,
+    count: rows.length,
+    newestAt: timestamps[0] ?? null,
+    oldestAt: timestamps.at(-1) ?? null,
+    reads: 1,
+    reason: "invalid_boundary_timestamp",
+    windowStart: window.start,
+  };
+  if (timestamps.some((timestamp) => timestamp == null)) return base;
+  if (timestamps.some((timestamp, index) => index > 0 && timestamp > timestamps[index - 1])) {
+    return { ...base, reason: "response_not_newest_first" };
+  }
+  if (timestamps[0] && timestamps[0] > window.end) return { ...base, reason: "record_after_as_of" };
+  if (rows.length < cap) return { ...base, complete: true, reason: "below_cap" };
+  if (rows.length > cap) return { ...base, reason: "response_exceeded_cap" };
+  if (timestamps.at(-1) < window.start) {
+    return { ...base, boundaryReached: true, complete: true, reason: "window_boundary_reached" };
+  }
+  return { ...base, reason: "window_boundary_not_reached" };
+}
+
+function surfaceMissingCode(label, coverage) {
+  if (coverage.complete) return null;
+  if (coverage.reason === "window_boundary_not_reached") return `${label}:truncated`;
+  return `${label}:${coverage.reason}`;
+}
+
 export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode = "full", fetchImpl = fetch }) {
   if (!baseUrl || !apiKey || !companyId) throw new Error("PAPERCLIP_API_URL, PAPERCLIP_API_KEY, and PAPERCLIP_COMPANY_ID are required.");
-  const window = buildWindow(asOf);
   if (!["full", "containment"].includes(mode)) throw new Error("mode must be full or containment.");
+  const window = buildWindow(asOf, mode);
   const client = { baseUrl, apiKey, fetchImpl };
   const missing = [];
   const activityPath = `/api/companies/${encodeURIComponent(companyId)}/activity?entityType=heartbeat_run&limit=500`;
   let companyActivity = [];
+  let heartbeatRunActivityCoverage = null;
   try {
     companyActivity = collectionRows(await apiGet(client, activityPath));
-    if (companyActivity.length >= 500) missing.push("company:heartbeat_run_activity:truncated");
+    heartbeatRunActivityCoverage = boundedSurfaceCoverage(companyActivity, 500, window);
+    const missingCode = surfaceMissingCode("company:heartbeat_run_activity", heartbeatRunActivityCoverage);
+    if (missingCode) missing.push(missingCode);
   } catch {
     missing.push("company:heartbeat_run_activity");
   }
 
   let issueActivity = [];
   let companyRuns = [];
+  let issueActivityCoverage = null;
+  let heartbeatRunsCoverage = null;
   if (mode === "containment") {
     try {
       issueActivity = collectionRows(await apiGet(
         client,
         `/api/companies/${encodeURIComponent(companyId)}/activity?entityType=issue&limit=500`
       ));
-      if (issueActivity.length >= 500) missing.push("company:issue_activity:truncated");
+      issueActivityCoverage = boundedSurfaceCoverage(issueActivity, 500, window);
+      const missingCode = surfaceMissingCode("company:issue_activity", issueActivityCoverage);
+      if (missingCode) missing.push(missingCode);
     } catch {
       missing.push("company:issue_activity");
     }
@@ -1142,16 +1193,24 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode =
         client,
         `/api/companies/${encodeURIComponent(companyId)}/heartbeat-runs?limit=1000`
       ));
-      if (companyRuns.length >= 1000) missing.push("company:heartbeat_runs:truncated");
+      heartbeatRunsCoverage = boundedSurfaceCoverage(companyRuns, 1000, window);
+      const missingCode = surfaceMissingCode("company:heartbeat_runs", heartbeatRunsCoverage);
+      if (missingCode) missing.push(missingCode);
     } catch {
       missing.push("company:heartbeat_runs");
     }
   }
 
+  const rowInWindow = (row) => {
+    const at = surfaceRowTimestamp(row);
+    return at != null && at >= window.start && at < window.end;
+  };
   const allCompanyActivity = [...companyActivity, ...issueActivity];
-  const activityEvents = allCompanyActivity
+  const windowCompanyActivity = allCompanyActivity.filter(rowInWindow);
+  const windowCompanyRuns = companyRuns.filter(rowInWindow);
+  const activityEvents = windowCompanyActivity
     .map((row) => canonicalEvent({ ...row, resource: "company_activity", source: "company_activity" }))
-    .filter((event) => event && !event.invalid && !event.invalidControl && event.at >= window.start && event.at < window.end);
+    .filter((event) => event && !event.invalid && !event.invalidControl);
 
   if (mode === "containment") {
     const companyRunIssueId = (run) => {
@@ -1162,17 +1221,17 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode =
     };
     const issueIds = [...new Set([
       ...activityEvents.map((event) => event.sourceIssueId ?? event.issueId),
-      ...companyRuns.map(companyRunIssueId),
+      ...windowCompanyRuns.map(companyRunIssueId),
     ].filter(Boolean).map(String))].sort();
     const issues = issueIds.map((issueId) => ({
       id: issueId,
       key: issueId,
       evidence: [
-        ...allCompanyActivity.filter((row) => {
+        ...windowCompanyActivity.filter((row) => {
           const details = row?.details && typeof row.details === "object" ? row.details : {};
           return String(details.sourceIssueId ?? details.issueId ?? row.issueId ?? row.entityId ?? "") === issueId;
         }),
-        ...companyRuns
+        ...windowCompanyRuns
           .filter((run) => String(companyRunIssueId(run) ?? "") === issueId)
           .map((run) => ({ ...run, resource: "runs", issueId })),
       ],
@@ -1180,24 +1239,28 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode =
     const report = analyzeEvidence({
       companyId,
       asOf,
+      mode,
       coverage: {
         complete: missing.length === 0,
         missing,
         resources: {
-          heartbeatRunActivity: {
-            complete: !missing.some((entry) => entry.startsWith("company:heartbeat_run_activity")),
+          heartbeatRunActivity: heartbeatRunActivityCoverage ?? {
+            complete: false,
             count: companyActivity.length,
             reads: 1,
+            reason: "read_failed",
           },
-          issueActivity: {
-            complete: !missing.some((entry) => entry.startsWith("company:issue_activity")),
+          issueActivity: issueActivityCoverage ?? {
+            complete: false,
             count: issueActivity.length,
             reads: 1,
+            reason: "read_failed",
           },
-          heartbeatRuns: {
-            complete: !missing.some((entry) => entry.startsWith("company:heartbeat_runs")),
+          heartbeatRuns: heartbeatRunsCoverage ?? {
+            complete: false,
             count: companyRuns.length,
             reads: 1,
+            reason: "read_failed",
           },
         },
       },
@@ -1217,7 +1280,12 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode =
   }
 
   const resources = {
-    companyActivity: { complete: !missing.includes("company:heartbeat_run_activity"), count: companyActivity.length, reads: 1 },
+    companyActivity: heartbeatRunActivityCoverage ?? {
+      complete: false,
+      count: companyActivity.length,
+      reads: 1,
+      reason: "read_failed",
+    },
     issues: { complete: false, count: 0, pages: 0 },
     agents: { complete: false, count: 0 },
     issueResources: { resourceCount: RESOURCE_NAMES.length, issuesChecked: 0, readsComplete: 0 },

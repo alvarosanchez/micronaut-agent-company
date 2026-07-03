@@ -255,7 +255,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 
 | Routine | Assignee | Schedule | Purpose |
 | --- | --- | --- | --- |
-| `Frequent CEO Incident Containment` | CEO | Every two hours at minute 17 | Read bounded company heartbeat activity, issue activity, and heartbeat-run snapshots; fail closed at host caps; execute incident-specific containment/approval manifests independently of monthly proposal discovery |
+| `Frequent CEO Incident Containment` | CEO | Every two hours at minute 17 | Read a rolling six-hour window from bounded company heartbeat activity, issue activity, and heartbeat-run snapshots; prove exact-cap completeness from the oldest newest-first record; fail closed when the boundary is not reached; execute incident-specific containment/approval manifests independently of monthly proposal discovery |
 | `Monthly Product Discovery` | Product Manager | 1st of each month at 01:00 `Europe/Madrid` | Create project-specific discovery subtasks in actual Micronaut-related projects, research market and competitor gaps there, and create QA-assigned top-level Paperclip product development issues in backlog when warranted |
 | `Monthly Security Deep Scan` | Security Engineer | 5th of each month at 01:00 `Europe/Madrid` | Proactively inspect recent code, dependencies, build logic, CI/CD, release automation, and docs for security risk |
 | `Monthly User Guide Review` | Technical Writer | 10th of each month at 01:00 `Europe/Madrid` | Coordinate project child issues for user-guide review; each child issue performs validation and may open a linked evidence-backed project PR |
