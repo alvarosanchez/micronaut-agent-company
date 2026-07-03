@@ -15,7 +15,7 @@ Choose an explicit UTC `asOf` from the routine's scheduled boundary and run:
 node skills/ceo-issue-history/scripts/issue-history-evidence.mjs --as-of <ISO-8601-UTC>
 ```
 
-The script uses `PAPERCLIP_API_URL`, `PAPERCLIP_API_KEY`, and `PAPERCLIP_COMPANY_ID`. It enumerates the canonical company issue inventory with plugin-operation issues included and the canonical agent inventory, then reads each issue's comments, documents, runs, activity, cost summary, approvals, interactions, recovery actions, and work products with bounded concurrency. This avoids truncated company-wide activity/run endpoints and proves coverage for agents with zero evidence. It never reads raw heartbeat logs. GitHub Sync plugin-operation churn is recognized from real Paperclip `issue.updated` activity, structured status/reopen details, and the issue's `plugin:*github*` origin; use `paperclip-github-plugin:get_issue_interaction_summary` as supplementary GitHub-specific evidence for a ranked issue, and keep its ledger coverage separate from Paperclip core coverage.
+The script uses `PAPERCLIP_API_URL`, `PAPERCLIP_API_KEY`, and `PAPERCLIP_COMPANY_ID`. Full monthly mode enumerates the canonical company issue and agent inventories and reads durable issue resources with bounded concurrency. Both modes also read company-wide heartbeat activity once from `GET /api/companies/:companyId/activity?entityType=heartbeat_run&limit=500`, making run-entity events such as `heartbeat.output_stale_recovery_recursion_refused` observable and deduplicating them by event ID against issue resources. Containment mode (`--mode containment`) exits after that one read when no incident is present and reads issue runs only for implicated issues. It never reads raw heartbeat logs.
 
 The evidence interval is exactly `[asOf-30d,asOf)`. `asOf` is mandatory: never infer it from the model clock. Exit code `2` and outcome `blocked_incomplete_evidence` mean coverage was not provably complete. In that state, create no proposal, approval, PR, or other discovery mutation; report the sorted missing-resource ledger.
 
@@ -26,7 +26,9 @@ The output is canonical compact JSON capped at 32,000 UTF-8 bytes, with controll
 Eligibility is objective:
 
 - `cross_issue_recurrence`: at least two distinct issues and three events;
-- `concentrated_loop`: at least three failed, blocked, or changes-requested events on one issue across at least two run IDs;
+- `concentrated_loop`: at least three failed, blocked, or changes-requested events on one issue across at least two run IDs, three GitHub Sync churn events on one issue, or two stale-recovery-recursion refusals on one issue;
+- `duplicate_incident`: at least two liveness escalations on one issue;
+- `recovery_fanout`: at least three recovery actions on one issue;
 - `critical_one_off`: one concrete governance, security, data-loss, unapproved external-write control failure, or one issue where a structured GitHub Sync regression is followed by a harness liveness escalation.
 
 GitHub Sync attribution uses exact allowlisted structured provenance namespaces (`paperclip-github-plugin` or `github-sync` in `pluginKey`, source plugin fields, or `contextSource`) as well as exact plugin-origin namespaces; unrelated strings that merely contain `github` do not qualify, and caller-supplied `github_sync_churn` labels cannot bypass the provenance check. A normal manually created issue remains attributable when GitHub Sync later mutates it. The collector correlates a liveness escalation with a strictly earlier sync regression on that same issue within one hour into one bounded candidate using chronologically ordered near-linear matching; equal-timestamp, stale, or reverse-ordered events do not qualify. After a terminal decision, recurrence requires an entirely fresh correlated pair rather than one new half of an old incident. Composite recency is the maximum event timestamp, independent of issue enumeration order. It does not require unrelated incidents to recur before surfacing the control-loop failure.
@@ -34,6 +36,15 @@ GitHub Sync attribution uses exact allowlisted structured provenance namespaces 
 Duplicate event IDs count once. Prior active fingerprints are suppressed. Implemented, rejected, or no-change decisions need a fresh post-decision threshold. Ranking is severity, distinct issue count, event count, recency, then fingerprint; the cap of three is applied after deduplication.
 
 `no_change` with complete coverage is a successful verified no-op. Do not manufacture routine work. For `ranked_candidates`, inspect only the cited issue evidence, verify the owner/target and exact change, then follow `company-package-evolution` for governance and implementation. Keep direct queue corrections and active productivity-review decisions separate from new package proposals.
+
+Immediate Paperclip-limitation findings are emitted separately as `incidents`, never counted against the monthly top-three improvement-proposal cap. Each incident has a structured `actionManifest`. The two-hourly containment routine uses only preconditions re-readable from issue, run, and approval GETs. Every approval request preflights approvals of every status by `payload.idempotencyKey` and posts `{type:'request_board_approval',payload:{...},issueIds:[...]}`. Incident fingerprints include stable incident/source/root/mapping identity, so a decision for one incident cannot suppress another.
+
+- Duplicate liveness escalations group by `incidentKey` across escalation issue IDs, retain the source and existing evaluation issue, choose one canonical issue, and name each duplicate issue update.
+- Stale recursion groups only by company, source issue, and the same root run; it retains the existing evaluation issue and requests Board approval for an exact recommended run-cancel action.
+- Recovery fan-out derives explicit `adapter_failed` provenance, root/retry IDs, distinct retry categories, and optional cause/fingerprint evidence from real run fields: `errorCode`, `retryOfRunId`, `scheduledRetryReason`, `invocationSource`, and `contextSnapshot`. It never requires invented lane or signature fields.
+- GitHub Sync/liveness composites carry their mapping identity and their own manifest. Paperclip exposes no per-mapping pause; the manifest may request Board approval for destructive mapping removal but never claims a pause operation exists.
+
+Run cancellation is Board-only. Approval records recommend the exact Board action after approval; the CEO does not execute cancellation. Terminal run token and USD-cost fields are parsed independently, missing metrics and affected totals remain `unknown` rather than zero, and known subtotals are labeled as such. The two-hour cadence bounds routine/model-start volume to at most twelve scheduled runs per day, but each scheduled routine still starts the CEO and exact LLM cost is unknown when provider telemetry or pricing is unavailable. Never patch Paperclip source, core, or imported-package files.
 
 ## Maintenance Lanes
 

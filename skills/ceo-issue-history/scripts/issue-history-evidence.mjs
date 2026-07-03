@@ -13,6 +13,15 @@ const MAX_CANDIDATE_ISSUES = 5;
 const MAX_EVENT_IDS_PER_ISSUE = 8;
 const MAX_MISSING_RESOURCES = 100;
 const MAX_REJECTED = 5;
+const MAX_TELEMETRY_RUNS = 100;
+const ACTIONABLE_STATUSES = ["backlog", "todo", "in_progress", "blocked", "in_review"];
+const OPERATIONAL_PROBLEMS = new Set([
+  "github_sync_churn",
+  "liveness_escalation",
+  "github_sync_liveness_escalation",
+  "recovery_loop",
+  "stale_recovery_recursion",
+]);
 const ACTIVE_DECISIONS = new Set(["active", "open", "pending", "blocked", "in_progress", "in_review"]);
 const TERMINAL_DECISIONS = new Set(["implemented", "rejected", "no_change", "not_worthwhile"]);
 const VALID_DECISIONS = new Set([...ACTIVE_DECISIONS, ...TERMINAL_DECISIONS]);
@@ -31,6 +40,7 @@ const REASON_POLICY = {
   github_sync_liveness_escalation: ["integration", "github_sync_liveness_escalation", "github_sync", "upstream_dependency", 4],
   productivity_review: ["workflow", "productivity_loop", "paperclip", "company_package", 3],
   recovery_action: ["workflow", "recovery_loop", "paperclip", "company_package", 3],
+  stale_recovery_recursion: ["execution", "stale_recovery_recursion", "paperclip", "company_package", 4],
   failed: ["execution", "execution_loop", "agent_runtime", "company_package", 2],
   blocked: ["execution", "execution_loop", "agent_runtime", "company_package", 2],
   changes_requested: ["execution", "execution_loop", "agent_runtime", "company_package", 2],
@@ -54,6 +64,7 @@ const RESOURCE_NAMES = [
 ];
 const COLLECTION_CONCURRENCY = 8;
 const COMPOSITE_CORRELATION_MS = 60 * 60 * 1_000;
+const TERMINAL_RUN_STATUSES = new Set(["succeeded", "failed", "cancelled", "timed_out"]);
 
 function stableSort(value) {
   if (Array.isArray(value)) return value.map(stableSort);
@@ -108,6 +119,7 @@ function finalizeReport(report) {
     outcome: "blocked_incomplete_evidence",
     inventory: report.inventory,
     candidates: [],
+    incidents: [],
     rejected: [],
   });
 }
@@ -128,6 +140,7 @@ export function fingerprintFor(fields) {
     fields.problemKey,
     fields.component,
     fields.targetSurface,
+    fields.incidentIdentity ?? "unspecified",
   ])}`;
 }
 
@@ -144,17 +157,26 @@ function eventPolicy(reasonCode) {
 }
 
 function canonicalEvent(raw, fallbackIssueId) {
+  const details = raw.details && typeof raw.details === "object" && !Array.isArray(raw.details) ? raw.details : {};
+  const context = raw.contextSnapshot && typeof raw.contextSnapshot === "object" && !Array.isArray(raw.contextSnapshot)
+    ? raw.contextSnapshot
+    : {};
   const suppliedReasonCode = raw.reasonCode;
   const reasonCode = suppliedReasonCode === "github_sync_churn" && !githubSyncProvenance(raw).matched
     ? null
     : suppliedReasonCode ?? inferReasonCode(raw);
   if (!REASON_POLICY[reasonCode]) return null;
   const at = iso(raw.at ?? raw.createdAt ?? raw.updatedAt ?? raw.timestamp ?? raw.startedAt ?? raw.finishedAt);
-  if (!at) return { invalid: true, id: String(raw.id ?? "unknown") };
-  const issueId = String(raw.issueId ?? fallbackIssueId ?? "");
+  if (!at) return { invalid: true, id: String(raw.id ?? raw.runId ?? "unknown") };
+  const issueCandidate = reasonCode === "liveness_escalation"
+    ? (details.escalationIssueId ?? raw.entityId ?? raw.issueId ?? fallbackIssueId)
+    : (raw.issueId ?? details.sourceIssueId ?? details.issueId ?? context.issueId ?? fallbackIssueId);
+  const issueId = String(issueCandidate ?? "");
   if (!issueId) return null;
   const source = String(raw.source ?? raw.resource ?? raw.kind ?? "activity").slice(0, 48);
-  const runId = raw.runId ?? raw.heartbeatRunId ?? raw.executionRunId ?? null;
+  const runId = raw.runId ?? raw.heartbeatRunId ?? raw.executionRunId
+    ?? (raw.resource === "runs" ? raw.id : null)
+    ?? (raw.entityType === "heartbeat_run" ? raw.entityId : null);
   const actorId = raw.agentId ?? raw.authorAgentId ?? raw.author_agent_id ?? raw.actorAgentId ?? raw.actorId ?? null;
   const id = String(raw.id ?? `derived:${hash([source, issueId, at, reasonCode, String(runId ?? ""), String(actorId ?? "")])}`);
   const result = {
@@ -165,7 +187,51 @@ function canonicalEvent(raw, fallbackIssueId) {
     reasonCode,
     runId: runId == null ? null : String(runId),
     actorId: actorId == null ? null : String(actorId),
+    runRecord: raw.resource === "runs" || Object.hasOwn(raw, "usageJson") || Object.hasOwn(raw, "retryOfRunId"),
+    runStatus: typeof raw.status === "string" ? raw.status : null,
+    usageJson: raw.usageJson && typeof raw.usageJson === "object" && !Array.isArray(raw.usageJson) ? raw.usageJson : null,
   };
+  const operandValid = (value) => typeof value === "string" && value.length > 0 && value.length <= MAX_IDENTIFIER
+    && /^[A-Za-z0-9][A-Za-z0-9_.:/@#-]*$/.test(value);
+  if (result.runId != null && !operandValid(result.runId)) return { invalidControl: true, id };
+  if (OPERATIONAL_PROBLEMS.has(eventPolicy(reasonCode)?.problemKey) && !operandValid(result.issueId)) {
+    return { invalidControl: true, id };
+  }
+  const aliases = {
+    incidentKey: ["incidentKey"],
+    sourceIssueId: ["sourceIssueId"],
+    existingEvaluationIssueId: ["existingEvaluationIssueId", "evaluationIssueId"],
+    rootRunId: ["rootRunId", "sourceRunId"],
+    retryRunId: ["retryRunId", "recoveryRunId"],
+    mappingId: ["mappingId", "syncMappingId"],
+    remoteFingerprint: ["remoteFingerprint", "actionFingerprint"],
+  };
+  for (const [field, names] of Object.entries(aliases)) {
+    const value = names.map((name) => raw[name] ?? details[name]).find((item) => item != null);
+    if (value == null) {
+      result[field] = null;
+      continue;
+    }
+    if (!operandValid(value)) return { invalidControl: true, id };
+    result[field] = value;
+  }
+  if (raw.retryOfRunId != null && !operandValid(raw.retryOfRunId)) return { invalidControl: true, id };
+  result.sourceIssueId ??= typeof context.issueId === "string" ? context.issueId : result.issueId;
+  result.rootRunId = raw.retryOfRunId == null ? (result.rootRunId ?? result.runId) : raw.retryOfRunId;
+  result.retryRunId = reasonCode === "recovery_action" ? (result.retryRunId ?? result.runId) : result.retryRunId;
+  result.errorCode = typeof raw.errorCode === "string" ? raw.errorCode : null;
+  const retryReason = [raw.scheduledRetryReason, context.retryReason, context.wakeReason, context.cause]
+    .find((value) => typeof value === "string" && value.length > 0);
+  const invocationSource = typeof raw.invocationSource === "string" && raw.invocationSource.length > 0
+    ? raw.invocationSource
+    : "unknown";
+  result.retryCategory = `${invocationSource}:${retryReason ?? "unknown"}`;
+  const causeFingerprint = [context.failureFingerprint, context.retryFingerprint, context.fingerprint, context.cause]
+    .find((value) => typeof value === "string" && value.length > 0);
+  result.causeFingerprint = typeof causeFingerprint === "string" ? boundedIdentifier(causeFingerprint, "cause") : null;
+  result.existingEvaluationIssueId ??= ["liveness_escalation", "stale_recovery_recursion"].includes(reasonCode)
+    ? result.issueId
+    : null;
   return result;
 }
 
@@ -176,6 +242,9 @@ function evidenceText(raw) {
     raw.kind,
     raw.action,
     raw.status,
+    raw.errorCode,
+    raw.scheduledRetryReason,
+    raw.invocationSource,
     raw.outcome,
     raw.reason,
     raw.summary,
@@ -184,6 +253,7 @@ function evidenceText(raw) {
     raw.body,
     raw.content,
     raw.details,
+    raw.contextSnapshot,
     raw.issueOriginKind,
     raw.issueSurfaceVisibility,
   ];
@@ -236,6 +306,8 @@ function inferReasonCode(raw) {
   const isChurnUpdate = raw.action === "issue.updated" && (details.reopened === true || isStatusRegression);
   if (provenance.matched && isChurnUpdate) return "github_sync_churn";
   if (raw.action === "issue.harness_liveness_escalation_created") return "liveness_escalation";
+  if (raw.action === "heartbeat.output_stale_recovery_recursion_refused") return "stale_recovery_recursion";
+  if (raw.errorCode === "adapter_failed" && typeof raw.retryOfRunId === "string") return "recovery_action";
   if (/external.{0,20}write.{0,30}(without|missing).{0,20}approval/.test(fields)) return "external_write_without_approval";
   if (/data.{0,10}loss/.test(fields)) return "data_loss_risk";
   if (/security.{0,20}(control|guard).{0,20}(fail|missing|bypass)/.test(fields)) return "security_control_failure";
@@ -321,6 +393,13 @@ function thresholdFor(events, policy) {
     return correlatedCompositeEvents(events).length >= 2 ? "critical_one_off" : null;
   }
   const issueIds = new Set(events.map((event) => event.issueId));
+  const byIssueCount = new Map();
+  for (const event of events) byIssueCount.set(event.issueId, (byIssueCount.get(event.issueId) ?? 0) + 1);
+  const maxIssueEvents = Math.max(0, ...byIssueCount.values());
+  if (policy?.problemKey === "stale_recovery_recursion" && maxIssueEvents >= 2) return "concentrated_loop";
+  if (policy?.problemKey === "liveness_escalation" && maxIssueEvents >= 2) return "duplicate_incident";
+  if (policy?.problemKey === "recovery_loop" && maxIssueEvents >= 3) return "recovery_fanout";
+  if (policy?.problemKey === "github_sync_churn" && maxIssueEvents >= 3) return "concentrated_loop";
   if (events.some((event) => CRITICAL_REASONS.has(event.reasonCode))) return "critical_one_off";
   if (issueIds.size >= 2 && events.length >= 3) return "cross_issue_recurrence";
   const byIssue = new Map();
@@ -334,6 +413,273 @@ function thresholdFor(events, policy) {
     return "concentrated_loop";
   }
   return null;
+}
+
+function incidentFingerprint(problemKey, identity) {
+  return `sha256:${hash(["incident-v1", problemKey, ...identity])}`;
+}
+
+function actionId(fingerprint, operation, target) {
+  return `sha256:${hash([fingerprint, operation, JSON.stringify(stableSort(target))])}`;
+}
+
+function issueCancelAction({ companyId, fingerprint, issueId }) {
+  const target = { issueId };
+  return {
+    operation: "paperclip.issue.update",
+    surface: { method: "PATCH", path: `/api/issues/${issueId}` },
+    target,
+    parameters: { status: "cancelled" },
+    preconditions: {
+      method: "GET",
+      path: `/api/issues/${issueId}`,
+      companyId,
+      status: ACTIONABLE_STATUSES,
+    },
+    idempotencyKey: actionId(fingerprint, "paperclip.issue.update", target),
+    onPreconditionFailure: "abort_noop",
+  };
+}
+
+function boardRunCancelApproval({ companyId, fingerprint, issueId, runId, title, reason }) {
+  const target = { issueId, runId };
+  const idempotencyKey = actionId(fingerprint, "paperclip.board.run.cancel", target);
+  return {
+    operation: "paperclip.approval.request",
+    surface: { method: "POST", path: `/api/companies/${companyId}/approvals` },
+    target,
+    parameters: {
+      type: "request_board_approval",
+      payload: {
+        idempotencyKey,
+        title,
+        reason,
+        recommendedBoardAction: {
+          method: "POST",
+          path: `/api/heartbeat-runs/${runId}/cancel`,
+          body: {},
+          preconditions: {
+            method: "GET",
+            path: `/api/heartbeat-runs/${runId}`,
+            companyId,
+            status: ["queued", "running", "scheduled_retry"],
+          },
+        },
+      },
+      issueIds: [issueId],
+    },
+    preflight: {
+      method: "GET",
+      path: `/api/companies/${companyId}/approvals`,
+      absentPayloadIdempotencyKey: idempotencyKey,
+    },
+    idempotencyKey,
+    onPreconditionFailure: "abort_noop",
+  };
+}
+
+function mappingRemovalApproval({ companyId, fingerprint, issueId, mappingId, reason }) {
+  const target = { mappingId, issueId };
+  const idempotencyKey = actionId(fingerprint, "github_sync.mapping.remove", target);
+  return {
+    operation: "paperclip.approval.request",
+    target,
+    surface: { method: "POST", path: `/api/companies/${companyId}/approvals` },
+    parameters: {
+      type: "request_board_approval",
+      payload: {
+        idempotencyKey,
+        title: `Remove GitHub Sync mapping ${mappingId}`,
+        reason,
+        recommendedBoardAction: { operation: "github_sync.mapping.remove", mappingId },
+      },
+      issueIds: [issueId],
+    },
+    preflight: {
+      method: "GET",
+      path: `/api/companies/${companyId}/approvals`,
+      absentPayloadIdempotencyKey: idempotencyKey,
+    },
+    idempotencyKey,
+    onPreconditionFailure: "abort_noop",
+  };
+}
+
+function buildOperationalIncidents(events, companyId) {
+  const incidents = [];
+  const livenessGroups = new Map();
+  const staleGroups = new Map();
+  const recoveryGroups = new Map();
+  const churnGroups = new Map();
+  const add = (map, key, event) => map.set(key, [...(map.get(key) ?? []), event]);
+
+  for (const event of events) {
+    if (event.reasonCode === "liveness_escalation" && event.incidentKey && event.sourceIssueId) {
+      add(livenessGroups, event.incidentKey, event);
+    } else if (event.reasonCode === "stale_recovery_recursion" && event.sourceIssueId && event.rootRunId
+      && event.existingEvaluationIssueId) {
+      add(staleGroups, `${event.sourceIssueId}\u0000${event.rootRunId}`, event);
+    } else if (event.reasonCode === "recovery_action" && event.sourceIssueId && event.rootRunId
+      && event.retryRunId && event.retryCategory && event.errorCode === "adapter_failed") {
+      add(recoveryGroups, `${event.sourceIssueId}\u0000${event.rootRunId}`, event);
+    } else if (event.reasonCode === "github_sync_churn" && event.mappingId && event.remoteFingerprint) {
+      add(churnGroups, `${event.issueId}\u0000${event.mappingId}\u0000${event.remoteFingerprint}`, event);
+    }
+  }
+
+  for (const [incidentKey, group] of livenessGroups) {
+    const issueIds = [...new Set(group.map((event) => event.issueId))].sort();
+    const sourceIds = [...new Set(group.map((event) => event.sourceIssueId))];
+    if (issueIds.length < 2 || sourceIds.length !== 1) continue;
+    const declaredCanonical = [...new Set(group.map((event) => event.existingEvaluationIssueId).filter(Boolean))].sort();
+    const canonicalIssueId = declaredCanonical.find((id) => issueIds.includes(id)) ?? issueIds[0];
+    const duplicateIssueIds = issueIds.filter((id) => id !== canonicalIssueId);
+    const fingerprint = incidentFingerprint("liveness_escalation", [companyId, incidentKey, sourceIds[0]]);
+    incidents.push({
+      fingerprint, problemKey: "liveness_escalation", severity: 4, threshold: "duplicate_incident",
+      incidentKey, sourceIssueId: sourceIds[0], canonicalIssueId, duplicateIssueIds,
+      existingEvaluationIssueId: canonicalIssueId,
+      runIds: [...new Set(group.map((event) => event.runId).filter(Boolean))].sort(),
+      eventCount: group.length, lastAt: [...group].sort(compareEvidenceEvents).at(-1).at,
+      actionManifest: {
+        version: 1, owner: "company_package", maxResponseMinutes: 15,
+        actions: duplicateIssueIds.map((issueId) => issueCancelAction({ companyId, fingerprint, issueId, canonicalIssueId, incidentKey })),
+      },
+    });
+  }
+
+  for (const group of staleGroups.values()) {
+    const evaluationIssueIds = [...new Set(group.map((event) => event.existingEvaluationIssueId))].sort();
+    if (group.length < 2 || evaluationIssueIds.length === 0) continue;
+    const first = group[0];
+    const canonicalIssueId = evaluationIssueIds[0];
+    const duplicateIssueIds = evaluationIssueIds.slice(1);
+    const fingerprint = incidentFingerprint("stale_recovery_recursion", [companyId, first.sourceIssueId, first.rootRunId]);
+    const runTarget = { issueId: first.sourceIssueId, runId: first.rootRunId };
+    incidents.push({
+      fingerprint, problemKey: "stale_recovery_recursion", severity: 4, threshold: "concentrated_loop",
+      sourceIssueId: first.sourceIssueId, rootRunId: first.rootRunId, canonicalIssueId, duplicateIssueIds,
+      existingEvaluationIssueId: canonicalIssueId,
+      evaluationIssueIds, eventCount: group.length, lastAt: [...group].sort(compareEvidenceEvents).at(-1).at,
+      actionManifest: {
+        version: 1, owner: "company_package", maxResponseMinutes: 15,
+        actions: [boardRunCancelApproval({
+          companyId, fingerprint, issueId: first.sourceIssueId, runId: first.rootRunId,
+          title: `Cancel stale recovery run ${first.rootRunId}`,
+          reason: "Contain repeated stale-recovery recursion; run cancellation is Board-only.",
+        }), ...duplicateIssueIds.map((issueId) => issueCancelAction({ companyId, fingerprint, issueId }))],
+      },
+    });
+  }
+
+  for (const group of recoveryGroups.values()) {
+    const runs = [...new Map(group.map((event) => [event.retryRunId, {
+      issueId: event.sourceIssueId,
+      runId: event.retryRunId,
+      retryCategory: event.retryCategory,
+      causeFingerprint: event.causeFingerprint,
+    }])).values()].sort((a, b) => a.retryCategory.localeCompare(b.retryCategory) || a.runId.localeCompare(b.runId));
+    const retryCategories = [...new Set(runs.map((run) => run.retryCategory))].sort();
+    if (runs.length < 2 || retryCategories.length < 2) continue;
+    const first = group[0];
+    const canonical = runs[0];
+    const siblingRuns = runs.slice(1);
+    const fingerprint = incidentFingerprint("recovery_loop", [companyId, first.sourceIssueId, first.rootRunId]);
+    const actions = siblingRuns.map((sibling) => boardRunCancelApproval({
+      companyId,
+      fingerprint,
+      issueId: sibling.issueId,
+      runId: sibling.runId,
+      title: `Cancel duplicate adapter-failure run ${sibling.runId}`,
+      reason: "Contain adapter_failed retry fan-out; run cancellation is Board-only.",
+    }));
+    incidents.push({
+      fingerprint, problemKey: "recovery_loop", severity: 4, threshold: "recovery_fanout",
+      sourceIssueId: first.sourceIssueId, rootRunId: first.rootRunId,
+      canonicalRunId: canonical.runId,
+      runIds: runs.map((run) => run.runId).sort(),
+      retryCategories,
+      causeFingerprints: [...new Set(runs.map((run) => run.causeFingerprint).filter(Boolean))].sort(),
+      siblingRuns, eventCount: group.length, lastAt: [...group].sort(compareEvidenceEvents).at(-1).at,
+      actionManifest: { version: 1, owner: "company_package", maxResponseMinutes: 60, actions },
+    });
+  }
+
+  for (const group of churnGroups.values()) {
+    if (group.length < 3) continue;
+    const first = group[0];
+    const fingerprint = incidentFingerprint("github_sync_churn", [companyId, first.issueId, first.mappingId, first.remoteFingerprint]);
+    const target = { mappingId: first.mappingId, issueId: first.issueId };
+    incidents.push({
+      fingerprint, problemKey: "github_sync_churn", severity: 3, threshold: "concentrated_loop",
+      mappingId: first.mappingId, remoteFingerprint: first.remoteFingerprint, canonicalIssueId: first.issueId,
+      eventCount: group.length, lastAt: [...group].sort(compareEvidenceEvents).at(-1).at,
+      actionManifest: {
+        version: 1, owner: "github_sync_plugin", maxResponseMinutes: 15,
+        actions: [mappingRemovalApproval({
+          companyId, fingerprint, issueId: first.issueId, mappingId: first.mappingId,
+          reason: "No per-mapping pause capability exists; removal is destructive and requires Board approval.",
+        })],
+      },
+    });
+  }
+
+  const liveness = [...incidents].filter((incident) => incident.problemKey === "liveness_escalation");
+  for (const incident of liveness) {
+    const related = events.filter((event) => event.reasonCode === "github_sync_churn" && event.mappingId
+      && [incident.sourceIssueId, incident.canonicalIssueId, ...incident.duplicateIssueIds].includes(event.issueId));
+    const correlated = correlatedCompositeEvents([...related, ...events.filter((event) =>
+      event.reasonCode === "liveness_escalation" && event.incidentKey === incident.incidentKey)]);
+    const churn = correlated.find((event) => event.reasonCode === "github_sync_churn");
+    if (!churn) continue;
+    const fingerprint = incidentFingerprint("github_sync_liveness_escalation", [companyId, incident.incidentKey, churn.mappingId, churn.remoteFingerprint ?? "unknown"]);
+    const target = { mappingId: churn.mappingId, issueId: incident.sourceIssueId };
+    incidents.push({
+      fingerprint, problemKey: "github_sync_liveness_escalation", severity: 4, threshold: "critical_one_off",
+      incidentKey: incident.incidentKey, sourceIssueId: incident.sourceIssueId, canonicalIssueId: incident.canonicalIssueId,
+      mappingId: churn.mappingId, remoteFingerprint: churn.remoteFingerprint,
+      eventCount: correlated.length, lastAt: correlated.at(-1).at,
+      actionManifest: {
+        version: 1, owner: "company_package", maxResponseMinutes: 15,
+        actions: [...incident.actionManifest.actions, mappingRemovalApproval({
+          companyId, fingerprint, issueId: incident.sourceIssueId, mappingId: churn.mappingId,
+          reason: "Composite sync/liveness containment; mapping removal requires Board approval.",
+        })],
+      },
+    });
+  }
+
+  const compositeFingerprints = new Set(incidents.filter((incident) => incident.problemKey === "github_sync_liveness_escalation").map((incident) => incident.fingerprint));
+  const byIssue = new Map();
+  for (const event of events) {
+    if (!["github_sync_churn", "liveness_escalation"].includes(event.reasonCode)) continue;
+    add(byIssue, event.issueId, event);
+  }
+  for (const issueEvents of byIssue.values()) {
+    const correlated = correlatedCompositeEvents(issueEvents);
+    const churn = correlated.find((event) => event.reasonCode === "github_sync_churn" && event.mappingId && event.remoteFingerprint);
+    const escalation = correlated.find((event) => event.reasonCode === "liveness_escalation" && event.incidentKey && event.sourceIssueId);
+    if (!churn || !escalation) continue;
+    const fingerprint = incidentFingerprint("github_sync_liveness_escalation", [companyId, escalation.incidentKey, churn.mappingId, churn.remoteFingerprint]);
+    if (compositeFingerprints.has(fingerprint)) continue;
+    compositeFingerprints.add(fingerprint);
+    const target = { mappingId: churn.mappingId, issueId: escalation.sourceIssueId };
+    incidents.push({
+      fingerprint, problemKey: "github_sync_liveness_escalation", severity: 4, threshold: "critical_one_off",
+      incidentKey: escalation.incidentKey, sourceIssueId: escalation.sourceIssueId,
+      canonicalIssueId: escalation.existingEvaluationIssueId, mappingId: churn.mappingId, remoteFingerprint: churn.remoteFingerprint,
+      eventCount: correlated.length, lastAt: correlated.at(-1).at,
+      actionManifest: {
+        version: 1, owner: "company_package", maxResponseMinutes: 15,
+        actions: [mappingRemovalApproval({
+          companyId, fingerprint, issueId: escalation.sourceIssueId, mappingId: churn.mappingId,
+          reason: "Composite sync/liveness containment; mapping removal requires Board approval.",
+        })],
+      },
+    });
+  }
+
+  return incidents.sort((a, b) => b.severity - a.severity || b.lastAt.localeCompare(a.lastAt) || a.fingerprint.localeCompare(b.fingerprint));
 }
 
 function issueEvidenceRows(events, issueById) {
@@ -356,6 +702,70 @@ function issueEvidenceRows(events, issueById) {
     })
     .sort((a, b) => a.id.localeCompare(b.id))
     .slice(0, MAX_CANDIDATE_ISSUES);
+}
+
+function runUsageTelemetry(issues) {
+  const byRun = new Map();
+  for (const issue of issues ?? []) {
+    for (const row of issue.evidence ?? []) {
+      const runId = row?.runId ?? (row?.resource === "runs" ? row?.id : null);
+      if (!runId || !TERMINAL_RUN_STATUSES.has(row.status)) continue;
+      byRun.set(String(runId), row);
+    }
+  }
+  const rows = [...byRun.entries()].sort(([left], [right]) => left.localeCompare(right));
+  const metricAliases = {
+    inputTokens: ["inputTokens", "input_tokens"],
+    outputTokens: ["outputTokens", "output_tokens"],
+    costUsd: ["costUsd", "cost_usd", "total_cost_usd"],
+  };
+  const metricNames = Object.keys(metricAliases);
+  const knownTotals = Object.fromEntries(metricNames.map((name) => [name, 0]));
+  const knownRunCounts = Object.fromEntries(metricNames.map((name) => [name, 0]));
+  const unknownUsage = Object.fromEntries(metricNames.map((name) => [name, "unknown"]));
+  const runTelemetry = [];
+  let available = 0;
+  for (const [runId, row] of rows) {
+    const usageJson = row.usageJson && typeof row.usageJson === "object" && !Array.isArray(row.usageJson)
+      ? row.usageJson
+      : {};
+    const parsed = {};
+    for (const [metricName, aliases] of Object.entries(metricAliases)) {
+      const candidates = aliases.flatMap((alias) => [row?.[alias], usageJson?.[alias]]);
+      const value = candidates.find((candidate) => (
+        typeof candidate === "number" && Number.isFinite(candidate) && candidate >= 0
+      ));
+      parsed[metricName] = value ?? "unknown";
+      if (value !== undefined) {
+        knownTotals[metricName] += value;
+        knownRunCounts[metricName] += 1;
+      }
+    }
+    if (metricNames.some((name) => parsed[name] !== "unknown")) available += 1;
+    if (runTelemetry.length < MAX_TELEMETRY_RUNS) {
+      runTelemetry.push({ runId: boundedIdentifier(runId, "run"), status: row.status, usage: parsed });
+    }
+  }
+  const unavailable = rows.length - available;
+  const partialTotals = Object.fromEntries(metricNames.map((name) => [
+    name,
+    knownRunCounts[name] > 0 ? knownTotals[name] : "unknown",
+  ]));
+  const completeTotals = Object.fromEntries(metricNames.map((name) => [
+    name,
+    rows.length > 0 && knownRunCounts[name] === rows.length ? knownTotals[name] : "unknown",
+  ]));
+  return {
+    terminalRuns: rows.length,
+    usageAvailableRuns: available,
+    usageUnavailableRuns: unavailable,
+    availability: rows.length === 0 || available === 0 ? "unknown" : unavailable > 0 ? "partial" : "complete",
+    runs: runTelemetry,
+    runsTruncated: rows.length > MAX_TELEMETRY_RUNS,
+    knownRunCounts,
+    knownTotals: rows.length > 0 ? partialTotals : unknownUsage,
+    totals: completeTotals,
+  };
 }
 
 export function analyzeEvidence(input) {
@@ -385,9 +795,14 @@ export function analyzeEvidence(input) {
   const eventsById = new Map();
   const conflictingEventIds = new Set();
   let invalidTimestampCount = 0;
+  let invalidControlOperandCount = 0;
 
   for (const sourceIssue of input.issues ?? []) {
     for (const raw of sourceIssue.evidence ?? []) {
+      if (raw?.invalidControl) {
+        invalidControlOperandCount += 1;
+        continue;
+      }
       if (raw?.invalidTimestamp) {
         invalidTimestampCount += 1;
         continue;
@@ -397,6 +812,10 @@ export function analyzeEvidence(input) {
         issueOriginKind: raw.issueOriginKind ?? sourceIssue.originKind,
         issueSurfaceVisibility: raw.issueSurfaceVisibility ?? sourceIssue.surfaceVisibility,
       }, sourceIssue.id);
+      if (event?.invalidControl) {
+        invalidControlOperandCount += 1;
+        continue;
+      }
       if (event?.invalid) {
         invalidTimestampCount += 1;
         continue;
@@ -413,6 +832,10 @@ export function analyzeEvidence(input) {
       eventsById.set(event.id, event);
     }
   }
+  if (invalidControlOperandCount > 0) {
+    coverage.complete = false;
+    coverage.missing = [...new Set([...coverage.missing, `invalid_control_operands:${invalidControlOperandCount}`])].sort();
+  }
   if (invalidTimestampCount > 0) {
     coverage.complete = false;
     coverage.missing = [...new Set([...coverage.missing, `invalid_event_timestamps:${invalidTimestampCount}`])].sort();
@@ -426,6 +849,19 @@ export function analyzeEvidence(input) {
   for (const event of events) {
     const issue = issueById.get(event.issueId);
     if (issue) issue.evidence.push(event);
+  }
+
+  const incidentSources = new Map();
+  for (const event of events) {
+    if (event.reasonCode !== "liveness_escalation" || !event.incidentKey || !event.sourceIssueId) continue;
+    const sources = incidentSources.get(event.incidentKey) ?? new Set();
+    sources.add(event.sourceIssueId);
+    incidentSources.set(event.incidentKey, sources);
+  }
+  const conflictingIncidentIdentityCount = [...incidentSources.values()].filter((sources) => sources.size > 1).length;
+  if (conflictingIncidentIdentityCount > 0) {
+    coverage.complete = false;
+    coverage.missing = [...new Set([...coverage.missing, `conflicting_incident_identity:${conflictingIncidentIdentityCount}`])].sort();
   }
 
   const allMissingResources = [...new Set(coverage.missing)].sort();
@@ -446,6 +882,8 @@ export function analyzeEvidence(input) {
     asOf: window.end,
     window,
     coverage,
+    ...(input.collection ? { collection: stableSort(input.collection) } : {}),
+    telemetry: runUsageTelemetry(input.issues),
     outcome: "no_change",
     inventory: {
       issueCount: issueRows.length,
@@ -456,6 +894,7 @@ export function analyzeEvidence(input) {
       agentInventoryFingerprint: `sha256:${hash(agentRows.map((agent) => agent.id))}`,
     },
     candidates: [],
+    incidents: [],
     rejected: [],
   };
   if (!coverage.complete) {
@@ -484,10 +923,22 @@ export function analyzeEvidence(input) {
   }
 
   const decisions = decisionMap(input.priorDecisions);
+  base.incidents = buildOperationalIncidents(events, base.companyId).filter((incident) => {
+    const prior = decisions.get(incident.fingerprint);
+    if (!prior) return true;
+    if (ACTIVE_DECISIONS.has(prior.status)) return false;
+    return buildOperationalIncidents(events.filter((event) => event.at > prior.at), base.companyId)
+      .some((fresh) => fresh.fingerprint === incident.fingerprint);
+  });
   for (const { policy, events: unsortedEvents } of groups.values()) {
+    if (OPERATIONAL_PROBLEMS.has(policy.problemKey)) continue;
     const groupEvents = [...unsortedEvents].sort(compareEvidenceEvents);
     const threshold = thresholdFor(groupEvents, policy);
-    const fingerprint = fingerprintFor(policy);
+    const incidentIdentity = `sha256:${hash([
+      ...new Set(groupEvents.map((event) => event.issueId)).values(),
+      ...new Set(groupEvents.map((event) => event.runId).filter(Boolean)).values(),
+    ].sort())}`;
+    const fingerprint = fingerprintFor({ ...policy, incidentIdentity });
     const issueCount = new Set(groupEvents.map((event) => event.issueId)).size;
     const runCount = new Set(groupEvents.map((event) => event.runId).filter(Boolean)).size;
     const common = {
@@ -521,7 +972,11 @@ export function analyzeEvidence(input) {
         continue;
       }
     }
-    base.candidates.push({ ...common, threshold, dedupe: prior ? "recurred_after_decision" : "new" });
+    base.candidates.push({
+      ...common,
+      threshold,
+      dedupe: prior ? "recurred_after_decision" : "new",
+    });
   }
 
   const rank = (a, b) => b.severity - a.severity
@@ -531,14 +986,19 @@ export function analyzeEvidence(input) {
     || a.fingerprint.localeCompare(b.fingerprint);
   base.candidates.sort(rank);
   if (base.candidates.length > 3) {
-    for (const candidate of base.candidates.splice(3)) base.rejected.push({ ...candidate, reasonCode: "proposal_cap" });
+    for (const candidate of base.candidates.splice(3)) {
+      base.rejected.push({ ...candidate, reasonCode: "proposal_cap" });
+    }
   }
   base.rejected.sort(rank);
   if (base.rejected.length > MAX_REJECTED) {
     base.rejectedTruncated = base.rejected.length - MAX_REJECTED;
     base.rejected = base.rejected.slice(0, MAX_REJECTED);
   }
-  base.outcome = base.candidates.length > 0 ? "ranked_candidates" : "no_change";
+  if (base.candidates.length > 0 && base.incidents.length > 0) base.outcome = "ranked_candidates_and_incidents";
+  else if (base.incidents.length > 0) base.outcome = "operational_incidents";
+  else if (base.candidates.length > 0) base.outcome = "ranked_candidates";
+  else base.outcome = "no_change";
   return finalizeReport(base);
 }
 
@@ -629,7 +1089,8 @@ function resourceEvents(rows, issue, resource) {
       issueOriginKind: issue.originKind,
       issueSurfaceVisibility: issue.surfaceVisibility,
     }, issueId);
-    if (event?.invalid) events.push({ id: event.id, issueId, invalidTimestamp: true });
+    if (event?.invalidControl) events.push({ id: event.id, issueId, invalidControl: true });
+    else if (event?.invalid) events.push({ id: event.id, issueId, invalidTimestamp: true });
     else if (event) events.push(event);
   }
   return events;
@@ -649,12 +1110,114 @@ async function mapWithConcurrency(values, limit, mapper) {
   return output;
 }
 
-export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, fetchImpl = fetch }) {
+export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode = "full", fetchImpl = fetch }) {
   if (!baseUrl || !apiKey || !companyId) throw new Error("PAPERCLIP_API_URL, PAPERCLIP_API_KEY, and PAPERCLIP_COMPANY_ID are required.");
-  buildWindow(asOf);
+  const window = buildWindow(asOf);
+  if (!["full", "containment"].includes(mode)) throw new Error("mode must be full or containment.");
   const client = { baseUrl, apiKey, fetchImpl };
   const missing = [];
+  const activityPath = `/api/companies/${encodeURIComponent(companyId)}/activity?entityType=heartbeat_run&limit=500`;
+  let companyActivity = [];
+  try {
+    companyActivity = collectionRows(await apiGet(client, activityPath));
+    if (companyActivity.length >= 500) missing.push("company:heartbeat_run_activity:truncated");
+  } catch {
+    missing.push("company:heartbeat_run_activity");
+  }
+
+  let issueActivity = [];
+  let companyRuns = [];
+  if (mode === "containment") {
+    try {
+      issueActivity = collectionRows(await apiGet(
+        client,
+        `/api/companies/${encodeURIComponent(companyId)}/activity?entityType=issue&limit=500`
+      ));
+      if (issueActivity.length >= 500) missing.push("company:issue_activity:truncated");
+    } catch {
+      missing.push("company:issue_activity");
+    }
+    try {
+      companyRuns = collectionRows(await apiGet(
+        client,
+        `/api/companies/${encodeURIComponent(companyId)}/heartbeat-runs?limit=1000`
+      ));
+      if (companyRuns.length >= 1000) missing.push("company:heartbeat_runs:truncated");
+    } catch {
+      missing.push("company:heartbeat_runs");
+    }
+  }
+
+  const allCompanyActivity = [...companyActivity, ...issueActivity];
+  const activityEvents = allCompanyActivity
+    .map((row) => canonicalEvent({ ...row, resource: "company_activity", source: "company_activity" }))
+    .filter((event) => event && !event.invalid && !event.invalidControl && event.at >= window.start && event.at < window.end);
+
+  if (mode === "containment") {
+    const companyRunIssueId = (run) => {
+      const snapshot = run?.contextSnapshot && typeof run.contextSnapshot === "object"
+        ? run.contextSnapshot
+        : {};
+      return run?.issueId ?? snapshot.issueId;
+    };
+    const issueIds = [...new Set([
+      ...activityEvents.map((event) => event.sourceIssueId ?? event.issueId),
+      ...companyRuns.map(companyRunIssueId),
+    ].filter(Boolean).map(String))].sort();
+    const issues = issueIds.map((issueId) => ({
+      id: issueId,
+      key: issueId,
+      evidence: [
+        ...allCompanyActivity.filter((row) => {
+          const details = row?.details && typeof row.details === "object" ? row.details : {};
+          return String(details.sourceIssueId ?? details.issueId ?? row.issueId ?? row.entityId ?? "") === issueId;
+        }),
+        ...companyRuns
+          .filter((run) => String(companyRunIssueId(run) ?? "") === issueId)
+          .map((run) => ({ ...run, resource: "runs", issueId })),
+      ],
+    }));
+    const report = analyzeEvidence({
+      companyId,
+      asOf,
+      coverage: {
+        complete: missing.length === 0,
+        missing,
+        resources: {
+          heartbeatRunActivity: {
+            complete: !missing.some((entry) => entry.startsWith("company:heartbeat_run_activity")),
+            count: companyActivity.length,
+            reads: 1,
+          },
+          issueActivity: {
+            complete: !missing.some((entry) => entry.startsWith("company:issue_activity")),
+            count: issueActivity.length,
+            reads: 1,
+          },
+          heartbeatRuns: {
+            complete: !missing.some((entry) => entry.startsWith("company:heartbeat_runs")),
+            count: companyRuns.length,
+            reads: 1,
+          },
+        },
+      },
+      agents: [],
+      issues,
+      priorDecisions: [],
+      collection: {
+        mode,
+        companyActivityReads: 2,
+        companyRunReads: 1,
+        issueRunReads: 0,
+        incidentsFound: 0,
+      },
+    });
+    report.collection.incidentsFound = report.incidents.length;
+    return stableSort(report);
+  }
+
   const resources = {
+    companyActivity: { complete: !missing.includes("company:heartbeat_run_activity"), count: companyActivity.length, reads: 1 },
     issues: { complete: false, count: 0, pages: 0 },
     agents: { complete: false, count: 0 },
     issueResources: { resourceCount: RESOURCE_NAMES.length, issuesChecked: 0, readsComplete: 0 },
@@ -681,7 +1244,10 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, fetchI
   const sortedIssues = [...issueList].sort((a, b) => String(a.id).localeCompare(String(b.id)));
   const collectedIssues = await mapWithConcurrency(sortedIssues, COLLECTION_CONCURRENCY, async (issue) => {
     const issueId = String(issue.id);
-    const evidence = [];
+    const evidence = companyActivity.filter((row) => {
+      const details = row?.details && typeof row.details === "object" ? row.details : {};
+      return String(details.sourceIssueId ?? details.issueId ?? row.issueId ?? "") === issueId;
+    });
     const issuePriorDecisions = [];
     resources.issueResources.issuesChecked += 1;
     await Promise.all(RESOURCE_NAMES.map(async (resource) => {
@@ -690,7 +1256,9 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, fetchI
         const rows = collectionRows(body);
         if (collectionHasMore(body)) missing.push(`issue:${issueId}:${resource}:next_page`);
         else resources.issueResources.readsComplete += 1;
-        evidence.push(...resourceEvents(rows, issue, resource));
+        evidence.push(...(resource === "runs"
+          ? rows.map((row) => ({ ...row, issueId, resource: "runs" }))
+          : resourceEvents(rows, issue, resource)));
         if (["documents", "approvals", "interactions", "work-products"].includes(resource)) {
           extractPriorDecisions(body, issuePriorDecisions);
         }
@@ -718,33 +1286,39 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, fetchI
     agents,
     issues,
     priorDecisions,
+    collection: { mode, companyActivityReads: 1, issueRunReads: issueList.length, modelStartRequired: true },
   });
 }
 
 function parseArgs(argv) {
-  const result = { asOf: null };
+  const result = { asOf: null, mode: "full" };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === "--as-of") {
       result.asOf = argv[index + 1] ?? null;
       index += 1;
+    } else if (argv[index] === "--mode") {
+      result.mode = argv[index + 1] ?? null;
+      index += 1;
     } else if (argv[index] === "--help" || argv[index] === "-h") {
-      process.stdout.write("Usage: issue-history-evidence.mjs --as-of <ISO-8601 UTC timestamp>\n");
+      process.stdout.write("Usage: issue-history-evidence.mjs --as-of <ISO-8601 UTC timestamp> [--mode full|containment]\n");
       process.exit(0);
     } else {
       throw new Error(`Unknown argument: ${argv[index]}`);
     }
   }
   if (!result.asOf) throw new Error("--as-of is required; the workflow never infers the evidence boundary.");
+  if (!["full", "containment"].includes(result.mode)) throw new Error("--mode must be full or containment.");
   return result;
 }
 
 async function main() {
-  const { asOf } = parseArgs(process.argv.slice(2));
+  const { asOf, mode } = parseArgs(process.argv.slice(2));
   const report = await collectEvidence({
     baseUrl: process.env.PAPERCLIP_API_URL,
     apiKey: process.env.PAPERCLIP_API_KEY,
     companyId: process.env.PAPERCLIP_COMPANY_ID,
     asOf,
+    mode,
   });
   process.stdout.write(`${JSON.stringify(report)}\n`);
   if (report.outcome === "blocked_incomplete_evidence") process.exitCode = 2;

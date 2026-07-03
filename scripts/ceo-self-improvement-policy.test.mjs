@@ -154,6 +154,42 @@ test("managed Micronaut repo AGENTS.md updates require a PR path", async () => {
   }
 });
 
+test("frequent containment routine is separate from capped monthly improvement discovery", async () => {
+  const source = await readFile(new URL("../.paperclip.yaml", import.meta.url), "utf8");
+  const config = YAML.parse(source);
+  const routine = config.routines?.["frequent-ceo-incident-containment"];
+  assert.equal(routine?.status, "active");
+  assert.equal(routine?.triggers?.[0]?.cronExpression, "17 */2 * * *");
+  assert.equal(routine?.triggers?.[0]?.timezone, "Europe/Madrid");
+
+  const task = await readFile(new URL("../tasks/frequent-ceo-incident-containment/TASK.md", import.meta.url), "utf8");
+  const { frontmatter, body } = parseFrontmatter(task);
+  assert.equal(frontmatter.name, "Frequent CEO Incident Containment");
+  assert.equal(frontmatter.assignee, "ceo");
+  assert.match(body, /incidents[\s\S]{0,300}not.{0,80}(?:top-three|three-proposal|proposal cap)/i);
+  assert.match(body, /actionManifest[\s\S]{0,300}preconditions[\s\S]{0,300}idempotencyKey/i);
+  assert.match(body, /board approval/i);
+  assert.match(body, /--mode containment/i);
+  assert.match(body, /\/api\/companies\/:companyId\/activity\?entityType=heartbeat_run&limit=500/i);
+  assert.match(body, /no incidents[\s\S]{0,180}(?:exit|stop|no-op)/i);
+  assert.match(body, /unknown[\s\S]{0,180}(?:usage|cost)|(?:usage|cost)[\s\S]{0,180}unknown/i);
+  assert.match(body, /never patch Paperclip (?:core|source)|do not patch Paperclip (?:core|source)/i);
+});
+
+test("Paperclip limitations require executable plugin or company-package workarounds", async () => {
+  const ceo = await readFile(new URL("../agents/ceo/AGENTS.md", import.meta.url), "utf8");
+  assert.match(ceo, /actionManifest|operational control/i);
+  assert.match(ceo, /do not patch Paperclip (?:source|core)|never patch Paperclip (?:source|core)/i);
+
+  const skill = await readFile(new URL("../skills/ceo-issue-history/SKILL.md", import.meta.url), "utf8");
+  assert.match(skill, /actionManifest|operational control/i);
+  assert.match(skill, /no per-mapping pause|never claims a pause operation exists/i);
+  assert.match(skill, /distinct retry categories[\s\S]{0,180}real run fields/i);
+  assert.doesNotMatch(skill, /failure signature|recovery lanes|canonical lane/i);
+  assert.match(skill, /same root run|stale recursion/i);
+  assert.match(skill, /do not patch Paperclip source|never patch Paperclip source/i);
+});
+
 test("CEO-opened PRs require CI and review-thread follow-up from the monthly routine", async () => {
   const requiredPaths = [
     "../agents/ceo/AGENTS.md",

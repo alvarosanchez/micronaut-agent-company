@@ -4,12 +4,13 @@ Detailed reference extracted from `micronaut-repo-operations` so the primary ski
 
 ## Internal Operating Routines
 
-This package intentionally keeps internal automation small. It includes one lightweight project, `company-operations`, with six recurring Paperclip routines:
+This package intentionally keeps internal automation small. It includes one lightweight project, `company-operations`, with seven recurring Paperclip routines:
 
 - `monthly-product-discovery`, assigned to `product-manager`
 - `monthly-security-deep-scan`, assigned to `security-engineer`
 - `monthly-user-guide-review`, assigned to `technical-writer`
 - `monthly-guide-topic-discovery`, assigned to `technical-writer`
+- `frequent-ceo-incident-containment`, assigned to `ceo`
 - `monthly-ceo-self-improvement`, assigned to `ceo`
 - `training`, assigned to `ceo`
 
