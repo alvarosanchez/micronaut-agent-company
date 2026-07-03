@@ -117,6 +117,8 @@ const ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN =
   /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}failing CI[\s\S]{0,500}unresolved review feedback[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}target branch[\s\S]{0,500}(?:Micronaut Engineer|make the PR mergeable)[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline|failing CI[\s\S]{0,500}target branch[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline/i;
 const HEALTHY_PR_MAINTAINER_WAIT_PATTERN =
   /(?:open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing[\s\S]{0,320}no actionable unresolved internal review state[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,260}normal maintainer review)|(?:normal maintainer review[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,360}open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing)/i;
+const FINAL_REVIEW_MAINTAINER_WAIT_NORMALIZATION_PATTERN =
+  /intermediate `?status:\s*done`?[\s\S]{0,360}same uninterrupted run[\s\S]{0,300}`?status:\s*in_review`?[\s\S]{0,260}clear the internal assignee and execution policy\/state[\s\S]{0,220}request no agent wake[\s\S]{0,320}(?:Never wake or restart|never wake or restart)[\s\S]{0,100}QA[\s\S]{0,100}Security Engineer[\s\S]{0,100}Code Reviewer/i;
 const COMPANY_ATTACHMENT_LIMIT_PATTERN =
   /attachmentMaxBytes[\s\S]{0,260}10 MiB[\s\S]{0,260}process-level (?:attachment )?cap[\s\S]{0,260}(?:ceiling|final ceiling)|10 MiB[\s\S]{0,260}attachmentMaxBytes[\s\S]{0,260}(?:ceiling|final ceiling)/i;
 const NEW_HIRE_APPROVAL_POLICY_PATTERN =
@@ -793,6 +795,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: HEALTHY_PR_MAINTAINER_WAIT_PATTERN,
     message:
       "Code Reviewer instructions must keep healthy PR maintainer-wait issues in `in_review` with no internal assignee instead of routing another follow-through checkpoint.",
+  },
+  {
+    relativePath: "agents/code-reviewer/AGENTS.md",
+    pattern: FINAL_REVIEW_MAINTAINER_WAIT_NORMALIZATION_PATTERN,
+    message:
+      "Code Reviewer instructions must make final PR approval's intermediate `done` state an immediate, no-wake transition to unassigned `in_review` without restarting completed review stages.",
   },
   {
     relativePath: "agents/micronaut-engineer/AGENTS.md",

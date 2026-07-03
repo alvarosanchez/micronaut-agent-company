@@ -14,7 +14,16 @@ import {
 const AS_OF = "2026-07-01T00:00:00.000Z";
 
 function event(id, issueId, at, reasonCode, runId = null, extra = {}) {
-  return { id, issueId, at, reasonCode, runId, source: "activity", ...extra };
+  return {
+    id,
+    issueId,
+    at,
+    reasonCode,
+    runId,
+    source: "activity",
+    ...(reasonCode === "github_sync_churn" ? { sourcePluginId: "paperclip-github-plugin" } : {}),
+    ...extra,
+  };
 }
 
 function input(events, overrides = {}) {
@@ -89,6 +98,216 @@ test("classifies real Paperclip issue.updated activity for GitHub plugin-operati
 
   assert.equal(report.inventory.eventCount, 4);
   assert.equal(report.candidates.find((candidate) => candidate.problemKey === "github_sync_churn")?.eventCount, 3);
+});
+
+test("classifies structured GitHub Sync regressions on ordinary manual issues", () => {
+  const evidence = [
+    { id: "a1", issueId: "i1", createdAt: "2026-06-10T00:00:00.000Z", action: "issue.updated", details: { pluginKey: "paperclip-github-plugin", status: "in_review", _previous: { status: "done" } } },
+    { id: "a2", issueId: "i2", createdAt: "2026-06-11T00:00:00.000Z", action: "issue.updated", details: { sourcePluginId: "paperclip-github-plugin", status: "todo", reopened: true, reopenedFrom: "done" } },
+    { id: "a3", issueId: "i2", createdAt: "2026-06-12T00:00:00.000Z", action: "issue.updated", contextSource: "github-sync.status-transition", details: { status: "in_progress", _previous: { status: "in_review" } } },
+    { id: "forward", issueId: "i1", createdAt: "2026-06-13T00:00:00.000Z", action: "issue.updated", details: { pluginKey: "paperclip-github-plugin", status: "in_review", _previous: { status: "todo" } } },
+  ];
+  const testInput = input(evidence);
+  testInput.issues = testInput.issues.map((issue) => ({ ...issue, originKind: "manual" }));
+  const report = analyzeEvidence(testInput);
+
+  assert.equal(report.candidates.find((candidate) => candidate.problemKey === "github_sync_churn")?.eventCount, 3);
+});
+
+test("requires exact GitHub Sync provenance namespaces", () => {
+  const testInput = input([
+    {
+      id: "unrelated-plugin",
+      issueId: "i1",
+      createdAt: "2026-06-10T12:00:00.000Z",
+      action: "issue.updated",
+      details: { pluginKey: "not-github", status: "in_review", _previous: { status: "done" } },
+    },
+    {
+      id: "unrelated-escalation",
+      issueId: "i1",
+      createdAt: "2026-06-10T12:05:00.000Z",
+      action: "issue.harness_liveness_escalation_created",
+    },
+    {
+      id: "unrelated-context",
+      issueId: "i2",
+      createdAt: "2026-06-10T13:00:00.000Z",
+      action: "issue.updated",
+      contextSource: "github-actions-unrelated",
+      details: { status: "in_review", _previous: { status: "done" } },
+    },
+    {
+      id: "unrelated-context-escalation",
+      issueId: "i2",
+      createdAt: "2026-06-10T13:05:00.000Z",
+      action: "issue.harness_liveness_escalation_created",
+    },
+    {
+      id: "caller-labelled-churn",
+      issueId: "i2",
+      createdAt: "2026-06-10T14:00:00.000Z",
+      action: "issue.updated",
+      reasonCode: "github_sync_churn",
+      details: { pluginKey: "unrelated-plugin", status: "in_review", _previous: { status: "done" } },
+    },
+    {
+      id: "caller-labelled-escalation",
+      issueId: "i2",
+      createdAt: "2026-06-10T14:05:00.000Z",
+      action: "issue.harness_liveness_escalation_created",
+    },
+  ]);
+  testInput.issues = testInput.issues.map((issue) => ({ ...issue, originKind: "manual" }));
+
+  const report = analyzeEvidence(testInput);
+
+  assert.equal(report.candidates.some((candidate) => candidate.problemKey === "github_sync_churn"), false);
+  assert.equal(report.candidates.some((candidate) => candidate.problemKey === "github_sync_liveness_escalation"), false);
+});
+
+test("promotes a GitHub Sync regression followed by a harness liveness escalation as one critical incident", () => {
+  const testInput = input([
+    {
+      id: "sync-regression",
+      issueId: "i1",
+      createdAt: "2026-06-10T12:25:09.537Z",
+      action: "issue.updated",
+      details: {
+        pluginKey: "paperclip-github-plugin",
+        status: "in_review",
+        _previous: { status: "done" },
+      },
+    },
+    {
+      id: "liveness-escalation",
+      issueId: "i1",
+      createdAt: "2026-06-10T12:28:51.189Z",
+      action: "issue.harness_liveness_escalation_created",
+      details: { reason: "in_review_without_action_path" },
+    },
+    {
+      id: "stale-sync-regression",
+      issueId: "i2",
+      createdAt: "2026-06-09T10:00:00.000Z",
+      action: "issue.updated",
+      details: { pluginKey: "paperclip-github-plugin", status: "in_review", _previous: { status: "done" } },
+    },
+    {
+      id: "uncorrelated-escalation",
+      issueId: "i2",
+      createdAt: "2026-06-10T12:28:51.189Z",
+      action: "issue.harness_liveness_escalation_created",
+      details: { reason: "in_review_without_action_path" },
+    },
+    {
+      id: "later-sync-regression",
+      issueId: "i2",
+      createdAt: "2026-06-10T13:00:00.000Z",
+      action: "issue.updated",
+      details: { contextSource: "github-sync.status-transition", status: "in_review", _previous: { status: "done" } },
+    },
+    {
+      id: "earlier-escalation",
+      issueId: "i2",
+      createdAt: "2026-06-10T12:00:00.000Z",
+      action: "issue.harness_liveness_escalation_created",
+      details: { reason: "in_review_without_action_path" },
+    },
+  ]);
+  testInput.issues = testInput.issues.map((issue) => ({ ...issue, originKind: "manual" }));
+  const report = analyzeEvidence(testInput);
+  const candidate = report.candidates.find((item) => item.problemKey === "github_sync_liveness_escalation");
+
+  assert.equal(candidate?.threshold, "critical_one_off");
+  assert.equal(candidate?.severity, 4);
+  assert.equal(candidate?.issueCount, 1);
+  assert.equal(candidate?.eventCount, 2);
+  assert.deepEqual(candidate?.issues[0]?.eventIds, ["liveness-escalation", "sync-regression"]);
+});
+
+test("does not correlate equal-timestamp churn and escalation events", () => {
+  const at = "2026-06-10T12:00:00.000Z";
+  const report = analyzeEvidence(input([
+    event("z-churn", "i1", at, "github_sync_churn"),
+    event("a-escalation", "i1", at, "liveness_escalation"),
+  ]));
+
+  assert.equal(report.candidates.some((candidate) => candidate.problemKey === "github_sync_liveness_escalation"), false);
+});
+
+test("correlates large composite evidence sets in bounded near-linear time", { timeout: 2_000 }, () => {
+  const baseMs = Date.parse("2026-06-10T12:00:00.000Z");
+  const evidence = [];
+  for (let index = 0; index < 5_000; index += 1) {
+    evidence.push(event(`churn-${index}`, "i1", new Date(baseMs + index).toISOString(), "github_sync_churn"));
+  }
+  for (let index = 0; index < 5_000; index += 1) {
+    evidence.push(event(`escalation-${index}`, "i1", new Date(baseMs + 10_000 + index).toISOString(), "liveness_escalation"));
+  }
+
+  const startedAt = performance.now();
+  const report = analyzeEvidence(input(evidence));
+  const elapsedMs = performance.now() - startedAt;
+  const candidate = report.candidates.find((item) => item.problemKey === "github_sync_liveness_escalation");
+
+  assert.equal(candidate?.eventCount, 10_000);
+  assert.ok(elapsedMs < 2_000, `expected near-linear correlation, took ${elapsedMs.toFixed(0)}ms`);
+});
+
+test("requires a fresh correlated sync-regression and liveness-escalation pair after a terminal decision", () => {
+  const fingerprint = fingerprintFor({
+    category: "integration",
+    problemKey: "github_sync_liveness_escalation",
+    component: "github_sync",
+    targetSurface: "upstream_dependency",
+  });
+  const testInput = input([
+    {
+      id: "old-sync-regression",
+      issueId: "i1",
+      createdAt: "2026-06-10T12:00:00.000Z",
+      action: "issue.updated",
+      details: { pluginKey: "paperclip-github-plugin", status: "in_review", _previous: { status: "done" } },
+    },
+    {
+      id: "old-liveness-escalation",
+      issueId: "i1",
+      createdAt: "2026-06-10T12:05:00.000Z",
+      action: "issue.harness_liveness_escalation_created",
+      details: { reason: "in_review_without_action_path" },
+    },
+    {
+      id: "new-liveness-escalation-only",
+      issueId: "i1",
+      createdAt: "2026-06-10T12:15:00.000Z",
+      action: "issue.harness_liveness_escalation_created",
+      details: { reason: "in_review_without_action_path" },
+    },
+  ], {
+    priorDecisions: [{ fingerprint, status: "implemented", at: "2026-06-10T12:10:00.000Z" }],
+  });
+  const report = analyzeEvidence(testInput);
+
+  assert.equal(report.candidates.some((item) => item.problemKey === "github_sync_liveness_escalation"), false);
+  assert.equal(
+    report.rejected.find((item) => item.problemKey === "github_sync_liveness_escalation")?.reasonCode,
+    "no_post_decision_recurrence"
+  );
+});
+
+test("uses maximum event time for composite incident recency regardless of issue ordering", () => {
+  const raw = [
+    ["new-sync", "i1", "2026-06-20T12:00:00.000Z", "issue.updated", { pluginKey: "paperclip-github-plugin", status: "in_review", _previous: { status: "done" } }],
+    ["new-escalation", "i1", "2026-06-20T12:05:00.000Z", "issue.harness_liveness_escalation_created", { reason: "in_review_without_action_path" }],
+    ["old-sync", "i2", "2026-06-10T12:00:00.000Z", "issue.updated", { pluginKey: "paperclip-github-plugin", status: "in_review", _previous: { status: "done" } }],
+    ["old-escalation", "i2", "2026-06-10T12:05:00.000Z", "issue.harness_liveness_escalation_created", { reason: "in_review_without_action_path" }],
+  ].map(([id, issueId, createdAt, action, details]) => ({ id, issueId, createdAt, action, details }));
+  const report = analyzeEvidence(input(raw));
+  const candidate = report.candidates.find((item) => item.problemKey === "github_sync_liveness_escalation");
+
+  assert.equal(candidate?.lastAt, "2026-06-20T12:05:00.000Z");
+  assert.equal(candidate?.eventCount, 4);
 });
 
 test("same-time prior decisions and bounded references remain deterministic and compact", () => {

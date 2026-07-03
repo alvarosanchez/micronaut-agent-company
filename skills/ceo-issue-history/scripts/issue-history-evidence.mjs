@@ -27,6 +27,8 @@ const CRITICAL_REASONS = new Set([
 const REASON_POLICY = {
   handoff_mismatch: ["workflow", "handoff_mismatch", "paperclip", "company_package", 3],
   github_sync_churn: ["integration", "github_sync_churn", "github_sync", "upstream_dependency", 3],
+  liveness_escalation: ["workflow", "liveness_escalation", "paperclip", "upstream_dependency", 3],
+  github_sync_liveness_escalation: ["integration", "github_sync_liveness_escalation", "github_sync", "upstream_dependency", 4],
   productivity_review: ["workflow", "productivity_loop", "paperclip", "company_package", 3],
   recovery_action: ["workflow", "recovery_loop", "paperclip", "company_package", 3],
   failed: ["execution", "execution_loop", "agent_runtime", "company_package", 2],
@@ -51,6 +53,7 @@ const RESOURCE_NAMES = [
   "work-products",
 ];
 const COLLECTION_CONCURRENCY = 8;
+const COMPOSITE_CORRELATION_MS = 60 * 60 * 1_000;
 
 function stableSort(value) {
   if (Array.isArray(value)) return value.map(stableSort);
@@ -141,7 +144,10 @@ function eventPolicy(reasonCode) {
 }
 
 function canonicalEvent(raw, fallbackIssueId) {
-  const reasonCode = raw.reasonCode ?? inferReasonCode(raw);
+  const suppliedReasonCode = raw.reasonCode;
+  const reasonCode = suppliedReasonCode === "github_sync_churn" && !githubSyncProvenance(raw).matched
+    ? null
+    : suppliedReasonCode ?? inferReasonCode(raw);
   if (!REASON_POLICY[reasonCode]) return null;
   const at = iso(raw.at ?? raw.createdAt ?? raw.updatedAt ?? raw.timestamp ?? raw.startedAt ?? raw.finishedAt);
   if (!at) return { invalid: true, id: String(raw.id ?? "unknown") };
@@ -185,11 +191,42 @@ function evidenceText(raw) {
   return values.filter((value) => typeof value === "string").join(" ").toLowerCase();
 }
 
-function inferReasonCode(raw) {
-  const fields = evidenceText(raw);
+function isGitHubSyncNamespace(value) {
+  if (typeof value !== "string") return false;
+  const normalized = value.trim().toLowerCase();
+  return ["paperclip-github-plugin", "github-sync"].some((namespace) =>
+    normalized === namespace
+      || normalized.startsWith(`${namespace}.`)
+      || normalized.startsWith(`${namespace}:`)
+      || normalized.startsWith(`${namespace}/`));
+}
+
+function githubSyncProvenance(raw) {
   const originKind = String(raw.issueOriginKind ?? "").toLowerCase();
   const details = raw.details && typeof raw.details === "object" ? raw.details : {};
-  const isGitHubPluginIssue = originKind.startsWith("plugin:") && /github/.test(originKind);
+  const isPluginOrigin = originKind.startsWith("plugin:");
+  const pluginProvenance = [
+    raw.pluginKey,
+    raw.sourcePluginKey,
+    raw.sourcePluginId,
+    raw.contextSource,
+    details.pluginKey,
+    details.sourcePluginKey,
+    details.sourcePluginId,
+    details.contextSource,
+  ].filter((value) => typeof value === "string");
+  return {
+    details,
+    matched: (isPluginOrigin && isGitHubSyncNamespace(originKind.slice("plugin:".length)))
+      || pluginProvenance.some(isGitHubSyncNamespace),
+    structured: isPluginOrigin || pluginProvenance.length > 0,
+  };
+}
+
+function inferReasonCode(raw) {
+  const fields = evidenceText(raw);
+  const provenance = githubSyncProvenance(raw);
+  const { details } = provenance;
   const previousStatus = details._previous?.status ?? details.reopenedFrom;
   const currentStatus = details.status;
   const statusRank = new Map([["backlog", 0], ["todo", 1], ["in_progress", 2], ["blocked", 2], ["in_review", 3], ["done", 4], ["cancelled", 4]]);
@@ -197,12 +234,13 @@ function inferReasonCode(raw) {
     && statusRank.has(previousStatus) && statusRank.has(currentStatus)
     && statusRank.get(currentStatus) < statusRank.get(previousStatus);
   const isChurnUpdate = raw.action === "issue.updated" && (details.reopened === true || isStatusRegression);
-  if (isGitHubPluginIssue && isChurnUpdate) return "github_sync_churn";
+  if (provenance.matched && isChurnUpdate) return "github_sync_churn";
+  if (raw.action === "issue.harness_liveness_escalation_created") return "liveness_escalation";
   if (/external.{0,20}write.{0,30}(without|missing).{0,20}approval/.test(fields)) return "external_write_without_approval";
   if (/data.{0,10}loss/.test(fields)) return "data_loss_risk";
   if (/security.{0,20}(control|guard).{0,20}(fail|missing|bypass)/.test(fields)) return "security_control_failure";
   if (/governance.{0,20}(control|guard).{0,20}(fail|missing|bypass)/.test(fields)) return "governance_control_failure";
-  if (/github.{0,20}sync/.test(fields) && /(reopen|churn|status|rerout|oscillat)/.test(fields)) return "github_sync_churn";
+  if (!provenance.structured && /github.{0,20}sync/.test(fields) && /(reopen|churn|status|rerout|oscillat)/.test(fields)) return "github_sync_churn";
   if (/handoff/.test(fields) && /(mismatch|wrong|stale|broken)/.test(fields)) return "handoff_mismatch";
   if (/productivity.?review|high.?churn|no.?comment|long.?active/.test(fields)) return "productivity_review";
   if (/recovery|continuation|resume/.test(fields)) return "recovery_action";
@@ -236,7 +274,52 @@ function decisionMap(priorDecisions) {
   return result;
 }
 
-function thresholdFor(events) {
+function compareEvidenceEvents(a, b) {
+  return a.at.localeCompare(b.at) || a.id.localeCompare(b.id);
+}
+
+function correlatedCompositeEvents(events) {
+  const byIssue = new Map();
+  for (const event of events) {
+    if (!["github_sync_churn", "liveness_escalation"].includes(event.reasonCode)) continue;
+    const bucket = byIssue.get(event.issueId) ?? [];
+    bucket.push(event);
+    byIssue.set(event.issueId, bucket);
+  }
+  const correlated = new Map();
+  for (const issueEvents of byIssue.values()) {
+    const ordered = [...issueEvents].sort(compareEvidenceEvents);
+    const churn = ordered
+      .filter((event) => event.reasonCode === "github_sync_churn")
+      .map((event) => ({ event, atMs: new Date(event.at).getTime() }));
+    const escalations = ordered
+      .filter((event) => event.reasonCode === "liveness_escalation")
+      .map((event) => ({ event, atMs: new Date(event.at).getTime() }));
+
+    let churnStart = 0;
+    let churnEnd = 0;
+    for (const escalation of escalations) {
+      while (churnStart < churn.length && churn[churnStart].atMs < escalation.atMs - COMPOSITE_CORRELATION_MS) churnStart += 1;
+      while (churnEnd < churn.length && churn[churnEnd].atMs < escalation.atMs) churnEnd += 1;
+      if (churnEnd > churnStart) correlated.set(escalation.event.id, escalation.event);
+    }
+
+    let escalationIndex = 0;
+    for (const churnEvent of churn) {
+      while (escalationIndex < escalations.length && escalations[escalationIndex].atMs <= churnEvent.atMs) escalationIndex += 1;
+      if (escalationIndex < escalations.length
+        && escalations[escalationIndex].atMs <= churnEvent.atMs + COMPOSITE_CORRELATION_MS) {
+        correlated.set(churnEvent.event.id, churnEvent.event);
+      }
+    }
+  }
+  return [...correlated.values()].sort(compareEvidenceEvents);
+}
+
+function thresholdFor(events, policy) {
+  if (policy?.problemKey === "github_sync_liveness_escalation") {
+    return correlatedCompositeEvents(events).length >= 2 ? "critical_one_off" : null;
+  }
   const issueIds = new Set(events.map((event) => event.issueId));
   if (events.some((event) => CRITICAL_REASONS.has(event.reasonCode))) return "critical_one_off";
   if (issueIds.size >= 2 && events.length >= 3) return "cross_issue_recurrence";
@@ -390,9 +473,20 @@ export function analyzeEvidence(input) {
     groups.set(key, group);
   }
 
+  const compositePolicy = eventPolicy("github_sync_liveness_escalation");
+  for (const issue of issueRows) {
+    const correlated = correlatedCompositeEvents(issue.evidence);
+    if (correlated.length === 0) continue;
+    const key = candidateKey(compositePolicy);
+    const group = groups.get(key) ?? { policy: compositePolicy, events: [] };
+    group.events.push(...correlated);
+    groups.set(key, group);
+  }
+
   const decisions = decisionMap(input.priorDecisions);
-  for (const { policy, events: groupEvents } of groups.values()) {
-    const threshold = thresholdFor(groupEvents);
+  for (const { policy, events: unsortedEvents } of groups.values()) {
+    const groupEvents = [...unsortedEvents].sort(compareEvidenceEvents);
+    const threshold = thresholdFor(groupEvents, policy);
     const fingerprint = fingerprintFor(policy);
     const issueCount = new Set(groupEvents.map((event) => event.issueId)).size;
     const runCount = new Set(groupEvents.map((event) => event.runId).filter(Boolean)).size;
@@ -421,7 +515,7 @@ export function analyzeEvidence(input) {
     }
     if (prior?.at && ["implemented", "rejected", "no_change", "not_worthwhile"].includes(prior.status)) {
       const freshEvents = groupEvents.filter((event) => event.at > prior.at);
-      const freshThreshold = thresholdFor(freshEvents);
+      const freshThreshold = thresholdFor(freshEvents, policy);
       if (!freshThreshold) {
         base.rejected.push({ ...common, threshold, reasonCode: "no_post_decision_recurrence" });
         continue;

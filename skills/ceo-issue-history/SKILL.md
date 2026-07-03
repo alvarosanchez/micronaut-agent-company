@@ -27,7 +27,9 @@ Eligibility is objective:
 
 - `cross_issue_recurrence`: at least two distinct issues and three events;
 - `concentrated_loop`: at least three failed, blocked, or changes-requested events on one issue across at least two run IDs;
-- `critical_one_off`: one concrete governance, security, data-loss, or unapproved external-write control failure.
+- `critical_one_off`: one concrete governance, security, data-loss, unapproved external-write control failure, or one issue where a structured GitHub Sync regression is followed by a harness liveness escalation.
+
+GitHub Sync attribution uses exact allowlisted structured provenance namespaces (`paperclip-github-plugin` or `github-sync` in `pluginKey`, source plugin fields, or `contextSource`) as well as exact plugin-origin namespaces; unrelated strings that merely contain `github` do not qualify, and caller-supplied `github_sync_churn` labels cannot bypass the provenance check. A normal manually created issue remains attributable when GitHub Sync later mutates it. The collector correlates a liveness escalation with a strictly earlier sync regression on that same issue within one hour into one bounded candidate using chronologically ordered near-linear matching; equal-timestamp, stale, or reverse-ordered events do not qualify. After a terminal decision, recurrence requires an entirely fresh correlated pair rather than one new half of an old incident. Composite recency is the maximum event timestamp, independent of issue enumeration order. It does not require unrelated incidents to recur before surfacing the control-loop failure.
 
 Duplicate event IDs count once. Prior active fingerprints are suppressed. Implemented, rejected, or no-change decisions need a fresh post-decision threshold. Ranking is severity, distinct issue count, event count, recency, then fingerprint; the cap of three is applied after deduplication.
 
