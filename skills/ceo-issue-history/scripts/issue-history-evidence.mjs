@@ -196,9 +196,9 @@ function canonicalEvent(raw, fallbackIssueId) {
   };
   const operandValid = (value) => typeof value === "string" && value.length > 0 && value.length <= MAX_IDENTIFIER
     && /^[A-Za-z0-9][A-Za-z0-9_.:/@#-]*$/.test(value);
-  if (result.runId != null && !operandValid(result.runId)) return { invalidControl: true, id };
+  if (result.runId != null && !operandValid(result.runId)) return { invalidControl: true, id, at };
   if (OPERATIONAL_PROBLEMS.has(eventPolicy(reasonCode)?.problemKey) && !operandValid(result.issueId)) {
-    return { invalidControl: true, id };
+    return { invalidControl: true, id, at };
   }
   const aliases = {
     incidentKey: ["incidentKey"],
@@ -215,10 +215,10 @@ function canonicalEvent(raw, fallbackIssueId) {
       result[field] = null;
       continue;
     }
-    if (!operandValid(value)) return { invalidControl: true, id };
+    if (!operandValid(value)) return { invalidControl: true, id, at };
     result[field] = value;
   }
-  if (raw.retryOfRunId != null && !operandValid(raw.retryOfRunId)) return { invalidControl: true, id };
+  if (raw.retryOfRunId != null && !operandValid(raw.retryOfRunId)) return { invalidControl: true, id, at };
   result.sourceIssueId ??= typeof context.issueId === "string" ? context.issueId : result.issueId;
   result.rootRunId = raw.retryOfRunId == null ? (result.rootRunId ?? result.runId) : raw.retryOfRunId;
   result.retryRunId = reasonCode === "recovery_action" ? (result.retryRunId ?? result.runId) : result.retryRunId;
@@ -800,10 +800,15 @@ export function analyzeEvidence(input) {
   const conflictingEventIds = new Set();
   let invalidTimestampCount = 0;
   let invalidControlOperandCount = 0;
+  const outsideWindow = (value) => {
+    const at = iso(value);
+    return at != null && (at < window.start || at >= window.end);
+  };
 
   for (const sourceIssue of input.issues ?? []) {
     for (const raw of sourceIssue.evidence ?? []) {
       if (raw?.invalidControl) {
+        if (outsideWindow(raw.at)) continue;
         invalidControlOperandCount += 1;
         continue;
       }
@@ -817,6 +822,7 @@ export function analyzeEvidence(input) {
         issueSurfaceVisibility: raw.issueSurfaceVisibility ?? sourceIssue.surfaceVisibility,
       }, sourceIssue.id);
       if (event?.invalidControl) {
+        if (outsideWindow(event.at)) continue;
         invalidControlOperandCount += 1;
         continue;
       }
@@ -935,6 +941,7 @@ export function analyzeEvidence(input) {
       .some((fresh) => fresh.fingerprint === incident.fingerprint);
   });
   if (mode === "containment") {
+    if (base.collection) base.collection.incidentsFound = base.incidents.length;
     base.outcome = base.incidents.length > 0 ? "operational_incidents" : "no_change";
     return finalizeReport(base);
   }
@@ -1097,7 +1104,7 @@ function resourceEvents(rows, issue, resource) {
       issueOriginKind: issue.originKind,
       issueSurfaceVisibility: issue.surfaceVisibility,
     }, issueId);
-    if (event?.invalidControl) events.push({ id: event.id, issueId, invalidControl: true });
+    if (event?.invalidControl) events.push({ id: event.id, issueId, at: event.at, invalidControl: true });
     else if (event?.invalid) events.push({ id: event.id, issueId, invalidTimestamp: true });
     else if (event) events.push(event);
   }
@@ -1288,7 +1295,6 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode =
         incidentsFound: 0,
       },
     });
-    report.collection.incidentsFound = report.incidents.length;
     return stableSort(report);
   }
 
@@ -1325,7 +1331,7 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode =
   const sortedIssues = [...issueList].sort((a, b) => String(a.id).localeCompare(String(b.id)));
   const collectedIssues = await mapWithConcurrency(sortedIssues, COLLECTION_CONCURRENCY, async (issue) => {
     const issueId = String(issue.id);
-    const evidence = companyActivity.filter((row) => {
+    const evidence = validWindowCompanyActivity.filter((row) => {
       const details = row?.details && typeof row.details === "object" ? row.details : {};
       return String(details.sourceIssueId ?? details.issueId ?? row.issueId ?? "") === issueId;
     });

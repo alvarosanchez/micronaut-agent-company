@@ -316,6 +316,23 @@ test("uses incident-specific decision fingerprints and fails closed on malformed
   assert.match(blocked.coverage.missing.join(" "), /invalid_control_operands/);
 });
 
+test("full mode ignores invalid control operands outside its 30-day window", () => {
+  const report = analyzeEvidence(input([
+    {
+      id: "stale-invalid",
+      issueId: "i1",
+      action: "issue.harness_liveness_escalation_created",
+      createdAt: "2026-05-01T00:00:00.000Z",
+      runId: `run-${"x".repeat(200)}`,
+      details: { incidentKey: "stale-incident", sourceIssueId: "i1", escalationIssueId: "i1" },
+    },
+  ]));
+
+  assert.equal(report.outcome, "no_change");
+  assert.equal(report.coverage.complete, true);
+  assert.equal(report.coverage.missing.some((item) => item.startsWith("invalid_control_operands:")), false);
+});
+
 test("fails closed on conflicting incident identity and unbounded operational run IDs", () => {
   const conflicting = [
     event("a", "eval-a", "2026-06-10T00:00:00.000Z", "liveness_escalation", "run-a", { incidentKey: "same", sourceIssueId: "source-a", existingEvaluationIssueId: "eval-a" }),
@@ -811,6 +828,44 @@ test("containment collector reads bounded company activity and run surfaces with
   assert.equal(report.collection.mode, "containment");
   assert.equal(report.collection.incidentsFound, 0);
   assert.deepEqual(report.telemetry.totals, { costUsd: "unknown", inputTokens: "unknown", outputTokens: "unknown" });
+});
+
+test("containment incident storms return the bounded fail-closed report instead of crashing", async () => {
+  const issueActivity = Array.from({ length: 80 }, (_, index) => {
+    const incident = Math.floor(index / 2);
+    const duplicate = index % 2;
+    return {
+      id: `storm-${index}`,
+      action: "issue.harness_liveness_escalation_created",
+      entityType: "issue",
+      entityId: `eval-${incident}-${duplicate}`,
+      createdAt: new Date(Date.parse("2026-06-30T23:00:00.000Z") - index).toISOString(),
+      runId: `run-${incident}-${duplicate}`,
+      details: {
+        incidentKey: `incident-${incident}`,
+        sourceIssueId: `source-${incident}`,
+        escalationIssueId: `eval-${incident}-${duplicate}`,
+      },
+    };
+  });
+  const report = await collectEvidence({
+    baseUrl: "https://paperclip.invalid",
+    apiKey: "test-key",
+    companyId: "company-1",
+    asOf: AS_OF,
+    mode: "containment",
+    fetchImpl: async (url) => {
+      const path = new URL(url).pathname + new URL(url).search;
+      if (path === "/api/companies/company-1/activity?entityType=issue&limit=500") {
+        return Response.json(issueActivity);
+      }
+      return Response.json([]);
+    },
+  });
+
+  assert.equal(report.outcome, "blocked_incomplete_evidence");
+  assert.deepEqual(report.coverage.missing, ["report_output_limit"]);
+  assert.equal(Buffer.byteLength(JSON.stringify(report), "utf8") <= 32 * 1024, true);
 });
 
 test("collector observes heartbeat-run stale recursion, dedupes activity, and reads only implicated issue runs", async () => {
