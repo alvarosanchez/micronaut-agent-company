@@ -17,14 +17,14 @@ const AGENT_DISPLAY_NAMES = {
 
 const HERMES_CHAT_COMMAND = "/usr/local/bin/hermes-paperclip";
 const PRIMARY_MODEL_CONFIG = {
-  ceo: { model: "gpt-5.6-terra", reasoningEffort: "medium" },
-  "product-manager": { model: "gpt-5.6-terra", reasoningEffort: "high" },
-  architect: { model: "gpt-5.6-sol", reasoningEffort: "high" },
-  "qa-engineer": { model: "gpt-5.6-terra", reasoningEffort: "high" },
-  "security-engineer": { model: "gpt-5.6-sol", reasoningEffort: "high" },
-  "micronaut-engineer": { model: "gpt-5.6-sol", reasoningEffort: "high" },
-  "code-reviewer": { model: "gpt-5.6-sol", reasoningEffort: "high" },
-  "technical-writer": { model: "gpt-5.6-luna", reasoningEffort: "medium" },
+  ceo: { model: "gpt-5.6-terra" },
+  "product-manager": { model: "gpt-5.6-terra" },
+  architect: { model: "gpt-5.6-sol" },
+  "qa-engineer": { model: "gpt-5.6-terra" },
+  "security-engineer": { model: "gpt-5.6-sol" },
+  "micronaut-engineer": { model: "gpt-5.6-sol" },
+  "code-reviewer": { model: "gpt-5.6-sol" },
+  "technical-writer": { model: "gpt-5.6-luna" },
 };
 
 async function read(relativePath) {
@@ -47,13 +47,9 @@ test("README runtime defaults match the package built-in Hermes adapter settings
     assert.equal(config.hermesCommand, HERMES_CHAT_COMMAND, `${agentSlug} must select the dedicated Hermes paperclip chat command.`);
     assert.equal(config.provider, "openai-codex", `${agentSlug} must use the configured Hermes provider.`);
     assert.equal(config.model, expected.model, `${agentSlug} must use the configured primary Hermes model.`);
-    assert.deepEqual(
-      config.extraArgs,
-      ["--reasoning-effort", expected.reasoningEffort],
-      `${agentSlug} must set its configured Hermes reasoning effort.`,
-    );
+    assert.equal(config.extraArgs, undefined, `${agentSlug} must not pass unsupported Hermes CLI flags.`);
     assert.ok(
-      readme.includes("- " + displayName + ": `hermes_local` via `" + HERMES_CHAT_COMMAND + "`, `" + expected.model + "`, reasoning effort `" + expected.reasoningEffort + "`"),
+      readme.includes("- " + displayName + ": `hermes_local` via `" + HERMES_CHAT_COMMAND + "`, `" + expected.model + "`"),
       `README should document ${displayName} built-in Hermes command/model defaults.`,
     );
   }
