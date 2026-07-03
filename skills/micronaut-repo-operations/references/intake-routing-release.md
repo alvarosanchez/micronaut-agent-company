@@ -40,6 +40,7 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 
 ## Closure Dispositions
 
+- Deduplicate against open and closed GitHub issues in the same repository. For closed candidates, inspect why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence, before deciding whether they supersede the current report.
 - `already-implemented` (closure disposition, not a GitHub `type:` label): QA may close the issue directly once it documents the exact version, PR, release, or documentation evidence in a detailed, evidence-rich closure comment and uses GitHub's native `Close as not planned` reason instead of `Close as completed`.
 - `duplicate` (closure disposition, not a GitHub `type:` label): QA may close the issue directly with `closed: duplicate`, GitHub's native `Close as duplicate` reason, a detailed, evidence-rich closure comment that explains why the superseding issue fully covers the report, and a link to the superseding GitHub issue for traceability.
 - `linked contributor PR needs replacement` (operating situation, not a GitHub `type:` label): QA documents why the imported PR is not salvageable, leaves that contributor PR open, and still routes the issue through the normal implementation stages toward a separate maintainer-owned PR.

@@ -224,6 +224,13 @@ routines:
         label: Monthly Guide Topic Discovery
         cronExpression: "0 1 15 * *"
         timezone: Europe/Madrid
+  frequent-ceo-incident-containment:
+    status: active
+    triggers:
+      - kind: schedule
+        label: Frequent CEO Incident Containment
+        cronExpression: "17 */2 * * *"
+        timezone: Europe/Madrid
   monthly-ceo-self-improvement:
     status: active
     triggers:

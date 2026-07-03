@@ -6,6 +6,14 @@ async function readRepoFile(relativePath) {
   return readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 }
 
+async function readOrganizationProjectPolicy() {
+  return (await Promise.all([
+    readRepoFile("skills/micronaut-repo-operations/references/intake-routing-release.md"),
+    readRepoFile("skills/micronaut-repo-operations/references/pr-delivery-evidence.md"),
+    readRepoFile("skills/micronaut-github-operations/SKILL.md"),
+  ])).join("\n");
+}
+
 test("README keeps organization-project linkage advisory instead of blocking", async () => {
   const readme = await readRepoFile("README.md");
 
@@ -40,7 +48,7 @@ test("runtime instructions keep organization-project linkage best effort", async
   const codeReviewer = await readRepoFile("agents/code-reviewer/AGENTS.md");
   const micronautEngineer = await readRepoFile("agents/micronaut-engineer/AGENTS.md");
   const qualityGates = await readRepoFile("skills/micronaut-quality-gates/SKILL.md");
-  const repoOperations = await readRepoFile("skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await readOrganizationProjectPolicy();
 
   assert.doesNotMatch(
     codeReviewer,
@@ -144,7 +152,7 @@ test("organization-project selection can require GA plus prerelease boards", asy
     "agents/qa-engineer/AGENTS.md",
     "agents/code-reviewer/AGENTS.md",
     "agents/micronaut-engineer/AGENTS.md",
-    "skills/micronaut-repo-operations/SKILL.md",
+    "skills/micronaut-repo-operations/references/pr-delivery-evidence.md",
     "skills/micronaut-quality-gates/SKILL.md",
   ];
 
@@ -169,7 +177,7 @@ test("PRs must receive all selected organization-project links when tooling can 
     "README.md",
     "agents/code-reviewer/AGENTS.md",
     "agents/micronaut-engineer/AGENTS.md",
-    "skills/micronaut-repo-operations/SKILL.md",
+    "skills/micronaut-repo-operations/references/pr-delivery-evidence.md",
     "skills/micronaut-quality-gates/SKILL.md",
   ];
 
@@ -195,7 +203,7 @@ test("maintainer project retargeting is authoritative after PR creation", async 
     "COMPANY.md",
     "agents/code-reviewer/AGENTS.md",
     "agents/micronaut-engineer/AGENTS.md",
-    "skills/micronaut-repo-operations/SKILL.md",
+    "skills/micronaut-repo-operations/references/pr-delivery-evidence.md",
     "skills/micronaut-quality-gates/SKILL.md",
   ];
 

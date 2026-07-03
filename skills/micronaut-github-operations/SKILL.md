@@ -65,7 +65,7 @@ Use this shared skill for repeated GitHub rules that apply across Micronaut comp
 ## Review Threads
 
 - Do not silently resolve review threads.
-- Reply first with the decision, such as committed the requested change, not applicable, or disagreement with the feedback.
+- Reply to every review thread with the decision—such as committed the requested change, not applicable, or disagreement with the feedback—before resolving it.
 - Resolve the thread only after that reply when the thread is settled.
 - Use `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` for review-thread state.
 

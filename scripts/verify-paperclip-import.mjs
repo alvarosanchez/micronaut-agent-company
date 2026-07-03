@@ -117,6 +117,8 @@ const ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN =
   /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}failing CI[\s\S]{0,500}unresolved review feedback[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}target branch[\s\S]{0,500}(?:Micronaut Engineer|make the PR mergeable)[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline|failing CI[\s\S]{0,500}target branch[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline/i;
 const HEALTHY_PR_MAINTAINER_WAIT_PATTERN =
   /(?:open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing[\s\S]{0,320}no actionable unresolved internal review state[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,260}normal maintainer review)|(?:normal maintainer review[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,360}open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing)/i;
+const FINAL_REVIEW_MAINTAINER_WAIT_NORMALIZATION_PATTERN =
+  /intermediate `?status:\s*done`?[\s\S]{0,360}same uninterrupted run[\s\S]{0,300}`?status:\s*in_review`?[\s\S]{0,260}clear the internal assignee and execution policy\/state[\s\S]{0,220}request no agent wake[\s\S]{0,320}(?:Never wake or restart|never wake or restart)[\s\S]{0,100}QA[\s\S]{0,100}Security Engineer[\s\S]{0,100}Code Reviewer/i;
 const COMPANY_ATTACHMENT_LIMIT_PATTERN =
   /attachmentMaxBytes[\s\S]{0,260}10 MiB[\s\S]{0,260}process-level (?:attachment )?cap[\s\S]{0,260}(?:ceiling|final ceiling)|10 MiB[\s\S]{0,260}attachmentMaxBytes[\s\S]{0,260}(?:ceiling|final ceiling)/i;
 const NEW_HIRE_APPROVAL_POLICY_PATTERN =
@@ -468,7 +470,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "Monthly CEO self-improvement task must include productivity review queue-health work.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern: PRODUCTIVITY_REVIEW_PATTERN,
     message:
       "Repo operations must explain Paperclip productivity review issues.",
@@ -545,33 +547,33 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "QA instructions must explain that organization-project selection is limited to open, public Micronaut projects (`is:open is:public`).",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/intake-routing-release.md",
     pattern:
       /If the current default branch has never been released[\s\S]*type:\s*bug[\s\S]*type:\s*improvement[\s\S]*type:\s*enhancement/i,
     message:
       "Repo operations must explain what kinds of work an unreleased default branch may accept.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/intake-routing-release.md",
     pattern:
       /If the current default branch has already been released[\s\S]*type:\s*bug[\s\S]*type:\s*improvement[\s\S]*docs,\s*CI,\s*or build-only/i,
     message:
       "Repo operations must explain what kinds of work an already-released default branch may accept.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
     message:
       "Shared repo operations guidance must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern: ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN,
     message:
       "Shared repo operations guidance must explain that failing PR CI or unresolved review feedback is actionable PR follow-through even when the failure also reproduces on the target branch.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/intake-routing-release.md",
     pattern:
       /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
     message:
@@ -585,19 +587,19 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "Quality gates must explain that milestones and release candidates are GitHub prereleases and do not count as the default branch having already shipped.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/intake-routing-release.md",
     pattern: GITHUB_NOT_PLANNED_CLOSE_PATTERN,
     message:
       "Repo operations must explain that direct non-duplicate QA closures use native `Close as not planned` instead of `Close as completed`.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/intake-routing-release.md",
     pattern: CLOSED_ISSUE_DEDUP_REASONING_PATTERN,
     message:
       "Repo operations must require QA deduplication against open and closed GitHub issues and review why closed issues were closed.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/intake-routing-release.md",
     pattern: GITHUB_DUPLICATE_CLOSE_PATTERN,
     message:
       "Repo operations must explain that duplicate closures use native `Close as duplicate` and link the superseding GitHub issue.",
@@ -621,7 +623,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "Quality gates must explain that duplicate closures use native `Close as duplicate` and link the superseding GitHub issue.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/intake-routing-release.md",
     pattern: EVIDENCE_RICH_CLOSURE_COMMENT_PATTERN,
     message:
       "Repo operations must require GitHub closure comments to cite exact evidence and not be short generic close notes.",
@@ -633,13 +635,13 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "Quality gates must explain that GitHub closure comments contain detailed evidence and are not short generic close notes.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-github-operations/SKILL.md",
     pattern: REVIEW_THREAD_REPLY_POLICY_PATTERN,
     message:
       "Repo operations must explain that review threads get decision-explaining replies before they are resolved.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-github-operations/SKILL.md",
     pattern: REVIEW_THREAD_REPLY_TOOLING_PATTERN,
     message:
       "Repo operations must explain that `reply_to_review_thread` is used before `resolve_review_thread` and silent resolves are not allowed.",
@@ -651,7 +653,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "Quality gates must explain that review threads get decision-explaining replies before they are resolved.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/intake-routing-release.md",
     pattern:
       /Do not invent or create another target branch during triage/i,
     message:
@@ -795,6 +797,12 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "Code Reviewer instructions must keep healthy PR maintainer-wait issues in `in_review` with no internal assignee instead of routing another follow-through checkpoint.",
   },
   {
+    relativePath: "agents/code-reviewer/AGENTS.md",
+    pattern: FINAL_REVIEW_MAINTAINER_WAIT_NORMALIZATION_PATTERN,
+    message:
+      "Code Reviewer instructions must make final PR approval's intermediate `done` state an immediate, no-wake transition to unassigned `in_review` without restarting completed review stages.",
+  },
+  {
     relativePath: "agents/micronaut-engineer/AGENTS.md",
     pattern: HEALTHY_PR_MAINTAINER_WAIT_PATTERN,
     message:
@@ -905,7 +913,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "QA instructions must require separate `qa-intake` and `qa-verification` issue documents for intake and verification.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern:
       /qa-intake[\s\S]*qa-verification|qa-verification[\s\S]*qa-intake/i,
     message:
@@ -970,44 +978,44 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "README.md must explain that execution workspaces are live runtime surfaces and heartbeats do not auto-start workspace services.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern:
       /execution workspace[\s\S]*auto-start|project workspace services[\s\S]*do not auto-start|do not auto-start[\s\S]*project workspace services/i,
     message:
       "Shared repo operations guidance must explain that project and execution workspace services stay manual and are not auto-started by heartbeats.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern: SINGLE_ASSIGNEE_GOVERNANCE_PATTERN,
     message:
       "Shared repo operations guidance must explain that issues stay single-assignee and approvals are not a second assignee.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern: CHECKOUT_RECOVERY_PATTERN,
     message:
       "Shared repo operations guidance must explain checkout-backed agent `in_progress` work and stranded-work recovery.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern: PARENT_BLOCKER_PATTERN,
     message:
       "Shared repo operations guidance must explain that `parentId` is structural and `blockedByIssueIds` carries dependency semantics.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern: ISSUE_THREAD_INTERACTION_PATTERN,
     message:
       "Shared repo operations guidance must explain Paperclip issue-thread interactions for suggested tasks, structured questions, and request-confirmation cards.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern: PLAN_CONFIRMATION_PATTERN,
     message:
       "Shared repo operations guidance must explain plan confirmation through a `request_confirmation` interaction with idempotency and continuation policy.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern: ENVIRONMENT_RUNTIME_PATTERN,
     message:
       "Shared repo operations guidance must explain Paperclip environments as live runtime configuration and mention sandbox provider installation when needed.",
@@ -1031,7 +1039,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "QA instructions must use ask-user-questions interactions for bounded maintainer input.",
   },
   {
-    relativePath: "skills/micronaut-repo-operations/SKILL.md",
+    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern:
       /inbox-lite[\s\S]*in_review|in_review[\s\S]*inbox-lite/i,
     message:
@@ -2301,6 +2309,21 @@ async function main() {
         `Paperclip catalog metadata mismatch for skill ${expectedSkill.slug}`,
       );
       assertExportedBody(exportResult.files, actualSkill.path, expectedSkill.body);
+      if (expectedSkill.slug === "ceo-issue-history") {
+        const exportedScriptPath = path.posix.join(
+          path.posix.dirname(actualSkill.path),
+          "scripts/issue-history-evidence.mjs",
+        );
+        const expectedScript = await readFile(
+          path.join(repoRoot, "skills", expectedSkill.slug, "scripts", "issue-history-evidence.mjs"),
+          "utf8",
+        );
+        assert.equal(
+          getTextFile(exportResult.files, exportedScriptPath),
+          expectedScript,
+          "CEO issue-history collector must survive package import/export unchanged",
+        );
+      }
     }
 
     assert.equal(exportResult.manifest.projects.length, expected.projects.size);

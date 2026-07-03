@@ -22,7 +22,7 @@ test("README assigns release targeting to QA instead of Architect", async () => 
 });
 
 test("repo operations encode current-default-branch SemVer policy", async () => {
-  const repoOperations = await readRepoFile("skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await readRepoFile("skills/micronaut-repo-operations/references/intake-routing-release.md");
 
   assert.match(
     repoOperations,
@@ -53,7 +53,7 @@ test("release targeting is based on next-release SemVer delta, not default branc
   const architect = await readRepoFile("agents/architect/AGENTS.md");
   const codeReviewer = await readRepoFile("agents/code-reviewer/AGENTS.md");
   const micronautEngineer = await readRepoFile("agents/micronaut-engineer/AGENTS.md");
-  const repoOperations = await readRepoFile("skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await readRepoFile("skills/micronaut-repo-operations/references/intake-routing-release.md");
   const qualityGates = await readRepoFile("skills/micronaut-quality-gates/SKILL.md");
 
   assert.match(
@@ -102,7 +102,7 @@ test("release targeting is based on next-release SemVer delta, not default branc
     ["agents/qa-engineer/AGENTS.md", qa],
     ["agents/code-reviewer/AGENTS.md", codeReviewer],
     ["agents/micronaut-engineer/AGENTS.md", micronautEngineer],
-    ["skills/micronaut-repo-operations/SKILL.md", repoOperations],
+    ["skills/micronaut-repo-operations/references/intake-routing-release.md", repoOperations],
     ["skills/micronaut-quality-gates/SKILL.md", qualityGates],
   ]) {
     assert.match(
@@ -139,7 +139,7 @@ test("release targeting treats milestones and release candidates as prereleases"
   const company = await readRepoFile("COMPANY.md");
   const qa = await readRepoFile("agents/qa-engineer/AGENTS.md");
   const architect = await readRepoFile("agents/architect/AGENTS.md");
-  const repoOperations = await readRepoFile("skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await readRepoFile("skills/micronaut-repo-operations/references/intake-routing-release.md");
   const qualityGates = await readRepoFile("skills/micronaut-quality-gates/SKILL.md");
 
   assert.match(

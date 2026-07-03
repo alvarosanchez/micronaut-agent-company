@@ -78,7 +78,7 @@ test("guidance preserves normal delivery work as standard-mode issue work", asyn
     "../agents/architect/AGENTS.md",
     "../agents/product-manager/AGENTS.md",
     "../skills/product-discovery/SKILL.md",
-    "../skills/micronaut-repo-operations/SKILL.md",
+    "../skills/micronaut-repo-operations/references/workflow-control-plane.md",
   ];
 
   for (const relativePath of requiredPaths) {
@@ -148,7 +148,7 @@ test("guidance converts accepted plans through Paperclip accepted-plan decomposi
     "../README.md",
     "../COMPANY.md",
     "../agents/architect/AGENTS.md",
-    "../skills/micronaut-repo-operations/SKILL.md",
+    "../skills/micronaut-repo-operations/references/workflow-control-plane.md",
     "../tasks/verify-imported-company-instance/TASK.md",
   ];
 
@@ -196,7 +196,7 @@ test("operating guidance handles productivity review issues as first-class queue
     "../agents/ceo/AGENTS.md",
     "../tasks/monthly-ceo-self-improvement/TASK.md",
     "../tasks/verify-imported-company-instance/TASK.md",
-    "../skills/micronaut-repo-operations/SKILL.md",
+    "../skills/micronaut-repo-operations/references/workflow-control-plane.md",
     "../skills/micronaut-quality-gates/SKILL.md",
   ];
 

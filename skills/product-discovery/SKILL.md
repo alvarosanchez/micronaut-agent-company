@@ -5,13 +5,13 @@ description: Run Product Manager discovery as either a coordinator routine that 
 
 # Product Discovery
 
-Use this skill whenever Product Manager is handling Weekly Product Discovery or a project-specific product-discovery child issue.
+Use this skill whenever Product Manager is handling monthly-product-discovery or a project-specific product-discovery child issue.
 
 ## Modes
 
 First decide which mode you are in:
 
-- Coordinator mode: the parent Weekly Product Discovery routine issue asks you to create or reuse project-specific product-discovery child issues or subtasks.
+- Coordinator mode: the parent monthly-product-discovery routine issue asks you to create or reuse project-specific product-discovery child issues or subtasks.
 - Project subtask mode: a project-owned product-discovery child issue or subtask asks you to do the deep review for one repository.
 
 The parent routine issue is coordination only. Do not perform deep repository review, market research, competitor research, candidate selection, or product development issue creation from the routine issue itself.

@@ -112,20 +112,20 @@ test("Monthly Product Discovery routine is active and owned by Product Manager",
   assert.equal(frontmatter.assignee, "product-manager");
   assert.equal(frontmatter.project, "company-operations");
   assert.equal(frontmatter.recurring, true);
-  assertContains(body, /Micronaut-related Paperclip projects/i, "Weekly Product Discovery task should mention Micronaut-related projects.");
-  assertContains(body, /research[\s\S]{0,160}(?:market|competitor|framework|technolog)/i, "Weekly Product Discovery task should require market, competitor, framework, or technology research.");
-  assertContains(body, PROJECT_DISCOVERY_SUBTASK_PATTERN, "Weekly Product Discovery should create one product-discovery sub-issue per Micronaut-related project.");
-  assertContains(body, ACTUAL_PROJECT_SUBTASK_PATTERN, "Weekly Product Discovery should place discovery subtasks in the actual project being reviewed.");
-  assertContains(body, PRODUCT_MANAGER_ASSIGNEE_PATTERN, "Weekly Product Discovery should assign project-specific discovery subtasks to Product Manager.");
-  assertContains(body, DEEP_REVIEW_IN_SUBTASK_PATTERN, "Weekly Product Discovery should perform deep project review inside each discovery subtask.");
-  assertContains(body, QA_ASSIGNED_BACKLOG_PRODUCT_ISSUE_PATTERN, "Weekly Product Discovery should create resulting product development issues in backlog assigned to QA.");
-  assertContains(body, /human review|reviewed by (?:a )?human|human-reviewed/i, "Weekly Product Discovery task should leave created issues for human review.");
-  assert.doesNotMatch(body, /create(?:s)?[\s\S]{0,180}GitHub issue[\s\S]{0,180}direct/i, "Weekly Product Discovery task should not require direct GitHub issue creation.");
-  assertContains(body, /comprehensive[\s\S]{0,220}feature request|detailed[\s\S]{0,220}feature request/i, "Weekly Product Discovery task should require comprehensive or detailed feature requests.");
-  assertContains(body, /acceptance criteria/i, "Weekly Product Discovery task should include acceptance criteria guidance.");
-  assertContains(body, /duplicate|deduplic/i, "Weekly Product Discovery task should require duplicate checks.");
-  assertContains(body, PREVIOUS_PRODUCT_DISCOVERY_RUN_PATTERN, "Weekly Product Discovery should require reviewing previous product-discovery runs.");
-  assertContains(body, REPEATED_FEATURE_AVOIDANCE_PATTERN, "Weekly Product Discovery should avoid proposing the same feature from prior runs without new evidence.");
+  assertContains(body, /Micronaut-related Paperclip projects/i, "monthly-product-discovery task should mention Micronaut-related projects.");
+  assertContains(body, /research[\s\S]{0,160}(?:market|competitor|framework|technolog)/i, "monthly-product-discovery task should require market, competitor, framework, or technology research.");
+  assertContains(body, PROJECT_DISCOVERY_SUBTASK_PATTERN, "monthly-product-discovery should create one product-discovery sub-issue per Micronaut-related project.");
+  assertContains(body, ACTUAL_PROJECT_SUBTASK_PATTERN, "monthly-product-discovery should place discovery subtasks in the actual project being reviewed.");
+  assertContains(body, PRODUCT_MANAGER_ASSIGNEE_PATTERN, "monthly-product-discovery should assign project-specific discovery subtasks to Product Manager.");
+  assertContains(body, DEEP_REVIEW_IN_SUBTASK_PATTERN, "monthly-product-discovery should perform deep project review inside each discovery subtask.");
+  assertContains(body, QA_ASSIGNED_BACKLOG_PRODUCT_ISSUE_PATTERN, "monthly-product-discovery should create resulting product development issues in backlog assigned to QA.");
+  assertContains(body, /human review|reviewed by (?:a )?human|human-reviewed/i, "monthly-product-discovery task should leave created issues for human review.");
+  assert.doesNotMatch(body, /create(?:s)?[\s\S]{0,180}GitHub issue[\s\S]{0,180}direct/i, "monthly-product-discovery task should not require direct GitHub issue creation.");
+  assertContains(body, /comprehensive[\s\S]{0,220}feature request|detailed[\s\S]{0,220}feature request/i, "monthly-product-discovery task should require comprehensive or detailed feature requests.");
+  assertContains(body, /acceptance criteria/i, "monthly-product-discovery task should include acceptance criteria guidance.");
+  assertContains(body, /duplicate|deduplic/i, "monthly-product-discovery task should require duplicate checks.");
+  assertContains(body, PREVIOUS_PRODUCT_DISCOVERY_RUN_PATTERN, "monthly-product-discovery should require reviewing previous product-discovery runs.");
+  assertContains(body, REPEATED_FEATURE_AVOIDANCE_PATTERN, "monthly-product-discovery should avoid proposing the same feature from prior runs without new evidence.");
 });
 
 test("Product Manager role and routine are documented", async () => {
@@ -157,19 +157,19 @@ test("Product Manager is covered by internal company maintenance routines", asyn
 
   assertContains(trainingBody, /Inspect every non-CEO agent:[\s\S]*Product Manager/i, "Training should inspect Product Manager as a non-CEO agent.");
   assertContains(bootstrapBody, /Product Manager[\s\S]{0,220}role `pm`[\s\S]{0,220}icon `radar`/i, "Bootstrap verification should check Product Manager role and icon.");
-  assertContains(bootstrapBody, /Weekly Product Discovery[\s\S]{0,120}active routine owned by `product-manager`/i, "Bootstrap verification should check the Weekly Product Discovery routine.");
+  assertContains(bootstrapBody, /monthly-product-discovery[\s\S]{0,120}active routine owned by `product-manager`/i, "Bootstrap verification should check the monthly-product-discovery routine.");
 });
 
 test("Product discovery excludes the Micronaut project template repository", async () => {
   const agentMarkdown = await read("../agents/product-manager/AGENTS.md");
   const taskMarkdown = await read("../tasks/monthly-product-discovery/TASK.md");
-  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await read("../skills/micronaut-repo-operations/references/internal-routines-overlays.md");
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
 
   for (const [label, markdown] of [
     ["Product Manager", agentMarkdown],
-    ["Weekly Product Discovery", taskMarkdown],
+    ["monthly-product-discovery", taskMarkdown],
     ["repo operations", repoOperations],
     ["README", readme],
     ["COMPANY", company],
@@ -189,7 +189,7 @@ test("Product Manager uses a product-discovery skill for coordinator and subtask
   const { body: taskBody } = parseFrontmatter(taskMarkdown);
   const skillMarkdown = await read("../skills/product-discovery/SKILL.md");
   const { frontmatter: skillFrontmatter, body: skillBody } = parseFrontmatter(skillMarkdown);
-  const repoOperations = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const repoOperations = await read("../skills/micronaut-repo-operations/references/internal-routines-overlays.md");
 
   assert.ok(agentFrontmatter.skills.includes("product-discovery"), "Product Manager should include the product-discovery skill.");
   assert.equal(skillFrontmatter.name, "product-discovery");
@@ -197,7 +197,7 @@ test("Product Manager uses a product-discovery skill for coordinator and subtask
 
   for (const [label, markdown] of [
     ["Product Manager", agentBody],
-    ["Weekly Product Discovery", taskBody],
+    ["monthly-product-discovery", taskBody],
     ["product-discovery skill", skillBody],
     ["repo operations", repoOperations],
   ]) {

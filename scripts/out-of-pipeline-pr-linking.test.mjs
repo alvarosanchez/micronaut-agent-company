@@ -55,7 +55,6 @@ test("shared guidance scopes out-of-pipeline PRs into linked Paperclip subtasks"
   const requiredPaths = [
     "../README.md",
     "../COMPANY.md",
-    "../skills/micronaut-repo-operations/SKILL.md",
   ];
 
   for (const relativePath of requiredPaths) {
@@ -174,7 +173,6 @@ test("PR creators update from the target branch before starting work", async () 
   const requiredPaths = [
     "../README.md",
     "../COMPANY.md",
-    "../skills/micronaut-repo-operations/SKILL.md",
     "../skills/micronaut-quality-gates/SKILL.md",
     "../skills/company-package-evolution/SKILL.md",
     "../agents/code-reviewer/AGENTS.md",

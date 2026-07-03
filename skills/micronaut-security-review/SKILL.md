@@ -12,10 +12,10 @@ Use this skill whenever work changes executable code, dependencies, build logic,
 Before you review:
 
 1. Open the Paperclip issue, current execution stage, latest linked GitHub context, and any prior QA or Architect artifact.
-2. Continue only if you are the current stage participant for security review, the issue returned `changes_requested` to security review, or the weekly deep-scan routine invoked you.
+2. Continue only if you are the current stage participant for security review, the issue returned `changes_requested` to security review, or the monthly-security-deep-scan routine invoked you.
 3. If another stage participant or a human approval is active, stop and leave routing unchanged.
 4. Read `executionState.returnAssignee` before you decide whether a finding should return to the executor as `changes_requested`.
-5. Decide whether you are in issue-review mode or weekly deep-scan mode before you inspect anything.
+5. Decide whether you are in issue-review mode or monthly-security-deep-scan mode before you inspect anything.
 
 ## Review Scope
 
@@ -56,9 +56,9 @@ Before you stop:
 5. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the stage or assignment is already correct instead of assuming the new reviewer was woken automatically.
 6. If you touched GitHub review threads, confirm the decision-explaining replies and thread state changes exist.
 
-## Weekly Deep Scan Mode
+## Monthly Security Deep Scan Mode
 
-When invoked by the `weekly-security-deep-scan` routine:
+When invoked by the `monthly-security-deep-scan` routine:
 
 - inspect recent code changes, open PRs, default branches, dependency movement, Gradle wrapper or plugin changes, build logic, CI/CD permissions, release automation, and security-sensitive docs
 - deduplicate every finding against existing synced GitHub issues or PRs with `paperclip-github-plugin:search_repository_items`

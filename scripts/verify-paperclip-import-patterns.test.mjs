@@ -102,6 +102,10 @@ test("verification rules require decision-explaining replies on review threads",
   );
   assert.match(
     source,
+    /Code Reviewer instructions must make final PR approval's intermediate `done` state an immediate, no-wake transition to unassigned `in_review` without restarting completed review stages\./,
+  );
+  assert.match(
+    source,
     /Micronaut Engineer instructions must correct healthy PR maintainer-wait reopen noise back to `in_review` with no internal assignee instead of adding another follow-through checkpoint\./,
   );
   assert.match(

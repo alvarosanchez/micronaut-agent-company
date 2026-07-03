@@ -5,57 +5,51 @@ project: company-operations
 recurring: true
 ---
 
-Review the company's recent execution history and improve the operating system without creating instruction drift or silent package forks.
+Run one evidence-first monthly operating-system review. Keep new-improvement discovery separate from direct queue correction and bounded maintenance.
 
-Focus on:
+## 1. Deterministic discovery
 
-- repeated blockers, stalled handoffs, and noisy queue patterns
-- open Paperclip productivity review issues (`issue_productivity_review`) for no-comment streak, long-active duration, or high-churn source work, including whether each source issue needs a manager decision, decomposition, reroute, blocker, or cancellation
-- broken handoffs where issue status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, and the expected next owner do not agree
-- liveness recovery, continuation-attempt, and `resume: true` paths where stalled or completed work needs an intentional restart instead of another generic comment
-- QA, security, or review churn that suggests missing guidance or the wrong quality gate
-- missed chances to use issue-thread interactions for non-governance board input, such as `suggest_tasks` selectable task proposals, `ask_user_questions` bounded questions, or `request_confirmation` plan confirmations
-- missing or outdated repo-level `AGENTS.md` guidance in managed Micronaut repositories
-- live workspace or runtime-service gaps where repo work keeps stalling because jobs or services were assumed to auto-start
-- gaps or upgrade opportunities in the company's imported skill inventory that would materially improve delivery and can be turned into a concrete approval or implementation step now
-- Hermes runtime skill visibility gaps where Paperclip-managed company skills from any company agent are not visible through the dedicated Hermes `paperclip` profile's local `skills/` storage, `skills_list`, or `skill_view`
-- CEO-opened PRs from earlier routine runs, linked approvals, or open PR searches that still need follow-up because CI is not green, checks are failing, or review threads remain unresolved
-- whether local extension instructions or `.company-runtime/` overlays should be added, simplified, or pruned
-- whether any reusable company learning should be promoted into the package core with a PR to `alvarosanchez/micronaut-agent-company`
+Choose the routine's explicit scheduled UTC boundary as `asOf`; do not infer the current time. Load `ceo-issue-history` and run:
 
-Produce one Paperclip report that includes:
+```bash
+node skills/ceo-issue-history/scripts/issue-history-evidence.mjs --as-of <ISO-8601-UTC>
+```
 
-- the most important operational frictions from recent executions
-- zero to three concrete improvement candidates and the exact next action for each one
-- any linked board approval request you opened, including the exact change it authorizes, the target surface (`.company-runtime/`, company-owned skill/docs, or package-core PR), and the implementation path after approval
-- any approved change you implemented immediately instead of re-reporting it as a proposal
-- any stale handoff you corrected by aligning issue status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, and any required next-action comment or wake
-- any productivity review issue you handled, the linked source issue, the trigger evidence such as no-comment, long-active, or high-churn behavior, and the concrete manager decision you recorded for the source work
-- any issue-thread interaction you created for a non-governance decision, including its kind, idempotency key, and expected continuation behavior
-- any managed Micronaut repository `AGENTS.md` updates you made using `agent-md-refactor`, including the Paperclip child issue or subtask that scopes the out-of-pipeline PR, the PR you opened or updated in that managed repository, and the PR-to-Paperclip issue link status
-- a **Hermes Runtime Skill Sync** section that lists each Paperclip-managed company skill you checked across company agents, whether the corresponding Hermes profile skill was copied, updated, no-op, or blocked, the source runtime/catalog skill path, the target Hermes local skill path, and the `skills_list`/`skill_view` verification result
-- a **Managed Repository AGENTS.md Audit** section that lists each active managed Micronaut repository you considered, whether root `AGENTS.md` exists, whether it is durable/current or stale/generated/missing, and the concrete outcome for each repository: no action needed, repo-local PR opened or updated, linked follow-up issue created, linked approval requested, or blocker named
-- any CEO-opened PRs you rechecked or followed up, including CI/check status, unresolved review-thread status, and the next action if the PR is not green and review-thread-clean yet
-- any proposed additive extension-instruction or `.company-runtime/` changes
-- any package-core PR you opened for `alvarosanchez/micronaut-agent-company`, including the Paperclip child issue or subtask that scopes the out-of-pipeline PR and the PR-to-Paperclip issue link status
+The collector analyzes every issue and canonical agent over `[asOf-30d,asOf)` using issue-level evidence, controlled reason codes, stable fingerprints, and explicit coverage. For a ranked GitHub Sync issue, call `paperclip-github-plugin:get_issue_interaction_summary` for the same interval as supplementary evidence. Record its post-instrumentation coverage separately; it is not complete Paperclip history.
 
-For each improvement candidate, finish the routine with one of these states instead of a naked proposal list:
+- On `blocked_incomplete_evidence`, fail closed: create no discovery proposal, approval, PR, or interaction. Report the missing resources/pages.
+- On `no_change`, record a verified no-op. Complete evidence with no eligible candidate is successful completion.
+- `incidents` go to frequent containment and never count against this routine's three-candidate cap.
+- On `ranked_candidates`, inspect only the cited evidence for up to three candidates. Require the named threshold, affected issues/events, owner and target surface, exact proposed change, measurable acceptance criterion, deduplication result, governance path, and compatibility/safety risk.
 
-- change implemented now
-- linked board approval request opened for a specific next action
-- clearly blocked, with the blocking fact named
-- manager decision recorded on the productivity review and source issue route corrected
+The thresholds are two issues plus three events, a concentrated loop of three bad events across two runs, or a concrete critical one-off control failure. Do not promote generic dissatisfaction, duplicate events, ordinary isolated mistakes, or already-decided fingerprints.
 
-Treat Paperclip's bundled system skills `paperclip`, `paperclip-create-agent`, `paperclip-create-plugin`, and `para-memory-files` as immutable runtime capabilities. Do not propose editing them from this routine. If one of those capabilities needs better examples or safer defaults, add company-owned guidance or a company-owned skill in this package instead.
+For each accepted candidate, use `company-package-evolution` and end in one state: change implemented now; linked board approval request opened for the specific next action; or clearly blocked with the fact named. Approved changes are implemented in the same run instead of re-reported. Treat bundled system skills (`paperclip`, `paperclip-create-agent`, `paperclip-create-plugin`, and `para-memory-files`) as immutable; add company-owned guidance around them when needed.
 
-During the routine, inspect all company agents' Paperclip-managed company skills, not only the CEO's currently selected skills. Build the checked set from `/api/companies/{companyId}/agents` plus `/api/agents/{agentId}/skills`, then add catalog-only skills by enumerating the local company skill catalog materialization at `${PAPERCLIP_HOME:-~/.paperclip}/instances/${PAPERCLIP_INSTANCE_ID:-default}/skills/${PAPERCLIP_COMPANY_ID}/__catalog__/`. Include managed company skills whether they are currently desired by one agent, assigned to another agent, or present only in that company skill catalog. When one of those skills cannot be loaded by the dedicated Hermes `paperclip` profile through `skills_list` or `skill_view`, reconcile it into Hermes local skill storage during the routine instead of leaving the finding as a report-only blocker. Prefer the Paperclip runtime skill materialization under `${PAPERCLIP_HOME:-~/.paperclip}/instances/${PAPERCLIP_INSTANCE_ID:-default}/skills/${PAPERCLIP_COMPANY_ID}/__runtime__/`; when a company-managed skill has no runtime materialization yet, fall back to the matching catalog materialization under `${PAPERCLIP_HOME:-~/.paperclip}/instances/${PAPERCLIP_INSTANCE_ID:-default}/skills/${PAPERCLIP_COMPANY_ID}/__catalog__/`. Copy or update the skill into the dedicated Hermes profile's `skills/` tree, normally under a company category such as `skills/micronaut/<skillName>/`. Preserve the source `SKILL.md` and any referenced `references/`, `templates/`, `scripts/`, or `assets/` files; add or preserve metadata that names the Paperclip managed-skill source path; do not overwrite an unrelated user-authored Hermes skill unless it is already marked as a Paperclip managed-skill bridge for the same runtime or catalog skill. Treat Paperclip bundled system skills as no-op immutable runtime capabilities. After copying or updating, verify the Hermes profile can see the skill with `skills_list`/`skill_view` or the equivalent `hermes -p paperclip skills list`, and record the source path, target path, copied/updated/no-op/blocked status, and verification result in the **Hermes Runtime Skill Sync** report section.
+## 2. Separate operational lanes
 
-If you mention a `.company-runtime/` overlay in the report, explain plainly whether it exists in the current workspace and that it is just an optional local sidecar folder for instance-specific instructions that survive package reimports.
+Treat active Paperclip productivity review issues (`issue_productivity_review`) as first-class queue-health work. Correct their actionable source routes and stale handoffs directly, but do not report those corrections as new proposals. Align status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, blocker/next-action comment, and wake only when ownership permits. Use issue-thread interactions (`suggest_tasks`, `ask_user_questions`, or `request_confirmation`) for bounded non-governance input and linked approvals for governance.
 
-When you inspect managed Micronaut repository `AGENTS.md` files, a bounded metadata/readability check is enough unless recent execution evidence points to a deeper repo-specific guidance problem. When a repository needs `AGENTS.md` work, create or route a target-repository issue/PR rather than silently deferring it or editing imported company package files in place. When you touch repo-level `AGENTS.md` files in managed Micronaut repositories, keep the root file short and use linked topic files when appropriate, then open or update a PR in that managed repository for the `AGENTS.md` change. If a default should change for future imports, make the change in a clone of `alvarosanchez/micronaut-agent-company` and send a PR; if the required board approval already exists and is approved, implement the change in the same run instead of stopping at a proposal.
+Load the `maintenance-lanes.md` reference from `ceo-issue-history` for the mechanics below instead of expanding this prompt:
 
-When the monthly routine may create or update a package-core PR, managed Micronaut repository `AGENTS.md` PR, upstream dependency PR, or any other PR outside the normal delivery pipeline, once the target branch is identified, fetch and update the work branch from the target branch before starting work, editing, committing, opening, creating, or updating the PR. If that target branch rebase or merge produces conflicts, record the conflict as a blocker and do not open, create, or update a conflicting PR.
+- **Hermes Runtime Skill Sync:** inspect Paperclip-managed skills across all company agents, not only the CEO; reconcile missing runtime/catalog materializations into Hermes local skill storage and verify with `skills_list`/`skill_view`.
+- **Managed Repository AGENTS.md Audit:** classify every active managed Micronaut repository's root `AGENTS.md` as durable/current, stale/generated, or missing. Record no action needed, repo-local PR opened or updated, linked follow-up issue, linked approval, or named blocker. Managed Micronaut repository `AGENTS.md` changes require a PR path.
+- **CEO-opened PR follow-up:** rediscover prior CEO PRs and continue until CI/checks are green and unresolved review threads are zero.
 
-When the monthly routine may create a package-core PR, managed Micronaut repository `AGENTS.md` PR, upstream dependency PR, or any other PR outside the normal delivery pipeline, create one Paperclip child issue or subtask per affected project when the project exists in Paperclip before deciding whether a PR is needed. Put each subtask in the actual corresponding project, set assignee to CEO, scope it to the project-specific task, link any resulting PR to that Paperclip issue, leave the child issue or subtask in `in_review`, do not close it or mark it `DONE` just because the PR was created, and record the subtask URL, PR URL, link status, and review state in the routine report. Use `paperclip-github-plugin:link_github_item` with `kind: "pull_request"`, `paperclipIssueId`, and `pullRequestUrl` or `reference`; if the tool is unavailable or fails, record the concrete blocker instead of using the removed REST fallback. Synced GitHub issues created by the sync plugin are already linked and do not need this extra subtask.
+These lanes preserve their prior capability but do not affect candidate ranking.
 
-Because CEO heartbeats may be disabled, use the monthly CEO self-improvement routine as the follow-up mechanism for PRs opened by the CEO. Rediscover CEO-opened PRs from the previous routine report, linked board approvals, recorded PR URLs, and open PR searches; follow up until CI is green, reported checks are passing, and no unresolved review threads remain. Reply to each review thread with the decision before resolving it.
+## Report and finish
+
+Store one compact Paperclip report under the stable `ceo` document key. Include:
+
+- `asOf`, exact window, coverage outcome, missing-resource ledger, and evidence JSON fingerprint/version;
+- ranked or rejected candidate counts and issue-level references; for each accepted candidate, threshold, stable fingerprint, exact action, state, owner, target, acceptance criterion, and risk;
+- direct handoff/productivity-review corrections and any interaction kind/idempotency key;
+- a **Hermes Runtime Skill Sync** section with checked source/target and copied, updated, no-op, or blocked verification;
+- a **Managed Repository AGENTS.md Audit** section with root-file classification and concrete outcome per repository;
+- CEO-opened PR follow-up with CI/check and unresolved-thread state;
+- any package/upstream/repo-local PR and its project-specific Paperclip child issue, durable GitHub Sync link, and `in_review` state.
+
+A Paperclip subtask that owns a PR stays `in_review`; do not close it or mark it `DONE` merely because the PR was created.
+
+For any PR outside the normal synced GitHub issue delivery pipeline, when the affected project exists in Paperclip, first create one Paperclip child issue or subtask per affected project, place it in the actual corresponding Paperclip project, and set its assignee to CEO. Once the target branch is identified, fetch and update the work branch from the target branch before starting work, editing, committing, opening, creating, or updating the PR. Treat a target-branch merge or rebase conflict as a blocker; do not open, create, or update a conflicting PR. Link a valid PR with `paperclip-github-plugin:link_github_item` using `kind: "pull_request"`, `paperclipIssueId`, and `pullRequestUrl` or `reference`; leave the subtask `in_review` and do not close it or mark it `DONE` just because the PR was created. If access, approval, or linking blocks the path, name that fact. If `.company-runtime/` is relevant, state whether the optional local sidecar exists. Re-open the routine issue and report document, verify every mutation and link, and finish without inventing work.
