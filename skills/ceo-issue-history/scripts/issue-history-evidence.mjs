@@ -1208,8 +1208,21 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode =
   const allCompanyActivity = [...companyActivity, ...issueActivity];
   const windowCompanyActivity = allCompanyActivity.filter(rowInWindow);
   const windowCompanyRuns = companyRuns.filter(rowInWindow);
-  const activityEvents = windowCompanyActivity
-    .map((row) => canonicalEvent({ ...row, resource: "company_activity", source: "company_activity" }))
+  const activityClassifications = windowCompanyActivity.map((row) => ({
+    row,
+    event: canonicalEvent({ ...row, resource: "company_activity", source: "company_activity" }),
+  }));
+  const invalidActivityControlCount = activityClassifications
+    .filter(({ event }) => event?.invalidControl)
+    .length;
+  if (invalidActivityControlCount > 0) {
+    missing.push(`invalid_control_operands:${invalidActivityControlCount}`);
+  }
+  const validWindowCompanyActivity = activityClassifications
+    .filter(({ event }) => event && !event.invalid && !event.invalidControl)
+    .map(({ row }) => row);
+  const activityEvents = activityClassifications
+    .map(({ event }) => event)
     .filter((event) => event && !event.invalid && !event.invalidControl);
 
   if (mode === "containment") {
@@ -1227,7 +1240,7 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode =
       id: issueId,
       key: issueId,
       evidence: [
-        ...windowCompanyActivity.filter((row) => {
+        ...validWindowCompanyActivity.filter((row) => {
           const details = row?.details && typeof row.details === "object" ? row.details : {};
           return String(details.sourceIssueId ?? details.issueId ?? row.issueId ?? row.entityId ?? "") === issueId;
         }),

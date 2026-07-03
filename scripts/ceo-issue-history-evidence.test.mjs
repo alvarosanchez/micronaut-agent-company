@@ -1020,6 +1020,36 @@ test("containment collector ignores invalid control operands outside the rolling
   assert.equal(report.rejected.length, 0);
 });
 
+test("containment collector fails closed on invalid in-window activity controls", async () => {
+  const report = await collectEvidence({
+    baseUrl: "https://paperclip.invalid",
+    apiKey: "test-key",
+    companyId: "company-1",
+    asOf: AS_OF,
+    mode: "containment",
+    fetchImpl: async (url) => {
+      const path = new URL(url).pathname + new URL(url).search;
+      if (path.includes("entityType=heartbeat_run")) {
+        return Response.json([{
+          id: "invalid-control-activity",
+          entityType: "heartbeat_run",
+          entityId: `run-${"x".repeat(200)}`,
+          action: "heartbeat.output_stale_recovery_recursion_refused",
+          createdAt: "2026-06-30T22:00:00.000Z",
+          details: { sourceIssueId: "source-1" },
+        }]);
+      }
+      return Response.json([]);
+    },
+  });
+
+  assert.equal(report.outcome, "blocked_incomplete_evidence");
+  assert.equal(report.coverage.complete, false);
+  assert.deepEqual(report.coverage.missing, ["invalid_control_operands:1"]);
+  assert.equal(report.inventory.issueCount, 0);
+  assert.equal(report.inventory.eventCount, 0);
+});
+
 test("terminal run usage telemetry is explicit and unavailable totals stay unknown rather than zero", () => {
   const report = analyzeEvidence(input([
     { runId: "terminal-known", issueId: "i1", status: "succeeded", createdAt: "2026-06-10T00:00:00.000Z",
