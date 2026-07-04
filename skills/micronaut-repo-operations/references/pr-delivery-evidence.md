@@ -19,6 +19,7 @@ Detailed reference extracted from `micronaut-repo-operations` so the primary ski
 - `code-reviewer` applies the project named earlier by QA intake unless an upstream artifact explicitly revised it.
 - After PR creation, `micronaut-engineer` keeps CI green, addresses Sonar Quality Gate issues, replies to every review thread with a decision explanation, and only then resolves settled threads.
 - PR-based delivery work stays open in Paperclip until GitHub merge sync completes. Agents do not manually move those items to `DONE`.
+- Maintainer wait is event-driven. Do not post periodic maintainer-wait comments or rerun completed internal review stages. Do not wake an agent merely to restate an unchanged open PR. Resume only for a substantive external delta such as a new head SHA, changed check outcome, actionable review feedback, explicit maintainer request, merge or closure; otherwise leave the issue unassigned in `in_review`.
 - Any material post-PR change re-enters the same execution-policy-controlled review loop after the owner has resumed the work.
 
 ## Maintainer-Friendly Evidence

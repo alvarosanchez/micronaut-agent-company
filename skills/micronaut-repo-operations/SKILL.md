@@ -28,6 +28,7 @@ Before mutating issue state, publishing to GitHub, opening or updating a PR, clo
 ## Shared Stage Contract
 
 - Act only as the current execution-stage participant, the explicit assignment owner, or the invoked routine owner. If another participant or a human approval owns the next move, stop without changing routing.
+- If a wake reveals no new decision-relevant evidence since the latest durable comment or artifact, make no Paperclip mutation: do not post a no-change comment, do not rewrite an unchanged artifact, and do not mutate status, assignment, execution state, or wake another agent. A successful silent no-op is preferable to an audit-trail entry that merely repeats the current state.
 - Paperclip execution policies own review routing. `executionState.currentParticipant` resolves the active stage; `executionState.returnAssignee` receives `changes_requested`; active review stays `in_review` until the configured route advances.
 - Every substantive stage produces one durable artifact. QA keeps `qa-intake` and `qa-verification` separate.
 - Approve an active stage with `status: done` and a decision comment. Request changes with a non-`done` status, preferably `in_progress`, and a precise decision comment. Manual `TODO` assignment is only for owner changes outside an active review policy.

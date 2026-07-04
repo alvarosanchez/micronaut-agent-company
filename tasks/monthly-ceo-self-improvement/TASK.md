@@ -19,7 +19,6 @@ The collector analyzes every issue and canonical agent over `[asOf-30d,asOf)` us
 
 - On `blocked_incomplete_evidence`, fail closed: create no discovery proposal, approval, PR, or interaction. Report the missing resources/pages.
 - On `no_change`, record a verified no-op. Complete evidence with no eligible candidate is successful completion.
-- `incidents` go to frequent containment and never count against this routine's three-candidate cap.
 - On `ranked_candidates`, inspect only the cited evidence for up to three candidates. Require the named threshold, affected issues/events, owner and target surface, exact proposed change, measurable acceptance criterion, deduplication result, governance path, and compatibility/safety risk.
 
 The thresholds are two issues plus three events, a concentrated loop of three bad events across two runs, or a concrete critical one-off control failure. Do not promote generic dissatisfaction, duplicate events, ordinary isolated mistakes, or already-decided fingerprints.

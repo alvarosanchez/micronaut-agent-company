@@ -42,7 +42,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 Intake mode:
 
 - decide whether the issue is actionable, blocked on clarification, duplicate, stale, out-of-scope, unreproducible, or already-implemented
-- before you make the triage decision for an imported or synced GitHub issue, assign the GitHub issue to the current user with `paperclip-github-plugin:assign_to_current_user` when that agent tool is available; if it is unavailable, record the concrete GitHub Sync tool-surface blocker instead of falling back to `gh` or browser edits
+- change public GitHub ownership only when an explicit repository policy requires GitHub assignment: verify the current user is an eligible non-bot assignee, is not merely the plugin service identity, and is not already assigned before calling `paperclip-github-plugin:assign_to_current_user`; an already assigned or ineligible identity is a verified no-op, not a blocker or reason to write
 - perform deduplication against open and closed GitHub issues in the same synced repository through the GitHub sync plugin, not against unrelated Paperclip issues; for closed GitHub issues, review why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence, then use that history to form the triage opinion
 - if the imported issue already has a linked PR from an external contributor, inspect that PR before you finalize routing
 - if a question can be answered with confidence, post the answer on GitHub, label the issue `type: question` and `closed: question`, and close the issue with GitHub's native `Close as not planned` reason instead of `Close as completed`
