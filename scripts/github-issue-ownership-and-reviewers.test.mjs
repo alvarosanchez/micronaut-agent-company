@@ -17,6 +17,8 @@ test("Code Reviewer requests only eligible, useful GitHub reviewers", () => {
   assert.match(reviewer, /already requested[^.]{0,160}(?:no-op|do not request|skip)/i);
   assert.match(reviewer, /paperclip-github-plugin:request_pull_request_reviewers/i);
   assert.match(reviewer, /ineligible[^.]{0,160}verified no-op/i);
+  assert.match(reviewer, /Finish Verification[\s\S]*useful eligible reviewer requests[\s\S]*verified no-op/i);
+  assert.doesNotMatch(reviewer, /requested reviewers including the linked GitHub issue creator/i);
 });
 
 test("final review cannot silently change an approved revision", () => {
