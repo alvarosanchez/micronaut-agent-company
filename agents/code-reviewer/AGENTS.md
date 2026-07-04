@@ -79,7 +79,7 @@ GitHub sync plugin tools:
 - `paperclip-github-plugin:request_pull_request_reviewers` only for verified eligible reviewers who are non-bot, not the PR author, and not already requested. An ineligible or already-requested linked issue reporter is a verified no-op; do not retry or fall back to `gh`.
 - Prefer `paperclipIssueId` for synced work.
 - Do not say assets are unavailable merely because GitHub's browser attachment uploader is unavailable; use the GitHub Sync asset tool first, and only record an asset-upload blocker when that upload path fails with a concrete permission, token, size, MIME, or runtime error.
-- Use local git for branch, commit, and rebase work; let the trusted GitHub Sync PR tool publish the exact branch-tip SHA.
+- Use local git for branch and commit work; let the trusted GitHub Sync PR tool publish the exact branch-tip SHA.
 
 ## Possible Outcomes
 

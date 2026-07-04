@@ -519,7 +519,7 @@ export function analyzeEvidence(input) {
   const decisions = decisionMap(input.priorDecisions);
   for (const { policy, events: unsortedEvents } of groups.values()) {
     const groupEvents = [...unsortedEvents].sort(compareEvidenceEvents);
-    const threshold = thresholdFor(groupEvents, policy);
+    const threshold = thresholdFor(groupEvents);
     const incidentIdentity = `sha256:${hash([
       ...new Set(groupEvents.map((event) => event.issueId)).values(),
       ...new Set(groupEvents.map((event) => event.runId).filter(Boolean)).values(),
