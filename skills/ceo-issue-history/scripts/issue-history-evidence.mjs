@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const FULL_WINDOW_MS = 30 * DAY_MS;
-const CONTAINMENT_WINDOW_MS = 6 * 60 * 60 * 1000;
 const MAX_EXCERPT = 160;
 const MAX_IDENTIFIER = 96;
 const MAX_REPORT_BYTES = 32_000;
@@ -15,14 +14,6 @@ const MAX_EVENT_IDS_PER_ISSUE = 8;
 const MAX_MISSING_RESOURCES = 100;
 const MAX_REJECTED = 5;
 const MAX_TELEMETRY_RUNS = 100;
-const ACTIONABLE_STATUSES = ["backlog", "todo", "in_progress", "blocked", "in_review"];
-const OPERATIONAL_PROBLEMS = new Set([
-  "github_sync_churn",
-  "liveness_escalation",
-  "github_sync_liveness_escalation",
-  "recovery_loop",
-  "stale_recovery_recursion",
-]);
 const ACTIVE_DECISIONS = new Set(["active", "open", "pending", "blocked", "in_progress", "in_review"]);
 const TERMINAL_DECISIONS = new Set(["implemented", "rejected", "no_change", "not_worthwhile"]);
 const VALID_DECISIONS = new Set([...ACTIVE_DECISIONS, ...TERMINAL_DECISIONS]);
@@ -36,12 +27,7 @@ const CRITICAL_REASONS = new Set([
 
 const REASON_POLICY = {
   handoff_mismatch: ["workflow", "handoff_mismatch", "paperclip", "company_package", 3],
-  github_sync_churn: ["integration", "github_sync_churn", "github_sync", "upstream_dependency", 3],
-  liveness_escalation: ["workflow", "liveness_escalation", "paperclip", "upstream_dependency", 3],
-  github_sync_liveness_escalation: ["integration", "github_sync_liveness_escalation", "github_sync", "upstream_dependency", 4],
   productivity_review: ["workflow", "productivity_loop", "paperclip", "company_package", 3],
-  recovery_action: ["workflow", "recovery_loop", "paperclip", "company_package", 3],
-  stale_recovery_recursion: ["execution", "stale_recovery_recursion", "paperclip", "company_package", 4],
   failed: ["execution", "execution_loop", "agent_runtime", "company_package", 2],
   blocked: ["execution", "execution_loop", "agent_runtime", "company_package", 2],
   changes_requested: ["execution", "execution_loop", "agent_runtime", "company_package", 2],
@@ -60,11 +46,9 @@ const RESOURCE_NAMES = [
   "cost-summary",
   "approvals",
   "interactions",
-  "recovery-actions",
   "work-products",
 ];
 const COLLECTION_CONCURRENCY = 8;
-const COMPOSITE_CORRELATION_MS = 60 * 60 * 1_000;
 const TERMINAL_RUN_STATUSES = new Set(["succeeded", "failed", "cancelled", "timed_out"]);
 
 function stableSort(value) {
@@ -120,7 +104,6 @@ function finalizeReport(report) {
     outcome: "blocked_incomplete_evidence",
     inventory: report.inventory,
     candidates: [],
-    incidents: [],
     rejected: [],
   });
 }
@@ -129,11 +112,10 @@ export function buildWindow(asOf, mode = "full") {
   if (typeof asOf !== "string" || !/(?:Z|\+00:00)$/i.test(asOf)) {
     throw new Error("--as-of must include an explicit UTC designator (Z or +00:00).");
   }
-  if (!["full", "containment"].includes(mode)) throw new Error("mode must be full or containment.");
+  if (mode !== "full") throw new Error("mode must be full.");
   const endMs = new Date(asOf).getTime();
   if (!Number.isFinite(endMs)) throw new Error("--as-of must be a valid ISO-8601 timestamp.");
-  const windowMs = mode === "containment" ? CONTAINMENT_WINDOW_MS : FULL_WINDOW_MS;
-  return { start: new Date(endMs - windowMs).toISOString(), end: new Date(endMs).toISOString() };
+  return { start: new Date(endMs - FULL_WINDOW_MS).toISOString(), end: new Date(endMs).toISOString() };
 }
 
 export function fingerprintFor(fields) {
@@ -164,17 +146,11 @@ function canonicalEvent(raw, fallbackIssueId) {
   const context = raw.contextSnapshot && typeof raw.contextSnapshot === "object" && !Array.isArray(raw.contextSnapshot)
     ? raw.contextSnapshot
     : {};
-  const suppliedReasonCode = raw.reasonCode;
-  const reasonCode = suppliedReasonCode === "github_sync_churn" && !githubSyncProvenance(raw).matched
-    ? null
-    : suppliedReasonCode ?? inferReasonCode(raw);
+  const reasonCode = raw.reasonCode ?? inferReasonCode(raw);
   if (!REASON_POLICY[reasonCode]) return null;
   const at = iso(raw.at ?? raw.createdAt ?? raw.updatedAt ?? raw.timestamp ?? raw.startedAt ?? raw.finishedAt);
   if (!at) return { invalid: true, id: String(raw.id ?? raw.runId ?? "unknown") };
-  const issueCandidate = reasonCode === "liveness_escalation"
-    ? (details.escalationIssueId ?? raw.entityId ?? raw.issueId ?? fallbackIssueId)
-    : (raw.issueId ?? details.sourceIssueId ?? details.issueId ?? context.issueId ?? fallbackIssueId);
-  const issueId = String(issueCandidate ?? "");
+  const issueId = String(raw.issueId ?? details.sourceIssueId ?? details.issueId ?? context.issueId ?? fallbackIssueId ?? "");
   if (!issueId) return null;
   const source = String(raw.source ?? raw.resource ?? raw.kind ?? "activity").slice(0, 48);
   const runId = raw.runId ?? raw.heartbeatRunId ?? raw.executionRunId
@@ -197,44 +173,6 @@ function canonicalEvent(raw, fallbackIssueId) {
   const operandValid = (value) => typeof value === "string" && value.length > 0 && value.length <= MAX_IDENTIFIER
     && /^[A-Za-z0-9][A-Za-z0-9_.:/@#-]*$/.test(value);
   if (result.runId != null && !operandValid(result.runId)) return { invalidControl: true, id, at };
-  if (OPERATIONAL_PROBLEMS.has(eventPolicy(reasonCode)?.problemKey) && !operandValid(result.issueId)) {
-    return { invalidControl: true, id, at };
-  }
-  const aliases = {
-    incidentKey: ["incidentKey"],
-    sourceIssueId: ["sourceIssueId"],
-    existingEvaluationIssueId: ["existingEvaluationIssueId", "evaluationIssueId"],
-    rootRunId: ["rootRunId", "sourceRunId"],
-    retryRunId: ["retryRunId", "recoveryRunId"],
-    mappingId: ["mappingId", "syncMappingId"],
-    remoteFingerprint: ["remoteFingerprint", "actionFingerprint"],
-  };
-  for (const [field, names] of Object.entries(aliases)) {
-    const value = names.map((name) => raw[name] ?? details[name]).find((item) => item != null);
-    if (value == null) {
-      result[field] = null;
-      continue;
-    }
-    if (!operandValid(value)) return { invalidControl: true, id, at };
-    result[field] = value;
-  }
-  if (raw.retryOfRunId != null && !operandValid(raw.retryOfRunId)) return { invalidControl: true, id, at };
-  result.sourceIssueId ??= typeof context.issueId === "string" ? context.issueId : result.issueId;
-  result.rootRunId = raw.retryOfRunId == null ? (result.rootRunId ?? result.runId) : raw.retryOfRunId;
-  result.retryRunId = reasonCode === "recovery_action" ? (result.retryRunId ?? result.runId) : result.retryRunId;
-  result.errorCode = typeof raw.errorCode === "string" ? raw.errorCode : null;
-  const retryReason = [raw.scheduledRetryReason, context.retryReason, context.wakeReason, context.cause]
-    .find((value) => typeof value === "string" && value.length > 0);
-  const invocationSource = typeof raw.invocationSource === "string" && raw.invocationSource.length > 0
-    ? raw.invocationSource
-    : "unknown";
-  result.retryCategory = `${invocationSource}:${retryReason ?? "unknown"}`;
-  const causeFingerprint = [context.failureFingerprint, context.retryFingerprint, context.fingerprint, context.cause]
-    .find((value) => typeof value === "string" && value.length > 0);
-  result.causeFingerprint = typeof causeFingerprint === "string" ? boundedIdentifier(causeFingerprint, "cause") : null;
-  result.existingEvaluationIssueId ??= ["liveness_escalation", "stale_recovery_recursion"].includes(reasonCode)
-    ? result.issueId
-    : null;
   return result;
 }
 
@@ -298,27 +236,12 @@ function githubSyncProvenance(raw) {
 
 function inferReasonCode(raw) {
   const fields = evidenceText(raw);
-  const provenance = githubSyncProvenance(raw);
-  const { details } = provenance;
-  const previousStatus = details._previous?.status ?? details.reopenedFrom;
-  const currentStatus = details.status;
-  const statusRank = new Map([["backlog", 0], ["todo", 1], ["in_progress", 2], ["blocked", 2], ["in_review", 3], ["done", 4], ["cancelled", 4]]);
-  const isStatusRegression = typeof previousStatus === "string" && typeof currentStatus === "string"
-    && statusRank.has(previousStatus) && statusRank.has(currentStatus)
-    && statusRank.get(currentStatus) < statusRank.get(previousStatus);
-  const isChurnUpdate = raw.action === "issue.updated" && (details.reopened === true || isStatusRegression);
-  if (provenance.matched && isChurnUpdate) return "github_sync_churn";
-  if (raw.action === "issue.harness_liveness_escalation_created") return "liveness_escalation";
-  if (raw.action === "heartbeat.output_stale_recovery_recursion_refused") return "stale_recovery_recursion";
-  if (raw.errorCode === "adapter_failed" && typeof raw.retryOfRunId === "string") return "recovery_action";
   if (/external.{0,20}write.{0,30}(without|missing).{0,20}approval/.test(fields)) return "external_write_without_approval";
   if (/data.{0,10}loss/.test(fields)) return "data_loss_risk";
   if (/security.{0,20}(control|guard).{0,20}(fail|missing|bypass)/.test(fields)) return "security_control_failure";
   if (/governance.{0,20}(control|guard).{0,20}(fail|missing|bypass)/.test(fields)) return "governance_control_failure";
-  if (!provenance.structured && /github.{0,20}sync/.test(fields) && /(reopen|churn|status|rerout|oscillat)/.test(fields)) return "github_sync_churn";
   if (/handoff/.test(fields) && /(mismatch|wrong|stale|broken)/.test(fields)) return "handoff_mismatch";
   if (/productivity.?review|high.?churn|no.?comment|long.?active/.test(fields)) return "productivity_review";
-  if (/recovery|continuation|resume/.test(fields)) return "recovery_action";
   if (/changes.?requested/.test(fields)) return "changes_requested";
   if (/blocked|blocker/.test(fields)) return "blocked";
   if (/failed|failure|error/.test(fields)) return "failed";
@@ -353,56 +276,8 @@ function compareEvidenceEvents(a, b) {
   return a.at.localeCompare(b.at) || a.id.localeCompare(b.id);
 }
 
-function correlatedCompositeEvents(events) {
-  const byIssue = new Map();
-  for (const event of events) {
-    if (!["github_sync_churn", "liveness_escalation"].includes(event.reasonCode)) continue;
-    const bucket = byIssue.get(event.issueId) ?? [];
-    bucket.push(event);
-    byIssue.set(event.issueId, bucket);
-  }
-  const correlated = new Map();
-  for (const issueEvents of byIssue.values()) {
-    const ordered = [...issueEvents].sort(compareEvidenceEvents);
-    const churn = ordered
-      .filter((event) => event.reasonCode === "github_sync_churn")
-      .map((event) => ({ event, atMs: new Date(event.at).getTime() }));
-    const escalations = ordered
-      .filter((event) => event.reasonCode === "liveness_escalation")
-      .map((event) => ({ event, atMs: new Date(event.at).getTime() }));
-
-    let churnStart = 0;
-    let churnEnd = 0;
-    for (const escalation of escalations) {
-      while (churnStart < churn.length && churn[churnStart].atMs < escalation.atMs - COMPOSITE_CORRELATION_MS) churnStart += 1;
-      while (churnEnd < churn.length && churn[churnEnd].atMs < escalation.atMs) churnEnd += 1;
-      if (churnEnd > churnStart) correlated.set(escalation.event.id, escalation.event);
-    }
-
-    let escalationIndex = 0;
-    for (const churnEvent of churn) {
-      while (escalationIndex < escalations.length && escalations[escalationIndex].atMs <= churnEvent.atMs) escalationIndex += 1;
-      if (escalationIndex < escalations.length
-        && escalations[escalationIndex].atMs <= churnEvent.atMs + COMPOSITE_CORRELATION_MS) {
-        correlated.set(churnEvent.event.id, churnEvent.event);
-      }
-    }
-  }
-  return [...correlated.values()].sort(compareEvidenceEvents);
-}
-
-function thresholdFor(events, policy) {
-  if (policy?.problemKey === "github_sync_liveness_escalation") {
-    return correlatedCompositeEvents(events).length >= 2 ? "critical_one_off" : null;
-  }
+function thresholdFor(events) {
   const issueIds = new Set(events.map((event) => event.issueId));
-  const byIssueCount = new Map();
-  for (const event of events) byIssueCount.set(event.issueId, (byIssueCount.get(event.issueId) ?? 0) + 1);
-  const maxIssueEvents = Math.max(0, ...byIssueCount.values());
-  if (policy?.problemKey === "stale_recovery_recursion" && maxIssueEvents >= 2) return "concentrated_loop";
-  if (policy?.problemKey === "liveness_escalation" && maxIssueEvents >= 2) return "duplicate_incident";
-  if (policy?.problemKey === "recovery_loop" && maxIssueEvents >= 3) return "recovery_fanout";
-  if (policy?.problemKey === "github_sync_churn" && maxIssueEvents >= 3) return "concentrated_loop";
   if (events.some((event) => CRITICAL_REASONS.has(event.reasonCode))) return "critical_one_off";
   if (issueIds.size >= 2 && events.length >= 3) return "cross_issue_recurrence";
   const byIssue = new Map();
@@ -416,273 +291,6 @@ function thresholdFor(events, policy) {
     return "concentrated_loop";
   }
   return null;
-}
-
-function incidentFingerprint(problemKey, identity) {
-  return `sha256:${hash(["incident-v1", problemKey, ...identity])}`;
-}
-
-function actionId(fingerprint, operation, target) {
-  return `sha256:${hash([fingerprint, operation, JSON.stringify(stableSort(target))])}`;
-}
-
-function issueCancelAction({ companyId, fingerprint, issueId }) {
-  const target = { issueId };
-  return {
-    operation: "paperclip.issue.update",
-    surface: { method: "PATCH", path: `/api/issues/${issueId}` },
-    target,
-    parameters: { status: "cancelled" },
-    preconditions: {
-      method: "GET",
-      path: `/api/issues/${issueId}`,
-      companyId,
-      status: ACTIONABLE_STATUSES,
-    },
-    idempotencyKey: actionId(fingerprint, "paperclip.issue.update", target),
-    onPreconditionFailure: "abort_noop",
-  };
-}
-
-function boardRunCancelApproval({ companyId, fingerprint, issueId, runId, title, reason }) {
-  const target = { issueId, runId };
-  const idempotencyKey = actionId(fingerprint, "paperclip.board.run.cancel", target);
-  return {
-    operation: "paperclip.approval.request",
-    surface: { method: "POST", path: `/api/companies/${companyId}/approvals` },
-    target,
-    parameters: {
-      type: "request_board_approval",
-      payload: {
-        idempotencyKey,
-        title,
-        reason,
-        recommendedBoardAction: {
-          method: "POST",
-          path: `/api/heartbeat-runs/${runId}/cancel`,
-          body: {},
-          preconditions: {
-            method: "GET",
-            path: `/api/heartbeat-runs/${runId}`,
-            companyId,
-            status: ["queued", "running", "scheduled_retry"],
-          },
-        },
-      },
-      issueIds: [issueId],
-    },
-    preflight: {
-      method: "GET",
-      path: `/api/companies/${companyId}/approvals`,
-      absentPayloadIdempotencyKey: idempotencyKey,
-    },
-    idempotencyKey,
-    onPreconditionFailure: "abort_noop",
-  };
-}
-
-function mappingRemovalApproval({ companyId, fingerprint, issueId, mappingId, reason }) {
-  const target = { mappingId, issueId };
-  const idempotencyKey = actionId(fingerprint, "github_sync.mapping.remove", target);
-  return {
-    operation: "paperclip.approval.request",
-    target,
-    surface: { method: "POST", path: `/api/companies/${companyId}/approvals` },
-    parameters: {
-      type: "request_board_approval",
-      payload: {
-        idempotencyKey,
-        title: `Remove GitHub Sync mapping ${mappingId}`,
-        reason,
-        recommendedBoardAction: { operation: "github_sync.mapping.remove", mappingId },
-      },
-      issueIds: [issueId],
-    },
-    preflight: {
-      method: "GET",
-      path: `/api/companies/${companyId}/approvals`,
-      absentPayloadIdempotencyKey: idempotencyKey,
-    },
-    idempotencyKey,
-    onPreconditionFailure: "abort_noop",
-  };
-}
-
-function buildOperationalIncidents(events, companyId) {
-  const incidents = [];
-  const livenessGroups = new Map();
-  const staleGroups = new Map();
-  const recoveryGroups = new Map();
-  const churnGroups = new Map();
-  const add = (map, key, event) => map.set(key, [...(map.get(key) ?? []), event]);
-
-  for (const event of events) {
-    if (event.reasonCode === "liveness_escalation" && event.incidentKey && event.sourceIssueId) {
-      add(livenessGroups, event.incidentKey, event);
-    } else if (event.reasonCode === "stale_recovery_recursion" && event.sourceIssueId && event.rootRunId
-      && event.existingEvaluationIssueId) {
-      add(staleGroups, `${event.sourceIssueId}\u0000${event.rootRunId}`, event);
-    } else if (event.reasonCode === "recovery_action" && event.sourceIssueId && event.rootRunId
-      && event.retryRunId && event.retryCategory && event.errorCode === "adapter_failed") {
-      add(recoveryGroups, `${event.sourceIssueId}\u0000${event.rootRunId}`, event);
-    } else if (event.reasonCode === "github_sync_churn" && event.mappingId && event.remoteFingerprint) {
-      add(churnGroups, `${event.issueId}\u0000${event.mappingId}\u0000${event.remoteFingerprint}`, event);
-    }
-  }
-
-  for (const [incidentKey, group] of livenessGroups) {
-    const issueIds = [...new Set(group.map((event) => event.issueId))].sort();
-    const sourceIds = [...new Set(group.map((event) => event.sourceIssueId))];
-    if (issueIds.length < 2 || sourceIds.length !== 1) continue;
-    const declaredCanonical = [...new Set(group.map((event) => event.existingEvaluationIssueId).filter(Boolean))].sort();
-    const canonicalIssueId = declaredCanonical.find((id) => issueIds.includes(id)) ?? issueIds[0];
-    const duplicateIssueIds = issueIds.filter((id) => id !== canonicalIssueId);
-    const fingerprint = incidentFingerprint("liveness_escalation", [companyId, incidentKey, sourceIds[0]]);
-    incidents.push({
-      fingerprint, problemKey: "liveness_escalation", severity: 4, threshold: "duplicate_incident",
-      incidentKey, sourceIssueId: sourceIds[0], canonicalIssueId, duplicateIssueIds,
-      existingEvaluationIssueId: canonicalIssueId,
-      runIds: [...new Set(group.map((event) => event.runId).filter(Boolean))].sort(),
-      eventCount: group.length, lastAt: [...group].sort(compareEvidenceEvents).at(-1).at,
-      actionManifest: {
-        version: 1, owner: "company_package", maxResponseMinutes: 15,
-        actions: duplicateIssueIds.map((issueId) => issueCancelAction({ companyId, fingerprint, issueId, canonicalIssueId, incidentKey })),
-      },
-    });
-  }
-
-  for (const group of staleGroups.values()) {
-    const evaluationIssueIds = [...new Set(group.map((event) => event.existingEvaluationIssueId))].sort();
-    if (group.length < 2 || evaluationIssueIds.length === 0) continue;
-    const first = group[0];
-    const canonicalIssueId = evaluationIssueIds[0];
-    const duplicateIssueIds = evaluationIssueIds.slice(1);
-    const fingerprint = incidentFingerprint("stale_recovery_recursion", [companyId, first.sourceIssueId, first.rootRunId]);
-    const runTarget = { issueId: first.sourceIssueId, runId: first.rootRunId };
-    incidents.push({
-      fingerprint, problemKey: "stale_recovery_recursion", severity: 4, threshold: "concentrated_loop",
-      sourceIssueId: first.sourceIssueId, rootRunId: first.rootRunId, canonicalIssueId, duplicateIssueIds,
-      existingEvaluationIssueId: canonicalIssueId,
-      evaluationIssueIds, eventCount: group.length, lastAt: [...group].sort(compareEvidenceEvents).at(-1).at,
-      actionManifest: {
-        version: 1, owner: "company_package", maxResponseMinutes: 15,
-        actions: [boardRunCancelApproval({
-          companyId, fingerprint, issueId: first.sourceIssueId, runId: first.rootRunId,
-          title: `Cancel stale recovery run ${first.rootRunId}`,
-          reason: "Contain repeated stale-recovery recursion; run cancellation is Board-only.",
-        }), ...duplicateIssueIds.map((issueId) => issueCancelAction({ companyId, fingerprint, issueId }))],
-      },
-    });
-  }
-
-  for (const group of recoveryGroups.values()) {
-    const runs = [...new Map(group.map((event) => [event.retryRunId, {
-      issueId: event.sourceIssueId,
-      runId: event.retryRunId,
-      retryCategory: event.retryCategory,
-      causeFingerprint: event.causeFingerprint,
-    }])).values()].sort((a, b) => a.retryCategory.localeCompare(b.retryCategory) || a.runId.localeCompare(b.runId));
-    const retryCategories = [...new Set(runs.map((run) => run.retryCategory))].sort();
-    if (runs.length < 2 || retryCategories.length < 2) continue;
-    const first = group[0];
-    const canonical = runs[0];
-    const siblingRuns = runs.slice(1);
-    const fingerprint = incidentFingerprint("recovery_loop", [companyId, first.sourceIssueId, first.rootRunId]);
-    const actions = siblingRuns.map((sibling) => boardRunCancelApproval({
-      companyId,
-      fingerprint,
-      issueId: sibling.issueId,
-      runId: sibling.runId,
-      title: `Cancel duplicate adapter-failure run ${sibling.runId}`,
-      reason: "Contain adapter_failed retry fan-out; run cancellation is Board-only.",
-    }));
-    incidents.push({
-      fingerprint, problemKey: "recovery_loop", severity: 4, threshold: "recovery_fanout",
-      sourceIssueId: first.sourceIssueId, rootRunId: first.rootRunId,
-      canonicalRunId: canonical.runId,
-      runIds: runs.map((run) => run.runId).sort(),
-      retryCategories,
-      causeFingerprints: [...new Set(runs.map((run) => run.causeFingerprint).filter(Boolean))].sort(),
-      siblingRuns, eventCount: group.length, lastAt: [...group].sort(compareEvidenceEvents).at(-1).at,
-      actionManifest: { version: 1, owner: "company_package", maxResponseMinutes: 60, actions },
-    });
-  }
-
-  for (const group of churnGroups.values()) {
-    if (group.length < 3) continue;
-    const first = group[0];
-    const fingerprint = incidentFingerprint("github_sync_churn", [companyId, first.issueId, first.mappingId, first.remoteFingerprint]);
-    const target = { mappingId: first.mappingId, issueId: first.issueId };
-    incidents.push({
-      fingerprint, problemKey: "github_sync_churn", severity: 3, threshold: "concentrated_loop",
-      mappingId: first.mappingId, remoteFingerprint: first.remoteFingerprint, canonicalIssueId: first.issueId,
-      eventCount: group.length, lastAt: [...group].sort(compareEvidenceEvents).at(-1).at,
-      actionManifest: {
-        version: 1, owner: "github_sync_plugin", maxResponseMinutes: 15,
-        actions: [mappingRemovalApproval({
-          companyId, fingerprint, issueId: first.issueId, mappingId: first.mappingId,
-          reason: "No per-mapping pause capability exists; removal is destructive and requires Board approval.",
-        })],
-      },
-    });
-  }
-
-  const liveness = [...incidents].filter((incident) => incident.problemKey === "liveness_escalation");
-  for (const incident of liveness) {
-    const related = events.filter((event) => event.reasonCode === "github_sync_churn" && event.mappingId
-      && [incident.sourceIssueId, incident.canonicalIssueId, ...incident.duplicateIssueIds].includes(event.issueId));
-    const correlated = correlatedCompositeEvents([...related, ...events.filter((event) =>
-      event.reasonCode === "liveness_escalation" && event.incidentKey === incident.incidentKey)]);
-    const churn = correlated.find((event) => event.reasonCode === "github_sync_churn");
-    if (!churn) continue;
-    const fingerprint = incidentFingerprint("github_sync_liveness_escalation", [companyId, incident.incidentKey, churn.mappingId, churn.remoteFingerprint ?? "unknown"]);
-    const target = { mappingId: churn.mappingId, issueId: incident.sourceIssueId };
-    incidents.push({
-      fingerprint, problemKey: "github_sync_liveness_escalation", severity: 4, threshold: "critical_one_off",
-      incidentKey: incident.incidentKey, sourceIssueId: incident.sourceIssueId, canonicalIssueId: incident.canonicalIssueId,
-      mappingId: churn.mappingId, remoteFingerprint: churn.remoteFingerprint,
-      eventCount: correlated.length, lastAt: correlated.at(-1).at,
-      actionManifest: {
-        version: 1, owner: "company_package", maxResponseMinutes: 15,
-        actions: [...incident.actionManifest.actions, mappingRemovalApproval({
-          companyId, fingerprint, issueId: incident.sourceIssueId, mappingId: churn.mappingId,
-          reason: "Composite sync/liveness containment; mapping removal requires Board approval.",
-        })],
-      },
-    });
-  }
-
-  const compositeFingerprints = new Set(incidents.filter((incident) => incident.problemKey === "github_sync_liveness_escalation").map((incident) => incident.fingerprint));
-  const byIssue = new Map();
-  for (const event of events) {
-    if (!["github_sync_churn", "liveness_escalation"].includes(event.reasonCode)) continue;
-    add(byIssue, event.issueId, event);
-  }
-  for (const issueEvents of byIssue.values()) {
-    const correlated = correlatedCompositeEvents(issueEvents);
-    const churn = correlated.find((event) => event.reasonCode === "github_sync_churn" && event.mappingId && event.remoteFingerprint);
-    const escalation = correlated.find((event) => event.reasonCode === "liveness_escalation" && event.incidentKey && event.sourceIssueId);
-    if (!churn || !escalation) continue;
-    const fingerprint = incidentFingerprint("github_sync_liveness_escalation", [companyId, escalation.incidentKey, churn.mappingId, churn.remoteFingerprint]);
-    if (compositeFingerprints.has(fingerprint)) continue;
-    compositeFingerprints.add(fingerprint);
-    const target = { mappingId: churn.mappingId, issueId: escalation.sourceIssueId };
-    incidents.push({
-      fingerprint, problemKey: "github_sync_liveness_escalation", severity: 4, threshold: "critical_one_off",
-      incidentKey: escalation.incidentKey, sourceIssueId: escalation.sourceIssueId,
-      canonicalIssueId: escalation.existingEvaluationIssueId, mappingId: churn.mappingId, remoteFingerprint: churn.remoteFingerprint,
-      eventCount: correlated.length, lastAt: correlated.at(-1).at,
-      actionManifest: {
-        version: 1, owner: "company_package", maxResponseMinutes: 15,
-        actions: [mappingRemovalApproval({
-          companyId, fingerprint, issueId: escalation.sourceIssueId, mappingId: churn.mappingId,
-          reason: "Composite sync/liveness containment; mapping removal requires Board approval.",
-        })],
-      },
-    });
-  }
-
-  return incidents.sort((a, b) => b.severity - a.severity || b.lastAt.localeCompare(a.lastAt) || a.fingerprint.localeCompare(b.fingerprint));
 }
 
 function issueEvidenceRows(events, issueById) {
@@ -861,19 +469,6 @@ export function analyzeEvidence(input) {
     if (issue) issue.evidence.push(event);
   }
 
-  const incidentSources = new Map();
-  for (const event of events) {
-    if (event.reasonCode !== "liveness_escalation" || !event.incidentKey || !event.sourceIssueId) continue;
-    const sources = incidentSources.get(event.incidentKey) ?? new Set();
-    sources.add(event.sourceIssueId);
-    incidentSources.set(event.incidentKey, sources);
-  }
-  const conflictingIncidentIdentityCount = [...incidentSources.values()].filter((sources) => sources.size > 1).length;
-  if (conflictingIncidentIdentityCount > 0) {
-    coverage.complete = false;
-    coverage.missing = [...new Set([...coverage.missing, `conflicting_incident_identity:${conflictingIncidentIdentityCount}`])].sort();
-  }
-
   const allMissingResources = [...new Set(coverage.missing)].sort();
   coverage.missing = allMissingResources.slice(0, MAX_MISSING_RESOURCES).map((entry) => boundedIdentifier(entry, "missing"));
   coverage.missingCount = allMissingResources.length;
@@ -904,7 +499,6 @@ export function analyzeEvidence(input) {
       agentInventoryFingerprint: `sha256:${hash(agentRows.map((agent) => agent.id))}`,
     },
     candidates: [],
-    incidents: [],
     rejected: [],
   };
   if (!coverage.complete) {
@@ -922,33 +516,10 @@ export function analyzeEvidence(input) {
     groups.set(key, group);
   }
 
-  const compositePolicy = eventPolicy("github_sync_liveness_escalation");
-  for (const issue of issueRows) {
-    const correlated = correlatedCompositeEvents(issue.evidence);
-    if (correlated.length === 0) continue;
-    const key = candidateKey(compositePolicy);
-    const group = groups.get(key) ?? { policy: compositePolicy, events: [] };
-    group.events.push(...correlated);
-    groups.set(key, group);
-  }
-
   const decisions = decisionMap(input.priorDecisions);
-  base.incidents = buildOperationalIncidents(events, base.companyId).filter((incident) => {
-    const prior = decisions.get(incident.fingerprint);
-    if (!prior) return true;
-    if (ACTIVE_DECISIONS.has(prior.status)) return false;
-    return buildOperationalIncidents(events.filter((event) => event.at > prior.at), base.companyId)
-      .some((fresh) => fresh.fingerprint === incident.fingerprint);
-  });
-  if (mode === "containment") {
-    if (base.collection) base.collection.incidentsFound = base.incidents.length;
-    base.outcome = base.incidents.length > 0 ? "operational_incidents" : "no_change";
-    return finalizeReport(base);
-  }
   for (const { policy, events: unsortedEvents } of groups.values()) {
-    if (OPERATIONAL_PROBLEMS.has(policy.problemKey)) continue;
     const groupEvents = [...unsortedEvents].sort(compareEvidenceEvents);
-    const threshold = thresholdFor(groupEvents, policy);
+    const threshold = thresholdFor(groupEvents);
     const incidentIdentity = `sha256:${hash([
       ...new Set(groupEvents.map((event) => event.issueId)).values(),
       ...new Set(groupEvents.map((event) => event.runId).filter(Boolean)).values(),
@@ -1010,10 +581,7 @@ export function analyzeEvidence(input) {
     base.rejectedTruncated = base.rejected.length - MAX_REJECTED;
     base.rejected = base.rejected.slice(0, MAX_REJECTED);
   }
-  if (base.candidates.length > 0 && base.incidents.length > 0) base.outcome = "ranked_candidates_and_incidents";
-  else if (base.incidents.length > 0) base.outcome = "operational_incidents";
-  else if (base.candidates.length > 0) base.outcome = "ranked_candidates";
-  else base.outcome = "no_change";
+  base.outcome = base.candidates.length > 0 ? "ranked_candidates" : "no_change";
   return finalizeReport(base);
 }
 
@@ -1163,7 +731,7 @@ function surfaceMissingCode(label, coverage) {
 
 export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode = "full", fetchImpl = fetch }) {
   if (!baseUrl || !apiKey || !companyId) throw new Error("PAPERCLIP_API_URL, PAPERCLIP_API_KEY, and PAPERCLIP_COMPANY_ID are required.");
-  if (!["full", "containment"].includes(mode)) throw new Error("mode must be full or containment.");
+  if (mode !== "full") throw new Error("mode must be full.");
   const window = buildWindow(asOf, mode);
   const client = { baseUrl, apiKey, fetchImpl };
   const missing = [];
@@ -1179,42 +747,11 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode =
     missing.push("company:heartbeat_run_activity");
   }
 
-  let issueActivity = [];
-  let companyRuns = [];
-  let issueActivityCoverage = null;
-  let heartbeatRunsCoverage = null;
-  if (mode === "containment") {
-    try {
-      issueActivity = collectionRows(await apiGet(
-        client,
-        `/api/companies/${encodeURIComponent(companyId)}/activity?entityType=issue&limit=500`
-      ));
-      issueActivityCoverage = boundedSurfaceCoverage(issueActivity, 500, window);
-      const missingCode = surfaceMissingCode("company:issue_activity", issueActivityCoverage);
-      if (missingCode) missing.push(missingCode);
-    } catch {
-      missing.push("company:issue_activity");
-    }
-    try {
-      companyRuns = collectionRows(await apiGet(
-        client,
-        `/api/companies/${encodeURIComponent(companyId)}/heartbeat-runs?limit=1000`
-      ));
-      heartbeatRunsCoverage = boundedSurfaceCoverage(companyRuns, 1000, window);
-      const missingCode = surfaceMissingCode("company:heartbeat_runs", heartbeatRunsCoverage);
-      if (missingCode) missing.push(missingCode);
-    } catch {
-      missing.push("company:heartbeat_runs");
-    }
-  }
-
   const rowInWindow = (row) => {
     const at = surfaceRowTimestamp(row);
     return at != null && at >= window.start && at < window.end;
   };
-  const allCompanyActivity = [...companyActivity, ...issueActivity];
-  const windowCompanyActivity = allCompanyActivity.filter(rowInWindow);
-  const windowCompanyRuns = companyRuns.filter(rowInWindow);
+  const windowCompanyActivity = companyActivity.filter(rowInWindow);
   const activityClassifications = windowCompanyActivity.map((row) => ({
     row,
     event: canonicalEvent({ ...row, resource: "company_activity", source: "company_activity" }),
@@ -1228,75 +765,6 @@ export async function collectEvidence({ baseUrl, apiKey, companyId, asOf, mode =
   const validWindowCompanyActivity = activityClassifications
     .filter(({ event }) => event && !event.invalid && !event.invalidControl)
     .map(({ row }) => row);
-  const activityEvents = activityClassifications
-    .map(({ event }) => event)
-    .filter((event) => event && !event.invalid && !event.invalidControl);
-
-  if (mode === "containment") {
-    const companyRunIssueId = (run) => {
-      const snapshot = run?.contextSnapshot && typeof run.contextSnapshot === "object"
-        ? run.contextSnapshot
-        : {};
-      return run?.issueId ?? snapshot.issueId;
-    };
-    const issueIds = [...new Set([
-      ...activityEvents.map((event) => event.sourceIssueId ?? event.issueId),
-      ...windowCompanyRuns.map(companyRunIssueId),
-    ].filter(Boolean).map(String))].sort();
-    const issues = issueIds.map((issueId) => ({
-      id: issueId,
-      key: issueId,
-      evidence: [
-        ...validWindowCompanyActivity.filter((row) => {
-          const details = row?.details && typeof row.details === "object" ? row.details : {};
-          return String(details.sourceIssueId ?? details.issueId ?? row.issueId ?? row.entityId ?? "") === issueId;
-        }),
-        ...windowCompanyRuns
-          .filter((run) => String(companyRunIssueId(run) ?? "") === issueId)
-          .map((run) => ({ ...run, resource: "runs", issueId })),
-      ],
-    }));
-    const report = analyzeEvidence({
-      companyId,
-      asOf,
-      mode,
-      coverage: {
-        complete: missing.length === 0,
-        missing,
-        resources: {
-          heartbeatRunActivity: heartbeatRunActivityCoverage ?? {
-            complete: false,
-            count: companyActivity.length,
-            reads: 1,
-            reason: "read_failed",
-          },
-          issueActivity: issueActivityCoverage ?? {
-            complete: false,
-            count: issueActivity.length,
-            reads: 1,
-            reason: "read_failed",
-          },
-          heartbeatRuns: heartbeatRunsCoverage ?? {
-            complete: false,
-            count: companyRuns.length,
-            reads: 1,
-            reason: "read_failed",
-          },
-        },
-      },
-      agents: [],
-      issues,
-      priorDecisions: [],
-      collection: {
-        mode,
-        companyActivityReads: 2,
-        companyRunReads: 1,
-        issueRunReads: 0,
-        incidentsFound: 0,
-      },
-    });
-    return stableSort(report);
-  }
 
   const resources = {
     companyActivity: heartbeatRunActivityCoverage ?? {
@@ -1387,14 +855,14 @@ function parseArgs(argv) {
       result.mode = argv[index + 1] ?? null;
       index += 1;
     } else if (argv[index] === "--help" || argv[index] === "-h") {
-      process.stdout.write("Usage: issue-history-evidence.mjs --as-of <ISO-8601 UTC timestamp> [--mode full|containment]\n");
+      process.stdout.write("Usage: issue-history-evidence.mjs --as-of <ISO-8601 UTC timestamp> [--mode full]\n");
       process.exit(0);
     } else {
       throw new Error(`Unknown argument: ${argv[index]}`);
     }
   }
   if (!result.asOf) throw new Error("--as-of is required; the workflow never infers the evidence boundary.");
-  if (!["full", "containment"].includes(result.mode)) throw new Error("--mode must be full or containment.");
+  if (result.mode !== "full") throw new Error("--mode must be full.");
   return result;
 }
 
