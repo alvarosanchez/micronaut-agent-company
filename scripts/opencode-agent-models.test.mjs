@@ -82,17 +82,37 @@ test("built-in Hermes agents are bounded by Paperclip runtime settings", async (
   );
   assert.match(
     readme,
-    /CodeGraph MCP[\s\S]{0,220}\/usr\/local\/bin\/paperclip-codegraph-mcp[\s\S]{0,220}PAPERCLIP_CODEGRAPH=off/i,
-    "README must document the deployment-provided CodeGraph MCP default and opt-out.",
+    /optional CodeGraph MCP[\s\S]{0,220}\/usr\/local\/bin\/paperclip-codegraph-mcp[\s\S]{0,220}does not require agents to use it for every coding task/i,
+    "README must document that the deployment-provided CodeGraph MCP is optional per task.",
   );
 });
 
-test("repo operations guidance tells agents to use CodeGraph when available", async () => {
+test("repo operations guidance makes CodeGraph optional and gives use and skip criteria", async () => {
   const skill = await read("../skills/micronaut-repo-operations/SKILL.md");
 
-  assert.match(skill, /CodeGraph query per hypothesis/i);
-  assert.match(skill, /before broad search/i);
-  assert.match(skill, /index may be stale/i);
+  assert.match(skill, /CodeGraph is optional/i);
+  assert.match(skill, /unfamiliar or large repositories/i);
+  assert.match(skill, /cross-module dependency or call-chain analysis/i);
+  assert.match(skill, /symbol exploration/i);
+  assert.match(skill, /ordinary search\/read becomes repetitive or insufficient/i);
+  assert.match(skill, /small localized fixes/i);
+  assert.match(skill, /known files/i);
+  assert.match(skill, /documentation or configuration changes/i);
+  assert.match(skill, /tasks with a precise target/i);
+  assert.doesNotMatch(skill, /CodeGraph[^\n]*(?:before broad search|use early|required)/i);
+});
+
+test("role guidance does not require CodeGraph on coding tasks", async () => {
+  const paths = [
+    "../agents/architect/AGENTS.md",
+    "../agents/security-engineer/AGENTS.md",
+    "../agents/micronaut-engineer/AGENTS.md",
+  ];
+
+  for (const path of paths) {
+    const instructions = await read(path);
+    assert.doesNotMatch(instructions, /use CodeGraph(?: early| to)?/i, `${path} must not mandate CodeGraph usage.`);
+  }
 });
 
 test("built-in Hermes agents configure the cheap model profile", async () => {
