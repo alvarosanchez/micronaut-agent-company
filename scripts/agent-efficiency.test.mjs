@@ -54,10 +54,10 @@ test("agent instructions include concise model-specific operating guidance", asy
   const expected = {
     ceo: /GPT-5\.6 Terra operating profile[\s\S]{0,500}batch|batch[\s\S]{0,500}GPT-5\.6 Terra operating profile/i,
     "product-manager": /GPT-5\.6 Terra operating profile[\s\S]{0,500}(compare|evidence)/i,
-    architect: /GPT-5\.6 Sol operating profile[\s\S]{0,500}(hypoth|CodeGraph|call path)/i,
+    architect: /GPT-5\.6 Sol operating profile[\s\S]{0,500}(hypoth|call path)/i,
     "qa-engineer": /GPT-5\.6 Terra operating profile[\s\S]{0,500}(batch|decision table|matrix)/i,
     "security-engineer": /GPT-5\.6 Sol operating profile[\s\S]{0,500}(exploit|hypoth|call path)/i,
-    "micronaut-engineer": /GPT-5\.6 Sol operating profile[\s\S]{0,500}(CodeGraph|call path|hypoth)/i,
+    "micronaut-engineer": /GPT-5\.6 Sol operating profile[\s\S]{0,500}(call path|hypoth)/i,
     "code-reviewer": /GPT-5\.6 Sol operating profile[\s\S]{0,500}(complete review|call path|hypoth)/i,
     "technical-writer": /GPT-5\.6 Luna operating profile[\s\S]{0,500}(verified|concise|bounded)/i,
   };

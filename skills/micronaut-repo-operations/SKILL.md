@@ -21,9 +21,9 @@ Before mutating issue state, publishing to GitHub, opening or updating a PR, clo
 
 - For local repository preflight, run `node <skill-directory>/scripts/repo-evidence.mjs --base <ref>` once; omit `--base` until the approved target is known. Resolve `<skill-directory>` from this skill's inventory. The read-only script returns compact machine-readable JSON for repository root, branch, HEAD, upstream, worktree state, base divergence, changed files, build markers, and instruction files. Read raw git output only when `errors` is non-empty or the decision needs omitted evidence.
 - Batch independent reads and GitHub Sync lookups. Consume current QA, plan, implementation, and review artifacts instead of rediscovering facts already recorded upstream.
-- For source localization or impact analysis, make one focused CodeGraph query per hypothesis before broad search. Treat returned source as already read; fetch it again only when exact context is missing or the index may be stale.
+- CodeGraph is optional. Use a focused query for unfamiliar or large repositories, cross-module dependency or call-chain analysis, symbol exploration, or when ordinary search/read becomes repetitive or insufficient. Skip CodeGraph for small localized fixes, known files, documentation or configuration changes, and tasks with a precise target. Do not invoke it merely because a task includes code; if it is unavailable or its index is stale, continue with ordinary search/read without treating that as a blocker.
 - Prefer structured JSON and stable issue documents. Keep decision-relevant fields in stage artifacts and link to larger evidence instead of copying it.
-- Do not narrow Hermes toolsets in this portable package. Deployment MCP names are operator-owned, and both GitHub Sync and CodeGraph are required. A deployment may narrow its wrapper only after preserving both MCP surfaces and validating representative workflows.
+- Do not narrow Hermes toolsets in this portable package. Deployment MCP names are operator-owned, and workflows may rely on GitHub Sync or optional tools such as CodeGraph. A deployment may narrow its wrapper only after preserving the MCP surfaces its workflows need and validating representative workflows.
 
 ## Shared Stage Contract
 
