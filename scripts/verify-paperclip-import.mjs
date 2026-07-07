@@ -1179,15 +1179,8 @@ function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
       ];
 
   for (const key of comparedKeys) {
-    const actualValue = key === "extraArgs" && Array.isArray(expectedConfig[key]) && typeof actualConfig[key] === "string"
-      ? actualConfig[key]
-          .replace(/^\[|\]$/g, "")
-          .split(",")
-          .map((value) => value.trim())
-          .filter(Boolean)
-      : actualConfig[key] ?? null;
     assert.deepEqual(
-      actualValue,
+      actualConfig[key] ?? null,
       expectedConfig[key] ?? null,
       `${expectedAdapter.type} ${key} mismatch for imported agent ${agentSlug}`,
     );
@@ -2394,9 +2387,6 @@ async function main() {
       expected.extension?.agents ?? {},
     )) {
       const expectedAdapterConfig = structuredClone(expectedAgentConfig?.adapter ?? null);
-      if (Array.isArray(expectedAdapterConfig?.config?.extraArgs)) {
-        expectedAdapterConfig.config.extraArgs = `[${expectedAdapterConfig.config.extraArgs.join(", ")}]`;
-      }
       assert.deepEqual(
         exportedExtension?.agents?.[agentSlug]?.adapter ?? null,
         expectedAdapterConfig,
