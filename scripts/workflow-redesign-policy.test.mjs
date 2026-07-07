@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { promisify } from "node:util";
 
 import YAML from "yaml";
@@ -10,6 +10,48 @@ const execFileAsync = promisify(execFile);
 
 async function read(path) {
   return readFile(new URL(path, import.meta.url), "utf8");
+}
+
+async function markdownFiles(root) {
+  const files = [];
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    const url = new URL(`${entry.name}${entry.isDirectory() ? "/" : ""}`, root);
+    if (entry.isDirectory()) files.push(...await markdownFiles(url));
+    else if (entry.name.endsWith(".md")) files.push(url);
+  }
+  return files.sort((left, right) => left.href.localeCompare(right.href));
+}
+
+async function effectiveAgentBundle(agentSlug, expectedSkills) {
+  const rolePath = `../agents/${agentSlug}/AGENTS.md`;
+  const role = await read(rolePath);
+  const frontmatter = role.match(/^---\n([\s\S]*?)\n---/);
+  assert.ok(frontmatter, `${rolePath} must have YAML frontmatter`);
+  const skills = YAML.parse(frontmatter[1]).skills;
+  assert.deepEqual(skills, expectedSkills, `${agentSlug} must use the audited exact skill grant set`);
+
+  const documents = [[rolePath, role]];
+  for (const skill of skills) {
+    assert.ok(!skill.startsWith("paperclipai/"), `${agentSlug} must not load unaudited catalog skill ${skill}`);
+    const skillRoot = new URL(`../skills/${skill}/`, import.meta.url);
+    const files = await markdownFiles(skillRoot);
+    assert.ok(files.some((file) => file.pathname.endsWith("/SKILL.md")), `missing local skill ${skill}`);
+    for (const file of files) documents.push([file.pathname, await readFile(file, "utf8")]);
+  }
+  return documents.map(([path, body]) => `\n<!-- ${path} -->\n${body}`).join("\n");
+}
+
+function unsafeDeliveryImperatives(bundle) {
+  const imperative = /^\s*(?:[-*]\s*)?(?:(?:you|the reviewer|the security engineer)\s+)?(?:(?:must|should|can)\s+)?(?:edit|modify|write|commit|push|merge|publish|release|create|update|reply|resolve|re-request)(?:\s|:)/i;
+  const deliveryTarget = /\b(?:branches?|pull requests?|prs?|repositories|review threads?|releases?)\b/i;
+  const prohibited = /\b(?:must not|do not|never|prohibited|read-only|non-mutating)\b/i;
+  const otherOwner = /\b(?:implementation owner|delivery owner|follow-through owner|technical writer|micronaut engineer)\b/i;
+  return bundle.split("\n").filter((line) =>
+    imperative.test(line)
+    && deliveryTarget.test(line)
+    && !prohibited.test(line)
+    && !otherOwner.test(line)
+  );
 }
 
 const route = async () => read("../skills/micronaut-repo-operations/references/intake-routing-release.md");
@@ -256,6 +298,41 @@ test("repository-wide policy never assigns PR mutation to Code Reviewer", async 
       }
     }
   }
+});
+
+test("effective Reviewer and Security bundles keep repository delivery mutations scoped", async () => {
+  const reviewerBundle = await effectiveAgentBundle("code-reviewer", [
+    "micronaut-repo-operations",
+    "micronaut-github-operations",
+    "micronaut-quality-gates",
+    "coding",
+    "docs",
+    "gradle",
+    "micronaut-test-resources-provider-development",
+    "micronaut-graalvm-native-development",
+    "gh-cli",
+  ]);
+  const securityBundle = await effectiveAgentBundle("security-engineer", [
+    "micronaut-repo-operations",
+    "micronaut-github-operations",
+    "micronaut-quality-gates",
+    "micronaut-security-review",
+    "coding",
+    "gradle",
+    "micronaut-test-resources-provider-development",
+    "gh-cli",
+  ]);
+
+  assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
+  const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
+  assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
+  assert.match(securityBundle, /Security Engineer and Code Reviewer are read-only/i);
+  assert.match(securityBundle, /Only role-authorized implementation owners and `followThroughOwner` may use GitHub write tools/i);
+  assert.deepEqual(
+    unsafeDeliveryImperatives(securityBundle),
+    [],
+    "Security effective bundle must not grant unconditional repository delivery mutations",
+  );
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {

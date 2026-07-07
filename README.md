@@ -441,7 +441,7 @@ These are Paperclip 2026.626 Skills Store catalog prerequisites, not vendored so
 | `paperclipai/bundled/paperclip-operations/task-planning` | CEO, Architect, Product Manager | Structured `plan` documents, child task breakdowns, blockers, owners, acceptance criteria, and plan-confirmation interactions without turning normal delivery issues into planning mode |
 | `paperclipai/bundled/quality/qa-acceptance` | Architect, Product Manager, QA Engineer | Given/when/then acceptance criteria, manual validation plans, edge cases, error states, and durable pass/fail evidence for feature-level QA |
 | `paperclipai/bundled/software-development/github-pr-workflow` | CEO, Micronaut Engineer, Technical Writer | Branch hygiene and implementation-owner PR publication/follow-through |
-| `paperclipai/bundled/docs/doc-maintenance` | Code Reviewer, Micronaut Engineer, Technical Writer | Minimum-churn documentation drift detection and updates for user-visible behavior, configuration, API, release-line, and tooling changes |
+| `paperclipai/bundled/docs/doc-maintenance` | Micronaut Engineer, Technical Writer | Minimum-churn documentation drift detection and updates for user-visible behavior, configuration, API, release-line, and tooling changes |
 | `paperclipai/optional/browser/agent-browser` | QA Engineer, Product Manager, Micronaut Engineer, Technical Writer | Browser-backed verification for dynamic pages, generated docs, preview/deployed UI, screenshots, console and network evidence; not unattended scraping |
 
 ## Referenced External Skills

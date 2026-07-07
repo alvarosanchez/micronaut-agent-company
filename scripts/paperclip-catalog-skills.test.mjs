@@ -87,9 +87,7 @@ const AGENT_ASSIGNMENTS = {
     "paperclipai/bundled/docs/doc-maintenance",
     "paperclipai/optional/browser/agent-browser",
   ],
-  "code-reviewer": [
-    "paperclipai/bundled/docs/doc-maintenance",
-  ],
+  "code-reviewer": [],
   "technical-writer": [
     "paperclipai/bundled/docs/doc-maintenance",
     "paperclipai/bundled/software-development/github-pr-workflow",
@@ -113,6 +111,11 @@ test("package agents reference the adopted Paperclip catalog skill keys", async 
     const { frontmatter, body } = parseFrontmatter(markdown);
     assert.ok(Array.isArray(frontmatter.skills), `${agentSlug} should declare skills.`);
     assertIncludesAll(frontmatter.skills, expectedSkills, agentSlug);
+    assert.deepEqual(
+      frontmatter.skills.filter((skill) => skill.startsWith("paperclipai/")).sort(),
+      [...expectedSkills].sort(),
+      `${agentSlug} must use exactly the reviewed catalog grant set.`,
+    );
     for (const { slug } of CATALOG_SKILLS) {
       assert.ok(!frontmatter.skills.includes(slug), `${agentSlug} should use the full catalog key for ${slug}, not the local slug.`);
     }
@@ -134,8 +137,9 @@ test("agent instructions carry Micronaut-specific catalog-skill guardrails", asy
   const codeReviewer = await read("../agents/code-reviewer/AGENTS.md");
   const { frontmatter: codeReviewerFrontmatter } = parseFrontmatter(codeReviewer);
   assert.ok(!codeReviewerFrontmatter.skills.includes("paperclipai/bundled/software-development/github-pr-workflow"));
+  assert.ok(!codeReviewerFrontmatter.skills.includes("paperclipai/bundled/docs/doc-maintenance"));
   assert.doesNotMatch(codeReviewer, /Use `github-pr-workflow`/i);
-  assert.match(codeReviewer, /doc-maintenance[\s\S]*minimum-churn documentation corrections/i);
+  assert.doesNotMatch(codeReviewer, /Use `doc-maintenance`/i);
 
   const productManager = await read("../agents/product-manager/AGENTS.md");
   assert.match(productManager, /agent-browser[\s\S]*not use it for unattended scraping/i);
