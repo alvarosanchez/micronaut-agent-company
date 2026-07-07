@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 import YAML from "yaml";
 
 const SKILL_NAME = "micronaut-graalvm-native-development";
-const TARGET_AGENT_FILES = ["micronaut-engineer", "qa-engineer", "code-reviewer"];
+const TARGET_AGENT_FILES = ["micronaut-engineer", "qa-engineer"];
 
 function parseFrontmatter(markdown) {
   const normalized = markdown.replace(/\r\n/g, "\n");

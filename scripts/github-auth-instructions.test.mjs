@@ -219,7 +219,9 @@ test("GitHub-capable agents include the exception-only gh CLI reference and atom
   assert.match(sharedSkillBody, /headCommitSha/);
   assert.doesNotMatch(sharedSkillBody, /GITHUB_TOKEN/);
 
-  for (const relativePath of GITHUB_AGENT_PATHS) {
+  for (const relativePath of GITHUB_AGENT_PATHS.filter((path) =>
+    !path.includes("code-reviewer") && !path.includes("security-engineer")
+  )) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { frontmatter, body } = parseFrontmatter(markdown);
 

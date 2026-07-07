@@ -31,7 +31,6 @@ metadata:
   intendedAgents:
     - micronaut-engineer
     - qa-engineer
-    - code-reviewer
 ---
 
 # Micronaut GraalVM Native Development

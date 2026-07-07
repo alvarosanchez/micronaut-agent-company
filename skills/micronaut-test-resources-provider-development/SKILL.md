@@ -16,8 +16,6 @@ metadata:
     - architect
     - micronaut-engineer
     - qa-engineer
-    - security-engineer
-    - code-reviewer
     - technical-writer
 ---
 

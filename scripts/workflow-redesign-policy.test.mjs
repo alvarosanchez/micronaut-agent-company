@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { promisify } from "node:util";
 
@@ -36,9 +37,16 @@ async function effectiveAgentBundle(agentSlug, expectedSkills) {
     const skillRoot = new URL(`../skills/${skill}/`, import.meta.url);
     const files = await markdownFiles(skillRoot);
     assert.ok(files.some((file) => file.pathname.endsWith("/SKILL.md")), `missing local skill ${skill}`);
-    for (const file of files) documents.push([file.pathname, await readFile(file, "utf8")]);
+    for (const file of files) {
+      const path = file.pathname.replace(new URL("../", import.meta.url).pathname, "");
+      documents.push([path, await readFile(file, "utf8")]);
+    }
   }
   return documents.map(([path, body]) => `\n<!-- ${path} -->\n${body}`).join("\n");
+}
+
+function bundleDigest(bundle) {
+  return createHash("sha256").update(bundle).digest("hex");
 }
 
 function unsafeDeliveryImperatives(bundle) {
@@ -305,27 +313,24 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     "micronaut-repo-operations",
     "micronaut-github-operations",
     "micronaut-quality-gates",
-    "coding",
-    "docs",
-    "gradle",
-    "micronaut-test-resources-provider-development",
-    "micronaut-graalvm-native-development",
-    "gh-cli",
   ]);
   const securityBundle = await effectiveAgentBundle("security-engineer", [
     "micronaut-repo-operations",
     "micronaut-github-operations",
     "micronaut-quality-gates",
     "micronaut-security-review",
-    "coding",
-    "gradle",
-    "micronaut-test-resources-provider-development",
-    "gh-cli",
   ]);
 
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
+  const reviewerDigest = "211fe7585a24e1be46e360e0aff2db62759e0b59e96308a765b4a84b3137315b";
+  assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
+  assert.notEqual(
+    bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
+    reviewerDigest,
+    "any injected effective-bundle instruction must invalidate the approved bundle",
+  );
   assert.match(securityBundle, /Security Engineer and Code Reviewer are read-only/i);
   assert.match(securityBundle, /Only role-authorized implementation owners and `followThroughOwner` may use GitHub write tools/i);
   assert.deepEqual(
@@ -333,6 +338,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective bundle must not grant unconditional repository delivery mutations",
   );
+  assert.equal(bundleDigest(securityBundle), "b1a224e8660f464e934bfb5413acb2b375f16a2180acc86694056d4ddf525baa");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {

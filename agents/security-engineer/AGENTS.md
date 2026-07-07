@@ -8,10 +8,6 @@ skills:
   - micronaut-github-operations
   - micronaut-quality-gates
   - micronaut-security-review
-  - coding
-  - gradle
-  - micronaut-test-resources-provider-development
-  - gh-cli
 metadata:
   paperclip:
     agentIcon: shield

@@ -7,12 +7,6 @@ skills:
   - micronaut-repo-operations
   - micronaut-github-operations
   - micronaut-quality-gates
-  - coding
-  - docs
-  - gradle
-  - micronaut-test-resources-provider-development
-  - micronaut-graalvm-native-development
-  - gh-cli
 metadata:
   paperclip:
     agentIcon: search
