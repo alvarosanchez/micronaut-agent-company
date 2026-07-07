@@ -65,7 +65,7 @@ Intake mode:
 - if the issue is already implemented and the evidence is clear, cite the exact version, PR, release, or documentation evidence in a detailed, evidence-rich closure comment and close it directly with GitHub's native `Close as not planned` reason instead of `Close as completed`
 - if the linked PR from an external contributor is good enough, keep it open and route the issue through the normal gates so later stages can make that existing PR mergeable
 - if the linked PR would need significant replacement work, leave the contributor PR open, record that it is not the implementation vehicle, keep the issue actionable, and route the issue through the normal engineering pipeline so later stages create a separate maintainer-owned PR
-- choose or verify the downstream execution-policy stage sequence for the issue type before you approve intake
+- derive and verify the downstream route from the authoritative `qa-intake` booleans and ordered `stageSequence`; the issue type remains only a surface label
 - use separate sequential review stages for required gates such as Architect, QA, Security Engineer, and Code Reviewer instead of a single multi-participant stage when all of them must sign off
 - every QA-published GitHub closure comment must contain detailed evidence and must not be short on details: cite the exact facts that justify the closure, such as the clarification request and timeout date, non-reproducer steps and observed results, duplicate overlap with the superseding issue, or the exact version, PR, release, documentation, or policy evidence
 - QA-published GitHub answers must also explain the outcome with enough detail that the reporter can understand why the issue was answered

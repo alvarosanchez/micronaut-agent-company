@@ -43,7 +43,7 @@ Before an actionable issue moves out of QA intake:
 - duplicates use the documented `closed: duplicate` path with GitHub's native `Close as duplicate` reason and a link to the superseding GitHub issue
 - already-implemented closures cite the exact version, PR, release, or documentation evidence and use QA's direct closure path
 - closure comments contain detailed evidence, are not short generic close notes, and cite the exact facts that justify the closure
-- the downstream execution-policy stage sequence is correct for the issue type
+- the authoritative `qa-intake` booleans and ordered `stageSequence` encode the correct downstream route; issue type is only a surface label and does not select the route
 - required all-of gates are modeled as separate sequential stages instead of one multi-participant stage
 - if the issue needs a public answer or closure outside QA's direct GitHub authority, the board-approval path is explicit
 - if intake needs bounded maintainer input rather than open-ended discussion, QA uses `ask_user_questions` with clear options and a continuation policy so the issue resumes when answered

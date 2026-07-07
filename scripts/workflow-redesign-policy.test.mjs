@@ -60,6 +60,18 @@ test("Architect accepts every authoritative planning route regardless of issue t
   assert.doesNotMatch(architect, /delivery `type:` gate/i);
 });
 
+test("QA-loaded guidance derives routing only from authoritative intake fields", async () => {
+  const bodies = await Promise.all([
+    read("../agents/qa-engineer/AGENTS.md"),
+    read("../skills/micronaut-quality-gates/SKILL.md"),
+  ]);
+  for (const body of bodies) {
+    assert.match(body, /authoritative `qa-intake`[^\n]+(?:booleans[^\n]+)?ordered `stageSequence`/i);
+    assert.match(body, /issue type[^\n]+(?:surface label|does not select the route)/i);
+    assert.doesNotMatch(body, /stage sequence (?:is correct|for) the issue type|stage sequence for the issue type/i);
+  }
+});
+
 test("public operating roster has nine roles while package import has exactly eight", async () => {
   const [readme, packageYaml] = await Promise.all([read("../README.md"), read("../.paperclip.yaml")]);
   const roster = markedYaml(readme, "operating-role-roster");
@@ -142,16 +154,20 @@ test("always-loaded route summary defers to the authoritative conditional stageS
 });
 
 test("Security pre-triage and final approval follow their exact stageSequence successors", async () => {
-  const [quality, security] = await Promise.all([
+  const [quality, security, securitySkill] = await Promise.all([
     read("../skills/micronaut-quality-gates/SKILL.md"),
     read("../agents/security-engineer/AGENTS.md"),
+    read("../skills/micronaut-security-review/SKILL.md"),
   ]);
-  for (const body of [quality, security]) {
+  for (const body of [quality, security, securitySkill]) {
     assert.match(body, /pre-triage[^\n]+next entry in (?:the )?(?:authoritative )?ordered `qa-intake\.stageSequence`/i);
     assert.match(body, /final (?:Security )?review[^\n]+Code Reviewer/i);
     assert.doesNotMatch(body, /If the work is approved, it moves to Code Reviewer/i);
   }
   assert.match(quality, /pre-triage[^\n]+does not skip Architect, implementation, QA verification, or final Security review/i);
+  assert.match(securitySkill, /pre-triage[^\n]+never skips Architect, implementation, QA verification, or final Security review/i);
+  assert.match(securitySkill, /inspect[^\n]+review threads[^\n]+do not mutate/i);
+  assert.match(securitySkill, /followThroughOwner[^\n]+thread mutation/i);
 });
 
 test("QA verification advances to the exact next stage, including routine direct review", async () => {
@@ -243,10 +259,15 @@ test("repository-wide policy never assigns PR mutation to Code Reviewer", async 
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {
-  const security = await read("../agents/security-engineer/AGENTS.md");
-  assert.match(security, /inspect[^\n]+review threads/i);
-  assert.match(security, /followThroughOwner[^\n]+replies[^\n]+resolves/i);
-  assert.doesNotMatch(security, /paperclip-github-plugin:(?:reply_to_review_thread|resolve_review_thread|unresolve_review_thread)/);
+  const bodies = await Promise.all([
+    read("../agents/security-engineer/AGENTS.md"),
+    read("../skills/micronaut-security-review/SKILL.md"),
+  ]);
+  for (const body of bodies) {
+    assert.match(body, /inspect[^\n]+review threads/i);
+    assert.match(body, /followThroughOwner[^\n]+(?:replies[^\n]+resolves|thread mutation)/i);
+    assert.doesNotMatch(body, /paperclip-github-plugin:(?:reply_to_review_thread|resolve_review_thread|unresolve_review_thread)/);
+  }
 });
 
 test("prose-only docs omit Security consistently and stale global routes are rejected", async () => {
