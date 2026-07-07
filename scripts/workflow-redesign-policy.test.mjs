@@ -68,7 +68,7 @@ test("QA-loaded guidance derives routing only from authoritative intake fields",
   for (const body of bodies) {
     assert.match(body, /authoritative `qa-intake`[^\n]+(?:booleans[^\n]+)?ordered `stageSequence`/i);
     assert.match(body, /issue type[^\n]+(?:surface label|does not select the route)/i);
-    assert.doesNotMatch(body, /stage sequence (?:is correct|for) the issue type|stage sequence for the issue type/i);
+    assert.doesNotMatch(body, /stage sequence (?:is correct|for) the issue type|stage sequence for the issue type|participants are correct for the issue type/i);
   }
 });
 
@@ -289,7 +289,13 @@ test("prose-only docs omit Security consistently and stale global routes are rej
 });
 
 test("PR follow-through re-enters gates by actual change effect", async () => {
-  const control = await read("../skills/micronaut-repo-operations/references/workflow-control-plane.md");
+  const [control, qa, architect, company, readme] = await Promise.all([
+    read("../skills/micronaut-repo-operations/references/workflow-control-plane.md"),
+    read("../agents/qa-engineer/AGENTS.md"),
+    read("../agents/architect/AGENTS.md"),
+    read("../COMPANY.md"),
+    read("../README.md"),
+  ]);
   assert.match(control, /routine source, test, dependency, or build changes go Micronaut Engineer -> QA -> Code Reviewer/i);
   assert.match(control, /routine prose or executable docs go Technical Writer -> QA -> Code Reviewer/i);
   assert.match(control, /defined Security triggers add pre-triage before the owner and final Security review after QA/i);
@@ -298,4 +304,17 @@ test("PR follow-through re-enters gates by actual change effect", async () => {
   assert.match(control, /conflicts or semantic changes rerun the applicable gates/i);
   assert.match(control, /followThroughAssigneeAgentId/);
   assert.match(control, /does not implement plugin code/i);
+  for (const body of [qa, architect, company, readme]) {
+    assert.match(body, /reopens a PR-based issue[^\n]+recorded `qa-intake\.followThroughOwner`/i);
+    assert.match(body, /source, test, dependency, or build repair belongs to Micronaut Engineer/i);
+    assert.match(body, /prose, docs, guide, `AGENTS\.md`, role-instruction, and textual control-plane follow-through remains with Technical Writer/i);
+  }
+  for (const file of await trackedPolicyFiles()) {
+    const content = await read(`../${file}`);
+    assert.doesNotMatch(
+      content,
+      /reopens a PR-based issue[^\n]+Route it to (?:the )?Micronaut Engineer/i,
+      `${file} bypasses the recorded follow-through owner on PR re-entry`,
+    );
+  }
 });
