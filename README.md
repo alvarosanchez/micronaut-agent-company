@@ -257,7 +257,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 - If that best-fit organization-project choice is ambiguous, including major-version upgrades that may or may not fit the next Platform minor board cleanly, agents should keep the selected organization-project set and record the ambiguity in the stage artifact or PR summary instead of dropping the links.
 - After PR creation, human maintainer project changes win over earlier agent-selected projects. If a maintainer changes, reschedules, or retargets the PR organization project, preserve that live maintainer choice and do not restore, reapply, re-add, or reset the original QA-selected organization project links unless a later maintainer or board decision explicitly asks for it.
 - If no matching organization project exists yet, or if the available GitHub tooling cannot apply the project link, agents should record the gap and continue instead of escalating solely for that reason.
-- Imported company instances treat package-owned defaults as immutable in place; reusable default improvements should be promoted by the CEO through a PR to `alvarosanchez/micronaut-agent-company`.
+- Imported company instances treat package-owned defaults as immutable in place. For reusable default improvements, CEO classifies the finding and creates a scoped QA-assigned child with acceptance criteria. After QA routing, the artifact-appropriate implementation owner promotes the change through a PR to `alvarosanchez/micronaut-agent-company` and owns linking, CI, review threads, and follow-through.
 
 ## Work Surface
 
@@ -323,7 +323,7 @@ For local, additive guidance that should survive reimports, agents may read and 
 
 These files are additive, optional, and intentionally outside the portable package surface. If the current workspace is a managed Micronaut repository rather than this company package, repo-level `AGENTS.md` files remain valid product artifacts and may still be maintained when the active task or routine calls for it; those managed Micronaut repository `AGENTS.md` updates should be carried through a repo-local PR.
 
-When a learning should improve the default behavior of future imports, the CEO should promote it through a PR to `https://github.com/alvarosanchez/micronaut-agent-company` instead of baking it into local overlays or mutating an imported company instance in place.
+When a learning should improve the default behavior of future imports, CEO classifies it and creates a scoped QA-assigned child rather than baking it into local overlays or mutating an imported company instance in place. After QA routing, the artifact-appropriate implementation owner promotes it through a PR to `https://github.com/alvarosanchez/micronaut-agent-company` and owns linking, CI, review threads, and follow-through.
 
 ## Documentation CI Skips
 

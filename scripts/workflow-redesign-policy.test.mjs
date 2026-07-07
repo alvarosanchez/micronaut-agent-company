@@ -80,9 +80,10 @@ function unsafeRootMutationAuthorities(markdown) {
     /\b(?:Security Engineer|Code Reviewer)\b[^\n.!?]{0,80}\b(?:opens?|updates?|creates?|publishes?|follows?|links?|owns?)\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|review threads?|follow-through)\b/i,
     /\b(?:set|sets|assign|assigns|assigned)\b[^\n.!?]{0,50}\bassignee\b[^\n.!?]{0,50}\broutine owner\b/i,
     /\b(?:rediscover|follow)\w*\b[^\n.!?]{0,80}\bPRs?\b[^\n.!?]{0,80}\bCEO\b/i,
+    /\b(?:promot|open|update|follow)\w*\b[^\n.!?]{0,80}\bby (?:the )?CEO\b[^\n.!?]{0,80}\b(?:PRs?|pull requests?)\b/i,
     /\bCEO-opened PRs?\b/i,
   ];
-  const prohibition = /\b(?:must not|does not|do not|never|rather than|not be assigned)\b/i;
+  const prohibition = /\b(?:must not|does not|do not|never|without|rather than|not be assigned)\b/i;
   return markdown
     .split(/\n+|(?<=[.!?])\s+/)
     .filter((sentence) => !prohibition.test(sentence) && patterns.some((pattern) => pattern.test(sentence)));
@@ -379,26 +380,34 @@ test("implementation owners create and follow their PRs while Reviewer remains a
 });
 
 test("root company policy delegates mutation-bearing routine work to implementation owners", async () => {
-  const company = await read("../COMPANY.md");
-  assert.deepEqual(unsafeRootMutationAuthorities(company), [], "COMPANY.md must not restore delivery authority to CEO, routine coordinators, Security, or Reviewer");
+  const [company, readme] = await Promise.all([read("../COMPANY.md"), read("../README.md")]);
+  for (const [label, policy] of [["COMPANY.md", company], ["README.md", readme]]) {
+    assert.deepEqual(unsafeRootMutationAuthorities(policy), [], `${label} must not restore delivery authority to CEO, routine coordinators, Security, or Reviewer`);
+  }
+  const rootPolicy = `${company}\n${readme}`;
   assert.match(company, /CEO routine classifies[\s\S]{0,500}scoped QA-assigned child/i);
   assert.match(company, /artifact-appropriate implementation owner creates or updates any repository branch and PR[\s\S]{0,250}review-thread follow-through/i);
   assert.match(company, /CEO does not open, update, rediscover, or follow repository PRs/i);
   assert.match(company, /set assignee to the artifact-appropriate implementation owner rather than the routine owner/i);
   assert.match(company, /CEO, Security Engineer, and Code Reviewer must not be assigned mutation-bearing out-of-pipeline PR children/i);
+  assert.match(readme, /For reusable default improvements, CEO classifies the finding and creates a scoped QA-assigned child[\s\S]{0,250}artifact-appropriate implementation owner promotes the change through a PR/i);
+  assert.match(readme, /CEO classifies it and creates a scoped QA-assigned child[\s\S]{0,250}artifact-appropriate implementation owner promotes it through a PR/i);
   for (const retiredPolicy of [
     /sets? assignee to the routine owner before doing the project-specific work/i,
     /CEO routine may promote[\s\S]{0,300}PRs/i,
     /CEO-opened PRs/i,
     /CEO should promote it through a PR/i,
+    /promoted by the CEO through a PR/i,
   ]) {
-    assert.doesNotMatch(company, retiredPolicy);
+    assert.doesNotMatch(rootPolicy, retiredPolicy);
   }
   for (const probe of [
     "The CEO may open and follow repository PRs.",
     "Set assignee to the routine owner before opening the PR.",
     "Security Engineer creates and follows repository PRs.",
     "Code Reviewer owns PR follow-through and review-thread resolution.",
+    "Reusable package defaults should be promoted by the CEO through a PR.",
+    "The CEO should promote it through a PR.",
   ]) {
     assert.deepEqual(unsafeRootMutationAuthorities(probe), [probe]);
   }
