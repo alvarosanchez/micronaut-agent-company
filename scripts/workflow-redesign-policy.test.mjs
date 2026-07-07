@@ -2,28 +2,60 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
+import YAML from "yaml";
+
 async function read(path) {
   return readFile(new URL(path, import.meta.url), "utf8");
 }
 
 const route = async () => read("../skills/micronaut-repo-operations/references/intake-routing-release.md");
 
-test("QA intake has a stable authoritative classification artifact", async () => {
+function markedYaml(markdown, marker) {
+  const markerText = `<!-- ${marker} -->`;
+  const markerIndex = markdown.indexOf(markerText);
+  assert.notEqual(markerIndex, -1, `missing ${marker} marker`);
+  const remainder = markdown.slice(markerIndex + markerText.length).trimStart();
+  const fence = remainder.match(/^```yaml\n([\s\S]*?)\n```/);
+  assert.ok(fence, `${marker} must be followed by a YAML fence`);
+  return YAML.parse(fence[1]);
+}
+
+test("QA intake schema represents composable risk and an explicit ordered route", async () => {
   const [policy, qa] = await Promise.all([route(), read("../agents/qa-engineer/AGENTS.md")]);
+  const schema = markedYaml(policy, "qa-intake-schema");
   const fields = [
-    "deliveryClass", "planningRequired", "planningReason", "securityPrecheckRequired",
-    "deliveryOwner", "followThroughOwner", "verificationProfile",
+    "deliveryClass", "architectureReviewRequired", "planningReason",
+    "securityPrecheckRequired", "securityFinalReviewRequired", "deliveryOwner",
+    "followThroughOwner", "verificationProfile", "stageSequence",
     "evidenceReproduction", "acceptanceCriteria",
   ];
   assert.match(policy, /issue type is only the surface label/i);
   assert.match(qa, /QA is the authoritative classifier/i);
+  assert.deepEqual(Object.keys(schema), fields);
   for (const field of fields) {
-    assert.match(policy, new RegExp(`^${field}:`, "m"), `qa-intake must define ${field}`);
     assert.match(qa, new RegExp(`\\b${field}\\b`), `QA instructions must require ${field}`);
   }
-  assert.match(policy, /routine \| architectural \| security-sensitive \| documentation/);
-  assert.match(policy, /micronaut-engineer \| technical-writer/);
-  assert.match(policy, /source \| dependency \| docs-prose \| docs-executable/);
+  assert.equal(schema.deliveryClass, "routine | architectural | security-sensitive | documentation");
+  assert.equal(schema.deliveryOwner, "micronaut-engineer | technical-writer");
+  assert.equal(schema.verificationProfile, "source | dependency | docs-prose | docs-executable");
+  assert.ok(Array.isArray(schema.stageSequence), "stageSequence must be represented as an ordered list");
+});
+
+test("machine-readable route matrix preserves every required and omitted gate", async () => {
+  const matrix = markedYaml(await route(), "workflow-routing-matrix");
+  assert.deepEqual(matrix, {
+    "routine-bug": ["qa-engineer", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
+    "architecture-sensitive-bug": ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
+    "routine-dependency-upgrade": ["qa-engineer", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
+    "migration-dependency-upgrade": ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
+    "security-sensitive-source": ["qa-engineer", "security-engineer", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
+    "security-sensitive-architectural-source": ["qa-engineer", "security-engineer", "architect", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
+    "prose-docs": ["qa-engineer", "technical-writer", "qa-engineer", "code-reviewer"],
+    "executable-or-security-docs": ["qa-engineer", "technical-writer", "qa-engineer", "security-engineer", "code-reviewer"],
+    "workflow-authority-docs": ["qa-engineer", "architect", "technical-writer", "qa-engineer", "code-reviewer"],
+    "security-sensitive-workflow-authority-docs": ["qa-engineer", "security-engineer", "architect", "technical-writer", "qa-engineer", "security-engineer", "code-reviewer"],
+    feature: ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
+  });
 });
 
 test("routine and complex bugs have distinct architecture routing", async () => {
@@ -81,6 +113,50 @@ test("CEO cannot perform repository or PR delivery work", async () => {
   assert.match(ceo, /creates and assigns scoped (?:child issues|children) with acceptance criteria, then stops/i);
   assert.match(routine, /textual[^\n]+Technical Writer/i);
   assert.match(routine, /executable (?:company-)?package[^\n]+Micronaut Engineer/i);
+});
+
+test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
+  const [readme, company, engineer, writer, reviewer, quality, delivery, tools] = await Promise.all([
+    read("../README.md"),
+    read("../COMPANY.md"),
+    read("../agents/micronaut-engineer/AGENTS.md"),
+    read("../agents/technical-writer/AGENTS.md"),
+    read("../agents/code-reviewer/AGENTS.md"),
+    read("../skills/micronaut-quality-gates/SKILL.md"),
+    read("../skills/micronaut-repo-operations/references/pr-delivery-evidence.md"),
+    read("../skills/micronaut-repo-operations/references/github-sync-tools.md"),
+  ]);
+  for (const body of [readme, company, engineer, writer, reviewer, quality, delivery, tools]) {
+    assert.doesNotMatch(body, /Code Reviewer (?:normally )?creates? the (?:final )?(?:GitHub )?PR|code-reviewer` creates the GitHub PR/i);
+    assert.doesNotMatch(body, /QA and Security(?: Engineer)? (?:artifacts both |stages )?approved before (?:you |the Code Reviewer )?(?:create|creates|created) (?:one|the PR)/i);
+  }
+  assert.match(engineer, /create or update the PR[\s\S]{0,300}before QA verification/i);
+  assert.match(writer, /create or update the PR[\s\S]{0,300}before QA verification/i);
+  assert.match(reviewer, /must not create, update, or publish the PR/i);
+  assert.match(reviewer, /applicable upstream gates/i);
+  assert.doesNotMatch(
+    reviewer,
+    /paperclip-github-plugin:(?:create_pull_request|update_pull_request|upload_pull_request_asset|add_pull_request_to_project|request_pull_request_reviewers)/,
+    "Code Reviewer instructions must expose no GitHub write tools.",
+  );
+});
+
+test("prose-only docs omit Security consistently and stale global routes are rejected", async () => {
+  const [readme, company, writer, reviewer, quality] = await Promise.all([
+    read("../README.md"),
+    read("../COMPANY.md"),
+    read("../agents/technical-writer/AGENTS.md"),
+    read("../agents/code-reviewer/AGENTS.md"),
+    read("../skills/micronaut-quality-gates/SKILL.md"),
+  ]);
+  assert.doesNotMatch(writer, /`type: docs` issues still move through QA, Security Engineer, and Code Reviewer/i);
+  assert.doesNotMatch(reviewer, /latest security artifact/i);
+  assert.doesNotMatch(company, /Architect[^\n]+planning stage for[^\n]+`type: dependency-upgrade` work/i);
+  assert.doesNotMatch(company, /QA Engineer[^\n]+approves the work for security review/i);
+  assert.doesNotMatch(company, /Micronaut Engineer[^\n]+handles PR follow-through after PR creation/i);
+  for (const body of [readme, company, writer, reviewer, quality]) {
+    assert.match(body, /prose(?:-only)? docs[^\n]+(?:omit|no|without) (?:the )?Security|prose(?:-only)? docs[^\n]+Writer -> QA -> (?:Code )?Reviewer/i);
+  }
 });
 
 test("PR follow-through re-enters gates by actual change effect", async () => {

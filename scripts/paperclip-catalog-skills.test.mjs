@@ -133,7 +133,7 @@ test("agent instructions carry Micronaut-specific catalog-skill guardrails", asy
   assert.match(architect, /qa-acceptance[\s\S]*QA Engineer can verify independently/i);
 
   const codeReviewer = await read("../agents/code-reviewer/AGENTS.md");
-  assert.match(codeReviewer, /github-pr-workflow[\s\S]*QA and Security approval/i);
+  assert.match(codeReviewer, /github-pr-workflow[\s\S]*implementation owner creates and follows the PR/i);
   assert.match(codeReviewer, /doc-maintenance[\s\S]*minimum-churn documentation corrections/i);
 
   const productManager = await read("../agents/product-manager/AGENTS.md");

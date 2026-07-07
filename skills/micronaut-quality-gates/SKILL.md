@@ -122,13 +122,13 @@ The Code Reviewer checks for:
 - if a human maintainer changed, rescheduled, or retargeted the PR organization project after PR creation, that maintainer project change is authoritative and must remain; code review must not restore, reapply, re-add, or reset the original QA-selected organization project set over the maintainer's choice
 - once the approved target branch is identified, the work branch is fetched and updated from the target branch before starting work, editing, committing, opening, creating, or updating a PR; target branch rebase or merge conflicts are recorded as blockers instead of publishing conflicting PRs
 
-If the work is approved, the Code Reviewer creates or verifies the PR. If not, it resolves as `changes_requested`.
+If the work is approved, the Code Reviewer verifies the implementation-owner-published PR without mutating it. If not, it resolves as `changes_requested` to the implementation owner. Prose-only docs omit Security and use Writer -> QA -> Code Reviewer; all other gates follow the authoritative `qa-intake.stageSequence`.
 
 ## PR Gate
 
 Before a PR is considered healthy:
 
-- the Code Reviewer created the PR after QA and Security Engineer stages approved, or verified an acceptable already-open contributor PR after those stages approved
+- the implementation owner created or updated the PR before QA verification, and Code Reviewer verified it after every applicable upstream gate approved the same head SHA
 - the synced Paperclip delivery item remains open until GitHub merge or an approved GitHub closure path syncs back
 - the summary and rationale are coherent
 - linked issue context is accurate and uses a closing keyword
@@ -141,7 +141,7 @@ Before a PR is considered healthy:
 - guide, docs, or documentation PRs whose CI is not needed because the changed docs are not exercised by the build use a skip-ci keyword in the commit message, such as `[skip ci]`
 - guide, docs, or documentation PR branches are updated from the target branch before opening or updating the PR; rebase or merge conflicts are recorded as blockers instead of publishing conflicting PRs
 - standalone `micronaut-guides` PRs created or updated by guide routines include the generated guide PDF as a PR-visible uploaded artifact or attachment link, and the PDF is not committed to the repository
-- security review comments are addressed
+- applicable security review comments are addressed; prose-only docs have no Security gate
 - CI is green
 - Sonar Quality Gate issues are addressed
 - all review threads are replied to with a decision explanation before they are resolved

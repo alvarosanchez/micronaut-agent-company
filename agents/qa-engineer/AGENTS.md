@@ -42,7 +42,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 Intake mode:
 
 - Treat the GitHub issue type as the surface label, not the route decision. QA is the authoritative classifier.
-- Write `qa-intake` with the stable headings `deliveryClass`, `planningRequired`, `planningReason`, `securityPrecheckRequired`, `deliveryOwner`, `followThroughOwner`, `verificationProfile`, `evidenceReproduction`, and `acceptanceCriteria`. Use only the documented enums; `deliveryOwner` and `followThroughOwner` are `micronaut-engineer` or `technical-writer`.
+- Write `qa-intake` with the stable headings `deliveryClass`, `architectureReviewRequired`, `planningReason`, `securityPrecheckRequired`, `securityFinalReviewRequired`, `deliveryOwner`, `followThroughOwner`, `verificationProfile`, ordered `stageSequence`, `evidenceReproduction`, and `acceptanceCriteria`. Use only the documented enums; treat the three review booleans as composable dimensions, require `deliveryOwner` and `followThroughOwner` to be the same `micronaut-engineer` or `technical-writer` slug, and make `stageSequence` agree with the canonical matrix.
 - Select the risk route in the shared `micronaut-repo-operations` intake-routing reference: routine bugs and compatible dependency upgrades skip Architect; architectural/migration triggers add Architect; security-sensitive work has Security pre-triage and final Security review; prose docs use Writer -> QA -> Reviewer; executable/security docs add Security.
 
 - decide whether the issue is actionable, blocked on clarification, duplicate, stale, out-of-scope, unreproducible, or already-implemented

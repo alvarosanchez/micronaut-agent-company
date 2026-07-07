@@ -4,23 +4,44 @@ Detailed reference extracted from `micronaut-repo-operations` so the primary ski
 
 ## Authoritative QA Intake Artifact
 
-The GitHub issue type is only the surface label. QA is the authoritative risk classifier and writes a stable `qa-intake` issue document before selecting a route. Keep these exact headings and fields so policies and later agents do not infer risk from the label alone:
+The GitHub issue type is only the surface label. QA is the authoritative risk classifier and writes a stable `qa-intake` issue document before selecting a route. Keep these exact headings and fields so policies and later agents do not infer risk from the label alone. The boolean risk dimensions are composable: for example, a security-sensitive architectural change sets all three review booleans to `true`. `stageSequence` is the authoritative ordered route and must agree with those dimensions and the matrix below.
 
+<!-- qa-intake-schema -->
 ```yaml
 deliveryClass: routine | architectural | security-sensitive | documentation
-planningRequired: true | false
-planningReason: <bounded evidence-based reason>
+architectureReviewRequired: true | false
+planningReason: <bounded evidence-based reason or "not required">
 securityPrecheckRequired: true | false
+securityFinalReviewRequired: true | false
 deliveryOwner: micronaut-engineer | technical-writer
 followThroughOwner: micronaut-engineer | technical-writer
 verificationProfile: source | dependency | docs-prose | docs-executable
+stageSequence:
+  - <ordered agent slug, including qa-engineer for intake and verification>
 evidenceReproduction: <reproducer, prior art, or documentation evidence>
 acceptanceCriteria: <observable pass conditions>
 ```
 
-Also retain repository, release, target-branch, compatibility, project-board, linked-PR, and closure facts required elsewhere in this reference. `deliveryOwner` and `followThroughOwner` must agree with the artifact being changed: Engineer owns source, tests, dependencies, builds, package scripts, adapters, and plugins; Writer owns prose docs, guides, repository `AGENTS.md`, company role instructions, and textual control-plane changes.
+Also retain repository, release, target-branch, compatibility, project-board, linked-PR, and closure facts required elsewhere in this reference. `deliveryOwner` and `followThroughOwner` must be identical and agree with the artifact being changed: Engineer owns source, tests, dependencies, builds, package scripts, adapters, and plugins; Writer owns prose docs, guides, repository `AGENTS.md`, company role instructions, and textual control-plane changes. The delivery owner creates or updates the PR before QA verification and remains its follow-through owner.
 
 ## Risk-Classified Stage Layouts
+
+The following YAML is the canonical semantic route matrix. Repeated `qa-engineer` entries mean intake and post-implementation verification respectively. Security-sensitive source routes use pre-triage and final review; prose-only docs intentionally omit Security.
+
+<!-- workflow-routing-matrix -->
+```yaml
+routine-bug: [qa-engineer, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
+architecture-sensitive-bug: [qa-engineer, architect, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
+routine-dependency-upgrade: [qa-engineer, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
+migration-dependency-upgrade: [qa-engineer, architect, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
+security-sensitive-source: [qa-engineer, security-engineer, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
+security-sensitive-architectural-source: [qa-engineer, security-engineer, architect, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
+prose-docs: [qa-engineer, technical-writer, qa-engineer, code-reviewer]
+executable-or-security-docs: [qa-engineer, technical-writer, qa-engineer, security-engineer, code-reviewer]
+workflow-authority-docs: [qa-engineer, architect, technical-writer, qa-engineer, code-reviewer]
+security-sensitive-workflow-authority-docs: [qa-engineer, security-engineer, architect, technical-writer, qa-engineer, security-engineer, code-reviewer]
+feature: [qa-engineer, architect, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
+```
 
 - Routine localized bug: QA intake -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. It skips Architect.
 - Architecture-sensitive bug: QA intake -> Architect -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. Require Architect for cross-module or cross-repository impact; public API, serialization, or protocol compatibility; concurrency, lifecycle, or transaction semantics; structural performance tradeoffs; build or native-image interactions; multiple materially different fixes; contradictory intended behavior; or a failed implementation that exposes a design gap.
@@ -29,7 +50,7 @@ Also retain repository, release, target-branch, compatibility, project-board, li
 - Security-sensitive bug or dependency upgrade: QA intake -> Security Engineer pre-triage -> Architect only when architecture or compatibility planning is needed -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. Security pre-triage never replaces final security review.
 - Prose-only docs: QA intake -> Technical Writer -> QA verification -> Code Reviewer. This reduced route has no Security stage.
 - Executable examples or security-sensitive docs: QA intake -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer.
-- Mechanical or stale repository `AGENTS.md`: CEO finding -> QA intake -> Technical Writer -> QA verification -> Code Reviewer. Workflow or authority semantics add Architect before Writer; authority, tool, or security changes also add Security before Code Reviewer.
+- Mechanical or stale repository `AGENTS.md`: CEO finding -> QA intake -> Technical Writer -> QA verification -> Code Reviewer. Workflow or authority semantics add Architect before Writer; authority, tool, or security changes also add Security pre-triage when needed and final Security review before Code Reviewer.
 - Features and breaking changes: QA intake -> Architect -> implementation owner -> QA verification -> Security Engineer final review -> Code Reviewer.
 - `type: question`, clarification wait paths, unreproducible bug closures, duplicate closures, and already-implemented closures: QA intake, with QA publishing the evidence-backed disposition and waiting for sync.
 

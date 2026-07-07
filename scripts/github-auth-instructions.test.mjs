@@ -17,9 +17,9 @@ const GITHUB_AGENT_PATHS = [
   "agents/technical-writer/AGENTS.md",
 ];
 const ORGANIZATION_PROJECT_AGENT_PATHS = new Set([
-  "agents/code-reviewer/AGENTS.md",
   "agents/micronaut-engineer/AGENTS.md",
 ]);
+const ORGANIZATION_PROJECT_REVIEWER_PATH = "agents/code-reviewer/AGENTS.md";
 const NO_GH_FALLBACK_PATTERN =
   /do not use `?gh`? as (?:an API |a )?fallback|do not use \bgh\b as (?:an API |a )?fallback/i;
 const PLUGIN_TOOLS_REQUIRED_PATTERN =
@@ -74,8 +74,9 @@ const GITHUB_SYNC_AGENT_UNLINK_FORBIDDEN_PATTERN =
   /GitHub Sync[\s\S]{0,240}(?:links|issue-link|pull-request-link)[\s\S]{0,240}durable[\s\S]{0,400}Agents[\s\S]{0,240}must not[\s\S]{0,240}(?:unlink|tombstone|delete|deactivate)/i;
 const GITHUB_SYNC_OPERATOR_UNLINK_PATTERN =
   /intentional unlinking[\s\S]{0,160}operator UI action|operator UI action[\s\S]{0,160}intentional unlinking/i;
-const KPI_API_ROUTE_AGENT_PATHS = [
-  "agents/code-reviewer/AGENTS.md",
+const PR_CREATOR_AGENT_PATHS = [
+  "agents/micronaut-engineer/AGENTS.md",
+  "agents/technical-writer/AGENTS.md",
 ];
 
 function assertDirectGithubFooterPolicy(markdown, label) {
@@ -263,6 +264,10 @@ test("GitHub-capable agents delegate common transport policy to the shared skill
         /list_organization_projects[\s\S]{0,520}add_pull_request_to_project|add_pull_request_to_project[\s\S]{0,520}list_organization_projects/i,
       );
     }
+    if (relativePath === ORGANIZATION_PROJECT_REVIEWER_PATH) {
+      assert.match(body, /list_organization_projects[\s\S]{0,260}verify the selected project set/i);
+      assert.doesNotMatch(body, /paperclip-github-plugin:add_pull_request_to_project/i);
+    }
   }
 });
 
@@ -338,13 +343,15 @@ test("GitHub Sync link policy forbids agent unlinking while preserving operator 
   assertGitHubSyncAgentUnlinkPolicy(body, "agents/ceo/AGENTS.md");
 });
 
-test("PR-creating agents explain the authenticated PR KPI API route rule", async () => {
-  for (const relativePath of KPI_API_ROUTE_AGENT_PATHS) {
+test("PR-creating agents use atomic plugin publication and delegate exception attribution", async () => {
+  for (const relativePath of PR_CREATOR_AGENT_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { body } = parseFrontmatter(markdown);
-
-    assertPullRequestMetricApiRoutePolicy(body, relativePath);
+    assert.match(body, /paperclip-github-plugin:create_pull_request/);
+    assert.match(body, /Apply the shared `micronaut-github-operations` skill/);
   }
+  const shared = await readFile(new URL("../skills/micronaut-github-operations/SKILL.md", import.meta.url), "utf8");
+  assertPullRequestMetricApiRoutePolicy(shared, "skills/micronaut-github-operations/SKILL.md");
 });
 
 test("Local gh-cli skill points to the requested upstream skill", async () => {

@@ -160,7 +160,7 @@ test("PR creators update from the target branch before starting work", async () 
     "../COMPANY.md",
     "../skills/micronaut-quality-gates/SKILL.md",
     "../skills/company-package-evolution/SKILL.md",
-    "../agents/code-reviewer/AGENTS.md",
+    "../agents/micronaut-engineer/AGENTS.md",
     "../agents/technical-writer/AGENTS.md",
     "../tasks/monthly-user-guide-review/TASK.md",
     "../tasks/monthly-guide-topic-discovery/TASK.md",
