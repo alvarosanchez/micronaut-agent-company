@@ -52,6 +52,14 @@ test("QA intake schema makes planningRequired authoritative with an explicit ord
   assert.ok(Array.isArray(schema.stageSequence), "stageSequence must be represented as an ordered list");
 });
 
+test("Architect accepts every authoritative planning route regardless of issue type", async () => {
+  const architect = await read("../agents/architect/AGENTS.md");
+  assert.match(architect, /`qa-intake`[^\n]+`planningRequired: true`[^\n]+current participant[^\n]+`stageSequence`/i);
+  assert.match(architect, /Issue type is only a surface label[^\n]+must not override QA's route/i);
+  assert.doesNotMatch(architect, /Confirm the issue type is one of/i);
+  assert.doesNotMatch(architect, /delivery `type:` gate/i);
+});
+
 test("public operating roster has nine roles while package import has exactly eight", async () => {
   const [readme, packageYaml] = await Promise.all([read("../README.md"), read("../.paperclip.yaml")]);
   const roster = markedYaml(readme, "operating-role-roster");
