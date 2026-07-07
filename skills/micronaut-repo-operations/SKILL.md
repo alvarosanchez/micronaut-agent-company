@@ -41,9 +41,10 @@ Before mutating issue state, publishing to GitHub, opening or updating a PR, clo
 
 ## Route Summary
 
-- Bugs: QA intake/reproducer → Micronaut Engineer → QA verification → Security Engineer → Code Reviewer.
-- Docs: QA intake → Technical Writer → QA verification → Security Engineer → Code Reviewer.
-- Improvements, enhancements, breaking changes, and dependency upgrades: QA intake → Architect → implementation/docs → QA verification → Security Engineer → Code Reviewer.
+- The authoritative ordered `qa-intake.stageSequence` selected from `references/intake-routing-release.md` controls every handoff; issue type alone does not select the route.
+- Routine non-security bugs and compatible dependency upgrades skip Architect and Security; architecture or migration triggers add Architect before the implementation owner.
+- Defined Security triggers add pre-triage before implementation and final review after QA; pre-triage never replaces Architect, implementation, QA verification, or final Security review.
+- Routine prose and executable docs use Writer -> QA -> Code Reviewer; security-sensitive docs use both Security stages, and workflow/authority semantics add Architect.
 - Questions, clarification waits, unreproducible reports, duplicates, and already-implemented reports may use QA's evidence-backed direct disposition path.
 - Existing contributor PRs remain on normal gates when salvageable; replacement work does not require closing the contributor PR.
 

@@ -121,6 +121,40 @@ test("security-sensitive work has pre-triage and final security stages", async (
   assert.match(security, /requires both pre-triage before implementation and final review after QA/i);
 });
 
+test("always-loaded route summary defers to the authoritative conditional stageSequence", async () => {
+  const summary = await read("../skills/micronaut-repo-operations/SKILL.md");
+  assert.match(summary, /authoritative ordered `qa-intake\.stageSequence`/i);
+  assert.match(summary, /issue type alone does not select the route/i);
+  assert.match(summary, /routine non-security bugs and compatible dependency upgrades skip Architect and Security/i);
+  assert.match(summary, /defined Security triggers add pre-triage before implementation and final review after QA/i);
+  assert.match(summary, /routine prose and executable docs[^\n]+Writer -> QA -> (?:Code )?Reviewer/i);
+  assert.doesNotMatch(summary, /Bugs: QA intake\/reproducer → Micronaut Engineer → QA verification → Security Engineer → Code Reviewer/);
+  assert.doesNotMatch(summary, /Docs: QA intake → Technical Writer → QA verification → Security Engineer → Code Reviewer/);
+  assert.doesNotMatch(summary, /dependency upgrades: QA intake → Architect[^\n]+Security Engineer → Code Reviewer/i);
+});
+
+test("Security pre-triage and final approval follow their exact stageSequence successors", async () => {
+  const [quality, security] = await Promise.all([
+    read("../skills/micronaut-quality-gates/SKILL.md"),
+    read("../agents/security-engineer/AGENTS.md"),
+  ]);
+  for (const body of [quality, security]) {
+    assert.match(body, /pre-triage[^\n]+next entry in (?:the )?(?:authoritative )?ordered `qa-intake\.stageSequence`/i);
+    assert.match(body, /final (?:Security )?review[^\n]+Code Reviewer/i);
+    assert.doesNotMatch(body, /If the work is approved, it moves to Code Reviewer/i);
+  }
+  assert.match(quality, /pre-triage[^\n]+does not skip Architect, implementation, QA verification, or final Security review/i);
+});
+
+test("QA verification advances to the exact next stage, including routine direct review", async () => {
+  const qa = await read("../agents/qa-engineer/AGENTS.md");
+  assert.match(qa, /approved[^\n]+exact next entry in (?:the )?authoritative ordered `qa-intake\.stageSequence`/i);
+  assert.match(qa, /routine routes advance directly to Code Reviewer/i);
+  assert.match(qa, /security-sensitive routes advance to Security final review/i);
+  assert.doesNotMatch(qa, /implementation is ready for the security stage/i);
+  assert.doesNotMatch(qa, /next `currentParticipant` is the security stage when review stages remain/i);
+});
+
 test("documentation uses reduced prose gates and conditional executable security", async () => {
   const policy = await route();
   assert.match(policy, /Prose-only docs:[^\n]+QA intake -> Technical Writer -> QA verification -> Code Reviewer[^\n]+no Security stage/i);

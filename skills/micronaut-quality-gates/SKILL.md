@@ -96,9 +96,9 @@ The QA Engineer verifies:
 
 Work that passes QA moves into the next configured review stage or completes through the allowed direct GitHub answer or closure path. Inside an active execution-policy stage, QA should let Paperclip move the issue into the next `in_review` participant automatically. When QA is changing owners outside the active review chain, it should use a normal `TODO` assignment plus a clear next-action comment. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
 
-## Security Gate
+## Security Gates
 
-The Security Engineer checks for:
+Security participates only when the authoritative ordered `qa-intake.stageSequence` includes it. In either Security stage, the Security Engineer checks for:
 
 - source-code exploit paths and attack-surface changes
 - authentication, authorization, secret handling, serialization, filesystem, process, and network risk
@@ -106,7 +106,7 @@ The Security Engineer checks for:
 - insecure defaults or examples that would steer users into unsafe deployment or configuration choices
 - whether blocking findings are concrete enough to justify `changes_requested`
 
-If the work is approved, it moves to Code Reviewer. If not, it returns through the execution policy as `changes_requested`.
+Approved pre-triage advances only to the next entry in the authoritative ordered `qa-intake.stageSequence`, which is Architect when planning is required and otherwise the implementation owner. Pre-triage does not skip Architect, implementation, QA verification, or final Security review. Approved final Security review advances to Code Reviewer. A rejected Security stage returns through the execution policy as `changes_requested`.
 
 ## Code Review Gate
 
