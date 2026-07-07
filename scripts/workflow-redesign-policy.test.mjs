@@ -49,6 +49,12 @@ async function effectiveAgentBundle(agentSlug, expectedSkills) {
   return documents.map(([path, body]) => `\n<!-- ${path} -->\n${body}`).join("\n");
 }
 
+async function effectiveInvocationBundle(agentSlug, expectedSkills, taskSlug) {
+  const roleAndSkills = await effectiveAgentBundle(agentSlug, expectedSkills);
+  const taskPath = `../tasks/${taskSlug}/TASK.md`;
+  return `${roleAndSkills}\n<!-- ${taskPath} -->\n${await read(taskPath)}`;
+}
+
 function bundleDigest(bundle) {
   return createHash("sha256").update(bundle).digest("hex");
 }
@@ -75,11 +81,12 @@ function unsafeMaintainerWaitMutations(bundle) {
 
 function unsafeRootMutationAuthorities(markdown) {
   const patterns = [
-    /\bCEO(?: routine)?\b[^\n.!?]{0,120}\b(?:may|should|will|can)\b[^\n.!?]{0,40}\b(?:open|update|create|send|promote|rediscover|follow)\w*\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|review threads?)\b/i,
-    /\bCEO(?: routine)?\b[^\n.!?]{0,40}\b(?:opens?|updates?|creates?|sends?|promotes?|rediscovers?|follows?)\b[^\n.!?]{0,80}\b(?:PRs?|pull requests?|repository branches?|review threads?)\b/i,
-    /\b(?:Security Engineer|Code Reviewer)\b[^\n.!?]{0,80}\b(?:opens?|updates?|creates?|publishes?|follows?|links?|owns?)\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|review threads?|follow-through)\b/i,
+    /\bCEO(?: routine)?\b[^\n.!?]{0,120}\b(?:may|should|will|can)\b[^\n.!?]{0,40}\b(?:open|update|create|send|promote|publish|implement|rediscover|follow)\w*\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|review threads?|company skills?|skills?)\b/i,
+    /\bCEO(?: routine)?\b[^\n.!?]{0,40}\b(?:opens?|updates?|creates?|sends?|promotes?|publishes?|implements?|installs?|adds?|assigns?|authors?|rediscovers?|follows?)\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|review threads?|company skills?|skills?)\b/i,
+    /\b(?:Security Engineer|Code Reviewer)\b(?:(?!\b(?:Technical Writer|Micronaut Engineer|Writer|Engineer|(?:artifact-appropriate )?implementation owner|followThroughOwner)\b)[^\n.!?]){0,40}\b(?:opens?|updates?|creates?|publishes?|follows?|links?)\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|review threads?|follow-through)\b/i,
+    /\b(?:Security Engineer|Code Reviewer)\b[^\n.!?]{0,50}\bowns?\b[^\n.!?]{0,80}\b(?:PR follow-through|pull-request follow-through|review-thread (?:resolution|mutation)|thread (?:resolution|mutation))\b/i,
     /\b(?:set|sets|assign|assigns|assigned)\b[^\n.!?]{0,50}\bassignee\b[^\n.!?]{0,50}\broutine owner\b/i,
-    /\b(?:assignee|assigned to)\b[^\n.!?]{0,20}\bArchitect\b[^\n.!?]{0,120}\b(?:PRs?|pull requests?|implementation|repository mutation|authors?)\b/i,
+    /\b(?:assign(?:ed)?(?:\s+to)?|assignee)\b[^\n.!?]{0,30}\bArchitect\b[^\n.!?]{0,140}\b(?:PRs?|pull requests?|implement(?:ation)?|publish(?:es|ing)?|repository mutation|authors?)\b/i,
     /\b(?:rediscover|follow)\w*\b[^\n.!?]{0,80}\bPRs?\b[^\n.!?]{0,80}\bCEO\b/i,
     /\b(?:promot|open|update|follow)\w*\b[^\n.!?]{0,80}\bby (?:the )?CEO\b[^\n.!?]{0,80}\b(?:PRs?|pull requests?)\b/i,
     /\bCEO-opened PRs?\b/i,
@@ -325,6 +332,76 @@ test("effective CEO self-improvement policy uses bounded routing fixtures", asyn
   assert.match(ceo, /acceptance criteria[^\n]+never use only[^\n]+intended policy/i);
 });
 
+test("every active routine has a complete pinned effective invocation bundle", async () => {
+  const specs = {
+    "monthly-product-discovery": {
+      agent: "product-manager",
+      skills: [
+        "product-discovery", "micronaut-repo-operations", "micronaut-github-operations", "docs", "gh-cli",
+        "paperclipai/bundled/quality/qa-acceptance",
+        "paperclipai/bundled/paperclip-operations/task-planning",
+        "paperclipai/optional/browser/agent-browser",
+      ],
+    },
+    "monthly-security-deep-scan": {
+      agent: "security-engineer",
+      skills: ["micronaut-repo-operations", "micronaut-github-operations", "micronaut-quality-gates", "micronaut-security-review"],
+    },
+    "monthly-user-guide-review": {
+      agent: "technical-writer",
+      skills: [
+        "micronaut-repo-operations", "micronaut-github-operations", "micronaut-quality-gates", "docs", "guides",
+        "micronaut-test-resources-provider-development", "agent-md-refactor", "skill-creator", "gh-cli",
+        "paperclipai/bundled/docs/doc-maintenance",
+        "paperclipai/bundled/software-development/github-pr-workflow",
+        "paperclipai/optional/browser/agent-browser",
+      ],
+    },
+    "monthly-guide-topic-discovery": {
+      agent: "technical-writer",
+      skills: [
+        "micronaut-repo-operations", "micronaut-github-operations", "micronaut-quality-gates", "docs", "guides",
+        "micronaut-test-resources-provider-development", "agent-md-refactor", "skill-creator", "gh-cli",
+        "paperclipai/bundled/docs/doc-maintenance",
+        "paperclipai/bundled/software-development/github-pr-workflow",
+        "paperclipai/optional/browser/agent-browser",
+      ],
+    },
+    "monthly-ceo-self-improvement": {
+      agent: "ceo",
+      skills: ["company-package-evolution", "ceo-issue-history", "marketplace-skill-discovery"],
+    },
+    training: {
+      agent: "ceo",
+      skills: ["company-package-evolution", "ceo-issue-history", "marketplace-skill-discovery"],
+    },
+  };
+  const config = YAML.parse(await read("../.paperclip.yaml"));
+  const activeRoutines = Object.entries(config.routines)
+    .filter(([, routine]) => routine.status === "active")
+    .map(([slug]) => slug)
+    .sort();
+  assert.deepEqual(activeRoutines, Object.keys(specs).sort(), "every active routine must have an audited invocation bundle");
+
+  const digests = {};
+  for (const [slug, spec] of Object.entries(specs)) {
+    const task = await read(`../tasks/${slug}/TASK.md`);
+    const frontmatter = task.match(/^---\n([\s\S]*?)\n---/);
+    assert.ok(frontmatter, `${slug} task must have YAML frontmatter`);
+    assert.equal(YAML.parse(frontmatter[1]).assignee, spec.agent, `${slug} task assignee must match its audited role bundle`);
+    digests[slug] = bundleDigest(await effectiveInvocationBundle(spec.agent, spec.skills, slug));
+  }
+
+  assert.deepEqual(digests, {
+    "monthly-product-discovery": "d751140e5705e8c05c50e5deb026a754f96321ea28d9da3c7e197d01f89c9628",
+    "monthly-security-deep-scan": "532dfe564c6cb2067bcc25ffa63976510c26aa37dd4465dc6fbbe8f8420e3d9b",
+    "monthly-user-guide-review": "a9fe38fa9c0d65767e715435ca35f5e48abb15ba5c6fdfee7051444813240f97",
+    "monthly-guide-topic-discovery": "71789b98f7409d3d223f5c058328cfa59070704dd920432edeb0b3040c10c9eb",
+    "monthly-ceo-self-improvement": "ad95a147c3b6a2b44cc27c7b2bf3138d41af445bdc44f1bcdc111fb6eee61ec5",
+    training: "99d12afc8e711dc673a5c9e7aa8d7f6ce81a0d50d36f933dc03be0469014e7d9",
+  });
+});
+
 test("CEO effective bundle is governance-only", async () => {
   const catalogSkills = [];
   const expectedSkills = [
@@ -333,11 +410,15 @@ test("CEO effective bundle is governance-only", async () => {
     "marketplace-skill-discovery",
     ...catalogSkills,
   ];
-  const roleAndSkills = await effectiveAgentBundle("ceo", expectedSkills);
-  const routinePath = "../tasks/monthly-ceo-self-improvement/TASK.md";
-  const bundle = `${roleAndSkills}\n<!-- ${routinePath} -->\n${await read(routinePath)}`;
-  assert.deepEqual(unsafeDeliveryImperatives(bundle), [], "CEO effective routine bundle must not authorize repository or PR delivery");
-  assert.deepEqual(unsafeMaintainerWaitMutations(bundle), [], "CEO effective routine bundle must preserve protected maintainer wait");
+  const bundles = await Promise.all([
+    effectiveInvocationBundle("ceo", expectedSkills, "monthly-ceo-self-improvement"),
+    effectiveInvocationBundle("ceo", expectedSkills, "training"),
+  ]);
+  for (const bundle of bundles) {
+    assert.deepEqual(unsafeDeliveryImperatives(bundle), [], "CEO effective routine bundle must not authorize repository or PR delivery");
+    assert.deepEqual(unsafeRootMutationAuthorities(bundle), [], "CEO effective routine bundle must not assign mutation authority to a governance or gate role");
+    assert.deepEqual(unsafeMaintainerWaitMutations(bundle), [], "CEO effective routine bundle must preserve protected maintainer wait");
+  }
   const indirectMutationProbe = "The issue is a single small change you can ship in the same heartbeat. Just ship it.";
   assert.deepEqual(unsafeDeliveryImperatives(indirectMutationProbe), [indirectMutationProbe]);
   for (const probe of [
@@ -351,7 +432,7 @@ test("CEO effective bundle is governance-only", async () => {
   for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "micronaut-repo-operations", "agent-md-refactor", "paperclipai/bundled/paperclip-operations/issue-triage", "paperclipai/bundled/paperclip-operations/task-planning", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundle), "ad95a147c3b6a2b44cc27c7b2bf3138d41af445bdc44f1bcdc111fb6eee61ec5");
+  assert.equal(bundleDigest(bundles[0]), "ad95a147c3b6a2b44cc27c7b2bf3138d41af445bdc44f1bcdc111fb6eee61ec5");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -411,8 +492,22 @@ test("root company policy delegates mutation-bearing routine work to implementat
     "Reusable package defaults should be promoted by the CEO through a PR.",
     "The CEO should promote it through a PR.",
     "Set assignee Architect for the new company skill pull request implementation.",
+    "After approval, CEO publishes the approved skill pull request.",
+    "Assign Architect to implement and publish the company-skill pull request.",
+    "Security Engineer publishes repository branches and updates pull requests for accepted findings.",
   ]) {
     assert.deepEqual(unsafeRootMutationAuthorities(probe), [probe]);
+  }
+});
+
+test("repository-wide policy never grants mutation authority to governance or gate roles", async () => {
+  for (const file of await trackedPolicyFiles()) {
+    const content = await read(`../${file}`);
+    assert.deepEqual(
+      unsafeRootMutationAuthorities(content),
+      [],
+      `${file} grants repository, PR, review-thread, or skill mutation authority to CEO, Architect, Security Engineer, or Code Reviewer`,
+    );
   }
 });
 
@@ -449,12 +544,12 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     "micronaut-github-operations",
     "micronaut-quality-gates",
   ]);
-  const securityBundle = await effectiveAgentBundle("security-engineer", [
+  const securityBundle = await effectiveInvocationBundle("security-engineer", [
     "micronaut-repo-operations",
     "micronaut-github-operations",
     "micronaut-quality-gates",
     "micronaut-security-review",
-  ]);
+  ], "monthly-security-deep-scan");
 
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
@@ -471,9 +566,14 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(
     unsafeDeliveryImperatives(securityBundle),
     [],
-    "Security effective bundle must not grant unconditional repository delivery mutations",
+    "Security effective invocation bundle must not grant unconditional repository delivery mutations",
   );
-  assert.equal(bundleDigest(securityBundle), "45ac7dbb12f2c3dc01c8fd46fa27846f7f92ea0385b9cc72f210654c0c8c2e8d");
+  assert.deepEqual(
+    unsafeRootMutationAuthorities(securityBundle),
+    [],
+    "Security effective invocation bundle must not assign repository or PR mutation authority to a governance or gate role",
+  );
+  assert.equal(bundleDigest(securityBundle), "532dfe564c6cb2067bcc25ffa63976510c26aa37dd4465dc6fbbe8f8420e3d9b");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {
