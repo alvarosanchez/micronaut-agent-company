@@ -299,7 +299,7 @@ Any PR created outside the normal delivery pipeline must be scoped in Paperclip 
 
 The CEO routine must turn each accepted finding into a linked governance approval, a scoped QA-assigned child with evidence and acceptance criteria, a verified no-op, or a named blocker, then stop. The `Managed Repository AGENTS.md Audit` classifies each repository root file as durable/current, stale/generated, or missing. Mechanical/stale/missing text routes to Technical Writer; workflow/authority semantics add Architect; authority/tool/security changes also add Security. Executable package/plugin findings route to Micronaut Engineer with conditional Architect/Security gates.
 
-PR follow-through belongs to the implementation owner, not CEO. Healthy maintainer wait is unassigned. Actionable source/test/dependency/build changes re-enter Engineer -> QA -> Reviewer and routine docs re-enter Writer -> QA -> Reviewer; defined Security triggers add both Security stages, while design-changing requests add Architect before the owner. Clean rebases with green CI return to wait, while conflicts or semantic changes rerun applicable gates.
+PR follow-through belongs to the implementation owner, not CEO. Healthy maintainer wait is unassigned. Actionable source/test/dependency/build changes re-enter Engineer -> QA -> Reviewer; routine prose or executable docs re-enter Writer -> QA -> Reviewer; behavior-changing executable instructions with no established pre-triage trigger re-enter Writer -> QA -> Security final -> Reviewer with `securityPrecheckRequired: false` and `securityFinalReviewRequired: true`; defined Security triggers add both Security stages, while design-changing requests add Architect before the owner. Clean rebases with green CI return to wait, while conflicts or semantic changes rerun applicable gates.
 
 Training is the skill-coverage routine, not Paperclip workflow tuning. It should infer skill needs from technologies, frameworks, tools, libraries, and services that agents actually encountered in previous executions, such as Elasticsearch, search engines, databases, message brokers, cloud services, build tools, or observability platforms. When it finds a suitable existing https://skills.sh skill, the CEO creates a linked board approval request that names the execution evidence, exact skill entry, proposed company skill slug, and target agent or agents before installation. When no suitable existing skill exists and the same technology or domain gap is recurring enough to justify company-owned guidance, the CEO creates a Paperclip child issue or subtask with status `backlog`, issue type `type: improvement`, and assignee Architect to create the new company skill as a pull request to the company package. Queue health, handoff correctness, and Paperclip workflow usage stay in monthly CEO self-improvement or productivity-review handling unless they expose a reusable technology or domain skill need.
 
@@ -437,7 +437,7 @@ These are Paperclip 2026.626 Skills Store catalog prerequisites, not vendored so
 
 | Catalog Skill | Assigned To | Purpose |
 | --- | --- | --- |
-| `paperclipai/bundled/paperclip-operations/issue-triage` | CEO, QA Engineer | Paperclip inbox, intake, and productivity-review triage with Micronaut-specific safeguards for synced GitHub issue closure and agent ownership |
+| `paperclipai/bundled/paperclip-operations/issue-triage` | QA Engineer | Paperclip inbox and intake triage with Micronaut-specific safeguards for synced GitHub issue closure and agent ownership |
 | `paperclipai/bundled/paperclip-operations/task-planning` | Architect, Product Manager | Structured `plan` documents, child task breakdowns, blockers, owners, acceptance criteria, and plan-confirmation interactions without turning normal delivery issues into planning mode |
 | `paperclipai/bundled/quality/qa-acceptance` | Architect, Product Manager, QA Engineer | Given/when/then acceptance criteria, manual validation plans, edge cases, error states, and durable pass/fail evidence for feature-level QA |
 | `paperclipai/bundled/software-development/github-pr-workflow` | Micronaut Engineer, Technical Writer | Branch hygiene and implementation-owner PR publication/follow-through |
@@ -450,11 +450,11 @@ These skills are included as referenced skills pinned to their upstream source r
 
 | Skill | Assigned To | Purpose |
 | --- | --- | --- |
-| `coding` | Architect, Micronaut Engineer, Security Engineer, Code Reviewer | Micronaut maintainer guidance for Java implementation, API evolution, and maintainer-grade verification |
-| `docs` | Architect, Product Manager, Micronaut Engineer, Technical Writer, Code Reviewer | Micronaut guide-authoring conventions for Asciidoctor, `toc.yml`, macros, and docs validation |
+| `coding` | Architect, Micronaut Engineer | Micronaut maintainer guidance for Java implementation, API evolution, and maintainer-grade verification |
+| `docs` | Architect, Product Manager, Micronaut Engineer, Technical Writer | Micronaut guide-authoring conventions for Asciidoctor, `toc.yml`, macros, and docs validation |
 | `guides` | Technical Writer | Micronaut standalone guide authoring, validation, PDF export, and PR handoff for `micronaut-projects/micronaut-guides` |
 | `gh-cli` | Architect, Product Manager, QA Engineer, Micronaut Engineer, Technical Writer | Exception-only GitHub CLI reference for explicit non-plugin GitHub client authorization, including direct maintainer-visible GitHub issue and PR body footer rules |
-| `gradle` | Architect, Micronaut Engineer, QA Engineer, Security Engineer, Code Reviewer | Micronaut maintainer Gradle workflows, compatibility checks, catalog management, and build diagnostics |
+| `gradle` | Architect, Micronaut Engineer, QA Engineer | Micronaut maintainer Gradle workflows, compatibility checks, catalog management, and build diagnostics |
 | `agent-md-refactor` | Technical Writer | Progressive-disclosure refactoring for repo-level and local runtime instruction files so guidance stays compact, linked, and reimport-safe |
 | `skill-creator` | Architect | Agent-agnostic skill authoring guidance used when the company evolves its own shared skills |
 | `find-skills` | CEO | https://skills.sh marketplace discovery for Training routine skill recommendations and approval-backed company skill additions |

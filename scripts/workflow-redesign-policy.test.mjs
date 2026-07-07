@@ -66,6 +66,13 @@ function unsafeDeliveryImperatives(bundle) {
   );
 }
 
+function unsafeMaintainerWaitMutations(bundle) {
+  const protectedWait = /\b(?:healthy maintainer wait|unassigned[^\n]*(?:in_review|in review)|(?:in_review|in review)[^\n]*(?:no reviewer|unassigned))\b/i;
+  const mutation = /\b(?:assign|reassign|move|set|wake|close|cancel|invalid|todo|in_progress|done)\b/i;
+  const prohibition = /\b(?:must not|do not|never|without waking|leave[^\n]+unassigned|remain[^\n]+unassigned|restore[^\n]+unassigned)\b/i;
+  return bundle.split("\n").filter((line) => protectedWait.test(line) && mutation.test(line) && !prohibition.test(line));
+}
+
 const route = async () => read("../skills/micronaut-repo-operations/references/intake-routing-release.md");
 
 async function trackedPolicyFiles() {
@@ -302,9 +309,7 @@ test("effective CEO self-improvement policy uses bounded routing fixtures", asyn
 });
 
 test("CEO effective bundle is governance-only", async () => {
-  const catalogSkills = [
-    "paperclipai/bundled/paperclip-operations/issue-triage",
-  ];
+  const catalogSkills = [];
   const expectedSkills = [
     "company-package-evolution",
     "ceo-issue-history",
@@ -315,12 +320,21 @@ test("CEO effective bundle is governance-only", async () => {
   const routinePath = "../tasks/monthly-ceo-self-improvement/TASK.md";
   const bundle = `${roleAndSkills}\n<!-- ${routinePath} -->\n${await read(routinePath)}`;
   assert.deepEqual(unsafeDeliveryImperatives(bundle), [], "CEO effective routine bundle must not authorize repository or PR delivery");
+  assert.deepEqual(unsafeMaintainerWaitMutations(bundle), [], "CEO effective routine bundle must preserve protected maintainer wait");
   const indirectMutationProbe = "The issue is a single small change you can ship in the same heartbeat. Just ship it.";
   assert.deepEqual(unsafeDeliveryImperatives(indirectMutationProbe), [indirectMutationProbe]);
-  for (const forbidden of ["gh-cli", "micronaut-github-operations", "micronaut-repo-operations", "agent-md-refactor", "paperclipai/bundled/paperclip-operations/task-planning", "paperclipai/bundled/software-development/github-pr-workflow"]) {
+  for (const probe of [
+    "An in_review item with no reviewer is an invalid review path; reassign it or move it to todo.",
+    "Wake the assignee and set the unassigned in_review issue to in_progress.",
+    "Assign the unassigned in_review pull request to yourself.",
+    "Close the unassigned in_review pull request issue as done.",
+  ]) {
+    assert.deepEqual(unsafeMaintainerWaitMutations(probe), [probe]);
+  }
+  for (const forbidden of ["gh-cli", "micronaut-github-operations", "micronaut-repo-operations", "agent-md-refactor", "paperclipai/bundled/paperclip-operations/issue-triage", "paperclipai/bundled/paperclip-operations/task-planning", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundle), "fd7d84d6ccc38349868c53ed97c223363063515537618e6dc788e8b2f72af059");
+  assert.equal(bundleDigest(bundle), "0e5f6f861b01812d3644c80591138ad28d6b2d15ee793ed60ee2854d7f63b104");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -457,7 +471,12 @@ test("PR follow-through re-enters gates by actual change effect", async () => {
   ]);
   assert.match(control, /routine source, test, dependency, or build changes go Micronaut Engineer -> QA -> Code Reviewer/i);
   assert.match(control, /routine prose or executable docs go Technical Writer -> QA -> Code Reviewer/i);
-  assert.match(control, /behavior-changing executable instructions[^\n]+securityPrecheckRequired: false[^\n]+securityFinalReviewRequired: true[^\n]+Technical Writer -> QA -> Security final -> Code Reviewer/i);
+  for (const [label, summary] of [["control plane", control], ["README", readme]]) {
+    assert.match(summary, /behavior-changing executable instructions[^\n]+no established (?:Security )?pre-triage trigger/i, `${label} must omit pre-triage for S6`);
+    assert.match(summary, /behavior-changing executable instructions[^\n]+securityPrecheckRequired: false[^\n]+securityFinalReviewRequired: true|behavior-changing executable instructions[^\n]+securityFinalReviewRequired: true[^\n]+securityPrecheckRequired: false/i, `${label} must preserve S6 booleans`);
+    assert.match(summary, /behavior-changing executable instructions[^\n]+(?:Technical )?Writer -> QA -> Security final -> (?:Code )?Reviewer/i, `${label} must preserve final Security for S6`);
+    assert.doesNotMatch(summary, /behavior-changing executable instructions[^\n]+securityPrecheckRequired: true/i, `${label} must not add S6 pre-triage`);
+  }
   assert.match(control, /defined Security triggers add pre-triage before the owner and final Security review after QA/i);
   assert.match(control, /design-changing requests go Architect -> recorded implementation owner -> applicable gates/i);
   assert.match(control, /clean rebase with green CI returns to maintainer wait/i);

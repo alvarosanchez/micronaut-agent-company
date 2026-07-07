@@ -40,6 +40,22 @@ function documentedAssignments(readme, skill) {
   return row[1].split(",").map((name) => name.trim()).sort();
 }
 
+function documentedSkills(readme) {
+  const inventory = readme.match(/## Paperclip Catalog Skills\n([\s\S]*?)\n## First Run/);
+  assert.ok(inventory, "README must contain the complete skill assignment inventory");
+  return [...inventory[1].matchAll(/^\| `([^`]+)` \|/gm)].map((match) => match[1]);
+}
+
+function assertAssignmentParity(readme, frontmatterByAgent) {
+  for (const skill of documentedSkills(readme)) {
+    const expected = Object.entries(AGENT_DISPLAY_NAMES)
+      .filter(([agentSlug]) => frontmatterByAgent.get(agentSlug).includes(skill))
+      .map(([, displayName]) => displayName)
+      .sort();
+    assert.deepEqual(documentedAssignments(readme, skill), expected, `${skill} README assignments must match frontmatter`);
+  }
+}
+
 const CATALOG_SKILLS = [
   {
     slug: "issue-triage",
@@ -70,9 +86,7 @@ const CATALOG_SKILLS = [
 const keyBySlug = new Map(CATALOG_SKILLS.map((skill) => [skill.slug, skill.key]));
 
 const AGENT_ASSIGNMENTS = {
-  ceo: [
-    "paperclipai/bundled/paperclip-operations/issue-triage",
-  ],
+  ceo: [],
   architect: [
     "paperclipai/bundled/paperclip-operations/task-planning",
     "paperclipai/bundled/quality/qa-acceptance",
@@ -143,20 +157,19 @@ test("package agents reference the adopted Paperclip catalog skill keys", async 
 
 test("README skill assignment tables match exact package agent frontmatter", async () => {
   const readme = await read("../README.md");
-  const skills = [...CATALOG_SKILLS.map(({ key }) => key), "gh-cli", "agent-md-refactor"];
   const frontmatterByAgent = new Map();
   for (const agentSlug of Object.keys(AGENT_DISPLAY_NAMES)) {
     const { frontmatter } = parseFrontmatter(await read(`../agents/${agentSlug}/AGENTS.md`));
     frontmatterByAgent.set(agentSlug, frontmatter.skills ?? []);
   }
 
-  for (const skill of skills) {
-    const expected = Object.entries(AGENT_DISPLAY_NAMES)
-      .filter(([agentSlug]) => frontmatterByAgent.get(agentSlug).includes(skill))
-      .map(([, displayName]) => displayName)
-      .sort();
-    assert.deepEqual(documentedAssignments(readme, skill), expected, `${skill} README assignments must match frontmatter`);
-  }
+  assertAssignmentParity(readme, frontmatterByAgent);
+  const staleFixture = readme.replace(
+    "| `coding` | Architect, Micronaut Engineer |",
+    "| `coding` | Architect, CEO, Micronaut Engineer |",
+  );
+  assert.notEqual(staleFixture, readme, "negative assignment fixture must modify a documented row");
+  assert.throws(() => assertAssignmentParity(staleFixture, frontmatterByAgent), /coding README assignments must match frontmatter/);
 });
 
 test("agent instructions carry Micronaut-specific catalog-skill guardrails", async () => {
