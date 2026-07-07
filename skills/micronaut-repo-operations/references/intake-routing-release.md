@@ -2,13 +2,38 @@
 
 Detailed reference extracted from `micronaut-repo-operations` so the primary skill can stay a compact router. These rules remain runtime guidance when this reference is loaded for the matching work mode.
 
-## Recommended Stage Layouts
+## Authoritative QA Intake Artifact
 
-- `type: bug`: QA intake review -> Micronaut Engineer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
-- `type: docs`: QA intake review -> Technical Writer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
-- `type: improvement`, `type: enhancement`, `type: breaking`, `type: dependency-upgrade`: QA intake review -> Architect review -> Micronaut Engineer or Technical Writer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
-- `type: question`, clarification wait paths, unreproducible bug closures, duplicate closures, and already-implemented closures: QA intake review, with QA publishing the GitHub answer, clarification request, or closure directly and waiting for sync.
-- Recurring internal routines stay as Paperclip company-operating work and may use a shorter stage sequence when no downstream review is required.
+The GitHub issue type is only the surface label. QA is the authoritative risk classifier and writes a stable `qa-intake` issue document before selecting a route. Keep these exact headings and fields so policies and later agents do not infer risk from the label alone:
+
+```yaml
+deliveryClass: routine | architectural | security-sensitive | documentation
+planningRequired: true | false
+planningReason: <bounded evidence-based reason>
+securityPrecheckRequired: true | false
+deliveryOwner: micronaut-engineer | technical-writer
+followThroughOwner: micronaut-engineer | technical-writer
+verificationProfile: source | dependency | docs-prose | docs-executable
+evidenceReproduction: <reproducer, prior art, or documentation evidence>
+acceptanceCriteria: <observable pass conditions>
+```
+
+Also retain repository, release, target-branch, compatibility, project-board, linked-PR, and closure facts required elsewhere in this reference. `deliveryOwner` and `followThroughOwner` must agree with the artifact being changed: Engineer owns source, tests, dependencies, builds, package scripts, adapters, and plugins; Writer owns prose docs, guides, repository `AGENTS.md`, company role instructions, and textual control-plane changes.
+
+## Risk-Classified Stage Layouts
+
+- Routine localized bug: QA intake -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. It skips Architect.
+- Architecture-sensitive bug: QA intake -> Architect -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. Require Architect for cross-module or cross-repository impact; public API, serialization, or protocol compatibility; concurrency, lifecycle, or transaction semantics; structural performance tradeoffs; build or native-image interactions; multiple materially different fixes; contradictory intended behavior; or a failed implementation that exposes a design gap.
+- Routine compatible dependency upgrade: QA intake -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. It skips Architect.
+- Architectural or migration dependency upgrade: QA intake -> Architect -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. Require Architect for a major upgrade; public API or configuration migration; BOM, platform, language, or build baseline movement; lifecycle, threading, native-image, or annotation-processing effects; multi-module impact; broad transitive replacement; a compatibility matrix; or disputed strategy.
+- Security-sensitive bug or dependency upgrade: QA intake -> Security Engineer pre-triage -> Architect only when architecture or compatibility planning is needed -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. Security pre-triage never replaces final security review.
+- Prose-only docs: QA intake -> Technical Writer -> QA verification -> Code Reviewer. This reduced route has no Security stage.
+- Executable examples or security-sensitive docs: QA intake -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer.
+- Mechanical or stale repository `AGENTS.md`: CEO finding -> QA intake -> Technical Writer -> QA verification -> Code Reviewer. Workflow or authority semantics add Architect before Writer; authority, tool, or security changes also add Security before Code Reviewer.
+- Features and breaking changes: QA intake -> Architect -> implementation owner -> QA verification -> Security Engineer final review -> Code Reviewer.
+- `type: question`, clarification wait paths, unreproducible bug closures, duplicate closures, and already-implemented closures: QA intake, with QA publishing the evidence-backed disposition and waiting for sync.
+
+QA encodes the selected sequence in the issue execution policy and records why optional Architect and Security precheck stages are present or absent. Implementation may escalate an exposed design gap back to Architect; unresolved behavior, compatibility, or security questions are escalations, never permission to improvise.
 
 ## Imported Issues With Existing PRs
 
@@ -33,9 +58,12 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 
 ## Type Routing
 
-- `type: bug`: QA reproduces first. Reproduced bugs move into the Micronaut Engineer stage sequence. Unreproducible bugs may be closed directly by QA with `closed: cannot reproduce`, GitHub's native `Close as not planned` reason instead of `Close as completed`, and a detailed, evidence-rich closure comment with the exact non-reproducer steps, versions, and observed results.
-- `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade`: QA moves the item into the Architect planning stage.
-- `type: docs`: QA moves the item into the Technical Writer stage.
+Issue type identifies the surface; the stable `qa-intake` classification selects the route.
+
+- `type: bug`: QA reproduces first. Routine localized bugs skip Architect; architecture-sensitive bugs use the Architect triggers in **Risk-Classified Stage Layouts**. Unreproducible bugs may use the evidence-backed direct closure path.
+- `type: dependency-upgrade`: routine compatible upgrades skip Architect; architectural, migration-bearing, or security-sensitive upgrades use the corresponding route and triggers above.
+- `type: improvement`, `type: enhancement`, and `type: breaking`: QA routes through Architect before the selected implementation owner.
+- `type: docs`: QA selects `docs-prose` or `docs-executable`; prose uses the reduced Writer -> QA -> Reviewer gates, while executable or security-sensitive docs add Security before Reviewer.
 - `type: question`: QA answers directly on GitHub with `type: question` and `closed: question` when confident, or posts a request-for-comments message with `status: awaiting feedback`; issues that remain awaiting feedback for more than 30 days may be closed with `closed: question` and GitHub's native `Close as not planned` reason instead of `Close as completed`.
 
 ## Closure Dispositions

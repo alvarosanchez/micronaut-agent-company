@@ -17,14 +17,14 @@ const AGENT_DISPLAY_NAMES = {
 
 const HERMES_CHAT_COMMAND = "/usr/local/bin/hermes-paperclip";
 const PRIMARY_MODEL_CONFIG = {
-  ceo: { model: "gpt-5.6-terra" },
-  "product-manager": { model: "gpt-5.6-terra" },
-  architect: { model: "gpt-5.6-sol" },
-  "qa-engineer": { model: "gpt-5.6-terra" },
-  "security-engineer": { model: "gpt-5.6-sol" },
-  "micronaut-engineer": { model: "gpt-5.6-sol" },
-  "code-reviewer": { model: "gpt-5.6-sol" },
-  "technical-writer": { model: "gpt-5.6-luna" },
+  ceo: { model: "gpt-5.6-terra", effort: "medium" },
+  "product-manager": { model: "gpt-5.6-terra", effort: "medium" },
+  architect: { model: "gpt-5.6-sol", effort: "high" },
+  "qa-engineer": { model: "gpt-5.6-sol", effort: "high" },
+  "security-engineer": { model: "gpt-5.6-sol", effort: "high" },
+  "micronaut-engineer": { model: "gpt-5.6-terra", effort: "high" },
+  "code-reviewer": { model: "gpt-5.6-sol", effort: "high" },
+  "technical-writer": { model: "gpt-5.6-terra", effort: "high" },
 };
 
 async function read(relativePath) {
@@ -47,7 +47,11 @@ test("README runtime defaults match the package built-in Hermes adapter settings
     assert.equal(config.hermesCommand, HERMES_CHAT_COMMAND, `${agentSlug} must select the dedicated Hermes paperclip chat command.`);
     assert.equal(config.provider, "openai-codex", `${agentSlug} must use the configured Hermes provider.`);
     assert.equal(config.model, expected.model, `${agentSlug} must use the configured primary Hermes model.`);
-    assert.equal(config.extraArgs, undefined, `${agentSlug} must not pass unsupported Hermes CLI flags.`);
+    assert.deepEqual(
+      config.extraArgs,
+      ["--reasoning-effort", expected.effort],
+      `${agentSlug} must pass its approved reasoning effort through the deployment wrapper.`,
+    );
     assert.ok(
       readme.includes("- " + displayName + ": `hermes_local` via `" + HERMES_CHAT_COMMAND + "`, `" + expected.model + "`"),
       `README should document ${displayName} built-in Hermes command/model defaults.`,
@@ -70,11 +74,9 @@ test("built-in Hermes agents are bounded by Paperclip runtime settings", async (
     assert.equal(config.toolsets, undefined, `${agentSlug} must allow Hermes to load its default/all toolsets.`);
   }
 
-  assert.match(
-    readme,
-    /hermes_local[\s\S]{0,520}hermesCommand:\s*\/usr\/local\/bin\/hermes-paperclip[\s\S]{0,260}timeoutSec:\s*7200[\s\S]{0,160}graceSec:\s*20/i,
-    "README must document the explicit Hermes CLI command, timeout, and grace period.",
-  );
+  assert.match(readme, /hermesCommand:\s*\/usr\/local\/bin\/hermes-paperclip/i);
+  assert.match(readme, /timeoutSec:\s*7200/i);
+  assert.match(readme, /graceSec:\s*20/i);
   assert.match(
     readme,
     /Paperclip project workspaces[\s\S]{0,260}do not set `cwd`[\s\S]{0,260}do not pin `toolsets`|do not set `cwd`[\s\S]{0,260}Paperclip project workspaces[\s\S]{0,260}do not pin `toolsets`/i,

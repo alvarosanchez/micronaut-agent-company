@@ -39,4 +39,4 @@ Terminal run token and USD-cost fields are parsed independently. Missing metrics
 
 ## Maintenance Lanes
 
-The evidence pass is the discovery lane. Broad runtime-skill reconciliation, managed-repository instruction audit, and prior CEO PR follow-up are separate bounded maintenance lanes; load [references/maintenance-lanes.md](references/maintenance-lanes.md) only when running this routine. Do not count those maintenance outcomes as new ranked candidates.
+The evidence pass is the discovery lane. Broad runtime-skill reconciliation and managed-repository instruction audit are separate bounded maintenance lanes; durable PR follow-through belongs to Writer or Engineer, never CEO. Load [references/maintenance-lanes.md](references/maintenance-lanes.md) only when running this routine. Do not count maintenance outcomes as new ranked candidates.

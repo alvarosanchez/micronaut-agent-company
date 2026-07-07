@@ -100,7 +100,7 @@ Important usage rules:
 - Do not use removed GitHub Sync REST fallback routes for PR linking. If `paperclip-github-plugin:link_github_item` is unavailable or fails, record the concrete tool blocker in the subtask and routine report instead of presenting the PR as fully tracked.
 - GitHub Sync issue and pull request links are durable monitoring records for agents. Agents may create or repair links through `paperclip-github-plugin:link_github_item`, but must not unlink, tombstone, delete, or deactivate GitHub Sync issue-link or pull-request-link metadata; intentional unlinking is an operator UI action or an internal GitHub Sync repair path.
 - Do not silently resolve review threads. Reply first with the decision, such as committed the requested change, not applicable, or disagreement with the feedback, and resolve the thread only after that reply when the thread is settled.
-- CEO-opened PRs from recurring routines stay on the monthly-ceo-self-improvement routine's follow-up list until CI is green, checks pass, and unresolved review threads are answered and settled.
+- PRs from recurring routines remain with their durable implementation owner until CI is green and actionable review feedback is resolved; healthy maintainer wait is unassigned. CEO does not own or rediscover those PRs.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
 
 ## Tool Boundaries

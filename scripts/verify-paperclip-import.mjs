@@ -534,12 +534,6 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
       "CEO instructions must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
   },
   {
-    relativePath: "agents/ceo/AGENTS.md",
-    pattern: ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN,
-    message:
-      "CEO instructions must explain that failing PR CI or unresolved review feedback is actionable PR follow-through even when the failure also reproduces on the target branch.",
-  },
-  {
     relativePath: "agents/qa-engineer/AGENTS.md",
     pattern:
       /open,\s*public Micronaut organization projects[\s\S]*is:open is:public|is:open is:public[\s\S]*open,\s*public Micronaut organization projects/i,
@@ -1185,8 +1179,15 @@ function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
       ];
 
   for (const key of comparedKeys) {
+    const actualValue = key === "extraArgs" && Array.isArray(expectedConfig[key]) && typeof actualConfig[key] === "string"
+      ? actualConfig[key]
+          .replace(/^\[|\]$/g, "")
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean)
+      : actualConfig[key] ?? null;
     assert.deepEqual(
-      actualConfig[key] ?? null,
+      actualValue,
       expectedConfig[key] ?? null,
       `${expectedAdapter.type} ${key} mismatch for imported agent ${agentSlug}`,
     );
@@ -2392,9 +2393,13 @@ async function main() {
     for (const [agentSlug, expectedAgentConfig] of Object.entries(
       expected.extension?.agents ?? {},
     )) {
+      const expectedAdapterConfig = structuredClone(expectedAgentConfig?.adapter ?? null);
+      if (Array.isArray(expectedAdapterConfig?.config?.extraArgs)) {
+        expectedAdapterConfig.config.extraArgs = `[${expectedAdapterConfig.config.extraArgs.join(", ")}]`;
+      }
       assert.deepEqual(
         exportedExtension?.agents?.[agentSlug]?.adapter ?? null,
-        expectedAgentConfig?.adapter ?? null,
+        expectedAdapterConfig,
         `Adapter config was not preserved for ${agentSlug}`,
       );
       for (const [key, value] of Object.entries(

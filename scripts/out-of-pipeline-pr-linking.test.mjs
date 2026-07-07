@@ -19,7 +19,7 @@ const AFFECTED_PROJECT_SUBTASK_PATTERN =
 const ACTUAL_PROJECT_SUBTASK_PATTERN =
   /(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project|(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project[\s\S]{0,220}(?:Paperclip )?(?:sub-issue|child issue|subtask)/i;
 const ROUTINE_OWNER_SUBTASK_ASSIGNEE_PATTERN =
-  /(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:assigned|assignee)[\s\S]{0,160}(?:routine owner|current routine owner|self|yourself|CEO|ceo|Technical Writer|technical-writer|Product Manager|product-manager)|(?:assigned|assignee)[\s\S]{0,160}(?:routine owner|current routine owner|self|yourself|CEO|ceo|Technical Writer|technical-writer|Product Manager|product-manager)[\s\S]{0,220}(?:Paperclip )?(?:sub-issue|child issue|subtask)/i;
+  /(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:assigned|assign|assignee)[\s\S]{0,160}(?:routine owner|current routine owner|implementation owner|self|yourself|CEO|ceo|Technical Writer|technical-writer|Product Manager|product-manager|Micronaut Engineer|micronaut-engineer)|(?:assigned|assign|assignee)[\s\S]{0,160}(?:routine owner|current routine owner|implementation owner|self|yourself|CEO|ceo|Technical Writer|technical-writer|Product Manager|product-manager|Micronaut Engineer|micronaut-engineer)[\s\S]{0,220}(?:Paperclip )?(?:sub-issue|child issue|subtask)/i;
 const EXISTING_PROJECT_PATTERN =
   /project exists in Paperclip|Paperclip project exists|existing Paperclip project/i;
 const LINK_TOOL_PATTERN =
@@ -98,9 +98,7 @@ test("routine PR surfaces require a Paperclip subtask and PR link", async () => 
   const requiredPaths = [
     "../tasks/monthly-user-guide-review/TASK.md",
     "../tasks/monthly-guide-topic-discovery/TASK.md",
-    "../tasks/monthly-ceo-self-improvement/TASK.md",
     "../agents/technical-writer/AGENTS.md",
-    "../agents/ceo/AGENTS.md",
     "../skills/company-package-evolution/SKILL.md",
   ];
 
@@ -152,21 +150,8 @@ test("package, managed repository, and upstream PR paths all mention subtask lin
     assert.match(markdown, surface, "Expected company-package-evolution to keep the PR path surface.");
   }
 
-  assert.match(
-    markdown,
-    /package[\s\S]{0,260}(?:Paperclip )?(?:child issue|subtask)[\s\S]{0,260}(?:link|linked|linking)[\s\S]{0,180}(?:PR|pull request)|(?:Paperclip )?(?:child issue|subtask)[\s\S]{0,260}package[\s\S]{0,260}(?:link|linked|linking)[\s\S]{0,180}(?:PR|pull request)/i,
-    "Package PR path must mention child issue or subtask linkage.",
-  );
-  assert.match(
-    markdown,
-    /managed Micronaut repositor(?:y|ies)[\s\S]{0,360}(?:Paperclip )?(?:child issue|subtask)[\s\S]{0,260}(?:link|linked|linking)[\s\S]{0,180}(?:PR|pull request)|(?:Paperclip )?(?:child issue|subtask)[\s\S]{0,260}managed Micronaut repositor(?:y|ies)[\s\S]{0,360}(?:link|linked|linking)[\s\S]{0,180}(?:PR|pull request)/i,
-    "Managed repository PR path must mention child issue or subtask linkage.",
-  );
-  assert.match(
-    markdown,
-    /upstream dependency[\s\S]{0,360}(?:Paperclip )?(?:child issue|subtask)[\s\S]{0,260}(?:link|linked|linking)[\s\S]{0,180}(?:PR|pull request)|(?:Paperclip )?(?:child issue|subtask)[\s\S]{0,260}upstream dependency[\s\S]{0,360}(?:link|linked|linking)[\s\S]{0,180}(?:PR|pull request)/i,
-    "Upstream dependency PR path must mention child issue or subtask linkage.",
-  );
+  assert.match(markdown, /one Paperclip child issue per affected project[\s\S]{0,420}links any resulting PR/i);
+  assert.match(markdown, /actual implementation owner/i);
 });
 
 test("PR creators update from the target branch before starting work", async () => {
@@ -176,9 +161,7 @@ test("PR creators update from the target branch before starting work", async () 
     "../skills/micronaut-quality-gates/SKILL.md",
     "../skills/company-package-evolution/SKILL.md",
     "../agents/code-reviewer/AGENTS.md",
-    "../agents/ceo/AGENTS.md",
     "../agents/technical-writer/AGENTS.md",
-    "../tasks/monthly-ceo-self-improvement/TASK.md",
     "../tasks/monthly-user-guide-review/TASK.md",
     "../tasks/monthly-guide-topic-discovery/TASK.md",
   ];

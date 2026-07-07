@@ -75,7 +75,6 @@ const GITHUB_SYNC_AGENT_UNLINK_FORBIDDEN_PATTERN =
 const GITHUB_SYNC_OPERATOR_UNLINK_PATTERN =
   /intentional unlinking[\s\S]{0,160}operator UI action|operator UI action[\s\S]{0,160}intentional unlinking/i;
 const KPI_API_ROUTE_AGENT_PATHS = [
-  "agents/ceo/AGENTS.md",
   "agents/code-reviewer/AGENTS.md",
 ];
 
