@@ -259,19 +259,23 @@ test("repository-wide policy never assigns PR mutation to Code Reviewer", async 
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {
-  const [security, securitySkill, githubOperations] = await Promise.all([
+  const [security, securitySkill, githubOperations, legacyGithubReference] = await Promise.all([
     read("../agents/security-engineer/AGENTS.md"),
     read("../skills/micronaut-security-review/SKILL.md"),
     read("../skills/micronaut-github-operations/SKILL.md"),
+    read("../skills/micronaut-repo-operations/references/github-sync-tools.md"),
   ]);
   for (const body of [security, securitySkill]) {
     assert.match(body, /inspect[^\n]+review threads/i);
     assert.match(body, /followThroughOwner[^\n]+(?:replies[^\n]+resolves|thread mutation)/i);
     assert.doesNotMatch(body, /paperclip-github-plugin:(?:reply_to_review_thread|resolve_review_thread|unresolve_review_thread)/);
   }
-  assert.match(githubOperations, /Only role-authorized implementation owners and `followThroughOwner` may use GitHub write tools/i);
-  assert.match(githubOperations, /Security Engineer and Code Reviewer[^\n]+read-only/i);
-  assert.match(githubOperations, /Security Engineer and Code Reviewer[^\n]+must not[^\n]+(?:reply|resolve|unresolve)/i);
+  for (const body of [githubOperations, legacyGithubReference]) {
+    assert.match(body, /Only role-authorized implementation owners and `followThroughOwner` may use GitHub write tools/i);
+    assert.match(body, /Security Engineer and Code Reviewer[^\n]+read-only/i);
+    assert.match(body, /Security Engineer and Code Reviewer[^\n]+must not[^\n]+(?:reply|resolve|unresolve)/i);
+  }
+  assert.doesNotMatch(legacyGithubReference, /\bgit push\b|\band pushes\b/i);
 });
 
 test("prose-only docs omit Security consistently and stale global routes are rejected", async () => {

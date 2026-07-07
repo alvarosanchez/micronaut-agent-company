@@ -2,17 +2,23 @@
 
 Detailed reference extracted from `micronaut-repo-operations` so the primary skill can stay a compact router. These rules remain runtime guidance when this reference is loaded for the matching work mode.
 
+## Role Authority
+
+- Only role-authorized implementation owners and `followThroughOwner` may use GitHub write tools. Role instructions and the active `stageSequence` narrow this authority further and override this reference.
+- Security Engineer and Code Reviewer are read-only: they may inspect GitHub state but must not create or update issues or PRs, comment, publish branches, request reviewers, add project links, upload assets, create tracking links, or reply to, resolve, or unresolve review threads. They record findings in Paperclip and delegate required GitHub mutations to `followThroughOwner`.
+- Tool availability is not permission. Every write instruction below applies only to its explicitly authorized owner; read-only roles may use only the listed read operations.
+
 ## GitHub Sync Plugin Agent Tools
 
 These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin capability `agent.tools.register`. Use the exact runtime tool IDs below. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`.
 
 GitHub API access rule:
 
-- Use the agent tools below for GitHub API operations they cover, including organization-project lookup and PR-to-project association. In Hermes deployments, those tools may appear with MCP-bridged runtime names prefixed with `mcp_paperclip_plugin_tools_`; use the exact runtime schema name while following the same contract.
-- Do not use `gh` as a fallback for GitHub API reads/writes, inspect credentials, run `git push`, or search for a GitHub token.
-- `create_pull_request` publishes the local branch and creates the PR atomically from the agent's perspective. Pass `paperclipIssueId`, the plain local `head` branch, its exact full `headCommitSha`, `base`, `title`, and any body/draft metadata in one call. The trusted plugin verifies the local and remote SHA before opening and linking the PR.
-- Prefer `paperclip-github-plugin:create_pull_request` for PR creation so GitHub Sync can link and attribute the PR automatically. If an explicit human/operator exception creates a PR with a non-plugin GitHub client in a repository mapped to the current company, immediately create the durable PR-to-Paperclip link by calling `paperclip-github-plugin:link_github_item` with `kind: "pull_request"`, `paperclipIssueId`, and `pullRequestUrl` or `reference`, then separately `POST /api/plugins/paperclip-github-plugin/api/company-metrics/events` with `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`. Include `companyId` only when useful for disambiguation; if present, it must match the calling agent's company.
-- The PR creation metric is not the issue link. Confirm the `link_github_item` tool returns `status: "linked"` before reporting the PR as tracked by GitHub Sync.
+- Use the agent tools below for GitHub API reads they cover. Only authorized implementation owners may use their write operations, including organization-project association. In Hermes deployments, those tools may appear with MCP-bridged runtime names prefixed with `mcp_paperclip_plugin_tools_`; use the exact runtime schema name while following the same contract.
+- Do not use `gh` as a fallback for GitHub API reads or writes, inspect credentials, publish a branch outside the atomic PR tool, or search for a GitHub token.
+- For an authorized implementation owner, `create_pull_request` publishes the local branch and creates the PR atomically from the agent's perspective. Pass `paperclipIssueId`, the plain local `head` branch, its exact full `headCommitSha`, `base`, `title`, and any body/draft metadata in one call. The trusted plugin verifies the local and remote SHA before opening and linking the PR.
+- An authorized implementation owner prefers `paperclip-github-plugin:create_pull_request` for PR creation so GitHub Sync can link and attribute the PR automatically. If an explicit human/operator exception creates a PR with a non-plugin GitHub client in a repository mapped to the current company, that operator or the authorized owner immediately creates the durable PR-to-Paperclip link with `paperclip-github-plugin:link_github_item`, then separately records `pull_request_created` through the company metric route.
+- For the authorized owner, the PR creation metric is not the issue link. Confirm the `link_github_item` tool returns `status: "linked"` before reporting the PR as tracked by GitHub Sync.
 - Authenticate the native metric JSON route with `Authorization: Bearer ${PAPERCLIP_API_KEY}`. The Paperclip host authenticates the bearer token, scopes the request to the calling agent's company, and rejects missing, expired, invalid, non-agent, or cross-company calls before the plugin worker handles it.
 - This metric endpoint is a native plugin JSON route with agent auth, not a plugin-tool call or webhook.
 - Do not send that route call when `paperclip-github-plugin:create_pull_request` created the PR; the plugin records `pull_request_created` automatically. Do not send it for PR edits, comments, review replies, or merges.
@@ -48,7 +54,7 @@ Use these plugin-tool conventions exactly:
 
 - prefer `paperclipIssueId` whenever the work starts from a synced Paperclip issue so the plugin can infer the linked GitHub issue or PR and repository
 - provide `repository` only when the plugin cannot infer it from the mapped Paperclip project
-- for GitHub comments and review-thread replies, send only the human-facing body and always include `llmModel` so the plugin can append the same Markdown footer automatically
+- Authorized issue owners and `followThroughOwner` send only the human-facing body for comments or review-thread replies and include `llmModel` so the plugin can append the same Markdown footer automatically
 - use `paperclip-github-plugin:search_repository_items` for open and closed GitHub issue deduplication and prior-art search; do not replace it with generic Paperclip issue listing, and do not ignore closed issues without reviewing why they were closed
 
 ## GitHub Sync Agent Tools
@@ -75,42 +81,42 @@ The sync plugin currently exposes this GitHub tool surface for agents, using the
 - `paperclip-github-plugin:upload_pull_request_asset`
 - `paperclip-github-plugin:link_github_item`
 
-Do not use Paperclip issue monitors to poll GitHub-synced PR state. CI/check status, mergeability, PR file state, review threads, reviewer routing, and PR project links must be read or changed through GitHub Sync tools. Issue monitors remain valid only for non-GitHub waits or external conditions that GitHub Sync does not already own.
+Do not use Paperclip issue monitors to poll GitHub-synced PR state. Read CI/check status, mergeability, PR file state, review threads, reviewer routing, and PR project links through GitHub Sync tools; only authorized implementation owners may change them. Issue monitors remain valid only for non-GitHub waits or external conditions that GitHub Sync does not already own.
 
 Use them by workflow stage:
 
-- intake and queue work: `paperclip-github-plugin:search_repository_items`, `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:update_issue`
+- intake and queue reads: `paperclip-github-plugin:search_repository_items`, `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`; an authorized issue owner may additionally use `paperclip-github-plugin:update_issue`
 - planning and review context: `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:list_organization_projects`
-- PR creation, assets, and routing: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:update_pull_request`, `paperclip-github-plugin:upload_pull_request_asset`, `paperclip-github-plugin:request_pull_request_reviewers`, `paperclip-github-plugin:add_pull_request_to_project`
-- review-thread handling: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
-- reviewer wakeups: the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint or the equivalent runtime wake endpoint exposed by the installed build when the live stage or assignment has already advanced correctly
+- authorized implementation-owner PR creation, assets, and routing: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:update_pull_request`, `paperclip-github-plugin:upload_pull_request_asset`, `paperclip-github-plugin:request_pull_request_reviewers`, `paperclip-github-plugin:add_pull_request_to_project`
+- `followThroughOwner` review-thread handling: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
+- authorized routing-owner wakeups: the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint or the equivalent runtime wake endpoint exposed by the installed build when the live stage or assignment has already advanced correctly
 
 Important usage rules:
 
 - Prefer `paperclipIssueId` whenever you are acting from a synced Paperclip issue so the plugin can infer the linked GitHub item and repository.
 - Provide `repository` only when the plugin cannot infer it; the repository may be omitted when the current Paperclip project has exactly one mapped repository.
-- Use `paperclip-github-plugin:update_issue` for labels, assignees, state, body, title, and milestone changes.
-- Use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
+- Authorized issue owners use `paperclip-github-plugin:update_issue` for labels, assignees, state, body, title, and milestone changes.
+- Authorized implementation owners use `paperclip-github-plugin:update_pull_request` for PR title, body, base branch, open or close state, and draft vs ready-for-review changes.
 - Use `paperclip-github-plugin:list_organization_projects` during QA intake, or later verification when the upstream facts changed, to identify the best-fit Micronaut organization project set for the eventual PR from the open, public Micronaut organization projects (`is:open is:public`).
-- Use `paperclip-github-plugin:add_pull_request_to_project` after PR creation, when adopting an already-open surviving PR, or after agent retargeting when the chosen release board changed, so the live PR is linked to every selected organization project chosen during QA intake or any explicitly revised upstream decision. Do not use this repair path to undo a maintainer project change.
+- The authorized implementation owner uses `paperclip-github-plugin:add_pull_request_to_project` after PR creation, when adopting an already-open surviving PR, or after agent retargeting when the chosen release board changed, so the live PR is linked to every selected organization project chosen during QA intake or any explicitly revised upstream decision. Do not use this repair path to undo a maintainer project change.
 - Naming the chosen organization project set in a Paperclip artifact, GitHub comment, or PR description is not a substitute for the live PR associations when GitHub Sync tooling can apply them.
 - If an explicit human/operator exception used a non-plugin GitHub client to create the PR in a repository mapped to the current company, call `paperclip-github-plugin:link_github_item` immediately after creation so GitHub Sync can track the PR, then call the metric API route using the bearer-token pattern above so the KPI dashboard can attribute that `pull_request_created` event to Paperclip work.
-- For `paperclip-github-plugin:add_issue_comment` and `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel` to your exact runtime model id from `.paperclip.yaml`. The plugin appends the same Markdown footer automatically.
-- Use `paperclip-github-plugin:link_github_item` after creating or discovering an out-of-pipeline PR that should drive a Paperclip issue. Pass `kind: "pull_request"`, `paperclipIssueId`, and either `pullRequestUrl` or `reference`; include `repository` when you use a number-only reference and the Paperclip issue project is not mapped to that repository.
+- Authorized issue owners and `followThroughOwner` send only the human-facing body to `add_issue_comment` or `reply_to_review_thread` and set `llmModel` to the exact runtime model id from `.paperclip.yaml`.
+- The authorized implementation owner uses `paperclip-github-plugin:link_github_item` after creating or discovering an out-of-pipeline PR that should drive a Paperclip issue.
 - Do not use removed GitHub Sync REST fallback routes for PR linking. If `paperclip-github-plugin:link_github_item` is unavailable or fails, record the concrete tool blocker in the subtask and routine report instead of presenting the PR as fully tracked.
-- GitHub Sync issue and pull request links are durable monitoring records for agents. Agents may create or repair links through `paperclip-github-plugin:link_github_item`, but must not unlink, tombstone, delete, or deactivate GitHub Sync issue-link or pull-request-link metadata; intentional unlinking is an operator UI action or an internal GitHub Sync repair path.
-- Do not silently resolve review threads. Reply first with the decision, such as committed the requested change, not applicable, or disagreement with the feedback, and resolve the thread only after that reply when the thread is settled.
+- GitHub Sync issue and pull request links are durable monitoring records. Authorized implementation owners may create or repair links through `paperclip-github-plugin:link_github_item`; no agent may unlink, tombstone, delete, or deactivate them.
+- `followThroughOwner` must not silently resolve review threads: reply first with the decision and resolve only after that reply when the thread is settled. Security Engineer and Code Reviewer must not reply to, resolve, or unresolve threads.
 - PRs from recurring routines remain with their durable implementation owner until CI is green and actionable review feedback is resolved; healthy maintainer wait is unassigned. CEO does not own or rediscover those PRs.
 - For QA deduplication and closure-path checks, search the GitHub issue corpus for the synced repository with `paperclip-github-plugin:search_repository_items`. Do not treat generic Paperclip issue search as the deduplication source of truth.
 
 ## Tool Boundaries
 
-- Use the local git CLI for all git operations: branch creation, commits, rebases, cherry-picks, and pushes.
-- Use the sync plugin agent tools for GitHub operations they cover: deduplication search, issue reads and updates, GitHub comments, PR creation and updates, changed-file inspection, CI inspection, review-thread work, reviewer requests, organization-project lookup, and PR-to-project association.
+- Authorized implementation owners use the local git CLI for local branch creation, commits, rebases, and cherry-picks; branch publication occurs only through the atomic PR tool.
+- Use sync plugin read tools for inspection. Only authorized implementation owners may use covered GitHub writes; only `followThroughOwner` may perform review-thread replies or resolution.
 - Do not use `gh`, direct GitHub browser edits, or ad hoc scripts as a fallback when the sync plugin tools cover the operation.
 - Use the company metric API route only for explicit human/operator-exception PR creation that happened outside `paperclip-github-plugin:create_pull_request`; never send it for PR edits, comments, review replies, or merges.
 - If the available sync plugin tool surface does not support linking a PR to the recommended Micronaut organization project, record that tooling limitation in the stage artifact or PR summary and continue; do not escalate solely for that reason.
-- When a PR is created outside the normal synced GitHub issue delivery pipeline, use `paperclip-github-plugin:link_github_item` to link that PR to the Paperclip child issue or subtask that scopes the work. If the runtime cannot create that durable PR-to-Paperclip issue link, record the tooling blocker in the subtask and routine report instead of presenting the PR as fully tracked.
+- When a PR is created outside the normal synced GitHub issue delivery pipeline, its authorized implementation owner uses `paperclip-github-plugin:link_github_item` to link that PR to the Paperclip child issue or subtask that scopes the work.
 
 ## PR Assets and Visual Evidence
 
