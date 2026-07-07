@@ -114,7 +114,7 @@ test("verification rules require decision-explaining replies on review threads",
   );
   assert.match(
     source,
-    /Security Engineer instructions must explain that PR review threads get a decision-explaining reply before they are resolved\./,
+    /Security Engineer instructions must inspect PR review threads and return required replies and resolution mutations to followThroughOwner\./,
   );
 });
 

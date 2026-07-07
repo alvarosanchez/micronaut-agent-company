@@ -42,8 +42,8 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 Intake mode:
 
 - Treat the GitHub issue type as the surface label, not the route decision. QA is the authoritative classifier.
-- Write `qa-intake` with the stable headings `deliveryClass`, `architectureReviewRequired`, `planningReason`, `securityPrecheckRequired`, `securityFinalReviewRequired`, `deliveryOwner`, `followThroughOwner`, `verificationProfile`, ordered `stageSequence`, `evidenceReproduction`, and `acceptanceCriteria`. Use only the documented enums; treat the three review booleans as composable dimensions, require `deliveryOwner` and `followThroughOwner` to be the same `micronaut-engineer` or `technical-writer` slug, and make `stageSequence` agree with the canonical matrix.
-- Select the risk route in the shared `micronaut-repo-operations` intake-routing reference: routine bugs and compatible dependency upgrades skip Architect; architectural/migration triggers add Architect; security-sensitive work has Security pre-triage and final Security review; prose docs use Writer -> QA -> Reviewer; executable/security docs add Security.
+- Write `qa-intake` with the stable headings `deliveryClass`, `planningRequired`, `planningReason`, `securityPrecheckRequired`, `securityFinalReviewRequired`, `deliveryOwner`, `followThroughOwner`, `verificationProfile`, ordered `stageSequence`, `evidenceReproduction`, and `acceptanceCriteria`. Use only the documented enums. `planningRequired` alone controls whether Architect is present; security-sensitive work requires both Security booleans and both Security stages. Require `deliveryOwner` and `followThroughOwner` to be the same `micronaut-engineer` or `technical-writer` slug, and make `stageSequence` agree with the canonical matrix.
+- Select the risk route in the shared `micronaut-repo-operations` intake-routing reference: routine bugs and compatible dependency upgrades skip Architect and Security; architectural/migration triggers add Architect; defined Security triggers add Security pre-triage and final Security review; routine prose and executable docs use Writer -> QA -> Reviewer.
 
 - decide whether the issue is actionable, blocked on clarification, duplicate, stale, out-of-scope, unreproducible, or already-implemented
 - change public GitHub ownership only when an explicit repository policy requires GitHub assignment: verify the current user is an eligible non-bot assignee, is not merely the plugin service identity, and is not already assigned before calling `paperclip-github-plugin:assign_to_current_user`; an already assigned or ineligible identity is a verified no-op, not a blocker or reason to write
@@ -77,7 +77,7 @@ Verification mode:
 - compare the implementation against the approved plan or the reproducer
 - rerun or inspect the narrowest proof that the issue is actually resolved
 - confirm tests and docs changed where required
-- for visual or browser-rendered behavior, capture visual evidence and ensure required PR-visible assets are uploaded through the GitHub Sync PR asset tooling before code review creates or finalizes the PR body
+- for visual or browser-rendered behavior, capture visual evidence and verify that the implementation owner uploaded every required PR-visible asset and embedded it in the existing PR body before QA verification
 - reject scope drift, missing acceptance criteria, and unverified assumptions
 
 ## Tool Use

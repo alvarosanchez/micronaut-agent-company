@@ -1,14 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
+import { promisify } from "node:util";
 
 import YAML from "yaml";
+
+const execFileAsync = promisify(execFile);
 
 async function read(path) {
   return readFile(new URL(path, import.meta.url), "utf8");
 }
 
 const route = async () => read("../skills/micronaut-repo-operations/references/intake-routing-release.md");
+
+async function trackedPolicyFiles() {
+  const root = new URL("../", import.meta.url);
+  const { stdout } = await execFileAsync("git", ["ls-files", "-z"], { cwd: root });
+  return stdout.split("\0").filter((path) => /(?:^|\/)(?:README|COMPANY|AGENTS|SKILL|TASK)\.md$|\.ya?ml$/.test(path));
+}
 
 function markedYaml(markdown, marker) {
   const markerText = `<!-- ${marker} -->`;
@@ -20,11 +30,11 @@ function markedYaml(markdown, marker) {
   return YAML.parse(fence[1]);
 }
 
-test("QA intake schema represents composable risk and an explicit ordered route", async () => {
+test("QA intake schema makes planningRequired authoritative with an explicit ordered route", async () => {
   const [policy, qa] = await Promise.all([route(), read("../agents/qa-engineer/AGENTS.md")]);
   const schema = markedYaml(policy, "qa-intake-schema");
   const fields = [
-    "deliveryClass", "architectureReviewRequired", "planningReason",
+    "deliveryClass", "planningRequired", "planningReason",
     "securityPrecheckRequired", "securityFinalReviewRequired", "deliveryOwner",
     "followThroughOwner", "verificationProfile", "stageSequence",
     "evidenceReproduction", "acceptanceCriteria",
@@ -36,32 +46,57 @@ test("QA intake schema represents composable risk and an explicit ordered route"
     assert.match(qa, new RegExp(`\\b${field}\\b`), `QA instructions must require ${field}`);
   }
   assert.equal(schema.deliveryClass, "routine | architectural | security-sensitive | documentation");
+  assert.equal(schema.planningRequired, "true | false");
   assert.equal(schema.deliveryOwner, "micronaut-engineer | technical-writer");
   assert.equal(schema.verificationProfile, "source | dependency | docs-prose | docs-executable");
   assert.ok(Array.isArray(schema.stageSequence), "stageSequence must be represented as an ordered list");
 });
 
+test("public operating roster has nine roles while package import has exactly eight", async () => {
+  const [readme, packageYaml] = await Promise.all([read("../README.md"), read("../.paperclip.yaml")]);
+  const roster = markedYaml(readme, "operating-role-roster");
+  assert.equal(roster.length, 9);
+  assert.deepEqual(roster.at(-1), {
+    slug: "ui-ux-designer",
+    name: "UI/UX Designer",
+    source: "live-only",
+    model: "gpt-5.6-sol",
+    reasoningEffort: "high",
+  });
+
+  const packageAgents = YAML.parse(packageYaml).agents;
+  assert.equal(Object.keys(packageAgents).length, 8);
+  assert.equal(packageAgents["ui-ux-designer"], undefined);
+  const { stdout } = await execFileAsync("git", ["ls-files", "agents/*/AGENTS.md"], {
+    cwd: new URL("../", import.meta.url),
+  });
+  const agentFiles = stdout.trim().split("\n").filter(Boolean);
+  assert.equal(agentFiles.length, 8);
+  assert.ok(agentFiles.every((path) => !path.includes("ui-ux-designer")));
+});
+
 test("machine-readable route matrix preserves every required and omitted gate", async () => {
   const matrix = markedYaml(await route(), "workflow-routing-matrix");
   assert.deepEqual(matrix, {
-    "routine-bug": ["qa-engineer", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
-    "architecture-sensitive-bug": ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
-    "routine-dependency-upgrade": ["qa-engineer", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
-    "migration-dependency-upgrade": ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
+    "routine-bug": ["qa-engineer", "micronaut-engineer", "qa-engineer", "code-reviewer"],
+    "architecture-sensitive-bug": ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "code-reviewer"],
+    "routine-dependency-upgrade": ["qa-engineer", "micronaut-engineer", "qa-engineer", "code-reviewer"],
+    "migration-dependency-upgrade": ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "code-reviewer"],
     "security-sensitive-source": ["qa-engineer", "security-engineer", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
     "security-sensitive-architectural-source": ["qa-engineer", "security-engineer", "architect", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
     "prose-docs": ["qa-engineer", "technical-writer", "qa-engineer", "code-reviewer"],
-    "executable-or-security-docs": ["qa-engineer", "technical-writer", "qa-engineer", "security-engineer", "code-reviewer"],
+    "executable-docs": ["qa-engineer", "technical-writer", "qa-engineer", "code-reviewer"],
+    "security-sensitive-docs": ["qa-engineer", "security-engineer", "technical-writer", "qa-engineer", "security-engineer", "code-reviewer"],
     "workflow-authority-docs": ["qa-engineer", "architect", "technical-writer", "qa-engineer", "code-reviewer"],
     "security-sensitive-workflow-authority-docs": ["qa-engineer", "security-engineer", "architect", "technical-writer", "qa-engineer", "security-engineer", "code-reviewer"],
-    feature: ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
+    feature: ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "code-reviewer"],
   });
 });
 
 test("routine and complex bugs have distinct architecture routing", async () => {
   const policy = await route();
-  assert.match(policy, /Routine localized bug:[^\n]+QA intake -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer[^\n]+skips Architect/i);
-  assert.match(policy, /Architecture-sensitive bug:[^\n]+QA intake -> Architect -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer/i);
+  assert.match(policy, /Routine localized bug:[^\n]+QA intake -> Micronaut Engineer -> QA verification -> Code Reviewer[^\n]+skips Architect and Security/i);
+  assert.match(policy, /Architecture-sensitive bug:[^\n]+QA intake -> Architect -> Micronaut Engineer -> QA verification -> Code Reviewer/i);
   for (const trigger of ["cross-module", "public API", "concurrency", "structural performance", "native-image", "multiple materially different fixes", "contradictory intended behavior", "failed implementation"]) {
     assert.match(policy, new RegExp(trigger, "i"));
   }
@@ -69,8 +104,8 @@ test("routine and complex bugs have distinct architecture routing", async () => 
 
 test("routine and migration dependency upgrades have distinct architecture routing", async () => {
   const policy = await route();
-  assert.match(policy, /Routine compatible dependency upgrade:[^\n]+QA intake -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer[^\n]+skips Architect/i);
-  assert.match(policy, /Architectural or migration dependency upgrade:[^\n]+QA intake -> Architect -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer/i);
+  assert.match(policy, /Routine compatible dependency upgrade:[^\n]+QA intake -> Micronaut Engineer -> QA verification -> Code Reviewer[^\n]+skips Architect and Security/i);
+  assert.match(policy, /Architectural or migration dependency upgrade:[^\n]+QA intake -> Architect -> Micronaut Engineer -> QA verification -> Code Reviewer/i);
   for (const trigger of ["major upgrade", "configuration migration", "BOM", "language", "annotation-processing", "multi-module", "transitive replacement", "compatibility matrix", "disputed strategy"]) {
     assert.match(policy, new RegExp(trigger, "i"));
   }
@@ -80,13 +115,17 @@ test("security-sensitive work has pre-triage and final security stages", async (
   const [policy, security] = await Promise.all([route(), read("../agents/security-engineer/AGENTS.md")]);
   assert.match(policy, /Security Engineer pre-triage -> Architect only when[^\n]+-> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer/i);
   assert.match(policy, /pre-triage never replaces final security review/i);
+  for (const trigger of ["authentication", "authorization", "secrets", "cryptography", "untrusted input", "serialization", "filesystem", "process execution", "network trust", "dependency vulnerability", "CI permissions", "release credentials", "secure defaults"]) {
+    assert.match(policy, new RegExp(trigger, "i"));
+  }
   assert.match(security, /requires both pre-triage before implementation and final review after QA/i);
 });
 
 test("documentation uses reduced prose gates and conditional executable security", async () => {
   const policy = await route();
   assert.match(policy, /Prose-only docs:[^\n]+QA intake -> Technical Writer -> QA verification -> Code Reviewer[^\n]+no Security stage/i);
-  assert.match(policy, /Executable examples or security-sensitive docs:[^\n]+QA intake -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer/i);
+  assert.match(policy, /Routine executable docs:[^\n]+QA intake -> Technical Writer -> QA verification -> Code Reviewer[^\n]+omit Security/i);
+  assert.match(policy, /Security-sensitive docs:[^\n]+QA intake -> Security Engineer pre-triage -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer/i);
 });
 
 test("AGENTS textual and executable package findings have explicit owners", async () => {
@@ -141,6 +180,33 @@ test("implementation owners create and follow their PRs while Reviewer remains a
   );
 });
 
+test("repository-wide policy never assigns PR mutation to Code Reviewer", async () => {
+  const forbiddenReviewerTools = /paperclip-github-plugin:(?:create_pull_request|update_pull_request|upload_pull_request_asset|add_pull_request_to_project|request_pull_request_reviewers|reply_to_review_thread|resolve_review_thread|unresolve_review_thread)/;
+  const forbiddenAssignments = [
+    /Code Reviewer\s+(?:(?:must|will|may|should|can)\s+|(?:is|remains)\s+(?:responsible\s+for\s+)?|owns?\s+)?(?:creates?|updates?|publishes?|uploads?|embeds?|finalizes?|requests?)\s+(?:the\s+)?(?:PR|pull request|PR body|asset|reviewer)/i,
+    /Code Reviewer\s+(?:(?:must|will|may|should|can)\s+|(?:is|remains)\s+(?:responsible\s+for\s+)?|owns?\s+)?(?:replies?\s+to|resolves?|unresolves?)\s+(?:the\s+)?(?:review thread|thread)/i,
+    /(?:PR|pull request|PR body|asset|review thread|thread)[^\n.!?]{0,120}\b(?:created|updated|published|uploaded|embedded|finalized|replied to|resolved|unresolved)\s+by\s+(?:the\s+)?Code Reviewer/i,
+  ];
+  for (const file of await trackedPolicyFiles()) {
+    const content = await read(`../${file}`);
+    if (file === "agents/code-reviewer/AGENTS.md") {
+      assert.doesNotMatch(content, forbiddenReviewerTools, `${file} exposes a reviewer mutation tool`);
+    }
+    for (const line of content.split("\n")) {
+      for (const pattern of forbiddenAssignments) {
+        assert.doesNotMatch(line, pattern, `${file} assigns a mutation to Code Reviewer: ${line}`);
+      }
+    }
+  }
+});
+
+test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {
+  const security = await read("../agents/security-engineer/AGENTS.md");
+  assert.match(security, /inspect[^\n]+review threads/i);
+  assert.match(security, /followThroughOwner[^\n]+replies[^\n]+resolves/i);
+  assert.doesNotMatch(security, /paperclip-github-plugin:(?:reply_to_review_thread|resolve_review_thread|unresolve_review_thread)/);
+});
+
 test("prose-only docs omit Security consistently and stale global routes are rejected", async () => {
   const [readme, company, writer, reviewer, quality] = await Promise.all([
     read("../README.md"),
@@ -155,15 +221,15 @@ test("prose-only docs omit Security consistently and stale global routes are rej
   assert.doesNotMatch(company, /QA Engineer[^\n]+approves the work for security review/i);
   assert.doesNotMatch(company, /Micronaut Engineer[^\n]+handles PR follow-through after PR creation/i);
   for (const body of [readme, company, writer, reviewer, quality]) {
-    assert.match(body, /prose(?:-only)? docs[^\n]+(?:omit|no|without) (?:the )?Security|prose(?:-only)? docs[^\n]+Writer -> QA -> (?:Code )?Reviewer/i);
+    assert.match(body, /(?:routine )?prose(?:-only)?(?: and executable)? docs[^\n]+(?:omit|no|without) (?:the )?Security|(?:routine )?prose(?:-only)?(?: and executable)? docs[^\n]+Writer -> QA -> (?:Code )?Reviewer/i);
   }
 });
 
 test("PR follow-through re-enters gates by actual change effect", async () => {
   const control = await read("../skills/micronaut-repo-operations/references/workflow-control-plane.md");
-  assert.match(control, /source, test, dependency, or build changes go Micronaut Engineer -> QA -> Security -> Code Reviewer/i);
-  assert.match(control, /prose-only docs go Technical Writer -> QA -> Code Reviewer/i);
-  assert.match(control, /executable or security-sensitive docs add Security/i);
+  assert.match(control, /routine source, test, dependency, or build changes go Micronaut Engineer -> QA -> Code Reviewer/i);
+  assert.match(control, /routine prose or executable docs go Technical Writer -> QA -> Code Reviewer/i);
+  assert.match(control, /defined Security triggers add pre-triage before the owner and final Security review after QA/i);
   assert.match(control, /design-changing requests go Architect -> recorded implementation owner -> applicable gates/i);
   assert.match(control, /clean rebase with green CI returns to maintainer wait/i);
   assert.match(control, /conflicts or semantic changes rerun the applicable gates/i);

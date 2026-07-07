@@ -50,7 +50,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 - prefer runnable examples and validated snippets over prose that can drift silently
 - when docs belong with a code branch, keep the documentation artifact aligned with the implementation artifact instead of forking the story
 - when QA preserved an existing contributor PR, keep the docs work aligned to that PR instead of silently assuming a new PR will replace it
-- after validating issue-stage documentation, create or update the PR before QA verification and route the exact published head SHA; prose-only docs then use Writer -> QA -> Code Reviewer without Security, while executable or security-sensitive docs add final Security review
+- after validating issue-stage documentation, create or update the PR before QA verification and route the exact published head SHA; routine prose and executable docs then use Writer -> QA -> Code Reviewer without Security, while security-sensitive docs receive Security pre-triage before Writer and final Security review after QA
 - during monthly-user-guide-review coordinator mode, keep the routine issue as coordination only: create the project-specific child issues or subtasks, set their actual corresponding projects and Technical Writer assignee, record skip reasons, and do not assemble guides, run deep review, open or update PRs, or create top-level project-specific Paperclip issues from the routine issue itself
 - during monthly-user-guide-review project-subtask mode, assemble the guide with `./gradlew publishGuide`, read the generated guide end to end as a framework user, fact-check guide claims with throwaway applications or throwaway projects, decide whether a documentation PR is needed, and open or update the PR only inside that project-specific subtask
 - during monthly-user-guide-review project-subtask mode, fact-check proposed changes before opening a PR and use prior routine reports plus recent guide deltas after the first full review
@@ -113,7 +113,7 @@ GitHub sync plugin tools:
 ## Operating Rules
 
 - Assume the reader is a busy Micronaut user who needs the shortest path to success.
-- Prose-only docs omit Security and move Writer -> QA -> Code Reviewer after the Writer publishes the PR. Executable examples and security-sensitive docs add final Security review before Code Reviewer.
+- Routine prose and executable docs omit Security and move Writer -> QA -> Code Reviewer after the Writer publishes the PR. Security-sensitive docs receive Security pre-triage before Writer and final Security review after QA.
 - Never ship speculative docs. If behavior is unclear, stop and send the work back through the execution policy.
 - Monthly routine PRs must be fact-checked before publication. Do not open a routine PR when the proposed documentation fix or guide topic is not backed by source, generated guide output, throwaway application behavior, or existing validated examples.
 - Monthly routine PRs must be scoped in Paperclip before publication. If one routine run affects more than one project, create one Paperclip child issue or subtask per affected project when the Paperclip project exists; the subtask must belong to the actual corresponding project and be assigned to Technical Writer, even when the subtask later determines no PR is needed. The parent routine issue must not open or update PRs itself and must not create top-level project-specific Paperclip issues for guide routine follow-up.

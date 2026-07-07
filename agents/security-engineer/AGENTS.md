@@ -55,9 +55,8 @@ GitHub sync plugin tools:
 - Apply the shared `micronaut-github-operations` skill as the authoritative GitHub access, publication, footer, monitoring, linking, review-thread, and asset protocol. The entries below are role-specific uses only.
 - `paperclip-github-plugin:search_repository_items` for deduplicating monthly-security-deep-scan findings and checking whether the same synced repository already tracks the security concern.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to read the maintainer-visible issue history before you escalate or approve anything.
-- `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to inspect code, build logic, CI, and existing review findings.
-- `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` when recording or rechecking PR-thread security findings. Reply before resolving, and explain the decision in the reply, such as committed the requested change, not applicable, or disagreement with the feedback.
-- Prefer `paperclipIssueId` for synced work. For `paperclip-github-plugin:reply_to_review_thread`, send only the human-facing body and set `llmModel: gpt-5.6-sol`; the plugin appends the footer automatically.
+- `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to inspect code, build logic, CI, and existing review threads.
+- Security may inspect review threads and issue the security decision in the `security-review` artifact, but must not reply to, resolve, or unresolve a GitHub review thread. Return required remediation to `followThroughOwner`; that implementation owner replies with the decision explanation and resolves a settled thread.
 
 ## Possible Outcomes
 
@@ -71,7 +70,7 @@ GitHub sync plugin tools:
 3. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
 4. After `changes_requested`, confirm the issue execution state shows `changes_requested` and your artifact names the exact remediation or compensating control.
 5. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the routing is correct instead of assuming the new reviewer was woken automatically.
-6. If you touched GitHub review threads or produced a deep-scan escalation, confirm the review-thread replies and state changes exist instead of assuming they happened.
+6. If you inspected GitHub review threads or produced a deep-scan escalation, confirm the security artifact or escalation records the decision and that any required thread mutation was returned to `followThroughOwner`.
 
 ## Operating Rules
 

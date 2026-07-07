@@ -90,7 +90,7 @@ The QA Engineer verifies:
 - when a linked contributor PR exists, QA has correctly decided whether it remains the implementation vehicle or should be replaced
 - the original issue or PR concern is actually resolved
 - tests and documentation support the claimed change
-- PR-visible asset evidence has been captured or generated when the verified behavior is visual, browser-rendered, or file-based, and the Code Reviewer has enough context to upload it through GitHub Sync before the PR body is finalized
+- PR-visible asset evidence has been captured or generated when the verified behavior is visual, browser-rendered, or file-based, and the implementation owner uploaded it through GitHub Sync and finalized the PR body before QA verification
 - no important acceptance criteria were silently dropped
 - public answers and closure paths use the correct GitHub labels when applicable, use GitHub's native `Close as not planned` or `Close as duplicate` reason as appropriate, include detailed evidence rather than short generic close notes, treat evidence-backed already-implemented issues as part of QA's direct closure authority, and only require Paperclip board approval when the path is outside QA's direct GitHub authority
 
@@ -122,7 +122,7 @@ The Code Reviewer checks for:
 - if a human maintainer changed, rescheduled, or retargeted the PR organization project after PR creation, that maintainer project change is authoritative and must remain; code review must not restore, reapply, re-add, or reset the original QA-selected organization project set over the maintainer's choice
 - once the approved target branch is identified, the work branch is fetched and updated from the target branch before starting work, editing, committing, opening, creating, or updating a PR; target branch rebase or merge conflicts are recorded as blockers instead of publishing conflicting PRs
 
-If the work is approved, the Code Reviewer verifies the implementation-owner-published PR without mutating it. If not, it resolves as `changes_requested` to the implementation owner. Prose-only docs omit Security and use Writer -> QA -> Code Reviewer; all other gates follow the authoritative `qa-intake.stageSequence`.
+If the work is approved, the Code Reviewer verifies the implementation-owner-published PR without mutating it. If not, it resolves as `changes_requested` to the implementation owner. Routine prose and executable docs omit Security and use Writer -> QA -> Code Reviewer; security-sensitive work follows the two Security stages in the authoritative `qa-intake.stageSequence`.
 
 ## PR Gate
 

@@ -4,12 +4,12 @@ Detailed reference extracted from `micronaut-repo-operations` so the primary ski
 
 ## Authoritative QA Intake Artifact
 
-The GitHub issue type is only the surface label. QA is the authoritative risk classifier and writes a stable `qa-intake` issue document before selecting a route. Keep these exact headings and fields so policies and later agents do not infer risk from the label alone. The boolean risk dimensions are composable: for example, a security-sensitive architectural change sets all three review booleans to `true`. `stageSequence` is the authoritative ordered route and must agree with those dimensions and the matrix below.
+The GitHub issue type is only the surface label. QA is the authoritative risk classifier and writes a stable `qa-intake` issue document before selecting a route. Keep these exact headings and fields so policies and later agents do not infer risk from the label alone. `planningRequired`, `securityPrecheckRequired`, and `securityFinalReviewRequired` are composable booleans. `planningRequired` is the sole authority for whether Architect appears: `true` requires Architect in `stageSequence`, while `false` forbids Architect. Security-sensitive work sets both Security booleans to `true`. `stageSequence` is the authoritative ordered route and must agree with all three booleans and the matrix below.
 
 <!-- qa-intake-schema -->
 ```yaml
 deliveryClass: routine | architectural | security-sensitive | documentation
-architectureReviewRequired: true | false
+planningRequired: true | false
 planningReason: <bounded evidence-based reason or "not required">
 securityPrecheckRequired: true | false
 securityFinalReviewRequired: true | false
@@ -26,35 +26,39 @@ Also retain repository, release, target-branch, compatibility, project-board, li
 
 ## Risk-Classified Stage Layouts
 
-The following YAML is the canonical semantic route matrix. Repeated `qa-engineer` entries mean intake and post-implementation verification respectively. Security-sensitive source routes use pre-triage and final review; prose-only docs intentionally omit Security.
+The following YAML is the canonical semantic route matrix. Repeated `qa-engineer` entries mean intake and post-implementation verification respectively. Security is conditional: only security-sensitive routes use its pre-triage and final-review gates. Routine non-security executable work and prose-only docs omit Security.
 
 <!-- workflow-routing-matrix -->
 ```yaml
-routine-bug: [qa-engineer, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
-architecture-sensitive-bug: [qa-engineer, architect, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
-routine-dependency-upgrade: [qa-engineer, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
-migration-dependency-upgrade: [qa-engineer, architect, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
+routine-bug: [qa-engineer, micronaut-engineer, qa-engineer, code-reviewer]
+architecture-sensitive-bug: [qa-engineer, architect, micronaut-engineer, qa-engineer, code-reviewer]
+routine-dependency-upgrade: [qa-engineer, micronaut-engineer, qa-engineer, code-reviewer]
+migration-dependency-upgrade: [qa-engineer, architect, micronaut-engineer, qa-engineer, code-reviewer]
 security-sensitive-source: [qa-engineer, security-engineer, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
 security-sensitive-architectural-source: [qa-engineer, security-engineer, architect, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
 prose-docs: [qa-engineer, technical-writer, qa-engineer, code-reviewer]
-executable-or-security-docs: [qa-engineer, technical-writer, qa-engineer, security-engineer, code-reviewer]
+executable-docs: [qa-engineer, technical-writer, qa-engineer, code-reviewer]
+security-sensitive-docs: [qa-engineer, security-engineer, technical-writer, qa-engineer, security-engineer, code-reviewer]
 workflow-authority-docs: [qa-engineer, architect, technical-writer, qa-engineer, code-reviewer]
 security-sensitive-workflow-authority-docs: [qa-engineer, security-engineer, architect, technical-writer, qa-engineer, security-engineer, code-reviewer]
-feature: [qa-engineer, architect, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
+feature: [qa-engineer, architect, micronaut-engineer, qa-engineer, code-reviewer]
 ```
 
-- Routine localized bug: QA intake -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. It skips Architect.
-- Architecture-sensitive bug: QA intake -> Architect -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. Require Architect for cross-module or cross-repository impact; public API, serialization, or protocol compatibility; concurrency, lifecycle, or transaction semantics; structural performance tradeoffs; build or native-image interactions; multiple materially different fixes; contradictory intended behavior; or a failed implementation that exposes a design gap.
-- Routine compatible dependency upgrade: QA intake -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. It skips Architect.
-- Architectural or migration dependency upgrade: QA intake -> Architect -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. Require Architect for a major upgrade; public API or configuration migration; BOM, platform, language, or build baseline movement; lifecycle, threading, native-image, or annotation-processing effects; multi-module impact; broad transitive replacement; a compatibility matrix; or disputed strategy.
+Security-sensitive means the change affects authentication, authorization, secrets, cryptography, untrusted input, serialization boundaries, filesystem access, process execution, network trust, a known or suspected dependency vulnerability, dependency provenance, CI permissions, release credentials, or secure defaults and security guidance. Merely changing executable code, build logic, dependencies, or examples is not by itself a Security trigger.
+
+- Routine localized bug: QA intake -> Micronaut Engineer -> QA verification -> Code Reviewer. It skips Architect and Security.
+- Architecture-sensitive bug: QA intake -> Architect -> Micronaut Engineer -> QA verification -> Code Reviewer. Require Architect for cross-module or cross-repository impact; public API, serialization, or protocol compatibility; concurrency, lifecycle, or transaction semantics; structural performance tradeoffs; build or native-image interactions; multiple materially different fixes; contradictory intended behavior; or a failed implementation that exposes a design gap. Add both Security stages only when a Security trigger also applies.
+- Routine compatible dependency upgrade: QA intake -> Micronaut Engineer -> QA verification -> Code Reviewer. It skips Architect and Security.
+- Architectural or migration dependency upgrade: QA intake -> Architect -> Micronaut Engineer -> QA verification -> Code Reviewer. Require Architect for a major upgrade; public API or configuration migration; BOM, platform, language, or build baseline movement; lifecycle, threading, native-image, or annotation-processing effects; multi-module impact; broad transitive replacement; a compatibility matrix; or disputed strategy. Add both Security stages only when a Security trigger also applies.
 - Security-sensitive bug or dependency upgrade: QA intake -> Security Engineer pre-triage -> Architect only when architecture or compatibility planning is needed -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. Security pre-triage never replaces final security review.
 - Prose-only docs: QA intake -> Technical Writer -> QA verification -> Code Reviewer. This reduced route has no Security stage.
-- Executable examples or security-sensitive docs: QA intake -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer.
-- Mechanical or stale repository `AGENTS.md`: CEO finding -> QA intake -> Technical Writer -> QA verification -> Code Reviewer. Workflow or authority semantics add Architect before Writer; authority, tool, or security changes also add Security pre-triage when needed and final Security review before Code Reviewer.
-- Features and breaking changes: QA intake -> Architect -> implementation owner -> QA verification -> Security Engineer final review -> Code Reviewer.
+- Routine executable docs: QA intake -> Technical Writer -> QA verification -> Code Reviewer. Executability selects `docs-executable` verification but does not itself trigger Security, so routine non-security examples omit Security.
+- Security-sensitive docs: QA intake -> Security Engineer pre-triage -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer. Add Architect after pre-triage only when `planningRequired` is true.
+- Mechanical or stale repository `AGENTS.md`: CEO finding -> QA intake -> Technical Writer -> QA verification -> Code Reviewer. Workflow or authority semantics set `planningRequired: true` and add Architect before Writer; security-triggering authority or tool changes add both Security stages.
+- Features and breaking changes: QA intake -> Architect -> implementation owner -> QA verification -> Code Reviewer. Add both Security stages only when a Security trigger applies.
 - `type: question`, clarification wait paths, unreproducible bug closures, duplicate closures, and already-implemented closures: QA intake, with QA publishing the evidence-backed disposition and waiting for sync.
 
-QA encodes the selected sequence in the issue execution policy and records why optional Architect and Security precheck stages are present or absent. Implementation may escalate an exposed design gap back to Architect; unresolved behavior, compatibility, or security questions are escalations, never permission to improvise.
+QA encodes the selected sequence in the issue execution policy and records why optional Architect and Security stages are present or absent. Implementation may escalate an exposed design gap back to Architect; unresolved behavior, compatibility, or security questions are escalations, never permission to improvise.
 
 ## Imported Issues With Existing PRs
 
@@ -84,7 +88,7 @@ Issue type identifies the surface; the stable `qa-intake` classification selects
 - `type: bug`: QA reproduces first. Routine localized bugs skip Architect; architecture-sensitive bugs use the Architect triggers in **Risk-Classified Stage Layouts**. Unreproducible bugs may use the evidence-backed direct closure path.
 - `type: dependency-upgrade`: routine compatible upgrades skip Architect; architectural, migration-bearing, or security-sensitive upgrades use the corresponding route and triggers above.
 - `type: improvement`, `type: enhancement`, and `type: breaking`: QA routes through Architect before the selected implementation owner.
-- `type: docs`: QA selects `docs-prose` or `docs-executable`; prose uses the reduced Writer -> QA -> Reviewer gates, while executable or security-sensitive docs add Security before Reviewer.
+- `type: docs`: QA selects `docs-prose` or `docs-executable`; both routine non-security routes use Writer -> QA -> Reviewer, while security-sensitive docs add Security pre-triage before Writer and final Security review before Reviewer.
 - `type: question`: QA answers directly on GitHub with `type: question` and `closed: question` when confident, or posts a request-for-comments message with `status: awaiting feedback`; issues that remain awaiting feedback for more than 30 days may be closed with `closed: question` and GitHub's native `Close as not planned` reason instead of `Close as completed`.
 
 ## Closure Dispositions

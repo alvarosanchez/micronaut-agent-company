@@ -9,7 +9,7 @@ authors:
   - name: Álvaro Sánchez-Mariscal
 goals:
   - Keep a defined Micronaut repository cluster at inbox zero: every synced GitHub issue and pull request is either closed or actively owned with a next action.
-  - Enforce the lifecycle `BACKLOG -> TODO -> QA -> implementation -> QA -> Security Engineer -> Code Reviewer -> PR cycle -> human merge`.
+  - Enforce the risk-classified lifecycle `BACKLOG -> TODO -> QA -> optional planning/security precheck -> implementation -> QA -> optional Security final review -> Code Reviewer -> PR cycle -> human merge`.
   - Preserve Micronaut's developer experience by favoring small, well-tested, well-documented changes that fit release-branch realities.
   - Separate triage, architecture, implementation, QA, security review, code review, and human governance so maintainers get clear handoffs and auditable quality gates.
   - Treat documentation, migrations, contributor ergonomics, and security posture as first-class parts of every user-facing change.
@@ -25,11 +25,11 @@ tags:
   - security
 ---
 
-Micronaut Agent Company is a lean maintenance company template for Micronaut open-source development. It is designed for Paperclip companies that own a bounded cluster of related repositories inside the `micronaut-projects` GitHub organization and assumes the GitHub sync plugin is responsible for syncing GitHub issues and PRs into Paperclip and exposing GitHub operations as agent tools.
+Micronaut Agent Company is a lean maintenance company template for Micronaut open-source development. Its operating roster has nine roles: the eight package agents in `.paperclip.yaml` plus a live-deployment-only UI/UX Designer on `gpt-5.6-sol` with high reasoning. The UI/UX Designer is intentionally absent from `.paperclip.yaml` and package `agents/*/AGENTS.md`, so package import does not create or overwrite it. The company is designed for Paperclip companies that own a bounded cluster of related repositories inside the `micronaut-projects` GitHub organization and assumes the GitHub sync plugin is responsible for syncing GitHub issues and PRs into Paperclip and exposing GitHub operations as agent tools.
 
 ## Decision And Delivery Ownership
 
-QA is the authoritative classifier. Issue type is only the surface label; a stable `qa-intake` artifact chooses routine, architectural, security-sensitive, or documentation routing and records planning/security requirements, delivery/follow-through owner, verification profile, evidence/reproduction, and acceptance criteria. Routine bugs and compatible dependency upgrades skip Architect. Architectural/migration triggers add Architect. Security-sensitive work has pre-triage and final Security review. Prose docs use the reduced Writer -> QA -> Reviewer path; executable/security docs add Security.
+QA is the authoritative classifier. Issue type is only the surface label; a stable `qa-intake` artifact chooses routine, architectural, security-sensitive, or documentation routing and records authoritative `planningRequired`, planning reason, security requirements, delivery/follow-through owner, verification profile, evidence/reproduction, acceptance criteria, and ordered `stageSequence`. Routine non-security bugs and compatible dependency upgrades skip Architect and Security. Architectural/migration triggers add Architect. Defined Security triggers add pre-triage and final Security review. Routine prose and executable docs use the reduced Writer -> QA -> Reviewer path.
 
 CEO governs, synthesizes, prioritizes, corrects safe Paperclip routing drift, and creates/assigns scoped children with acceptance criteria, then stops. CEO performs no repository or PR implementation/follow-through. Engineer owns source/tests/dependencies/build/package scripts/adapters/plugins. Writer owns docs/guides/repository `AGENTS.md`/company role instructions/textual control-plane PRs; Architect plans semantic workflow/authority changes. The implementation owner remains the durable PR follow-through owner, while healthy maintainer wait is unassigned.
 
@@ -44,10 +44,10 @@ The company operates as a gated pipeline driven by Paperclip execution policies:
 1. The sync plugin creates new GitHub issues in Paperclip in `BACKLOG`.
 2. A human reviews backlog items and moves actionable ones to `TODO`.
 3. **QA Engineer** handles intake, deduplicates against GitHub issues in the synced repository, applies the surface `type:` label, gathers release and target facts, writes the composable `qa-intake` classification, chooses its ordered stage sequence, and evaluates any already-linked PR.
-4. **Architect** plans only work whose QA classification sets `architectureReviewRequired: true`; routine bugs and compatible dependency upgrades skip Architect.
-5. **Micronaut Engineer** or **Technical Writer** implements, validates, and creates or updates the linked PR before QA verification. Artifact type selects the owner.
+4. **Architect** plans only work whose QA classification sets `planningRequired: true`; routine bugs and compatible dependency upgrades skip Architect.
+5. **Micronaut Engineer** or **Technical Writer** implements, validates, uploads required assets, finalizes PR metadata, and creates or updates the linked PR before QA verification. Artifact type selects the owner.
 6. **QA Engineer** verifies the exact published head SHA and advances to the next stage in `qa-intake.stageSequence` or resolves `changes_requested`.
-7. **Security Engineer** performs pre-triage and/or final review only when required by QA's composable risk fields. Source/build/dependency routes use final Security; security-sensitive work also uses pre-triage; prose-only docs omit Security.
+7. **Security Engineer** performs pre-triage and final review only for work that matches a defined Security trigger. Routine non-security bugs, compatible upgrades, executable docs, and prose docs omit Security.
 8. **Code Reviewer** is a pure final gate. It verifies the already-open PR and applicable upstream approvals without creating, updating, or publishing the PR.
 9. The **implementation owner** handles PR follow-through: Engineer for source/tests/dependencies/build/package scripts/adapters/plugins and Writer for prose docs/guides/`AGENTS.md`/instructions. The owner keeps CI green, addresses quality findings, replies to every review thread with a decision explanation before resolving it, and maintains agent-owned metadata while preserving human-maintainer changes.
 10. The board or other Micronaut maintainers merge the PR or cut the release, and the sync plugin eventually marks the Paperclip item `DONE`.

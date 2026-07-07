@@ -26,7 +26,24 @@ Pass script options after npm's `--` separator when possible. The script also ho
 
 ## Runtime Defaults
 
-All package-owned agents are configured to use Paperclip `2026.626.0`'s built-in `hermes_local` adapter. This replaces the older `acpx_local` + Hermes ACP wrapper path so the package uses Paperclip's first-class Hermes integration, including managed instruction bundles, Paperclip-injected runtime identity, Hermes session persistence, and built-in Hermes skill sync/list behavior.
+The operating roster has nine roles. Eight are portable package agents configured through `.paperclip.yaml`; UI/UX Designer is a deployment-provided live-only role. It is intentionally absent from `.paperclip.yaml` and `agents/*/AGENTS.md`, so importing this package neither creates nor overwrites that live role.
+
+<!-- operating-role-roster -->
+```yaml
+- { slug: ceo, name: CEO, source: package, model: gpt-5.6-terra, reasoningEffort: medium }
+- { slug: product-manager, name: Product Manager, source: package, model: gpt-5.6-terra, reasoningEffort: medium }
+- { slug: architect, name: Architect, source: package, model: gpt-5.6-sol, reasoningEffort: high }
+- { slug: qa-engineer, name: QA Engineer, source: package, model: gpt-5.6-sol, reasoningEffort: high }
+- { slug: security-engineer, name: Security Engineer, source: package, model: gpt-5.6-sol, reasoningEffort: high }
+- { slug: micronaut-engineer, name: Micronaut Engineer, source: package, model: gpt-5.6-terra, reasoningEffort: high }
+- { slug: code-reviewer, name: Code Reviewer, source: package, model: gpt-5.6-sol, reasoningEffort: high }
+- { slug: technical-writer, name: Technical Writer, source: package, model: gpt-5.6-terra, reasoningEffort: high }
+- { slug: ui-ux-designer, name: UI/UX Designer, source: live-only, model: gpt-5.6-sol, reasoningEffort: high }
+```
+
+All eight package agents use Paperclip `2026.626.0`'s built-in `hermes_local` adapter. This replaces the older `acpx_local` + Hermes ACP wrapper path and provides managed instruction bundles, Paperclip-injected runtime identity, Hermes session persistence, and built-in Hermes skill sync/list behavior.
+
+Package model matrix:
 
 - CEO: `hermes_local` via `/usr/local/bin/hermes-paperclip`, `gpt-5.6-terra`, medium reasoning
 - Product Manager: `hermes_local` via `/usr/local/bin/hermes-paperclip`, `gpt-5.6-terra`, medium reasoning
@@ -36,6 +53,10 @@ All package-owned agents are configured to use Paperclip `2026.626.0`'s built-in
 - Micronaut Engineer: `hermes_local` via `/usr/local/bin/hermes-paperclip`, `gpt-5.6-terra`, high reasoning
 - Code Reviewer: `hermes_local` via `/usr/local/bin/hermes-paperclip`, `gpt-5.6-sol`, high reasoning
 - Technical Writer: `hermes_local` via `/usr/local/bin/hermes-paperclip`, `gpt-5.6-terra`, high reasoning
+
+Live-only model matrix:
+
+- UI/UX Designer: deployment-provided `hermes_local`, `gpt-5.6-sol`, high reasoning; not package-imported
 
 Each package-owned `hermes_local` adapter uses exactly `hermesCommand: /usr/local/bin/hermes-paperclip` and passes `extraArgs: [--reasoning-effort, medium|high]` according to the matrix above. The deployment wrapper owns safe mapping of that private argument to Hermes profiles. It also configures `provider: openai-codex`, `persistSession: true`, `quiet: true`, `timeoutSec: 7200`, and `graceSec: 20`. Package-owned agents rely on Paperclip project workspaces: do not set `cwd` and do not pin `toolsets`, so required MCP surfaces remain available.
 
@@ -90,6 +111,9 @@ Each agent also declares a Paperclip role in `AGENTS.md` frontmatter so authenti
 | Code Reviewer | `engineer` |
 | Micronaut Engineer | `engineer` |
 | Technical Writer | `general` |
+| UI/UX Designer (live-only) | deployment-defined |
+
+The UI/UX Designer role is visible in the nine-role operating roster but has no package frontmatter row because no package agent file exists for it. Its live deployment owns the exact Paperclip role metadata.
 
 ## Workflow
 
@@ -98,10 +122,10 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 1. The sync plugin creates new GitHub issues in Paperclip in `BACKLOG`.
 2. A human reviews backlog items and moves actionable ones to `TODO`.
 3. **QA Engineer** handles the intake stage: repository-local GitHub deduplication, `type:` labeling, default-branch and release-fact gathering, SemVer-delta target-branch selection, best-fit Micronaut organization-project set selection, downstream execution-policy setup, and any first-pass evaluation of an already-linked PR.
-4. **Architect** plans only work whose QA classification sets `architectureReviewRequired: true`; routine bugs and compatible dependency upgrades skip this stage.
-5. **Micronaut Engineer** or **Technical Writer** implements, validates, and creates or updates the linked PR before QA verification. The owner is selected by artifact type, not by issue label alone.
+4. **Architect** plans only work whose QA classification sets `planningRequired: true`; routine bugs and compatible dependency upgrades skip Architect.
+5. **Micronaut Engineer** or **Technical Writer** implements, validates, uploads any required PR-visible assets, finalizes the PR body, and creates or updates the linked PR before QA verification. The owner is selected by artifact type, not by issue label alone.
 6. **QA Engineer** verifies the exact published head SHA against the reproducer, plan, and selected verification profile.
-7. **Security Engineer** performs pre-triage and/or final review only when required by `qa-intake`. Source/build/dependency routes use final Security; security-sensitive work also uses pre-triage; prose-only docs omit Security.
+7. **Security Engineer** performs pre-triage and final review only when both Security booleans in `qa-intake` are true. Defined trust-boundary and supply-chain triggers make work security-sensitive; routine non-security bugs, compatible upgrades, executable docs, and prose docs omit Security.
 8. **Code Reviewer** is a pure final gate: it verifies an acceptable already-open PR and all applicable upstream approvals without creating, updating, or publishing the PR.
 9. The **implementation owner** owns PR follow-through: Micronaut Engineer for source/tests/dependencies/build/package scripts/adapters/plugins and Technical Writer for prose docs/guides/`AGENTS.md`/instructions. That owner keeps CI green, addresses quality findings, replies to every review thread with a decision explanation before resolving it, and maintains agent-owned metadata while preserving human-maintainer changes.
 10. The board or other Micronaut maintainers merge the PR or cut the release. The sync plugin eventually marks the Paperclip item `DONE`.
@@ -112,14 +136,14 @@ Implementation completion is not a terminal state for repository-changing delive
 
 Imported issues may already have a linked PR from an external contributor. QA evaluates that PR during intake. If the linked PR is good enough to salvage, it stays on the normal gates and the later engineering, QA, security, and code-review stages bring that existing PR to the same mergeable condition expected of an agent-created PR. If the linked PR is stale, retargeted incorrectly, or otherwise needs a replacement instead of incremental follow-through, QA leaves that contributor PR open, records that it is not the implementation vehicle, and routes the issue itself through the normal engineering pipeline toward a separate maintainer-owned PR.
 
-Recommended live routing is risk-classified by QA, not selected from the `type:` label alone. The stable `qa-intake` artifact records `deliveryClass`, `architectureReviewRequired`, `planningReason`, `securityPrecheckRequired`, `securityFinalReviewRequired`, `deliveryOwner`, identical `followThroughOwner`, `verificationProfile`, ordered `stageSequence`, evidence/reproduction, and acceptance criteria.
+Recommended live routing is risk-classified by QA, not selected from the `type:` label alone. The stable `qa-intake` artifact records `deliveryClass`, authoritative `planningRequired`, `planningReason`, `securityPrecheckRequired`, `securityFinalReviewRequired`, `deliveryOwner`, identical `followThroughOwner`, `verificationProfile`, ordered `stageSequence`, evidence/reproduction, and acceptance criteria. `planningRequired` exactly controls Architect presence; the two Security booleans exactly control pre-triage and final review.
 
-- Routine bug and compatible dependency upgrade: QA -> Engineer -> QA -> Security -> Reviewer; no Architect.
-- Architecture-sensitive bug or migration-bearing dependency upgrade: QA -> Architect -> Engineer -> QA -> Security -> Reviewer.
-- Security-sensitive work: QA -> Security pre-triage -> Architect only if needed -> Engineer -> QA -> Security final -> Reviewer.
-- Prose docs: QA -> Writer -> QA -> Reviewer. Executable/security docs add Security.
-- Mechanical/stale `AGENTS.md`: CEO finding -> QA -> Writer -> QA -> Reviewer. Workflow/authority semantics add Architect; authority/tool/security changes also add Security.
-- Features and breaking changes: QA -> Architect -> implementation owner -> QA -> Security -> Reviewer.
+- Routine non-security bug and compatible dependency upgrade: QA -> Engineer -> QA -> Reviewer; no Architect or Security.
+- Architecture-sensitive non-security bug or migration-bearing dependency upgrade: QA -> Architect -> Engineer -> QA -> Reviewer.
+- Security-sensitive work: QA -> Security pre-triage -> Architect only if `planningRequired` -> implementation owner -> QA -> Security final -> Reviewer.
+- Routine prose or executable docs: QA -> Writer -> QA -> Reviewer. Security-sensitive docs use both Security stages.
+- Mechanical/stale `AGENTS.md`: CEO finding -> QA -> Writer -> QA -> Reviewer. Workflow/authority semantics set `planningRequired`; security-triggering authority or tool changes use both Security stages.
+- Features and breaking changes: QA -> Architect -> implementation owner -> QA -> Reviewer, with both Security stages only when a Security trigger applies.
 
 The implementation owner also owns durable PR follow-through: Engineer for code/build/dependency/plugin work and Writer for docs/`AGENTS.md`/instructions. Healthy maintainer wait is unassigned. Post-review changes re-enter effect-based gates; design changes return through Architect. The GitHub Sync plugin contract should persist `followThroughAssigneeAgentId` on the issue/PR link, but this package does not implement plugin code.
 
@@ -197,10 +221,10 @@ When the synced issue already has a linked contributor PR, that PR should never 
 
 | Label | Meaning | QA-selected route |
 | --- | --- | --- |
-| `type: breaking` | Breaking change surface | Architect -> implementation owner -> QA -> Security -> Reviewer |
-| `type: enhancement` | New feature surface | Architect -> implementation owner -> QA -> Security -> Reviewer |
+| `type: breaking` | Breaking change surface | Architect -> implementation owner -> QA -> Reviewer; add both Security stages only for Security triggers |
+| `type: enhancement` | New feature surface | Architect -> implementation owner -> QA -> Reviewer; add both Security stages only for Security triggers |
 | `type: improvement` | Non-breaking product change surface | QA classifies routine vs architectural; features still include Architect |
-| `type: docs` | Documentation surface | Writer -> QA -> Reviewer; executable/security docs add Security |
+| `type: docs` | Documentation surface | Writer -> QA -> Reviewer for routine prose or executable docs; Security-sensitive docs use both Security stages |
 | `type: dependency-upgrade` | Dependency version surface, excluding Dependabot | Routine compatible upgrades skip Architect; migration/architectural upgrades include Architect; security upgrades begin with Security precheck |
 | `type: bug` | Bug surface | Routine localized bugs skip Architect; architecture-sensitive bugs include Architect; security bugs begin with Security pre-triage |
 | `type: question` | Question QA can answer directly or send back for clarification | QA Engineer |
@@ -220,7 +244,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 - Trust the repository's actual current default branch as the signal for the next intended repository release instead of assuming a generic Micronaut branch strategy, but the PR target branch is not automatically the default branch.
 - PRs should target the current default branch only when the major/minor/patch release target implied by that branch permits the issue's SemVer impact. If the latest stable release is `1.2.3` and the next default-branch release is `2.0.0`, the major target can take `type: bug`, `type: improvement`, `type: enhancement`, docs, CI, build-only changes, and approved `type: breaking` work. If the next release is `1.2.4`, the patch target can take bugs, improvements, docs, CI, or build-only changes, while enhancements and breaking changes do not fit. If the next release is `1.3.0`, the minor target can take bugs, improvements, enhancements, docs, CI, or build-only changes, while breaking changes do not fit.
 - If the issue's SemVer impact does not fit the default branch's next release target, QA records that mismatch during triage and routes the issue through planning or governance. Agents may target an alternative branch only when a maintainer, Architect-approved plan, or linked human approval names that alternative target branch and release-policy reason instead of inventing a non-default target branch.
-- The route is selected from QA's stable classification, not the issue type alone. Routine bugs and compatible dependency upgrades use `Engineer -> QA -> Security -> Reviewer`; architecture-sensitive bugs, migration upgrades, features, and breaking changes add Architect before implementation; prose docs use `Writer -> QA -> Reviewer`; executable/security docs add Security.
+- The route is selected from QA's stable classification, not the issue type alone. Routine non-security bugs and compatible dependency upgrades use `Engineer -> QA -> Reviewer`; architecture-sensitive work adds Architect before implementation; routine prose and executable docs use `Writer -> QA -> Reviewer`; defined Security triggers add pre-triage before the owner and final Security review after QA.
 - The implementation owner creates or updates the PR and owns follow-through: Micronaut Engineer for source/tests/dependencies/build/package scripts/adapters/plugins, Technical Writer for prose docs/guides/repository `AGENTS.md`/company role instructions/textual control-plane changes. Code Reviewer verifies the acceptable PR after the applicable gates; only humans merge or release.
 - `Code Reviewer` must not resolve PR-based delivery work as `approved` unless, by the end of that run, a non-draft GitHub PR exists in the correct repository and branch, is readable through the synced GitHub context, and carries the correct issue linkage, closing keyword, and `type:` label. The PR should be linked to all selected Micronaut organization projects chosen during QA intake when those projects exist and GitHub tooling can apply them, but missing linkage due to no matching project or tooling gaps does not by itself block an `approved` outcome.
 - Passing QA, Security, or Code Review is not a terminal state for a synced GitHub issue by itself. Agents must verify that the issue execution state advanced to the correct next stage before they stop.
@@ -275,7 +299,7 @@ Any PR created outside the normal delivery pipeline must be scoped in Paperclip 
 
 The CEO routine must turn each accepted finding into a linked governance approval, a scoped QA-assigned child with evidence and acceptance criteria, a verified no-op, or a named blocker, then stop. The `Managed Repository AGENTS.md Audit` classifies each repository root file as durable/current, stale/generated, or missing. Mechanical/stale/missing text routes to Technical Writer; workflow/authority semantics add Architect; authority/tool/security changes also add Security. Executable package/plugin findings route to Micronaut Engineer with conditional Architect/Security gates.
 
-PR follow-through belongs to the implementation owner, not CEO. Healthy maintainer wait is unassigned. Actionable source/test/dependency/build changes re-enter Engineer -> QA -> Security -> Reviewer; prose docs re-enter Writer -> QA -> Reviewer; executable/security docs add Security; design-changing requests add Architect before the owner. Clean rebases with green CI return to wait, while conflicts or semantic changes rerun applicable gates.
+PR follow-through belongs to the implementation owner, not CEO. Healthy maintainer wait is unassigned. Actionable source/test/dependency/build changes re-enter Engineer -> QA -> Reviewer and routine docs re-enter Writer -> QA -> Reviewer; defined Security triggers add both Security stages, while design-changing requests add Architect before the owner. Clean rebases with green CI return to wait, while conflicts or semantic changes rerun applicable gates.
 
 Training is the skill-coverage routine, not Paperclip workflow tuning. It should infer skill needs from technologies, frameworks, tools, libraries, and services that agents actually encountered in previous executions, such as Elasticsearch, search engines, databases, message brokers, cloud services, build tools, or observability platforms. When it finds a suitable existing https://skills.sh skill, the CEO creates a linked board approval request that names the execution evidence, exact skill entry, proposed company skill slug, and target agent or agents before installation. When no suitable existing skill exists and the same technology or domain gap is recurring enough to justify company-owned guidance, the CEO creates a Paperclip child issue or subtask with status `backlog`, issue type `type: improvement`, and assignee Architect to create the new company skill as a pull request to the company package. Queue health, handoff correctness, and Paperclip workflow usage stay in monthly CEO self-improvement or productivity-review handling unless they expose a reusable technology or domain skill need.
 
@@ -354,7 +378,7 @@ Some workflow actions are Paperclip runtime concerns rather than GitHub sync con
 
 ## PR Assets and Visual Evidence
 
-When work involves visual or browser-rendered behavior, generated PDFs, reports, logs, or other reviewer-facing artifacts, agents should make the artifact PR-visible. QA records what was captured or generated and what each asset proves. Code Reviewer uploads assets with `paperclip-github-plugin:upload_pull_request_asset` and embeds the returned `asset.markdown` in the PR body. If the tool cannot upload the asset, record the concrete blocker instead of falling back to a local path, pasted base64 blob, or GitHub browser-only attachment flow, because those are not durable reviewer evidence.
+When work involves visual or browser-rendered behavior, generated PDFs, reports, logs, or other reviewer-facing artifacts, the implementation owner makes the artifact PR-visible before QA verification. QA records what was captured or generated and what each asset proves. Micronaut Engineer or Technical Writer uploads assets with `paperclip-github-plugin:upload_pull_request_asset` and embeds the returned `asset.markdown` by updating the PR body. Code Reviewer only verifies that the existing asset and PR-body metadata match the reviewed head. If the owner cannot upload the asset, record the concrete blocker instead of falling back to a local path, pasted base64 blob, or GitHub browser-only attachment flow, because those are not durable reviewer evidence.
 
 ## Org Chart
 
@@ -368,6 +392,7 @@ flowchart TD
     Reviewer["Code Reviewer"]
     Engineer["Micronaut Engineer"]
     Writer["Technical Writer"]
+    UIUX["UI/UX Designer<br/>(live-only, Sol/high)"]
 
     CEO --> PM
     CEO --> Architect
@@ -376,6 +401,7 @@ flowchart TD
     CEO --> Reviewer
     CEO --> Engineer
     CEO --> Writer
+    CEO -. deployment-only .-> UIUX
 ```
 
 ## Role Details
@@ -387,9 +413,10 @@ flowchart TD
 | Architect | Micronaut Architect | `ceo` | Implementation plans, compatibility framing, release-policy exceptions, breaking-change approval |
 | QA Engineer | QA Engineer | `ceo` | Intake gate, deduplication, label classification, release targeting, SemVer/project triage, reproducer validation, final QA sign-off |
 | Security Engineer | Security Engineer | `ceo` | Security review across source code, dependencies, build scripts, CI/CD, secure defaults, and security-sensitive docs |
-| Code Reviewer | Code Reviewer | `ceo` | Structural review, PR creation, maintainer-facing quality and DX gate |
-| Micronaut Engineer | Micronaut Engineer | `ceo` | Code implementation, reproducer fixes, PR-cycle execution |
-| Technical Writer | Technical Writer | `ceo` | Docs-only implementation, migration notes, guide and reference quality, proactive user-guide and standalone-guide routines |
+| Code Reviewer | Code Reviewer | `ceo` | Pure read-only structural and maintainer-facing quality/DX gate over the existing PR |
+| Micronaut Engineer | Micronaut Engineer | `ceo` | Code implementation, reproducer fixes, asset/PR publication, and PR-cycle execution |
+| Technical Writer | Technical Writer | `ceo` | Docs-only implementation, migration notes, guide/reference quality, asset/PR publication, and proactive guide routines |
+| UI/UX Designer | UI/UX Designer (live-only, `gpt-5.6-sol`/high) | `ceo` in the live deployment | UI/UX design and visual-system guidance; intentionally not imported from this package |
 
 ## Local Company Skills
 

@@ -115,6 +115,8 @@ const APPROVAL_LINKAGE_VERIFICATION_PATTERN =
   /approvals\/\{approvalId\}\/issues[\s\S]{0,320}(?:issue\.linkedApprovalIds|linkedApprovalIds)|(?:issue\.linkedApprovalIds|linkedApprovalIds)[\s\S]{0,320}approvals\/\{approvalId\}\/issues/i;
 const ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN =
   /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}failing CI[\s\S]{0,500}unresolved review feedback[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}target branch[\s\S]{0,500}(?:Micronaut Engineer|make the PR mergeable)[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline|failing CI[\s\S]{0,500}target branch[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline/i;
+const SECURITY_THREAD_HANDOFF_PATTERN =
+  /Security[\s\S]{0,500}(?:inspect|read)[\s\S]{0,500}review threads[\s\S]{0,700}followThroughOwner[\s\S]{0,500}repl(?:y|ies)[\s\S]{0,500}resolv(?:e|es|ing)/i;
 const HEALTHY_PR_MAINTAINER_WAIT_PATTERN =
   /(?:open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing[\s\S]{0,320}no actionable unresolved internal review state[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,260}normal maintainer review)|(?:normal maintainer review[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,360}open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing)/i;
 const FINAL_REVIEW_MAINTAINER_WAIT_NORMALIZATION_PATTERN =
@@ -875,9 +877,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/security-engineer/AGENTS.md",
-    pattern: REVIEW_THREAD_REPLY_TOOLING_PATTERN,
+    pattern: SECURITY_THREAD_HANDOFF_PATTERN,
     message:
-      "Security Engineer instructions must explain that PR review threads get a decision-explaining reply before they are resolved.",
+      "Security Engineer instructions must inspect PR review threads and return required replies and resolution mutations to followThroughOwner.",
   },
   {
     relativePath: "README.md",
