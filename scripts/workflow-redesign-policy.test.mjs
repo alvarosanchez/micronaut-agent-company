@@ -79,6 +79,7 @@ function unsafeRootMutationAuthorities(markdown) {
     /\bCEO(?: routine)?\b[^\n.!?]{0,40}\b(?:opens?|updates?|creates?|sends?|promotes?|rediscovers?|follows?)\b[^\n.!?]{0,80}\b(?:PRs?|pull requests?|repository branches?|review threads?)\b/i,
     /\b(?:Security Engineer|Code Reviewer)\b[^\n.!?]{0,80}\b(?:opens?|updates?|creates?|publishes?|follows?|links?|owns?)\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|review threads?|follow-through)\b/i,
     /\b(?:set|sets|assign|assigns|assigned)\b[^\n.!?]{0,50}\bassignee\b[^\n.!?]{0,50}\broutine owner\b/i,
+    /\b(?:assignee|assigned to)\b[^\n.!?]{0,20}\bArchitect\b[^\n.!?]{0,120}\b(?:PRs?|pull requests?|implementation|repository mutation|authors?)\b/i,
     /\b(?:rediscover|follow)\w*\b[^\n.!?]{0,80}\bPRs?\b[^\n.!?]{0,80}\bCEO\b/i,
     /\b(?:promot|open|update|follow)\w*\b[^\n.!?]{0,80}\bby (?:the )?CEO\b[^\n.!?]{0,80}\b(?:PRs?|pull requests?)\b/i,
     /\bCEO-opened PRs?\b/i,
@@ -329,7 +330,7 @@ test("CEO effective bundle is governance-only", async () => {
   const expectedSkills = [
     "company-package-evolution",
     "ceo-issue-history",
-    "find-skills",
+    "marketplace-skill-discovery",
     ...catalogSkills,
   ];
   const roleAndSkills = await effectiveAgentBundle("ceo", expectedSkills);
@@ -347,10 +348,10 @@ test("CEO effective bundle is governance-only", async () => {
   ]) {
     assert.deepEqual(unsafeMaintainerWaitMutations(probe), [probe]);
   }
-  for (const forbidden of ["gh-cli", "micronaut-github-operations", "micronaut-repo-operations", "agent-md-refactor", "paperclipai/bundled/paperclip-operations/issue-triage", "paperclipai/bundled/paperclip-operations/task-planning", "paperclipai/bundled/software-development/github-pr-workflow"]) {
+  for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "micronaut-repo-operations", "agent-md-refactor", "paperclipai/bundled/paperclip-operations/issue-triage", "paperclipai/bundled/paperclip-operations/task-planning", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundle), "0e5f6f861b01812d3644c80591138ad28d6b2d15ee793ed60ee2854d7f63b104");
+  assert.equal(bundleDigest(bundle), "ad95a147c3b6a2b44cc27c7b2bf3138d41af445bdc44f1bcdc111fb6eee61ec5");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -398,6 +399,7 @@ test("root company policy delegates mutation-bearing routine work to implementat
     /CEO-opened PRs/i,
     /CEO should promote it through a PR/i,
     /promoted by the CEO through a PR/i,
+    /assignee Architect[\s\S]{0,180}(?:PR|pull request|implementation)/i,
   ]) {
     assert.doesNotMatch(rootPolicy, retiredPolicy);
   }
@@ -408,6 +410,7 @@ test("root company policy delegates mutation-bearing routine work to implementat
     "Code Reviewer owns PR follow-through and review-thread resolution.",
     "Reusable package defaults should be promoted by the CEO through a PR.",
     "The CEO should promote it through a PR.",
+    "Set assignee Architect for the new company skill pull request implementation.",
   ]) {
     assert.deepEqual(unsafeRootMutationAuthorities(probe), [probe]);
   }

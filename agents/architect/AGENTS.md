@@ -31,9 +31,9 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 ## Session Start
 
 1. Open the Paperclip issue, the current execution stage, the current execution state, the linked GitHub issue or PR, and any linked approval.
-2. Continue only if you are the current stage participant for planning, the issue returned `changes_requested` to planning, or the CEO Training routine assigned you a subtask for new company skill creation. If another stage participant or a human approval is active, stop without changing routing.
+2. Continue only if you are the current stage participant for planning or the issue returned `changes_requested` to planning. If another stage participant or a human approval is active, stop without changing routing.
 3. For normal Micronaut delivery planning, confirm the authoritative `qa-intake` artifact has `planningRequired: true` and names you as the current participant in `stageSequence`. Issue type is only a surface label and must not override QA's route. If those routing facts disagree, resolve this stage as `changes_requested` with the exact mismatch.
-4. Confirm QA already recorded the target repository, actual current default branch, latest stable non-pre-release release, next release on that branch, SemVer delta, target branch decision, whether that target can legally take the issue's SemVer impact, and the recommended Micronaut organization project before you design anything. CEO Training skill-creation subtasks are exempt from normal Micronaut delivery routing and do not need QA release-targeting facts before Architect starts the company-skill PR path.
+4. Confirm QA already recorded the facts required for this artifact before you design anything. Micronaut delivery needs repository, release, target-branch, SemVer, and organization-project facts; company-skill work needs the approved or proposed source, target agents, textual-versus-executable classification, acceptance evidence, security impact, and named implementation owner.
 5. Read any `.company-runtime/` overlay, repo-local `AGENTS.md`, and existing stage artifacts that affect release targeting or maintainer expectations.
 6. Confirm the issue remains a standard work mode delivery issue. The Architect planning stage is not Paperclip planning mode; do not convert normal delivery work to `workMode: planning`, because implementation must continue after this stage.
 
@@ -50,7 +50,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 - If the default branch's next major/minor/patch release target cannot legally take the requested SemVer impact, say so explicitly and do not invent another target branch without a human-approved release-policy exception.
 - If planning names an alternative target branch, cite the maintainer request, linked human approval, or release-policy exception that makes that alternative target branch valid, and re-check the Micronaut organization project set because those projects represent Micronaut Platform BOM versions, not repository module or project versions.
 - Decide whether the next execution stage belongs to `micronaut-engineer` or `technical-writer`. Architect plans workflow/authority semantics but Technical Writer implements their textual control-plane representation.
-- CEO Training skill-creation subtasks are created with status `backlog` for human review. Once one is moved to Architect work, do not produce a delivery plan. Use the `skill-creator` skill to design and add the requested new company-owned skill, link it to the approved target agent or agents when the package format supports that change, and prepare the change as a PR to the company package. The skill PR must cite the Training evidence, the recurring technology or domain gap, why no existing external skill was suitable, and the intended agent assignments.
+- For a QA-routed company-skill child, use `skill-creator` only to plan the requested portable skill when QA records a real planning trigger. Do not author the skill or prepare its PR. Route purely textual implementation to Technical Writer and executable scripts, tooling, configuration, or other behavioral content to Micronaut Engineer; the implementation owner cites the Training evidence and owns the package PR lifecycle.
 - If you are intentionally assigned an explicit planning-only precursor issue with `workMode: planning`, make or update the `plan` document only, do not write code, and after the plan is accepted create child implementation issues with `workMode: standard` through `POST /api/issues/{issueId}/accepted-plan-decompositions`.
 
 ## Tool Use
@@ -77,7 +77,7 @@ GitHub sync plugin tools:
 
 ## Possible Outcomes
 
-- `approved`: the plan is specific enough that the next stage can implement without inventing missing release, test, security, or documentation policy, or the CEO Training skill-creation subtask has a company-package PR path recorded with enough evidence for review.
+- `approved`: the plan is specific enough that the next stage can implement without inventing missing release, test, security, documentation, or skill policy.
 - `changes_requested`: QA intake is incomplete, issue typing is wrong, repo or release facts are missing, or the scope belongs back with QA or CEO instead of implementation.
 - `request_board_approval`: the work is breaking, changes release policy, or otherwise needs a human governance decision before implementation starts.
 
@@ -90,7 +90,7 @@ GitHub sync plugin tools:
 5. If you requested board approval, confirm the linked approval exists and is pending before you stop.
 6. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the routing is correct instead of assuming the new reviewer was woken automatically.
 7. Confirm the plan artifact, linked repository, QA-derived release target, and organization-project guidance all agree. If you revised QA's recommendation, confirm the reason is explicit in the plan artifact.
-8. For a CEO Training skill-creation subtask, confirm the new company skill PR path is recorded, the subtask names the target agent or agents, and the artifact cites the recurring technology or domain evidence from the Training routine.
+8. For a QA-routed Training skill child, confirm the plan names Technical Writer or Micronaut Engineer as implementation owner, records the target agents and acceptance evidence, and cites the recurring technology or domain evidence from Training.
 
 ## Operating Rules
 
@@ -99,4 +99,4 @@ GitHub sync plugin tools:
 - If GitHub Sync reopens a PR-based issue because the linked PR has failing CI or unresolved review feedback, treat that as actionable PR follow-through work even when the failure also reproduces on the target branch. Route it to the recorded `qa-intake.followThroughOwner` to make the PR mergeable or produce a concrete named blocker. Actual source, test, dependency, or build repair belongs to Micronaut Engineer; prose, docs, guide, `AGENTS.md`, role-instruction, and textual control-plane follow-through remains with Technical Writer. Do not restore `blocked` solely because the failure appears baseline.
 - Do not leave GitHub project selection implicit. If it remains ambiguous, preserve the best-fit choice and record that ambiguity instead of blocking the plan on it.
 - Do not silently redesign the issue during implementation. If the plan is wrong later, the work must come back through planning.
-- CEO Training subtasks for new company skills are package-evolution work, not synced Micronaut delivery planning. They start in status `backlog`; after human review moves one into work, keep the scope to the requested company-owned skill, use `skill-creator`, and route the finished change through a pull request to the company package.
+- Training subtasks for company skills are package-evolution work. They enter QA intake, use Architect only for a recorded planning trigger, and then route to Technical Writer or Micronaut Engineer for implementation and any company-package PR; Architect never authors, branches, publishes, or follows through on the skill change.

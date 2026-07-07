@@ -12,6 +12,7 @@ skills:
   - gradle
   - micronaut-test-resources-provider-development
   - micronaut-graalvm-native-development
+  - skill-creator
   - gh-cli
   - paperclipai/bundled/software-development/github-pr-workflow
   - paperclipai/bundled/docs/doc-maintenance

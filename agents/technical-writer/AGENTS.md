@@ -11,6 +11,7 @@ skills:
   - guides
   - micronaut-test-resources-provider-development
   - agent-md-refactor
+  - skill-creator
   - gh-cli
   - paperclipai/bundled/docs/doc-maintenance
   - paperclipai/bundled/software-development/github-pr-workflow
