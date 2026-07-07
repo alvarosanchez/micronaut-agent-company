@@ -23,7 +23,7 @@ async function markdownFiles(root) {
   return files.sort((left, right) => left.href.localeCompare(right.href));
 }
 
-async function effectiveAgentBundle(agentSlug, expectedSkills, allowedCatalogSkills = []) {
+async function effectiveAgentBundle(agentSlug, expectedSkills) {
   const rolePath = `../agents/${agentSlug}/AGENTS.md`;
   const role = await read(rolePath);
   const frontmatter = role.match(/^---\n([\s\S]*?)\n---/);
@@ -34,7 +34,8 @@ async function effectiveAgentBundle(agentSlug, expectedSkills, allowedCatalogSki
   const documents = [[rolePath, role]];
   for (const skill of skills) {
     if (skill.startsWith("paperclipai/")) {
-      assert.ok(allowedCatalogSkills.includes(skill), `${agentSlug} must not load unaudited catalog skill ${skill}`);
+      const catalogPath = `../node_modules/@paperclipai/skills-catalog/catalog/${skill.slice("paperclipai/".length)}/SKILL.md`;
+      documents.push([catalogPath, await read(catalogPath)]);
       continue;
     }
     const skillRoot = new URL(`../skills/${skill}/`, import.meta.url);
@@ -57,11 +58,11 @@ function unsafeDeliveryImperatives(bundle) {
   const deliveryTarget = /\b(?:branches?|pull requests?|prs?|repositories|review threads?|releases?)\b/i;
   const prohibited = /\b(?:must not|do not|never|prohibited|read-only|non-mutating)\b/i;
   const otherOwner = /\b(?:implementation owner|delivery owner|follow-through owner|technical writer|micronaut engineer)\b/i;
+  const indirectDelivery = /\b(?:just ship it|ship (?:it|the (?:small )?change)(?: in the same heartbeat)?|deliver or implement (?:it|the change) yourself)\b/i;
   return bundle.split("\n").filter((line) =>
-    imperative.test(line)
-    && deliveryTarget.test(line)
-    && !prohibited.test(line)
+    !prohibited.test(line)
     && !otherOwner.test(line)
+    && ((imperative.test(line) && deliveryTarget.test(line)) || indirectDelivery.test(line))
   );
 }
 
@@ -228,7 +229,8 @@ test("QA verification advances to the exact next stage, including routine direct
   const qa = await read("../agents/qa-engineer/AGENTS.md");
   assert.match(qa, /approved[^\n]+exact next entry in (?:the )?authoritative ordered `qa-intake\.stageSequence`/i);
   assert.match(qa, /routine routes advance directly to Code Reviewer/i);
-  assert.match(qa, /security-sensitive routes advance to Security final review/i);
+  assert.match(qa, /defined Security-trigger routes[^\n]+Security final review/i);
+  assert.match(qa, /behavior-changing executable instructions[^\n]+securityPrecheckRequired: false[^\n]+securityFinalReviewRequired: true[^\n]+Security final review/i);
   assert.doesNotMatch(qa, /implementation is ready for the security stage/i);
   assert.doesNotMatch(qa, /next `currentParticipant` is the security stage when review stages remain/i);
 });
@@ -302,7 +304,6 @@ test("effective CEO self-improvement policy uses bounded routing fixtures", asyn
 test("CEO effective bundle is governance-only", async () => {
   const catalogSkills = [
     "paperclipai/bundled/paperclip-operations/issue-triage",
-    "paperclipai/bundled/paperclip-operations/task-planning",
   ];
   const expectedSkills = [
     "company-package-evolution",
@@ -310,11 +311,16 @@ test("CEO effective bundle is governance-only", async () => {
     "find-skills",
     ...catalogSkills,
   ];
-  const bundle = await effectiveAgentBundle("ceo", expectedSkills, catalogSkills);
-  assert.deepEqual(unsafeDeliveryImperatives(bundle), [], "CEO effective local bundle must not authorize repository or PR delivery");
-  for (const forbidden of ["gh-cli", "micronaut-github-operations", "micronaut-repo-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
+  const roleAndSkills = await effectiveAgentBundle("ceo", expectedSkills);
+  const routinePath = "../tasks/monthly-ceo-self-improvement/TASK.md";
+  const bundle = `${roleAndSkills}\n<!-- ${routinePath} -->\n${await read(routinePath)}`;
+  assert.deepEqual(unsafeDeliveryImperatives(bundle), [], "CEO effective routine bundle must not authorize repository or PR delivery");
+  const indirectMutationProbe = "The issue is a single small change you can ship in the same heartbeat. Just ship it.";
+  assert.deepEqual(unsafeDeliveryImperatives(indirectMutationProbe), [indirectMutationProbe]);
+  for (const forbidden of ["gh-cli", "micronaut-github-operations", "micronaut-repo-operations", "agent-md-refactor", "paperclipai/bundled/paperclip-operations/task-planning", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
+  assert.equal(bundleDigest(bundle), "fd7d84d6ccc38349868c53ed97c223363063515537618e6dc788e8b2f72af059");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -386,7 +392,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "dff3369947c61260257d653820433e510d1944b81324dca69d081d09f41b1d82";
+  const reviewerDigest = "70e818f8432ba21dc37638443c76dfcd011d94df9f79d4c68123ef2b154768b4";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -400,7 +406,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective bundle must not grant unconditional repository delivery mutations",
   );
-  assert.equal(bundleDigest(securityBundle), "38ad28624eb253141096f5ec0e9b51f6f9be945bbae7effc3330ab077e515b52");
+  assert.equal(bundleDigest(securityBundle), "45ac7dbb12f2c3dc01c8fd46fa27846f7f92ea0385b9cc72f210654c0c8c2e8d");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {
@@ -451,6 +457,7 @@ test("PR follow-through re-enters gates by actual change effect", async () => {
   ]);
   assert.match(control, /routine source, test, dependency, or build changes go Micronaut Engineer -> QA -> Code Reviewer/i);
   assert.match(control, /routine prose or executable docs go Technical Writer -> QA -> Code Reviewer/i);
+  assert.match(control, /behavior-changing executable instructions[^\n]+securityPrecheckRequired: false[^\n]+securityFinalReviewRequired: true[^\n]+Technical Writer -> QA -> Security final -> Code Reviewer/i);
   assert.match(control, /defined Security triggers add pre-triage before the owner and final Security review after QA/i);
   assert.match(control, /design-changing requests go Architect -> recorded implementation owner -> applicable gates/i);
   assert.match(control, /clean rebase with green CI returns to maintainer wait/i);

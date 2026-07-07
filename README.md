@@ -438,9 +438,9 @@ These are Paperclip 2026.626 Skills Store catalog prerequisites, not vendored so
 | Catalog Skill | Assigned To | Purpose |
 | --- | --- | --- |
 | `paperclipai/bundled/paperclip-operations/issue-triage` | CEO, QA Engineer | Paperclip inbox, intake, and productivity-review triage with Micronaut-specific safeguards for synced GitHub issue closure and agent ownership |
-| `paperclipai/bundled/paperclip-operations/task-planning` | CEO, Architect, Product Manager | Structured `plan` documents, child task breakdowns, blockers, owners, acceptance criteria, and plan-confirmation interactions without turning normal delivery issues into planning mode |
+| `paperclipai/bundled/paperclip-operations/task-planning` | Architect, Product Manager | Structured `plan` documents, child task breakdowns, blockers, owners, acceptance criteria, and plan-confirmation interactions without turning normal delivery issues into planning mode |
 | `paperclipai/bundled/quality/qa-acceptance` | Architect, Product Manager, QA Engineer | Given/when/then acceptance criteria, manual validation plans, edge cases, error states, and durable pass/fail evidence for feature-level QA |
-| `paperclipai/bundled/software-development/github-pr-workflow` | CEO, Micronaut Engineer, Technical Writer | Branch hygiene and implementation-owner PR publication/follow-through |
+| `paperclipai/bundled/software-development/github-pr-workflow` | Micronaut Engineer, Technical Writer | Branch hygiene and implementation-owner PR publication/follow-through |
 | `paperclipai/bundled/docs/doc-maintenance` | Micronaut Engineer, Technical Writer | Minimum-churn documentation drift detection and updates for user-visible behavior, configuration, API, release-line, and tooling changes |
 | `paperclipai/optional/browser/agent-browser` | QA Engineer, Product Manager, Micronaut Engineer, Technical Writer | Browser-backed verification for dynamic pages, generated docs, preview/deployed UI, screenshots, console and network evidence; not unattended scraping |
 
@@ -453,9 +453,9 @@ These skills are included as referenced skills pinned to their upstream source r
 | `coding` | Architect, Micronaut Engineer, Security Engineer, Code Reviewer | Micronaut maintainer guidance for Java implementation, API evolution, and maintainer-grade verification |
 | `docs` | Architect, Product Manager, Micronaut Engineer, Technical Writer, Code Reviewer | Micronaut guide-authoring conventions for Asciidoctor, `toc.yml`, macros, and docs validation |
 | `guides` | Technical Writer | Micronaut standalone guide authoring, validation, PDF export, and PR handoff for `micronaut-projects/micronaut-guides` |
-| `gh-cli` | CEO, Architect, Product Manager, QA Engineer, Security Engineer, Code Reviewer, Micronaut Engineer, Technical Writer | Exception-only GitHub CLI reference for explicit non-plugin GitHub client authorization, including direct maintainer-visible GitHub issue and PR body footer rules |
+| `gh-cli` | Architect, Product Manager, QA Engineer, Micronaut Engineer, Technical Writer | Exception-only GitHub CLI reference for explicit non-plugin GitHub client authorization, including direct maintainer-visible GitHub issue and PR body footer rules |
 | `gradle` | Architect, Micronaut Engineer, QA Engineer, Security Engineer, Code Reviewer | Micronaut maintainer Gradle workflows, compatibility checks, catalog management, and build diagnostics |
-| `agent-md-refactor` | CEO, Technical Writer | Progressive-disclosure refactoring for repo-level and local runtime instruction files so guidance stays compact, linked, and reimport-safe |
+| `agent-md-refactor` | Technical Writer | Progressive-disclosure refactoring for repo-level and local runtime instruction files so guidance stays compact, linked, and reimport-safe |
 | `skill-creator` | Architect | Agent-agnostic skill authoring guidance used when the company evolves its own shared skills |
 | `find-skills` | CEO | https://skills.sh marketplace discovery for Training routine skill recommendations and approval-backed company skill additions |
 

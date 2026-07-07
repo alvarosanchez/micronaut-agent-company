@@ -33,6 +33,13 @@ function assertIncludesAll(actual, expected, label) {
   }
 }
 
+function documentedAssignments(readme, skill) {
+  const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const row = readme.match(new RegExp("^\\| `" + escaped + "` \\| ([^|]+) \\|", "m"));
+  assert.ok(row, `README must document assignments for ${skill}`);
+  return row[1].split(",").map((name) => name.trim()).sort();
+}
+
 const CATALOG_SKILLS = [
   {
     slug: "issue-triage",
@@ -65,7 +72,6 @@ const keyBySlug = new Map(CATALOG_SKILLS.map((skill) => [skill.slug, skill.key])
 const AGENT_ASSIGNMENTS = {
   ceo: [
     "paperclipai/bundled/paperclip-operations/issue-triage",
-    "paperclipai/bundled/paperclip-operations/task-planning",
   ],
   architect: [
     "paperclipai/bundled/paperclip-operations/task-planning",
@@ -92,6 +98,17 @@ const AGENT_ASSIGNMENTS = {
     "paperclipai/bundled/software-development/github-pr-workflow",
     "paperclipai/optional/browser/agent-browser",
   ],
+};
+
+const AGENT_DISPLAY_NAMES = {
+  ceo: "CEO",
+  architect: "Architect",
+  "product-manager": "Product Manager",
+  "qa-engineer": "QA Engineer",
+  "security-engineer": "Security Engineer",
+  "code-reviewer": "Code Reviewer",
+  "micronaut-engineer": "Micronaut Engineer",
+  "technical-writer": "Technical Writer",
 };
 
 test("Paperclip catalog skills are granted by key without vendoring catalog bodies", async () => {
@@ -121,6 +138,24 @@ test("package agents reference the adopted Paperclip catalog skill keys", async 
     if (expectedSkills.length > 0) {
       assert.match(body, /## Catalog Skill Guardrails/, `${agentSlug} should keep Micronaut-specific catalog-skill corrections in agent instructions.`);
     }
+  }
+});
+
+test("README skill assignment tables match exact package agent frontmatter", async () => {
+  const readme = await read("../README.md");
+  const skills = [...CATALOG_SKILLS.map(({ key }) => key), "gh-cli", "agent-md-refactor"];
+  const frontmatterByAgent = new Map();
+  for (const agentSlug of Object.keys(AGENT_DISPLAY_NAMES)) {
+    const { frontmatter } = parseFrontmatter(await read(`../agents/${agentSlug}/AGENTS.md`));
+    frontmatterByAgent.set(agentSlug, frontmatter.skills ?? []);
+  }
+
+  for (const skill of skills) {
+    const expected = Object.entries(AGENT_DISPLAY_NAMES)
+      .filter(([agentSlug]) => frontmatterByAgent.get(agentSlug).includes(skill))
+      .map(([, displayName]) => displayName)
+      .sort();
+    assert.deepEqual(documentedAssignments(readme, skill), expected, `${skill} README assignments must match frontmatter`);
   }
 });
 
