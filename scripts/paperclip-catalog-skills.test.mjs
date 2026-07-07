@@ -88,7 +88,6 @@ const AGENT_ASSIGNMENTS = {
     "paperclipai/optional/browser/agent-browser",
   ],
   "code-reviewer": [
-    "paperclipai/bundled/software-development/github-pr-workflow",
     "paperclipai/bundled/docs/doc-maintenance",
   ],
   "technical-writer": [
@@ -133,7 +132,9 @@ test("agent instructions carry Micronaut-specific catalog-skill guardrails", asy
   assert.match(architect, /qa-acceptance[\s\S]*QA Engineer can verify independently/i);
 
   const codeReviewer = await read("../agents/code-reviewer/AGENTS.md");
-  assert.match(codeReviewer, /github-pr-workflow[\s\S]*implementation owner creates and follows the PR/i);
+  const { frontmatter: codeReviewerFrontmatter } = parseFrontmatter(codeReviewer);
+  assert.ok(!codeReviewerFrontmatter.skills.includes("paperclipai/bundled/software-development/github-pr-workflow"));
+  assert.doesNotMatch(codeReviewer, /Use `github-pr-workflow`/i);
   assert.match(codeReviewer, /doc-maintenance[\s\S]*minimum-churn documentation corrections/i);
 
   const productManager = await read("../agents/product-manager/AGENTS.md");
