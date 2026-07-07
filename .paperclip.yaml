@@ -9,7 +9,10 @@ agents:
       config:
         hermesCommand: /usr/local/bin/hermes-paperclip
         provider: openai-codex
-        model: gpt-5.6-terra
+        model: gpt-5.4-mini
+        extraArgs:
+          - --reasoning-effort
+          - medium
         persistSession: true
         quiet: true
         timeoutSec: 7200
@@ -30,7 +33,10 @@ agents:
       config:
         hermesCommand: /usr/local/bin/hermes-paperclip
         provider: openai-codex
-        model: gpt-5.6-terra
+        model: gpt-5.4-mini
+        extraArgs:
+          - --reasoning-effort
+          - medium
         persistSession: true
         quiet: true
         timeoutSec: 7200
@@ -52,6 +58,9 @@ agents:
         hermesCommand: /usr/local/bin/hermes-paperclip
         provider: openai-codex
         model: gpt-5.6-sol
+        extraArgs:
+          - --reasoning-effort
+          - high
         persistSession: true
         quiet: true
         timeoutSec: 7200
@@ -72,7 +81,10 @@ agents:
       config:
         hermesCommand: /usr/local/bin/hermes-paperclip
         provider: openai-codex
-        model: gpt-5.6-terra
+        model: gpt-5.4-mini
+        extraArgs:
+          - --reasoning-effort
+          - medium
         persistSession: true
         quiet: true
         timeoutSec: 7200
@@ -94,6 +106,9 @@ agents:
         hermesCommand: /usr/local/bin/hermes-paperclip
         provider: openai-codex
         model: gpt-5.6-sol
+        extraArgs:
+          - --reasoning-effort
+          - high
         persistSession: true
         quiet: true
         timeoutSec: 7200
@@ -114,7 +129,10 @@ agents:
       config:
         hermesCommand: /usr/local/bin/hermes-paperclip
         provider: openai-codex
-        model: gpt-5.6-sol
+        model: gpt-5.4
+        extraArgs:
+          - --reasoning-effort
+          - high
         persistSession: true
         quiet: true
         timeoutSec: 7200
@@ -135,7 +153,10 @@ agents:
       config:
         hermesCommand: /usr/local/bin/hermes-paperclip
         provider: openai-codex
-        model: gpt-5.6-sol
+        model: gpt-5.4
+        extraArgs:
+          - --reasoning-effort
+          - high
         persistSession: true
         quiet: true
         timeoutSec: 7200
@@ -156,7 +177,10 @@ agents:
       config:
         hermesCommand: /usr/local/bin/hermes-paperclip
         provider: openai-codex
-        model: gpt-5.6-luna
+        model: gpt-5.4-mini
+        extraArgs:
+          - --reasoning-effort
+          - medium
         persistSession: true
         quiet: true
         timeoutSec: 7200

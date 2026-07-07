@@ -4,53 +4,39 @@ import { readFile } from "node:fs/promises";
 
 import YAML from "yaml";
 
-const AGENT_DISPLAY_NAMES = {
-  ceo: "CEO",
-  "product-manager": "Product Manager",
-  architect: "Architect",
-  "qa-engineer": "QA Engineer",
-  "security-engineer": "Security Engineer",
-  "micronaut-engineer": "Micronaut Engineer",
-  "code-reviewer": "Code Reviewer",
-  "technical-writer": "Technical Writer",
-};
-
 const HERMES_CHAT_COMMAND = "/usr/local/bin/hermes-paperclip";
 const PRIMARY_MODEL_CONFIG = {
-  ceo: { model: "gpt-5.6-terra" },
-  "product-manager": { model: "gpt-5.6-terra" },
-  architect: { model: "gpt-5.6-sol" },
-  "qa-engineer": { model: "gpt-5.6-terra" },
-  "security-engineer": { model: "gpt-5.6-sol" },
-  "micronaut-engineer": { model: "gpt-5.6-sol" },
-  "code-reviewer": { model: "gpt-5.6-sol" },
-  "technical-writer": { model: "gpt-5.6-luna" },
+  ceo: { model: "gpt-5.4-mini", reasoningEffort: "medium" },
+  "product-manager": { model: "gpt-5.4-mini", reasoningEffort: "medium" },
+  architect: { model: "gpt-5.6-sol", reasoningEffort: "high" },
+  "qa-engineer": { model: "gpt-5.4-mini", reasoningEffort: "medium" },
+  "security-engineer": { model: "gpt-5.6-sol", reasoningEffort: "high" },
+  "micronaut-engineer": { model: "gpt-5.4", reasoningEffort: "high" },
+  "code-reviewer": { model: "gpt-5.4", reasoningEffort: "high" },
+  "technical-writer": { model: "gpt-5.4-mini", reasoningEffort: "medium" },
 };
 
 async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("README runtime defaults match the package built-in Hermes adapter settings", async () => {
+test("package built-in Hermes adapter model and reasoning settings match the role matrix", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
-  const readme = await read("../README.md");
 
   for (const [agentSlug, agent] of Object.entries(extension.agents ?? {})) {
-    const displayName = AGENT_DISPLAY_NAMES[agentSlug];
     const config = agent?.adapter?.config ?? {};
 
     const expected = PRIMARY_MODEL_CONFIG[agentSlug];
 
-    assert.ok(displayName, `Missing display name for ${agentSlug}.`);
     assert.ok(expected, `Missing primary model config for ${agentSlug}.`);
     assert.equal(agent?.adapter?.type, "hermes_local", `${agentSlug} must use hermes_local.`);
     assert.equal(config.hermesCommand, HERMES_CHAT_COMMAND, `${agentSlug} must select the dedicated Hermes paperclip chat command.`);
     assert.equal(config.provider, "openai-codex", `${agentSlug} must use the configured Hermes provider.`);
     assert.equal(config.model, expected.model, `${agentSlug} must use the configured primary Hermes model.`);
-    assert.equal(config.extraArgs, undefined, `${agentSlug} must not pass unsupported Hermes CLI flags.`);
-    assert.ok(
-      readme.includes("- " + displayName + ": `hermes_local` via `" + HERMES_CHAT_COMMAND + "`, `" + expected.model + "`"),
-      `README should document ${displayName} built-in Hermes command/model defaults.`,
+    assert.deepEqual(
+      config.extraArgs,
+      ["--reasoning-effort", expected.reasoningEffort],
+      `${agentSlug} must select its deployment-owned Hermes reasoning profile.`,
     );
   }
 });

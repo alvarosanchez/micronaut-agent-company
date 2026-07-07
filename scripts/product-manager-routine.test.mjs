@@ -94,8 +94,8 @@ test("Monthly Product Discovery routine is active and owned by Product Manager",
   assert.equal(adapter?.type, "hermes_local");
   assert.equal(adapter?.config?.hermesCommand, HERMES_CHAT_COMMAND);
   assert.equal(adapter?.config?.provider, "openai-codex");
-  assert.equal(adapter?.config?.model, "gpt-5.6-terra");
-  assert.equal(adapter?.config?.extraArgs, undefined);
+  assert.equal(adapter?.config?.model, "gpt-5.4-mini");
+  assert.deepEqual(adapter?.config?.extraArgs, ["--reasoning-effort", "medium"]);
   assert.equal(adapter?.config?.timeoutSec, 7200);
   assert.equal(adapter?.config?.graceSec, 20);
 
