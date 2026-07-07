@@ -262,6 +262,23 @@ test("CEO cannot perform repository or PR delivery work", async () => {
   assert.match(routine, /executable (?:company-)?package[^\n]+Micronaut Engineer/i);
 });
 
+test("CEO does not infer Architect from executable adapter or config impact alone", async () => {
+  const ceo = await read("../agents/ceo/AGENTS.md");
+  assert.match(
+    ceo,
+    /executable (?:behavior|impact)[^\n]+adapter\/config[^\n]+(?:alone|by itself)[^\n]+(?:does not|is not)[^\n]+Architect (?:trigger|planning trigger)/i,
+  );
+  assert.match(
+    ceo,
+    /Architect[^\n]+only[^\n]+(?:cross-module compatibility|materially different fixes|migration|compatibility matrix|design ambiguity)/i,
+  );
+  assert.match(
+    ceo,
+    /acceptance criteria[^\n]+observable[^\n]+(?:adapter|configuration) boundary[^\n]+regression assertions?/i,
+  );
+  assert.match(ceo, /acceptance criteria[^\n]+never use only[^\n]+intended policy/i);
+});
+
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
   const [readme, company, engineer, writer, reviewer, quality, delivery, tools] = await Promise.all([
     read("../README.md"),
