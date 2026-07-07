@@ -23,7 +23,7 @@ async function markdownFiles(root) {
   return files.sort((left, right) => left.href.localeCompare(right.href));
 }
 
-async function effectiveAgentBundle(agentSlug, expectedSkills) {
+async function effectiveAgentBundle(agentSlug, expectedSkills, allowedCatalogSkills = []) {
   const rolePath = `../agents/${agentSlug}/AGENTS.md`;
   const role = await read(rolePath);
   const frontmatter = role.match(/^---\n([\s\S]*?)\n---/);
@@ -33,7 +33,10 @@ async function effectiveAgentBundle(agentSlug, expectedSkills) {
 
   const documents = [[rolePath, role]];
   for (const skill of skills) {
-    assert.ok(!skill.startsWith("paperclipai/"), `${agentSlug} must not load unaudited catalog skill ${skill}`);
+    if (skill.startsWith("paperclipai/")) {
+      assert.ok(allowedCatalogSkills.includes(skill), `${agentSlug} must not load unaudited catalog skill ${skill}`);
+      continue;
+    }
     const skillRoot = new URL(`../skills/${skill}/`, import.meta.url);
     const files = await markdownFiles(skillRoot);
     assert.ok(files.some((file) => file.pathname.endsWith("/SKILL.md")), `missing local skill ${skill}`);
@@ -156,6 +159,7 @@ test("machine-readable route matrix preserves every required and omitted gate", 
     "security-sensitive-architectural-source": ["qa-engineer", "security-engineer", "architect", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
     "prose-docs": ["qa-engineer", "technical-writer", "qa-engineer", "code-reviewer"],
     "executable-docs": ["qa-engineer", "technical-writer", "qa-engineer", "code-reviewer"],
+    "behavior-changing-executable-docs": ["qa-engineer", "technical-writer", "qa-engineer", "security-engineer", "code-reviewer"],
     "security-sensitive-docs": ["qa-engineer", "security-engineer", "technical-writer", "qa-engineer", "security-engineer", "code-reviewer"],
     "workflow-authority-docs": ["qa-engineer", "architect", "technical-writer", "qa-engineer", "code-reviewer"],
     "security-sensitive-workflow-authority-docs": ["qa-engineer", "security-engineer", "architect", "technical-writer", "qa-engineer", "security-engineer", "code-reviewer"],
@@ -233,6 +237,8 @@ test("documentation uses reduced prose gates and conditional executable security
   const policy = await route();
   assert.match(policy, /Prose-only docs:[^\n]+QA intake -> Technical Writer -> QA verification -> Code Reviewer[^\n]+no Security stage/i);
   assert.match(policy, /Routine executable docs:[^\n]+QA intake -> Technical Writer -> QA verification -> Code Reviewer[^\n]+omit Security/i);
+  assert.match(policy, /Behavior-changing executable docs[^\n]+QA intake -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer/i);
+  assert.match(policy, /securityPrecheckRequired: false[^\n]+securityFinalReviewRequired: true/i);
   assert.match(policy, /Security-sensitive docs:[^\n]+QA intake -> Security Engineer pre-triage -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer/i);
 });
 
@@ -262,21 +268,53 @@ test("CEO cannot perform repository or PR delivery work", async () => {
   assert.match(routine, /executable (?:company-)?package[^\n]+Micronaut Engineer/i);
 });
 
-test("CEO does not infer Architect from executable adapter or config impact alone", async () => {
-  const ceo = await read("../agents/ceo/AGENTS.md");
-  assert.match(
-    ceo,
-    /executable (?:behavior|impact)[^\n]+adapter\/config[^\n]+(?:alone|by itself)[^\n]+(?:does not|is not)[^\n]+Architect (?:trigger|planning trigger)/i,
-  );
-  assert.match(
-    ceo,
-    /Architect[^\n]+only[^\n]+(?:cross-module compatibility|materially different fixes|migration|compatibility matrix|design ambiguity)/i,
-  );
-  assert.match(
-    ceo,
-    /acceptance criteria[^\n]+observable[^\n]+(?:adapter|configuration) boundary[^\n]+regression assertions?/i,
-  );
+test("effective CEO self-improvement policy uses bounded routing fixtures", async () => {
+  const [ceo, routine, evolution] = await Promise.all([
+    read("../agents/ceo/AGENTS.md"),
+    read("../tasks/monthly-ceo-self-improvement/TASK.md"),
+    read("../skills/company-package-evolution/SKILL.md"),
+  ]);
+  const effectivePolicy = [ceo, routine, evolution].join("\n");
+  const fixtures = markedYaml(evolution, "ceo-self-improvement-routing");
+
+  assert.deepEqual(fixtures["textual-finding"], {
+    deliveryOwner: "technical-writer",
+    planningRequired: false,
+    adapterBoundaryRequired: false,
+    acceptanceEvidence: "exact stale wording and expected corrected wording",
+  });
+  assert.deepEqual(fixtures["executable-adapter-config-finding"], {
+    deliveryOwner: "micronaut-engineer",
+    planningRequired: false,
+    adapterBoundaryRequired: true,
+    acceptanceEvidence: "observable adapter or configuration behavior plus regression assertions",
+  });
+  assert.deepEqual(fixtures["architectural-adapter-config-finding"].architectureTriggers, [
+    "cross-module compatibility", "materially different fixes", "migration", "compatibility matrix", "design ambiguity",
+  ]);
+  assert.match(effectivePolicy, /executable (?:behavior|impact)[^\n]+adapter\/config[^\n]+(?:alone|by itself)[^\n]+(?:does not|is not)[^\n]+Architect/i);
+  assert.match(effectivePolicy, /observable before\/after behavior[^\n]+(?:regression|verification) evidence/i);
+  assert.match(effectivePolicy, /textual child[^\n]+exact stale\/current wording[^\n]+expected corrected wording[^\n]+without inventing an adapter boundary/i);
+  assert.match(effectivePolicy, /only executable adapter\/config findings[^\n]+(?:name|must name)[^\n]+boundary/i);
   assert.match(ceo, /acceptance criteria[^\n]+never use only[^\n]+intended policy/i);
+});
+
+test("CEO effective bundle is governance-only", async () => {
+  const catalogSkills = [
+    "paperclipai/bundled/paperclip-operations/issue-triage",
+    "paperclipai/bundled/paperclip-operations/task-planning",
+  ];
+  const expectedSkills = [
+    "company-package-evolution",
+    "ceo-issue-history",
+    "find-skills",
+    ...catalogSkills,
+  ];
+  const bundle = await effectiveAgentBundle("ceo", expectedSkills, catalogSkills);
+  assert.deepEqual(unsafeDeliveryImperatives(bundle), [], "CEO effective local bundle must not authorize repository or PR delivery");
+  for (const forbidden of ["gh-cli", "micronaut-github-operations", "micronaut-repo-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
+    assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
+  }
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -303,6 +341,13 @@ test("implementation owners create and follow their PRs while Reviewer remains a
     /paperclip-github-plugin:(?:create_pull_request|update_pull_request|upload_pull_request_asset|add_pull_request_to_project|request_pull_request_reviewers)/,
     "Code Reviewer instructions must expose no GitHub write tools.",
   );
+});
+
+test("healthy PR wait remains unassigned in review", async () => {
+  const readme = await read("../README.md");
+  assert.match(readme, /IN_REVIEW --> IN_REVIEW: Final stage approves; healthy PR waits unassigned/);
+  assert.doesNotMatch(readme, /IN_REVIEW --> TODO: Final stage approves PR-based work/);
+  assert.match(readme, /restore `IN_REVIEW`, clear the internal assignee/i);
 });
 
 test("repository-wide policy never assigns PR mutation to Code Reviewer", async () => {
@@ -341,7 +386,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "211fe7585a24e1be46e360e0aff2db62759e0b59e96308a765b4a84b3137315b";
+  const reviewerDigest = "dff3369947c61260257d653820433e510d1944b81324dca69d081d09f41b1d82";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -355,7 +400,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective bundle must not grant unconditional repository delivery mutations",
   );
-  assert.equal(bundleDigest(securityBundle), "b1a224e8660f464e934bfb5413acb2b375f16a2180acc86694056d4ddf525baa");
+  assert.equal(bundleDigest(securityBundle), "38ad28624eb253141096f5ec0e9b51f6f9be945bbae7effc3330ab077e515b52");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {

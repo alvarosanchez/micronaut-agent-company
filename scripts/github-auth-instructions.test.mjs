@@ -8,7 +8,6 @@ const GH_CLI_SKILL = "gh-cli";
 const SHARED_GITHUB_SKILL = "micronaut-github-operations";
 const GITHUB_AGENT_PATHS = [
   "agents/architect/AGENTS.md",
-  "agents/ceo/AGENTS.md",
   "agents/code-reviewer/AGENTS.md",
   "agents/micronaut-engineer/AGENTS.md",
   "agents/product-manager/AGENTS.md",

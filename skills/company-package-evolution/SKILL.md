@@ -7,7 +7,27 @@ description: Decide when CEO self-improvement should stay in additive runtime gu
 
 Use this skill whenever the company learns something about its own operating system instead of a managed Micronaut repository.
 
-CEO classifies, governs, prioritizes, and creates/assigns scoped QA intake children with evidence and acceptance criteria, then stops. Technical Writer owns prose docs, guides, repository `AGENTS.md`, company role instructions, and textual control-plane delivery. Executable package scripts/tests/config behavior and plugin/adapter code route to Engineer. Architect plans workflow/authority semantics. Security pre-triages security-sensitive work and performs final review. The implementation owner owns branch, commits, PR creation/update, CI repair, review replies, and PR follow-through; CEO owns none of those actions. For out-of-pipeline delivery, before opening the PR create one Paperclip child issue per affected project, place each child issue in the actual corresponding Paperclip project, assign it to the actual implementation owner, and ensure that child links any resulting PR. When a Paperclip child issue owns a PR, leave it `in_review` and do not close or mark it `DONE` until merge.
+CEO classifies, governs, prioritizes, and creates/assigns scoped QA intake children with evidence and acceptance criteria, then stops. Technical Writer owns prose docs, guides, repository `AGENTS.md`, company role instructions, and textual control-plane delivery. Executable package scripts/tests/config behavior and plugin/adapter code route to Engineer. Executability alone does not require Architect: planning requires a named cross-module compatibility, materially different fixes, migration, compatibility-matrix, or design-ambiguity trigger. Every child states observable before/after behavior and regression or verification evidence for its artifact; only executable adapter/config findings must name that boundary. Security pre-triages security-sensitive work and performs final review. The implementation owner owns branch, commits, PR creation/update, CI repair, review replies, and PR follow-through; CEO owns none of those actions. For out-of-pipeline delivery, before opening the PR create one Paperclip child issue per affected project, place each child issue in the actual corresponding Paperclip project, assign it to the actual implementation owner, and ensure that child links any resulting PR. When a Paperclip child issue owns a PR, leave it `in_review` and do not close or mark it `DONE` until merge.
+
+<!-- ceo-self-improvement-routing -->
+```yaml
+textual-finding:
+  deliveryOwner: technical-writer
+  planningRequired: false
+  adapterBoundaryRequired: false
+  acceptanceEvidence: exact stale wording and expected corrected wording
+executable-adapter-config-finding:
+  deliveryOwner: micronaut-engineer
+  planningRequired: false
+  adapterBoundaryRequired: true
+  acceptanceEvidence: observable adapter or configuration behavior plus regression assertions
+architectural-adapter-config-finding:
+  deliveryOwner: micronaut-engineer
+  planningRequired: true
+  adapterBoundaryRequired: true
+  architectureTriggers: [cross-module compatibility, materially different fixes, migration, compatibility matrix, design ambiguity]
+  acceptanceEvidence: observable adapter or configuration behavior plus regression assertions
+```
 
 ## Choose The Right Surface
 
@@ -65,7 +85,7 @@ For all package-core, managed repository, upstream dependency, or other PRs crea
 
 ## PR Follow-Through Contract
 
-The implementation owner owns follow-through: Engineer for code/build/dependency/plugin work and Writer for docs/AGENTS/instructions. No repository change returns to that owner only for a required response, then healthy maintainer wait. Routine source/test/dependency/build changes rerun Engineer -> QA -> Reviewer, and routine prose or executable docs rerun Writer -> QA -> Reviewer. Defined Security triggers add pre-triage before the owner and final Security review after QA. Design-changing requests add Architect before the owner and gates. A clean rebase with green CI returns to maintainer wait; conflicts or semantic changes rerun applicable gates. Escalate unresolved behavior, compatibility, or security. GitHub Sync should persist a company-validated `followThroughAssigneeAgentId`; this package documents but does not implement that plugin contract.
+The implementation owner owns follow-through: Engineer for code/build/dependency/plugin work and Writer for docs/AGENTS/instructions. No repository change returns to that owner only for a required response, then healthy maintainer wait. Routine source/test/dependency/build changes rerun Engineer -> QA -> Reviewer, and routine prose or executable docs rerun Writer -> QA -> Reviewer. Behavior-changing executable instructions may add final Security review after QA without pre-triage when no defined Security trigger is established. Defined Security triggers add pre-triage before the owner and final Security review after QA. Design-changing requests add Architect before the owner and gates. A clean rebase with green CI returns to maintainer wait; conflicts or semantic changes rerun applicable gates. Escalate unresolved behavior, compatibility, or security. GitHub Sync should persist a company-validated `followThroughAssigneeAgentId`; this package documents but does not implement that plugin contract.
 
 ## When The Repo Or PR Path Is Unavailable
 

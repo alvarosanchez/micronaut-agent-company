@@ -66,7 +66,6 @@ const AGENT_ASSIGNMENTS = {
   ceo: [
     "paperclipai/bundled/paperclip-operations/issue-triage",
     "paperclipai/bundled/paperclip-operations/task-planning",
-    "paperclipai/bundled/software-development/github-pr-workflow",
   ],
   architect: [
     "paperclipai/bundled/paperclip-operations/task-planning",

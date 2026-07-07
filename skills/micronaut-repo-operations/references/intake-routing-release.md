@@ -4,7 +4,7 @@ Detailed reference extracted from `micronaut-repo-operations` so the primary ski
 
 ## Authoritative QA Intake Artifact
 
-The GitHub issue type is only the surface label. QA is the authoritative risk classifier and writes a stable `qa-intake` issue document before selecting a route. Keep these exact headings and fields so policies and later agents do not infer risk from the label alone. `planningRequired`, `securityPrecheckRequired`, and `securityFinalReviewRequired` are composable booleans. `planningRequired` is the sole authority for whether Architect appears: `true` requires Architect in `stageSequence`, while `false` forbids Architect. Security-sensitive work sets both Security booleans to `true`. `stageSequence` is the authoritative ordered route and must agree with all three booleans and the matrix below.
+The GitHub issue type is only the surface label. QA is the authoritative risk classifier and writes a stable `qa-intake` issue document before selecting a route. Keep these exact headings and fields so policies and later agents do not infer risk from the label alone. `planningRequired`, `securityPrecheckRequired`, and `securityFinalReviewRequired` are composable booleans. `planningRequired` is the sole authority for whether Architect appears: `true` requires Architect in `stageSequence`, while `false` forbids Architect. Defined Security triggers set both Security booleans to `true`. Behavior-changing executable instructions may set only `securityFinalReviewRequired: true` when final review of the completed examples is warranted but the evidence establishes no pre-triage trigger. `stageSequence` is the authoritative ordered route and must agree with all three booleans and the matrix below.
 
 <!-- qa-intake-schema -->
 ```yaml
@@ -38,6 +38,7 @@ security-sensitive-source: [qa-engineer, security-engineer, micronaut-engineer, 
 security-sensitive-architectural-source: [qa-engineer, security-engineer, architect, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
 prose-docs: [qa-engineer, technical-writer, qa-engineer, code-reviewer]
 executable-docs: [qa-engineer, technical-writer, qa-engineer, code-reviewer]
+behavior-changing-executable-docs: [qa-engineer, technical-writer, qa-engineer, security-engineer, code-reviewer]
 security-sensitive-docs: [qa-engineer, security-engineer, technical-writer, qa-engineer, security-engineer, code-reviewer]
 workflow-authority-docs: [qa-engineer, architect, technical-writer, qa-engineer, code-reviewer]
 security-sensitive-workflow-authority-docs: [qa-engineer, security-engineer, architect, technical-writer, qa-engineer, security-engineer, code-reviewer]
@@ -53,6 +54,7 @@ Security-sensitive means the change affects authentication, authorization, secre
 - Security-sensitive bug or dependency upgrade: QA intake -> Security Engineer pre-triage -> Architect only when architecture or compatibility planning is needed -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. Security pre-triage never replaces final security review.
 - Prose-only docs: QA intake -> Technical Writer -> QA verification -> Code Reviewer. This reduced route has no Security stage.
 - Routine executable docs: QA intake -> Technical Writer -> QA verification -> Code Reviewer. Executability selects `docs-executable` verification but does not itself trigger Security, so routine non-security examples omit Security.
+- Behavior-changing executable docs without a defined Security trigger: QA intake -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer. Set `securityPrecheckRequired: false` and `securityFinalReviewRequired: true`; do not invent a precheck when the authoritative intake evidence establishes only the need to review completed command or tool behavior.
 - Security-sensitive docs: QA intake -> Security Engineer pre-triage -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer. Add Architect after pre-triage only when `planningRequired` is true.
 - Mechanical or stale repository `AGENTS.md`: CEO finding -> QA intake -> Technical Writer -> QA verification -> Code Reviewer. Workflow or authority semantics set `planningRequired: true` and add Architect before Writer; security-triggering authority or tool changes add both Security stages.
 - Features and breaking changes: QA intake -> Architect -> implementation owner -> QA verification -> Code Reviewer. Add both Security stages only when a Security trigger applies.
@@ -88,7 +90,7 @@ Issue type identifies the surface; the stable `qa-intake` classification selects
 - `type: bug`: QA reproduces first. Routine localized bugs skip Architect; architecture-sensitive bugs use the Architect triggers in **Risk-Classified Stage Layouts**. Unreproducible bugs may use the evidence-backed direct closure path.
 - `type: dependency-upgrade`: routine compatible upgrades skip Architect; architectural, migration-bearing, or security-sensitive upgrades use the corresponding route and triggers above.
 - `type: improvement`, `type: enhancement`, and `type: breaking`: QA routes through Architect before the selected implementation owner.
-- `type: docs`: QA selects `docs-prose` or `docs-executable`; both routine non-security routes use Writer -> QA -> Reviewer, while security-sensitive docs add Security pre-triage before Writer and final Security review before Reviewer.
+- `type: docs`: QA selects `docs-prose` or `docs-executable`. Routine non-security routes use Writer -> QA -> Reviewer. Behavior-changing executable instructions may use Writer -> QA -> Security final -> Reviewer without pre-triage when no defined Security trigger is established. Security-sensitive docs add Security pre-triage before Writer and final Security review before Reviewer.
 - `type: question`: QA answers directly on GitHub with `type: question` and `closed: question` when confident, or posts a request-for-comments message with `status: awaiting feedback`; issues that remain awaiting feedback for more than 30 days may be closed with `closed: question` and GitHub's native `Close as not planned` reason instead of `Close as completed`.
 
 ## Closure Dispositions

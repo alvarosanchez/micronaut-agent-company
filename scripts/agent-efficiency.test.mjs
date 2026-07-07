@@ -41,7 +41,12 @@ test("agent instructions delegate shared GitHub policy instead of repeating it",
   for (const slug of AGENTS) {
     const markdown = await read(`agents/${slug}/AGENTS.md`);
     totalBytes += Buffer.byteLength(markdown);
-    assert.match(markdown, /Apply the shared `micronaut-github-operations` skill/);
+    if (slug === "ceo") {
+      assert.doesNotMatch(markdown, /Apply the shared `micronaut-github-operations` skill/);
+      assert.match(markdown, /read-only GitHub Sync governance tools/i);
+    } else {
+      assert.match(markdown, /Apply the shared `micronaut-github-operations` skill/);
+    }
     for (const duplicate of forbiddenSharedCopies) {
       assert.doesNotMatch(markdown, new RegExp(duplicate, "i"), `${slug} must not copy shared GitHub policy inline.`);
     }

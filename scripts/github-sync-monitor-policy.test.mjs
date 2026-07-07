@@ -13,7 +13,6 @@ const GITHUB_SYNC_PR_STATE_PATTERN =
 
 const AGENT_PATHS = [
   "../agents/architect/AGENTS.md",
-  "../agents/ceo/AGENTS.md",
   "../agents/code-reviewer/AGENTS.md",
   "../agents/micronaut-engineer/AGENTS.md",
   "../agents/product-manager/AGENTS.md",
@@ -42,4 +41,9 @@ test("GitHub-synced PR monitor policy is centralized and delegated by every agen
       `${relativePath} must delegate the monitor boundary to the shared skill.`,
     );
   }
+
+  const ceo = await read("../agents/ceo/AGENTS.md");
+  assert.match(ceo, MONITOR_BOUNDARY_PATTERN, "CEO must retain the read-only monitor boundary without loading the delivery skill.");
+  assert.match(ceo, GITHUB_SYNC_PR_STATE_PATTERN, "CEO must inspect current PR state through GitHub Sync read tools.");
+  assert.doesNotMatch(ceo, /Apply the shared `micronaut-github-operations` skill/);
 });

@@ -125,7 +125,7 @@ The company uses a deliberate maintenance pipeline instead of a generic "everyon
 4. **Architect** plans only work whose QA classification sets `planningRequired: true`; routine bugs and compatible dependency upgrades skip Architect.
 5. **Micronaut Engineer** or **Technical Writer** implements, validates, uploads any required PR-visible assets, finalizes the PR body, and creates or updates the linked PR before QA verification. The owner is selected by artifact type, not by issue label alone.
 6. **QA Engineer** verifies the exact published head SHA against the reproducer, plan, and selected verification profile.
-7. **Security Engineer** performs pre-triage and final review only when both Security booleans in `qa-intake` are true. Defined trust-boundary and supply-chain triggers make work security-sensitive; routine non-security bugs, compatible upgrades, executable docs, and prose docs omit Security.
+7. **Security Engineer** performs only the gates enabled by the composable Security booleans in `qa-intake`. Defined trust-boundary and supply-chain triggers enable pre-triage and final review. Behavior-changing executable instructions may enable final review only when no pre-triage trigger is established; routine non-security bugs, compatible upgrades, executable docs, and prose docs omit Security.
 8. **Code Reviewer** is a pure final gate: it verifies an acceptable already-open PR and all applicable upstream approvals without creating, updating, or publishing the PR.
 9. The **implementation owner** owns PR follow-through: Micronaut Engineer for source/tests/dependencies/build/package scripts/adapters/plugins and Technical Writer for prose docs/guides/`AGENTS.md`/instructions. That owner keeps CI green, addresses quality findings, replies to every review thread with a decision explanation before resolving it, and maintains agent-owned metadata while preserving human-maintainer changes.
 10. The board or other Micronaut maintainers merge the PR or cut the release. The sync plugin eventually marks the Paperclip item `DONE`.
@@ -141,7 +141,7 @@ Recommended live routing is risk-classified by QA, not selected from the `type:`
 - Routine non-security bug and compatible dependency upgrade: QA -> Engineer -> QA -> Reviewer; no Architect or Security.
 - Architecture-sensitive non-security bug or migration-bearing dependency upgrade: QA -> Architect -> Engineer -> QA -> Reviewer.
 - Security-sensitive work: QA -> Security pre-triage -> Architect only if `planningRequired` -> implementation owner -> QA -> Security final -> Reviewer.
-- Routine prose or executable docs: QA -> Writer -> QA -> Reviewer. Security-sensitive docs use both Security stages.
+- Routine prose or executable docs: QA -> Writer -> QA -> Reviewer. Behavior-changing executable instructions may use QA -> Writer -> QA -> Security final -> Reviewer without pre-triage when no defined Security trigger is established. Security-sensitive docs use both Security stages.
 - Mechanical/stale `AGENTS.md`: CEO finding -> QA -> Writer -> QA -> Reviewer. Workflow/authority semantics set `planningRequired`; security-triggering authority or tool changes use both Security stages.
 - Features and breaking changes: QA -> Architect -> implementation owner -> QA -> Reviewer, with both Security stages only when a Security trigger applies.
 
@@ -180,7 +180,7 @@ stateDiagram-v2
     BLOCKED --> TODO: Unblocked
     IN_REVIEW --> IN_PROGRESS: Changes requested or follow-through resumes
     IN_REVIEW --> BLOCKED: Waiting on external clarification or dependency
-    IN_REVIEW --> TODO: Final stage approves PR-based work; follow-through owner waits
+    IN_REVIEW --> IN_REVIEW: Final stage approves; healthy PR waits unassigned
     IN_REVIEW --> DONE: GitHub close sync for non-PR closure
     IN_PROGRESS --> DONE: GitHub merge or close sync
     TODO --> CANCELLED: duplicate|stale|out-of-scope
@@ -224,7 +224,7 @@ When the synced issue already has a linked contributor PR, that PR should never 
 | `type: breaking` | Breaking change surface | Architect -> implementation owner -> QA -> Reviewer; add both Security stages only for Security triggers |
 | `type: enhancement` | New feature surface | Architect -> implementation owner -> QA -> Reviewer; add both Security stages only for Security triggers |
 | `type: improvement` | Non-breaking product change surface | QA classifies routine vs architectural; features still include Architect |
-| `type: docs` | Documentation surface | Writer -> QA -> Reviewer for routine prose or executable docs; Security-sensitive docs use both Security stages |
+| `type: docs` | Documentation surface | Writer -> QA -> Reviewer for routine prose or executable docs; behavior-changing executable instructions may add final Security only; Security-sensitive docs use both Security stages |
 | `type: dependency-upgrade` | Dependency version surface, excluding Dependabot | Routine compatible upgrades skip Architect; migration/architectural upgrades include Architect; security upgrades begin with Security precheck |
 | `type: bug` | Bug surface | Routine localized bugs skip Architect; architecture-sensitive bugs include Architect; security bugs begin with Security pre-triage |
 | `type: question` | Question QA can answer directly or send back for clarification | QA Engineer |
