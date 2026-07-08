@@ -368,6 +368,36 @@ test("effective CEO self-improvement policy uses bounded routing fixtures", asyn
 });
 
 test("referenced skill sources are inert immutable provenance, not runtime-loaded bodies", async () => {
+  const approvedSources = {
+    "agent-md-refactor": {
+      kind: "github-file", repo: "micronaut-projects/micronaut-project-template", path: ".agents/skills/agent-md-refactor/SKILL.md",
+      commit: "3eaa6fd9ff1e95634053382a1433dd15967d851e", sha256: "03d33d8097cc96f3cc4cb7f08932db581ada3df78d7239f62e08020103a3b2ba", usage: "referenced",
+    },
+    coding: {
+      kind: "github-file", repo: "micronaut-projects/micronaut-project-template", path: ".agents/skills/coding/SKILL.md",
+      commit: "3eaa6fd9ff1e95634053382a1433dd15967d851e", sha256: "1e5f42196b8fd354670ce329e2a653541bf25d542d49eb66578af14cafa31bfb", usage: "referenced",
+    },
+    docs: {
+      kind: "github-file", repo: "micronaut-projects/micronaut-project-template", path: ".agents/skills/docs/SKILL.md",
+      commit: "3eaa6fd9ff1e95634053382a1433dd15967d851e", sha256: "cd249e0a7918a8286508d4b61970c3f26c87b581aa70adbc8bb62c96a528c2dd", usage: "referenced",
+    },
+    "gh-cli": {
+      kind: "github-file", repo: "github/awesome-copilot", path: "skills/gh-cli/SKILL.md",
+      commit: "e9a7805e2b1dbda5ad4d0cc9be1fc3ef6273e115", sha256: "18e53a9f4c154406a072ed4cfbc524d40f9a4734ef25102086c1ef5e24113a76", usage: "referenced",
+    },
+    gradle: {
+      kind: "github-file", repo: "micronaut-projects/micronaut-project-template", path: ".agents/skills/gradle/SKILL.md",
+      commit: "3eaa6fd9ff1e95634053382a1433dd15967d851e", sha256: "f88c6758f26da0c9a034d510845fdb40f43d61abda721253e7bbbb7cd91262ec", usage: "referenced",
+    },
+    guides: {
+      kind: "github-file", repo: "micronaut-projects/micronaut-project-template", path: ".agents/skills/guides/SKILL.md",
+      commit: "c604152d418ca3aa32b544922aaf56f1b8ba342d", sha256: "e6d6f600232b7b215290cb40c515d70079811f7b84cdaec9ebb62bba0a7e827e", usage: "referenced",
+    },
+    "skill-creator": {
+      kind: "github-file", repo: "micronaut-projects/micronaut-project-template", path: ".agents/skills/skill-creator/SKILL.md",
+      commit: "3eaa6fd9ff1e95634053382a1433dd15967d851e", sha256: "a165278bf1539f78d6adfa4f2c185d73a6a8259edd111f490d9e860e7dbd012c", usage: "referenced",
+    },
+  };
   const { stdout } = await execFileAsync("git", ["ls-files", "skills/*/SKILL.md"], {
     cwd: new URL("../", import.meta.url),
   });
@@ -380,11 +410,11 @@ test("referenced skill sources are inert immutable provenance, not runtime-loade
     for (const source of frontmatter.metadata?.sources ?? []) {
       if (source.usage !== "referenced") continue;
       referenced.push(frontmatter.name);
-      assert.equal(source.kind, "github-file", `${path} referenced source must identify an immutable GitHub file`);
-      assert.match(source.repo, /^[^/]+\/[^/]+$/, `${path} referenced source must identify its repository`);
-      assert.match(source.path, /(?:^|\/)SKILL\.md$/, `${path} referenced source must identify a skill file`);
-      assert.match(source.commit, /^[0-9a-f]{40}$/, `${path} referenced source must pin a full commit`);
-      assert.match(source.sha256, /^[0-9a-f]{64}$/, `${path} referenced source must pin the exact body digest`);
+      assert.deepEqual(
+        Object.fromEntries(["kind", "repo", "path", "commit", "sha256", "usage"].map((key) => [key, source[key]])),
+        approvedSources[frontmatter.name],
+        `${path} referenced source must match the approved immutable provenance tuple`,
+      );
       assert.equal(match[2].trim(), "", `${path} must remain an explicit metadata-only local runtime stub`);
     }
   }
