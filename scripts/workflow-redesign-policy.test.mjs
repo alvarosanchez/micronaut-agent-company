@@ -23,7 +23,7 @@ async function markdownFiles(root) {
   return files.sort((left, right) => left.href.localeCompare(right.href));
 }
 
-async function effectiveAgentBundle(agentSlug, expectedSkills) {
+async function importedAgentBundle(agentSlug, expectedSkills) {
   const rolePath = `../agents/${agentSlug}/AGENTS.md`;
   const role = await read(rolePath);
   const frontmatter = role.match(/^---\n([\s\S]*?)\n---/);
@@ -49,8 +49,8 @@ async function effectiveAgentBundle(agentSlug, expectedSkills) {
   return documents.map(([path, body]) => `\n<!-- ${path} -->\n${body}`).join("\n");
 }
 
-async function effectiveInvocationBundle(agentSlug, expectedSkills, taskSlug) {
-  const roleAndSkills = await effectiveAgentBundle(agentSlug, expectedSkills);
+async function importedInvocationBundle(agentSlug, expectedSkills, taskSlug) {
+  const roleAndSkills = await importedAgentBundle(agentSlug, expectedSkills);
   const taskPath = `../tasks/${taskSlug}/TASK.md`;
   return `${roleAndSkills}\n<!-- ${taskPath} -->\n${await read(taskPath)}`;
 }
@@ -80,21 +80,56 @@ function unsafeMaintainerWaitMutations(bundle) {
 }
 
 function unsafeRootMutationAuthorities(markdown) {
-  const patterns = [
-    /\bCEO(?: routine)?\b[^\n.!?]{0,120}\b(?:may|should|will|can)\b[^\n.!?]{0,40}\b(?:open|update|create|send|promote|publish|implement|rediscover|follow)\w*\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|review threads?|company skills?|skills?)\b/i,
-    /\bCEO(?: routine)?\b[^\n.!?]{0,40}\b(?:opens?|updates?|creates?|sends?|promotes?|publishes?|implements?|installs?|adds?|assigns?|authors?|rediscovers?|follows?)\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|review threads?|company skills?|skills?)\b/i,
-    /\b(?:Security Engineer|Code Reviewer)\b(?:(?!\b(?:Technical Writer|Micronaut Engineer|Writer|Engineer|(?:artifact-appropriate )?implementation owner|followThroughOwner)\b)[^\n.!?]){0,40}\b(?:opens?|updates?|creates?|publishes?|follows?|links?)\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|review threads?|follow-through)\b/i,
-    /\b(?:Security Engineer|Code Reviewer)\b[^\n.!?]{0,50}\bowns?\b[^\n.!?]{0,80}\b(?:PR follow-through|pull-request follow-through|review-thread (?:resolution|mutation)|thread (?:resolution|mutation))\b/i,
-    /\b(?:set|sets|assign|assigns|assigned)\b[^\n.!?]{0,50}\bassignee\b[^\n.!?]{0,50}\broutine owner\b/i,
-    /\b(?:assign(?:ed)?(?:\s+to)?|assignee)\b[^\n.!?]{0,30}\bArchitect\b[^\n.!?]{0,140}\b(?:PRs?|pull requests?|implement(?:ation)?|publish(?:es|ing)?|repository mutation|authors?)\b/i,
-    /\b(?:rediscover|follow)\w*\b[^\n.!?]{0,80}\bPRs?\b[^\n.!?]{0,80}\bCEO\b/i,
-    /\b(?:promot|open|update|follow)\w*\b[^\n.!?]{0,80}\bby (?:the )?CEO\b[^\n.!?]{0,80}\b(?:PRs?|pull requests?)\b/i,
-    /\bCEO-opened PRs?\b/i,
-  ];
-  const prohibition = /\b(?:must not|does not|do not|never|without|rather than|not be assigned)\b/i;
-  return markdown
-    .split(/\n+|(?<=[.!?])\s+/)
-    .filter((sentence) => !prohibition.test(sentence) && patterns.some((pattern) => pattern.test(sentence)));
+  const anyActor = /\b(?:CEO(?: routine)?|Architect|Security Engineer|Code Reviewer|QA Engineer|QA|Technical Writer|Micronaut Engineer|Writer|Engineer|(?:artifact-appropriate )?implementation owners?|delivery owners?|followThroughOwner)\b/gi;
+  const restrictedActor = /^(?:CEO(?: routine)?|Architect|Security Engineer|Code Reviewer)$/i;
+  const mutation = /(?<!-)\b(?:opens?|opening|updates?|updating|creates?|creating|sends?|sending|promotes?|promoting|publishes?|publishing|implements?|implementing|installs?|installing|adds?|adding|assigns?|assigning|authors?|authoring|rediscovers?|rediscovering|follows?|following|links?|linking|edits?|editing|modifies|modifying|writes?|writing|commits?|committing|pushes|pushing|merges?|merging|releases?|releasing|replies|replying|resolves?|resolving|re-requests?|re-requesting)\b(?!-)/gi;
+  const mutationTarget = /\b(?:PRs?|pull requests?|repository branches?|repositories|review threads?|company[- ]skills?|skills?|reusable package defaults?|PR follow-through|pull-request follow-through|review-thread (?:resolution|mutation)|thread (?:resolution|mutation))\b/i;
+  const prohibition = /\b(?:must not|does not|do not|never|cannot|can't|may not|should not|without|rather than|not be assigned)\b/i;
+  const passiveMutation = /\b(?:PRs?|pull requests?|repository branches?|repositories|review threads?|company[- ]skills?|skills?|reusable package defaults?)\b[^\n.!?]{0,100}\b(?:opened|updated|created|sent|promoted|published|implemented|installed|added|assigned|authored|followed|linked|edited|modified|written|committed|pushed|merged|released|replied to|resolved)\b[^\n.!?]{0,40}\bby (?:the )?(CEO(?: routine)?|Architect|Security Engineer|Code Reviewer)\b/i;
+  const ownerMutation = /\b(CEO(?: routine)?|Architect|Security Engineer|Code Reviewer)\b[^\n.!?]{0,60}\bowns?\b[^\n.!?]{0,80}\b(?:PR follow-through|pull-request follow-through|review-thread (?:resolution|mutation)|thread (?:resolution|mutation))\b/i;
+  const routineOwnerMutation = /\b(?:set|sets|assign|assigns|assigned)\b[^\n.!?]{0,50}\bassignee\b[^\n.!?]{0,50}\broutine owner\b/i;
+  const restrictedAssigneeMutation = /\b(?:set|sets|assign|assigns|assigned)\b[^\n.!?]{0,30}\bassignee\b(?:\s+to)?\s+(?:the\s+)?(?:CEO(?: routine)?|Architect|Security Engineer|Code Reviewer)\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|repositories|review threads?|company[- ]skills?|skills?|reusable package defaults?)\b/i;
+  const restrictedDelegateMutation = /\b(?:assign|assigns|delegate|delegates|route|routes)\b[^\n.!?]{0,30}\b(?:CEO(?: routine)?|Architect|Security Engineer|Code Reviewer)\b[^\n.!?]{0,80}\b(?:open|update|create|send|promote|publish|implement|install|add|author|follow|link|edit|modify|write|commit|push|merge|release|reply|resolve)\w*\b[^\n.!?]{0,100}\b(?:PRs?|pull requests?|repository branches?|repositories|review threads?|company[- ]skills?|skills?|reusable package defaults?)\b/i;
+  const legacyMutation = /\bCEO-opened PRs?\b/i;
+  const results = [];
+
+  for (const sentence of markdown.split(/\n+|(?<=[.!?])\s+/).filter(Boolean)) {
+    if (!prohibition.test(sentence) && restrictedDelegateMutation.test(sentence)) {
+      results.push(sentence.trim());
+      continue;
+    }
+    const clauses = sentence.split(/\s*;\s*|\s*,?\s*\b(?:but|while|whereas)\b\s*|\s*,?\s+\band\b\s+(?=(?:(?:the )?(?:CEO(?: routine)?|Architect|Security Engineer|Code Reviewer|Technical Writer|Micronaut Engineer|Writer|Engineer|(?:artifact-appropriate )?implementation owner|delivery owner|followThroughOwner)\b|(?:must|should|may|can|will|does|do|never|not|open|update|create|send|promote|publish|implement|install|add|assign|author|rediscover|follow|link|edit|modify|write|commit|push|merge|release|reply|resolve|re-request)\w*\b))/i);
+    let inheritedActor = null;
+    for (const clause of clauses) {
+      const priorActor = inheritedActor;
+      const actorMatches = [...clause.matchAll(anyActor)].filter((actor) => {
+        if (!restrictedActor.test(actor[0])) return true;
+        const before = clause.slice(Math.max(0, actor.index - 16), actor.index);
+        const after = clause.slice(actor.index + actor[0].length, actor.index + actor[0].length + 24);
+        return !/\b(?:any|optional|final)\s+$/i.test(before)
+          && !/^\s+(?:gates?|stages?|sign-off|review)\b/i.test(after)
+          && !/^\s+or\s+(?:Security Engineer|Security)\s+gates?\b/i.test(after);
+      });
+      if (actorMatches.length > 0) inheritedActor = actorMatches.at(-1)[0];
+      if (prohibition.test(clause)) continue;
+      const directSpecial = passiveMutation.test(clause) || ownerMutation.test(clause) || routineOwnerMutation.test(clause) || restrictedAssigneeMutation.test(clause) || legacyMutation.test(clause);
+      if (directSpecial) {
+        results.push(clause.trim());
+        continue;
+      }
+      for (const action of clause.matchAll(mutation)) {
+        const precedingActors = actorMatches.filter((actor) => actor.index < action.index);
+        const actor = precedingActors.at(-1)?.[0] ?? priorActor;
+        if (!actor || !restrictedActor.test(actor)) continue;
+        const actorIndex = precedingActors.at(-1)?.index ?? 0;
+        const authority = clause.slice(actorIndex);
+        if (!mutationTarget.test(authority.slice(action.index - actorIndex))) continue;
+        results.push(clause.trim());
+        break;
+      }
+    }
+  }
+  return [...new Set(results)];
 }
 
 const route = async () => read("../skills/micronaut-repo-operations/references/intake-routing-release.md");
@@ -332,7 +367,33 @@ test("effective CEO self-improvement policy uses bounded routing fixtures", asyn
   assert.match(ceo, /acceptance criteria[^\n]+never use only[^\n]+intended policy/i);
 });
 
-test("every active routine has a complete pinned effective invocation bundle", async () => {
+test("referenced skill sources are inert immutable provenance, not runtime-loaded bodies", async () => {
+  const { stdout } = await execFileAsync("git", ["ls-files", "skills/*/SKILL.md"], {
+    cwd: new URL("../", import.meta.url),
+  });
+  const referenced = [];
+  for (const path of stdout.trim().split("\n").filter(Boolean)) {
+    const markdown = await read(`../${path}`);
+    const match = markdown.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+    assert.ok(match, `${path} must have YAML frontmatter`);
+    const frontmatter = YAML.parse(match[1]);
+    for (const source of frontmatter.metadata?.sources ?? []) {
+      if (source.usage !== "referenced") continue;
+      referenced.push(frontmatter.name);
+      assert.equal(source.kind, "github-file", `${path} referenced source must identify an immutable GitHub file`);
+      assert.match(source.repo, /^[^/]+\/[^/]+$/, `${path} referenced source must identify its repository`);
+      assert.match(source.path, /(?:^|\/)SKILL\.md$/, `${path} referenced source must identify a skill file`);
+      assert.match(source.commit, /^[0-9a-f]{40}$/, `${path} referenced source must pin a full commit`);
+      assert.match(source.sha256, /^[0-9a-f]{64}$/, `${path} referenced source must pin the exact body digest`);
+      assert.equal(match[2].trim(), "", `${path} must remain an explicit metadata-only local runtime stub`);
+    }
+  }
+  assert.deepEqual(referenced.sort(), ["agent-md-refactor", "coding", "docs", "gh-cli", "gradle", "guides", "skill-creator"]);
+  const readme = await read("../README.md");
+  assert.match(readme, /`usage: referenced` is inert provenance metadata[^\n]+does not resolve, fetch, or inject the remote source/i);
+});
+
+test("every active routine has a complete pinned imported invocation bundle", async () => {
   const specs = {
     "monthly-product-discovery": {
       agent: "product-manager",
@@ -389,14 +450,14 @@ test("every active routine has a complete pinned effective invocation bundle", a
     const frontmatter = task.match(/^---\n([\s\S]*?)\n---/);
     assert.ok(frontmatter, `${slug} task must have YAML frontmatter`);
     assert.equal(YAML.parse(frontmatter[1]).assignee, spec.agent, `${slug} task assignee must match its audited role bundle`);
-    digests[slug] = bundleDigest(await effectiveInvocationBundle(spec.agent, spec.skills, slug));
+    digests[slug] = bundleDigest(await importedInvocationBundle(spec.agent, spec.skills, slug));
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "d751140e5705e8c05c50e5deb026a754f96321ea28d9da3c7e197d01f89c9628",
+    "monthly-product-discovery": "c69dd8e4935a229e1a4030875d52c6eec0870cc4f2dc5240a561adac992cc6f5",
     "monthly-security-deep-scan": "532dfe564c6cb2067bcc25ffa63976510c26aa37dd4465dc6fbbe8f8420e3d9b",
-    "monthly-user-guide-review": "a9fe38fa9c0d65767e715435ca35f5e48abb15ba5c6fdfee7051444813240f97",
-    "monthly-guide-topic-discovery": "71789b98f7409d3d223f5c058328cfa59070704dd920432edeb0b3040c10c9eb",
+    "monthly-user-guide-review": "a8f58d32f8dd322eead302791766f8858b98d2715adf021af4893ebe4f392ae7",
+    "monthly-guide-topic-discovery": "5a057eab1535bda4e288691fb5f20ca5c0914c76c7535b70136a27bdcec1ad2b",
     "monthly-ceo-self-improvement": "ad95a147c3b6a2b44cc27c7b2bf3138d41af445bdc44f1bcdc111fb6eee61ec5",
     training: "99d12afc8e711dc673a5c9e7aa8d7f6ce81a0d50d36f933dc03be0469014e7d9",
   });
@@ -411,8 +472,8 @@ test("CEO effective bundle is governance-only", async () => {
     ...catalogSkills,
   ];
   const bundles = await Promise.all([
-    effectiveInvocationBundle("ceo", expectedSkills, "monthly-ceo-self-improvement"),
-    effectiveInvocationBundle("ceo", expectedSkills, "training"),
+    importedInvocationBundle("ceo", expectedSkills, "monthly-ceo-self-improvement"),
+    importedInvocationBundle("ceo", expectedSkills, "training"),
   ]);
   for (const bundle of bundles) {
     assert.deepEqual(unsafeDeliveryImperatives(bundle), [], "CEO effective routine bundle must not authorize repository or PR delivery");
@@ -495,9 +556,20 @@ test("root company policy delegates mutation-bearing routine work to implementat
     "After approval, CEO publishes the approved skill pull request.",
     "Assign Architect to implement and publish the company-skill pull request.",
     "Security Engineer publishes repository branches and updates pull requests for accepted findings.",
+    "Architect publishes repository branches and updates pull requests for accepted plans.",
   ]) {
-    assert.deepEqual(unsafeRootMutationAuthorities(probe), [probe]);
+    assert.ok(unsafeRootMutationAuthorities(probe).length >= 1, `expected unsafe authority detection in: ${probe}`);
   }
+  assert.equal(
+    unsafeRootMutationAuthorities("CEO does not open pull requests, but CEO publishes repository branches for approved changes.").length,
+    1,
+    "a prohibited clause must not hide an independent mutation grant",
+  );
+  assert.deepEqual(
+    unsafeRootMutationAuthorities("Security Engineer creates a security report, and the Technical Writer updates the pull request."),
+    [],
+    "a later implementation-owner mutation must not be attributed to an earlier gate actor",
+  );
 });
 
 test("repository-wide policy never grants mutation authority to governance or gate roles", async () => {
@@ -539,12 +611,12 @@ test("repository-wide policy never assigns PR mutation to Code Reviewer", async 
 });
 
 test("effective Reviewer and Security bundles keep repository delivery mutations scoped", async () => {
-  const reviewerBundle = await effectiveAgentBundle("code-reviewer", [
+  const reviewerBundle = await importedAgentBundle("code-reviewer", [
     "micronaut-repo-operations",
     "micronaut-github-operations",
     "micronaut-quality-gates",
   ]);
-  const securityBundle = await effectiveInvocationBundle("security-engineer", [
+  const securityBundle = await importedInvocationBundle("security-engineer", [
     "micronaut-repo-operations",
     "micronaut-github-operations",
     "micronaut-quality-gates",

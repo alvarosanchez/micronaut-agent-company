@@ -2,7 +2,7 @@
 
 Micronaut Agent Company is an importable Agent Companies template package for Paperclip. It is built for a subset of related repositories in the `micronaut-projects` GitHub organization and is optimized for the long-running maintenance problem: keep the issue and PR inbox empty without sacrificing code quality, compatibility, security, or documentation quality.
 
-It combines company-local governance skills, selected Paperclip Skills Store catalog skills with provenance, and referenced maintainer skills pinned to `micronaut-project-template`, so the agents reuse upstream Micronaut coding, docs, Gradle, triage, planning, QA, PR, and documentation-maintenance guidance instead of vendoring those instructions here.
+It combines company-local governance skills, selected Paperclip Skills Store catalog skills with provenance, and local skill stubs carrying immutable references to upstream maintainer skills. In package source, `usage: referenced` is inert provenance metadata with a pinned commit and digest. Paperclip imports the local stub, may normalize or omit package-only source annotations on export, and does not resolve, fetch, or inject the remote source body. The local stub remains the runtime instruction unless an operator separately materializes a reviewed upstream body.
 
 This package assumes the [paperclip-github-plugin](https://github.com/alvarosanchez/paperclip-github-plugin) is installed in the target Paperclip instance and is responsible for syncing GitHub issues and PRs into Paperclip and exposing GitHub operations as agent tools.
 
@@ -422,7 +422,7 @@ flowchart TD
 
 | Skill | Purpose |
 | --- | --- |
-| `company-package-evolution` | CEO decision framework for keeping local learnings additive versus promoting reusable defaults into PRs against this company package's source repo |
+| `company-package-evolution` | CEO decision framework for keeping local learnings additive versus routing reusable defaults to the implementation owner, who promotes them through PRs against this company package's source repo |
 | `ceo-issue-history` | CEO-only deterministic 30-day issue evidence collector, complete-coverage gate, stable deduplication, and threshold/ranking contract for monthly self-improvement |
 | `product-discovery` | Product Manager workflow for coordinator-only discovery routines and project-specific discovery subtasks that may create QA-assigned backlog product issues |
 | `micronaut-repo-operations` | Shared operating rules for lifecycle state, labels, SemVer targeting, PR rules, tool boundaries, internal routines, and reimport-safe runtime overlays |
@@ -446,7 +446,7 @@ These are Paperclip 2026.626 Skills Store catalog prerequisites, not vendored so
 
 ## Referenced External Skills
 
-These skills are included as referenced skills pinned to their upstream source rather than copied into this repository:
+These local skill stubs carry immutable commit-and-digest provenance for upstream sources rather than copying those remote bodies into this repository. In Paperclip's package import/runtime contract, `usage: referenced` is inert provenance metadata: import/export preserves it byte-for-byte, but does not resolve, fetch, or inject the remote source. Agents receive only the local stub shown in this package unless an operator separately materializes and reviews the upstream body as runtime guidance.
 
 | Skill | Assigned To | Purpose |
 | --- | --- | --- |

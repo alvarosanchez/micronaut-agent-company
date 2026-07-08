@@ -355,7 +355,7 @@ test("PR-creating agents use atomic plugin publication and delegate exception at
   assertPullRequestMetricApiRoutePolicy(shared, "skills/micronaut-github-operations/SKILL.md");
 });
 
-test("Local gh-cli skill points to the requested upstream skill", async () => {
+test("Local gh-cli skill pins immutable upstream provenance", async () => {
   const markdown = await readFile(
     new URL("../skills/gh-cli/SKILL.md", import.meta.url),
     "utf8",
@@ -375,8 +375,11 @@ test("Local gh-cli skill points to the requested upstream skill", async () => {
   assert.doesNotMatch(frontmatter.description, /paperclipIssueId/i);
   assert.deepEqual(frontmatter.metadata?.sources, [
     {
-      kind: "url",
-      url: "https://skills.sh/github/awesome-copilot/gh-cli",
+      kind: "github-file",
+      repo: "github/awesome-copilot",
+      path: "skills/gh-cli/SKILL.md",
+      commit: "e9a7805e2b1dbda5ad4d0cc9be1fc3ef6273e115",
+      sha256: "18e53a9f4c154406a072ed4cfbc524d40f9a4734ef25102086c1ef5e24113a76",
       attribution: "awesome-copilot",
       usage: "referenced",
     },

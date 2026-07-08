@@ -1628,13 +1628,13 @@ async function loadSourceExpectations(rootDir) {
     if (relativePath.startsWith("skills/") && relativePath.endsWith("/SKILL.md")) {
       const slug = relativePath.split("/")[1];
       const { frontmatter, body } = parseFrontmatterMarkdown(content);
+      const metadataSources = frontmatter.metadata?.sources ?? [];
       skills.set(slug, {
         slug,
         name: frontmatter.name,
         description: frontmatter.description ?? null,
-        metadataSources: (frontmatter.metadata?.sources ?? []).map(
-          normalizeSkillSourceMetadataEntry,
-        ),
+        metadataSources: metadataSources.map(normalizeSkillSourceMetadataEntry),
+        isReferenced: metadataSources.some((source) => source.usage === "referenced"),
         metadataCatalog: normalizeSkillCatalogMetadata(
           frontmatter.metadata?.paperclip?.catalog,
         ),
@@ -2305,6 +2305,19 @@ async function main() {
         `Paperclip catalog metadata mismatch for skill ${expectedSkill.slug}`,
       );
       assertExportedBody(exportResult.files, actualSkill.path, expectedSkill.body);
+      if (expectedSkill.isReferenced) {
+        const { body: exportedSkillBody } = parseFrontmatterMarkdown(exportedSkillMarkdown);
+        assert.equal(
+          expectedSkill.body.trim(),
+          "",
+          `Referenced skill ${expectedSkill.slug} must remain an explicit metadata-only local runtime stub`,
+        );
+        assert.equal(
+          exportedSkillBody.trim(),
+          "",
+          `Paperclip must not resolve or inject remote source content for referenced skill ${expectedSkill.slug}`,
+        );
+      }
       if (expectedSkill.slug === "ceo-issue-history") {
         const exportedScriptPath = path.posix.join(
           path.posix.dirname(actualSkill.path),
