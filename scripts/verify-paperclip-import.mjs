@@ -1398,6 +1398,10 @@ function assertPortableRuntimeFilesAvoidMissingRepoFiles(files, rootDir, relativ
       continue;
     }
 
+    const searchableContent = relativePath.endsWith(".md")
+      ? parseFrontmatterMarkdown(content).body
+      : content;
+
     for (const referencedPath of relativePaths) {
       const pattern = new RegExp(`\\b${referencedPath.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`, "g");
       const absoluteReferencedPath = path.join(rootDir, referencedPath);
@@ -1405,12 +1409,12 @@ function assertPortableRuntimeFilesAvoidMissingRepoFiles(files, rootDir, relativ
         continue;
       }
 
-      const matches = [...content.matchAll(pattern)].filter((match) => {
+      const matches = [...searchableContent.matchAll(pattern)].filter((match) => {
         const start = match.index ?? -1;
         if (start < 0) {
           return false;
         }
-        const prefix = content.slice(Math.max(0, start - 3), start);
+        const prefix = searchableContent.slice(Math.max(0, start - 3), start);
         return prefix !== "://";
       });
       if (matches.length === 0) {

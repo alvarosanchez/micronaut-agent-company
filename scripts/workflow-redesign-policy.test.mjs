@@ -484,10 +484,10 @@ test("every active routine has a complete pinned imported invocation bundle", as
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "ded30013ac307e7f1a279beb99820fea9e1c33e0ec795bc430e46113a25a3334",
+    "monthly-product-discovery": "27142e404c51aaa1a875ab8bd32623179d681a63bc64394416ef5fde5da61ed4",
     "monthly-security-deep-scan": "532dfe564c6cb2067bcc25ffa63976510c26aa37dd4465dc6fbbe8f8420e3d9b",
-    "monthly-user-guide-review": "f197a1b80f6327cc0a7693ccc0e016dbe2df9a55749db021ec96ce2830d1e69d",
-    "monthly-guide-topic-discovery": "938e2890545577624b3a7d7960b54236b357795c1a7624234d76545c13774da1",
+    "monthly-user-guide-review": "886d0620766ddc450096fa99992c4c8d3fd796fe3537a7fc6461b7ac8036fb9a",
+    "monthly-guide-topic-discovery": "7919a475dc352158d9c110c601963446ce8a3cde3db99008c7ac2ea53e0f8940",
     "monthly-ceo-self-improvement": "ad95a147c3b6a2b44cc27c7b2bf3138d41af445bdc44f1bcdc111fb6eee61ec5",
     training: "569e529186d09c94bb70728fbfc4e91486818836a172d476347454c020255fbe",
   });

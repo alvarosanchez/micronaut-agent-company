@@ -373,6 +373,7 @@ test("Local gh-cli skill preserves its import identity and pins immutable upstre
   assert.match(frontmatter.description, HORIZONTAL_RULE_PATTERN);
   assert.match(frontmatter.description, AI_FOOTER_PATTERN);
   assert.doesNotMatch(frontmatter.description, /paperclipIssueId/i);
+  assert.equal(frontmatter.metadata?.skillKey, "url/skills-sh/98fe50cd5a/gh-cli");
   assert.deepEqual(frontmatter.metadata?.sources, [
     {
       kind: "url",
