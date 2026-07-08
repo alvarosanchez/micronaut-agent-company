@@ -2292,12 +2292,19 @@ async function main() {
       const { frontmatter: exportedSkillFrontmatter } = parseFrontmatterMarkdown(
         exportedSkillMarkdown,
       );
+      // Paperclip persists and exports every ordinary source entry. For gh-cli,
+      // the first URL is deliberately the migration-stable canonical identity;
+      // the second pinned GitHub tuple is package-only audit provenance and is
+      // separately enforced by the source policy suite.
+      const expectedRoundTripSources = expectedSkill.slug === "gh-cli"
+        ? expectedSkill.metadataSources.slice(0, 1)
+        : expectedSkill.metadataSources;
       assert.deepEqual(
         (exportedSkillFrontmatter.metadata?.sources ?? []).map(
           normalizeSkillSourceMetadataEntry,
         ),
-        expectedSkill.metadataSources,
-        `Source metadata mismatch for skill ${expectedSkill.slug}`,
+        expectedRoundTripSources,
+        `Source identity mismatch for skill ${expectedSkill.slug}`,
       );
       assert.deepEqual(
         normalizeSkillCatalogMetadata(exportedSkillFrontmatter.metadata?.paperclip?.catalog),
