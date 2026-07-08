@@ -459,7 +459,7 @@ test("every active routine has a complete pinned imported invocation bundle", as
     "monthly-user-guide-review": "a8f58d32f8dd322eead302791766f8858b98d2715adf021af4893ebe4f392ae7",
     "monthly-guide-topic-discovery": "5a057eab1535bda4e288691fb5f20ca5c0914c76c7535b70136a27bdcec1ad2b",
     "monthly-ceo-self-improvement": "ad95a147c3b6a2b44cc27c7b2bf3138d41af445bdc44f1bcdc111fb6eee61ec5",
-    training: "99d12afc8e711dc673a5c9e7aa8d7f6ce81a0d50d36f933dc03be0469014e7d9",
+    training: "569e529186d09c94bb70728fbfc4e91486818836a172d476347454c020255fbe",
   });
 });
 

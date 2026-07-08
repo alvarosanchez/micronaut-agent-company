@@ -5,7 +5,7 @@ project: company-operations
 recurring: true
 ---
 
-Analyze all other agents' past executions since the last Training pass, then propose improvements to their technology, domain, stack, tool, library, and external service coverage through approved reusable skills from https://skills.sh or company-owned skills when no suitable external skill exists. CEO discovers, governs, and creates scoped QA intake; CEO never installs, assigns, authors, or publishes a skill.
+Analyze all other agents' past executions since the last Training pass, then propose improvements to their technology, domain, stack, tool, library, and external service coverage through approved reusable skills from https://skills.sh or company-owned skills when no suitable external skill exists. CEO discovers and governs, then creates a scoped child assigned to QA for intake; CEO never performs that QA intake or installs, assigns, authors, or publishes a skill.
 
 Training is not a generic Paperclip workflow-performance review. Queue health, handoff correctness, Paperclip usage patterns, and productivity-review findings belong to the monthly CEO self-improvement routine or `issue_productivity_review` handling unless they reveal a reusable technology or domain skill need.
 

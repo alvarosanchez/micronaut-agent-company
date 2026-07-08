@@ -58,7 +58,7 @@ Live-only model matrix:
 
 - UI/UX Designer: deployment-provided `hermes_local`, `gpt-5.6-sol`, high reasoning; not package-imported
 
-Each package-owned `hermes_local` adapter uses exactly `hermesCommand: /usr/local/bin/hermes-paperclip` and passes `extraArgs: [--reasoning-effort, medium|high]` according to the matrix above. The deployment wrapper owns safe mapping of that private argument to Hermes profiles. It also configures `provider: openai-codex`, `persistSession: true`, `quiet: true`, `timeoutSec: 7200`, and `graceSec: 20`. Package-owned agents rely on Paperclip project workspaces: do not set `cwd` and do not pin `toolsets`, so required MCP surfaces remain available.
+Each package-owned `hermes_local` adapter uses exactly `hermesCommand: /usr/local/bin/hermes-paperclip`. CEO and Product Manager pass `extraArgs: ["--reasoning-effort", "medium"]`; the other package-owned roles pass `extraArgs: ["--reasoning-effort", "high"]`, according to the matrix above. The deployment wrapper owns safe mapping of that private argument to Hermes profiles. It also configures `provider: openai-codex`, `persistSession: true`, `quiet: true`, `timeoutSec: 7200`, and `graceSec: 20`. Package-owned agents rely on Paperclip project workspaces: do not set `cwd` and do not pin `toolsets`, so required MCP surfaces remain available.
 
 The `cheap` profile remains `gpt-5.4-mini` and is bounded to classification, read-only inventory, adapter checks, and deterministic no-op detection. It cannot make stage decisions, security/release decisions, durable work, or external writes. Every GitHub plugin write sets `llmModel` to the actual role model above.
 
@@ -446,7 +446,7 @@ These are Paperclip 2026.626 Skills Store catalog prerequisites, not vendored so
 
 ## Referenced External Skills
 
-These local skill stubs carry immutable commit-and-digest provenance for upstream sources rather than copying those remote bodies into this repository. In Paperclip's package import/runtime contract, `usage: referenced` is inert provenance metadata: import/export preserves it byte-for-byte, but does not resolve, fetch, or inject the remote source. Agents receive only the local stub shown in this package unless an operator separately materializes and reviews the upstream body as runtime guidance.
+These local skill stubs carry immutable commit-and-digest provenance for upstream sources rather than copying those remote bodies into this repository. In Paperclip's package import/runtime contract, `usage: referenced` is inert provenance metadata: import preserves the local stub, while export may normalize or omit package-only source annotations; neither operation resolves, fetches, or injects the remote source. Agents receive only the local stub shown in this package unless an operator separately materializes and reviews the upstream body as runtime guidance.
 
 | Skill | Assigned To | Purpose |
 | --- | --- | --- |
