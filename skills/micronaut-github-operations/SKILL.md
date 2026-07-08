@@ -19,7 +19,7 @@ Use this shared skill for repeated GitHub rules that apply across Micronaut comp
 - In Hermes deployments, those tools may be exposed through the Paperclip plugin-tools MCP bridge with sanitized names such as `mcp_paperclip_plugin_tools_paperclip_github_plugin_search_repository_items`; use the actual runtime tool schema name while following the `paperclip-github-plugin:*` contract below.
 - Do not use `gh` as a fallback for GitHub API reads/writes, inspect credentials, run `git push`, or search for a GitHub token.
 - Role-authorized implementation owners use the local git CLI without GitHub credentials for branch creation, commits, rebases, cherry-picks, and public fetches. Resolve the plain local branch name and exact full branch-tip commit SHA before PR creation.
-- A role-authorized implementation owner calls `paperclip-github-plugin:create_pull_request` once with `paperclipIssueId`, `head`, `headCommitSha`, `base`, `title`, and any body/draft metadata. The trusted plugin resolves the issue-scoped workspace and secret, publishes and verifies the exact branch SHA, then creates, links, and attributes the PR.
+- A role-authorized implementation owner calls `paperclip-github-plugin:create_pull_request` once with `paperclipIssueId`, `head`, `headCommitSha`, `base`, `title`, `followThroughAssigneeAgentId` set to that owner's Paperclip agent UUID, and any body/draft metadata. The trusted plugin resolves the issue-scoped workspace and secret, publishes and verifies the exact branch SHA, then creates, links, attributes, and records the durable implementation owner for the PR.
 - If the atomic tool reports a publication failure, preserve the local branch and report the exact plugin error. Do not fall back to `git push`, `gh`, SSH, direct API scripts, or credential searches.
 
 ## Footer For Maintainer-Visible GitHub Writes
@@ -53,13 +53,20 @@ Use this shared skill for repeated GitHub rules that apply across Micronaut comp
 
 - Normal delivery PRs created from synced GitHub issues already have a Paperclip issue from the sync plugin.
 - For out-of-pipeline PRs, including routine PRs, package-evolution PRs, managed repository `AGENTS.md` PRs, upstream dependency PRs, and any other PR outside the normal delivery pipeline, create the required affected-project Paperclip child issue or subtask first.
-- The role-authorized implementation owner links an out-of-pipeline PR to that Paperclip child issue or subtask with `paperclip-github-plugin:link_github_item`. Pass `kind: "pull_request"`, `paperclipIssueId`, and either `pullRequestUrl` or `reference`; include `repository` when using a number-only reference outside a mapped project.
+- The role-authorized implementation owner links an out-of-pipeline PR to that Paperclip child issue or subtask with `paperclip-github-plugin:link_github_item`. Pass `kind: "pull_request"`, `paperclipIssueId`, `followThroughAssigneeAgentId` set to that owner's Paperclip agent UUID, and either `pullRequestUrl` or `reference`; include `repository` when using a number-only reference outside a mapped project.
 - The PR creation metric is not the issue link. Confirm `paperclip-github-plugin:link_github_item` returns `status: "linked"` before reporting the PR as tracked by GitHub Sync.
 - In authenticated runs, prefer `paperclip-github-plugin:create_pull_request` for PR creation because the plugin records the PR creation metric automatically. If an explicit human/operator exception uses a non-plugin GitHub client to create a PR in a repository mapped to the current company, create the durable `link_github_item` PR-to-Paperclip link first, then separately record attribution with `POST /api/plugins/paperclip-github-plugin/api/company-metrics/events` using `metric: "pull_request_created"` plus either `pullRequestUrl` or `repository` and `pullRequestNumber`.
 - The company metric endpoint is a native plugin JSON route with agent auth, not a plugin-tool call or webhook. Authenticate the native metric route with `Authorization: Bearer ${PAPERCLIP_API_KEY}`; `PAPERCLIP_API_KEY` is the agent credential for authenticated runs.
 - The Paperclip host authenticates the bearer token, scopes the request to the calling agent's company, and rejects missing, expired, invalid, non-agent, or cross-company calls before worker dispatch. Include `companyId` only when useful for disambiguation; if present, it must match the calling agent's company.
 - Do not post the metric route when `paperclip-github-plugin:create_pull_request` created the PR, because the plugin records `pull_request_created` automatically. Do not send it for PR edits, comments, review replies, or merges.
 - GitHub alone cannot attribute non-plugin PR creation to Paperclip work; both the durable link and the metric event are required when the authenticated run creates the PR outside `create_pull_request`.
+
+## Durable PR Follow-Through Ownership
+
+- Every role-authorized implementation owner must pass its own Paperclip agent UUID as `followThroughAssigneeAgentId` when creating a PR or first linking an out-of-pipeline PR. This durable owner is distinct from the issue's current assignee and survives a healthy unassigned maintainer wait.
+- To hand off an existing linked PR to another implementation owner, call `paperclip-github-plugin:link_github_item` again for the same Paperclip issue and PR with the new owner's UUID. Passing the same UUID is idempotent.
+- Omitting `followThroughAssigneeAgentId` on a later repair or relink preserves the recorded owner; omission never clears it. Pass explicit `null` only when an authorized board/workflow decision intentionally removes durable follow-through ownership, and record that reason in the Paperclip issue.
+- Do not clear the durable owner merely because the PR is currently clean, green, mergeable, or waiting unassigned for maintainer review. Later CI failures, conflicts, or review threads must return to the recorded implementation owner.
 
 ## Link Immutability
 

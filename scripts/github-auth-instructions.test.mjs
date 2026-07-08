@@ -31,6 +31,12 @@ const NO_FILESYSTEM_TOKEN_SEARCH_PATTERN =
   /do not search the filesystem, plugin config, or other files for a token|must not search the filesystem, plugin config, or other files for a token/i;
 const ATOMIC_CREATE_PULL_REQUEST_PATTERN =
   /create_pull_request[\s\S]{0,900}(?:headCommitSha|exact full (?:branch-tip )?(?:commit )?SHA)[\s\S]{0,900}(?:publishes|publish)[\s\S]{0,400}(?:creates|creating|PR)/i;
+const DURABLE_OWNER_ARGUMENT_PATTERN =
+  /(?:followThroughAssigneeAgentId[\s\S]{0,180}(?:Paperclip agent UUID|owner's Paperclip agent UUID)|Paperclip agent UUID[\s\S]{0,180}followThroughAssigneeAgentId)/i;
+const DURABLE_OWNER_LIFECYCLE_PATTERN =
+  /same UUID[\s\S]{0,120}idempotent[\s\S]{0,500}omitting `followThroughAssigneeAgentId`[\s\S]{0,240}preserves[\s\S]{0,240}explicit `null`[\s\S]{0,240}(?:removes|clear)/i;
+const DURABLE_OWNER_MAINTAINER_WAIT_PATTERN =
+  /do not clear the durable owner[\s\S]{0,260}(?:clean|green)[\s\S]{0,260}maintainer review/i;
 const NO_AGENT_GIT_PUSH_PATTERN =
   /do not[\s\S]{0,120}(?:run )?`?git push`?|must not[\s\S]{0,120}(?:run )?`?git push`?/i;
 const NO_CREDENTIAL_INSPECTION_PATTERN =
@@ -349,9 +355,18 @@ test("PR-creating agents use atomic plugin publication and delegate exception at
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { body } = parseFrontmatter(markdown);
     assert.match(body, /paperclip-github-plugin:create_pull_request/);
+    assert.match(body, DURABLE_OWNER_ARGUMENT_PATTERN);
     assert.match(body, /Apply the shared `micronaut-github-operations` skill/);
   }
   const shared = await readFile(new URL("../skills/micronaut-github-operations/SKILL.md", import.meta.url), "utf8");
+  assert.match(shared, DURABLE_OWNER_ARGUMENT_PATTERN);
+  assert.match(shared, DURABLE_OWNER_LIFECYCLE_PATTERN);
+  assert.match(shared, DURABLE_OWNER_MAINTAINER_WAIT_PATTERN);
+  assert.match(
+    shared,
+    /link_github_item[\s\S]{0,500}followThroughAssigneeAgentId/,
+    "Out-of-pipeline PR links must persist the implementation owner.",
+  );
   assertPullRequestMetricApiRoutePolicy(shared, "skills/micronaut-github-operations/SKILL.md");
 });
 

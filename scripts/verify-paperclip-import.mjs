@@ -1228,6 +1228,16 @@ function normalizeSkillSourceMetadataEntry(source) {
   };
 }
 
+function normalizeSkillSourceIdentityEntry(source) {
+  return {
+    kind: source?.kind ?? null,
+    url: source?.url ?? null,
+    repo: source?.repo ?? null,
+    path: source?.path ?? null,
+    commit: source?.commit ?? null,
+  };
+}
+
 function normalizeSkillCatalogMetadata(catalog) {
   if (!isPlainObject(catalog)) {
     return null;
@@ -1637,7 +1647,9 @@ async function loadSourceExpectations(rootDir) {
         slug,
         name: frontmatter.name,
         description: frontmatter.description ?? null,
+        skillKey: frontmatter.metadata?.skillKey ?? null,
         metadataSources: metadataSources.map(normalizeSkillSourceMetadataEntry),
+        metadataIdentitySources: metadataSources.map(normalizeSkillSourceIdentityEntry),
         isReferenced: metadataSources.some((source) => source.usage === "referenced"),
         metadataCatalog: normalizeSkillCatalogMetadata(
           frontmatter.metadata?.paperclip?.catalog,
@@ -1964,6 +1976,137 @@ function assertExportedBody(exportFiles, relativePath, expectedBody, expectedSlu
     actualBody,
     expectedBody,
     `Expected exported body for ${relativePath} to match the source package`,
+  );
+}
+
+function createLegacyGhCliFiles(files) {
+  const relativePath = "skills/gh-cli/SKILL.md";
+  const { frontmatter, body } = parseFrontmatterMarkdown(files[relativePath]);
+  const urlSource = (frontmatter.metadata?.sources ?? []).find(
+    (source) => source?.kind === "url" && source?.url,
+  );
+  assert.ok(urlSource, "Expected gh-cli to declare its migration-stable URL source");
+
+  const legacyFrontmatter = structuredClone(frontmatter);
+  delete legacyFrontmatter.metadata.skillKey;
+  legacyFrontmatter.metadata.sources = [{
+    kind: "url",
+    url: urlSource.url,
+    attribution: urlSource.attribution,
+    usage: "referenced",
+  }];
+
+  return {
+    ...files,
+    [relativePath]: `---\n${YAML.stringify(legacyFrontmatter).trimEnd()}\n---\n${body}`,
+  };
+}
+
+function desiredSkillKeys(agent) {
+  const desired = agent?.adapterConfig?.paperclipSkillSync?.desiredSkills ?? [];
+  return sortStrings(
+    desired.flatMap((entry) => {
+      if (typeof entry === "string") return entry.trim() ? [entry.trim()] : [];
+      const key = typeof entry?.key === "string" ? entry.key.trim() : "";
+      return key ? [key] : [];
+    }),
+  );
+}
+
+function agentSkillAssignmentSnapshot(agents) {
+  return Object.fromEntries(
+    [...agents]
+      .sort((left, right) => left.name.localeCompare(right.name))
+      .map((agent) => [agent.name, { id: agent.id, desiredSkills: desiredSkillKeys(agent) }]),
+  );
+}
+
+function findOnlySkillBySlug(skills, slug) {
+  const matches = skills.filter((skill) => skill.slug === slug);
+  assert.equal(matches.length, 1, `Expected exactly one ${slug} skill row`);
+  return matches[0];
+}
+
+async function verifyGhCliExistingCompanyMigration(baseUrl, expected) {
+  const expectedGhCli = expected.skills.get("gh-cli");
+  assert.ok(expectedGhCli?.skillKey, "Expected gh-cli to pin metadata.skillKey");
+  const legacyFiles = createLegacyGhCliFiles(expected.files);
+  const include = {
+    company: true,
+    agents: true,
+    projects: false,
+    issues: false,
+    skills: true,
+  };
+
+  console.log("Seeding a legacy URL-backed gh-cli identity for migration verification...");
+  const legacyImport = await apiJson(baseUrl, "/api/companies/import", {
+    method: "POST",
+    body: {
+      source: { type: "inline", rootPath: "micronaut-agent-company-legacy", files: legacyFiles },
+      include,
+      target: { mode: "new_company" },
+      agents: "all",
+      collisionStrategy: "rename",
+    },
+  });
+  const companyId = legacyImport?.company?.id;
+  assert.ok(companyId, "Legacy fixture import did not return a company id");
+
+  const legacySkills = await apiJson(baseUrl, `/api/companies/${companyId}/skills`);
+  const legacyGhCli = findOnlySkillBySlug(legacySkills, "gh-cli");
+  assert.equal(legacyGhCli.key, expectedGhCli.skillKey, "Legacy URL identity derived the wrong key");
+  const legacyAgents = await apiJson(baseUrl, `/api/companies/${companyId}/agents`);
+  const legacyAssignments = agentSkillAssignmentSnapshot(legacyAgents);
+  assert.ok(
+    Object.values(legacyAssignments).some(({ desiredSkills }) =>
+      desiredSkills.includes(expectedGhCli.skillKey)
+    ),
+    "Legacy fixture did not assign gh-cli to any imported agent",
+  );
+
+  const importCandidate = () => apiJson(baseUrl, "/api/companies/import", {
+    method: "POST",
+    body: {
+      source: { type: "inline", rootPath: "micronaut-agent-company", files: expected.files },
+      include,
+      target: { mode: "existing_company", companyId },
+      agents: "all",
+      collisionStrategy: "replace",
+    },
+  });
+
+  for (const pass of ["migration", "reimport"]) {
+    await importCandidate();
+    const skills = await apiJson(baseUrl, `/api/companies/${companyId}/skills`);
+    const ghCli = findOnlySkillBySlug(skills, "gh-cli");
+    assert.deepEqual(
+      { id: ghCli.id, key: ghCli.key, slug: ghCli.slug },
+      { id: legacyGhCli.id, key: legacyGhCli.key, slug: legacyGhCli.slug },
+      `gh-cli identity changed during ${pass}`,
+    );
+    const agents = await apiJson(baseUrl, `/api/companies/${companyId}/agents`);
+    assert.deepEqual(
+      agentSkillAssignmentSnapshot(agents),
+      legacyAssignments,
+      `Agent IDs or skill assignments changed during gh-cli ${pass}`,
+    );
+  }
+
+  const exportResult = await apiJson(baseUrl, `/api/companies/${companyId}/export`, {
+    method: "POST",
+    body: { include },
+  });
+  const exportedGhCli = exportResult.manifest.skills.filter((skill) => skill.slug === "gh-cli");
+  assert.equal(exportedGhCli.length, 1, "Migration export must contain exactly one gh-cli skill");
+  assert.equal(exportedGhCli[0].key, expectedGhCli.skillKey);
+  const exportedMarkdown = getTextFile(exportResult.files, exportedGhCli[0].path);
+  const { frontmatter } = parseFrontmatterMarkdown(exportedMarkdown);
+  assert.equal(frontmatter.key, expectedGhCli.skillKey);
+  assert.deepEqual(
+    (frontmatter.metadata?.sources ?? []).map(normalizeSkillSourceIdentityEntry),
+    expectedGhCli.metadataIdentitySources.slice(0, 1),
+    "Migration export did not preserve the URL identity source",
   );
 }
 
@@ -2296,17 +2439,31 @@ async function main() {
       const { frontmatter: exportedSkillFrontmatter } = parseFrontmatterMarkdown(
         exportedSkillMarkdown,
       );
+      if (expectedSkill.skillKey !== null) {
+        assert.equal(
+          actualSkill.key ?? null,
+          expectedSkill.skillKey,
+          `Manifest canonical key mismatch for skill ${expectedSkill.slug}`,
+        );
+        assert.equal(
+          exportedSkillFrontmatter.key ?? null,
+          expectedSkill.skillKey,
+          `Exported canonical key mismatch for skill ${expectedSkill.slug}`,
+        );
+      }
       // Paperclip persists and exports every ordinary source entry. For gh-cli,
       // the first URL is deliberately the migration-stable canonical identity;
       // the second pinned GitHub tuple is package-only audit provenance and is
       // separately enforced by the source policy suite.
-      const expectedRoundTripSources = expectedSkill.slug === "gh-cli"
-        ? expectedSkill.metadataSources.slice(0, 1)
+      const compareSourceIdentity = expectedSkill.slug === "gh-cli";
+      const expectedRoundTripSources = compareSourceIdentity
+        ? expectedSkill.metadataIdentitySources.slice(0, 1)
         : expectedSkill.metadataSources;
+      const normalizeSource = compareSourceIdentity
+        ? normalizeSkillSourceIdentityEntry
+        : normalizeSkillSourceMetadataEntry;
       assert.deepEqual(
-        (exportedSkillFrontmatter.metadata?.sources ?? []).map(
-          normalizeSkillSourceMetadataEntry,
-        ),
+        (exportedSkillFrontmatter.metadata?.sources ?? []).map(normalizeSource),
         expectedRoundTripSources,
         `Source identity mismatch for skill ${expectedSkill.slug}`,
       );
@@ -2443,7 +2600,9 @@ async function main() {
       );
     }
 
-    console.log("Paperclip import verification passed.");
+    await verifyGhCliExistingCompanyMigration(baseUrl, expected);
+
+    console.log("Paperclip import and gh-cli migration verification passed.");
   } finally {
     if (serverHandle) {
       await stopServer(serverHandle.child);
