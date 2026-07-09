@@ -196,12 +196,18 @@ test("CEO collector callers resolve the imported skill directory", async () => {
 test("automation audit covers the derived Markdown corpus and exact CLI surface", async () => {
   const agentFiles = await markdownFiles(new URL("../agents/", import.meta.url));
   const skillFiles = await markdownFiles(new URL("../skills/", import.meta.url));
+  const { stdout: trackedMarkdownOutput } = await execFileAsync("git", ["ls-files", "*.md"], { cwd: ROOT, encoding: "utf8" });
+  const trackedMarkdown = trackedMarkdownOutput.trim().split("\n").filter(Boolean);
   const audit = await read("../skills/paperclip-control-plane/references/instruction-automation-audit.md");
   const script = await read("../skills/paperclip-control-plane/scripts/paperclip-workflow.mjs");
 
   assert.equal(agentFiles.filter((file) => file.pathname.endsWith("/AGENTS.md")).length, 8);
   assert.equal(skillFiles.length, 25);
-  assert.match(audit, /all 8 `agents\/\*\/AGENTS\.md` files and all 25 package-owned Markdown files under `skills\/`[\s\S]{0,120}33 instruction\/skill Markdown files total/i);
+  assert.equal(trackedMarkdown.length, 49);
+  assert.match(audit, /complete shipped Markdown corpus[\s\S]{0,220}49 tracked Markdown files/i);
+  assert.match(audit, /3 root[^\n]+8 agent[^\n]+4 design[^\n]+1 project[^\n]+25 skill[^\n]+7 task[^\n]+1 team/i);
+  assert.match(audit, /package-local imported `paperclip-control-plane` skill/i);
+  assert.doesNotMatch(audit, /`paperclip-control-plane` catalog skill/i);
   for (const command of ["snapshot", "verify", "approval-link"]) {
     assert.match(audit, new RegExp("\\| `" + command + "` \\|"));
     assert.match(script, new RegExp(`args\\.command === "${command}"`));

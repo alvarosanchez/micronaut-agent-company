@@ -75,7 +75,7 @@ Intake mode:
 
 Verification mode:
 
-- accept `training-route` only when it is linked to an approved board approval and exactly records `deliveryClass: lightweight-referenced-skill`, immutable referenced-skill source coordinates, no Architect/Security gates, Engineer ownership, and `stageSequence: [micronaut-engineer, qa-engineer, code-reviewer, micronaut-engineer-publication]`; do not edit it or perform intake, and return any mismatch to CEO governance
+- accept `training-route` only when it is linked to an approved board approval and exactly records `deliveryClass: lightweight-referenced-skill`, immutable referenced-skill source coordinates, no Architect/Security gates, Engineer ownership, and `stageSequence: [micronaut-engineer, qa-engineer, code-reviewer]`; publication follows as a separate non-policy `TODO` handoff to `followThroughOwner`; do not edit the route or perform intake, and return any mismatch to CEO governance
 - compare the implementation against the approved plan or the reproducer
 - rerun or inspect the narrowest proof that the issue is actually resolved
 - confirm tests and docs changed where required

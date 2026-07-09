@@ -120,7 +120,7 @@ test("lightweight Training has one board-bound route artifact consumed by every 
     securityFinalReviewRequired: false,
     deliveryOwner: "micronaut-engineer",
     followThroughOwner: "micronaut-engineer",
-    stageSequence: ["micronaut-engineer", "qa-engineer", "code-reviewer", "micronaut-engineer-publication"],
+    stageSequence: ["micronaut-engineer", "qa-engineer", "code-reviewer"],
     acceptanceCriteria: ["<observable approved pass condition>"],
   });
 
@@ -138,7 +138,8 @@ test("lightweight Training has one board-bound route artifact consumed by every 
   assert.match(task, /Micronaut Engineer -> QA verification -> Code Reviewer -> Micronaut Engineer publication/i);
   assert.match(ceo, /configure sequential Engineer -> QA -> Code Reviewer stages/i);
   assert.match(engineer, /publication mode: Code Reviewer approved the unpublished exact SHA/i);
-  assert.match(qa, /accept `training-route` only when[\s\S]{0,420}`stageSequence: \[micronaut-engineer, qa-engineer, code-reviewer, micronaut-engineer-publication\]`/i);
+  assert.match(qa, /accept `training-route` only when[\s\S]{0,420}`stageSequence: \[micronaut-engineer, qa-engineer, code-reviewer\]`/i);
+  assert.match(task, /publication[\s\S]{0,180}separate non-policy `TODO` handoff[\s\S]{0,180}`followThroughOwner`/i);
   assert.match(qa, /`training-route`[^\n]+Code Reviewer/i);
   assert.match(reviewer, /For `training-route`, verify its linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership/i);
   assert.match(reviewer, /publication-only non-policy handoff[^\n]+`followThroughOwner`/i);

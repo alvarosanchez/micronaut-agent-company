@@ -33,7 +33,7 @@ function assertContains(value, pattern, message) {
 const ACTUAL_PROJECT_ROUTINE_SUBTASK_PATTERN =
   /(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project|(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project[\s\S]{0,220}(?:sub-issue|child issue|subtask)/i;
 const ROUTINE_QA_INTAKE_PATTERN =
-  /(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:assigned|assignee)[\s\S]{0,160}(?:QA Engineer|qa-engineer)[\s\S]{0,500}qa-intake[\s\S]{0,500}technical-writer[\s\S]{0,200}qa-engineer[\s\S]{0,200}code-reviewer[\s\S]{0,200}technical-writer-publication/i;
+  /(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:assigned|assignee)[\s\S]{0,160}(?:QA Engineer|qa-engineer)[\s\S]{0,500}qa-intake[\s\S]{0,500}technical-writer[\s\S]{0,200}qa-engineer[\s\S]{0,200}code-reviewer/i;
 const PROJECT_TEMPLATE_GUIDE_EXCLUSION_PATTERN =
   /micronaut-project-template[\s\S]{0,260}(?:not an actual Micronaut project|repository template|file sync|sync files)[\s\S]{0,260}(?:skip|exclude|not eligible|do not)[\s\S]{0,260}(?:user guide|guide topic|standalone guide|guide routines)|(?:skip|exclude|not eligible|do not)[\s\S]{0,260}micronaut-project-template[\s\S]{0,260}(?:user guide|guide topic|standalone guide|guide routines)/i;
 const MICRONAUT_BUILD_GUIDE_EXCLUSION_PATTERN =
@@ -234,6 +234,8 @@ test("guide routine PRs publish only after exact-SHA QA and Code Reviewer approv
     assertContains(markdown, /QA[\s\S]{0,120}Code Reviewer/i, `${label} must route through QA and Code Reviewer.`);
     assertContains(markdown, /(?:only (?:Technical Writer )?publication mode|only that final handoff)[\s\S]{0,180}(?:open|create|publish)[\s\S]{0,80}(?:PR|pull request)/i, `${label} must delay PR creation until publication mode.`);
     assertContains(markdown, /(?:approved SHA|same SHA)[\s\S]{0,100}(?:metadata|unchanged)|metadata unchanged/i, `${label} must publish the approved candidate unchanged.`);
+    assertContains(markdown, /publication[\s\S]{0,220}(?:non-policy|outside the execution policy)[\s\S]{0,220}(?:TODO|followThroughOwner)|(?:non-policy|outside the execution policy)[\s\S]{0,220}(?:TODO|followThroughOwner)[\s\S]{0,220}publication/i, `${label} must keep publication outside stageSequence.`);
+    assert.doesNotMatch(markdown, /(?:technical-writer|micronaut-engineer)-publication/, `${label} must not encode publication as an execution-stage pseudo-agent.`);
   }
 });
 

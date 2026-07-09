@@ -124,6 +124,10 @@ test("unknown, duplicate, misplaced, and option-shaped arguments fail before net
       [["snapshot", "--issue", ISSUE_ID, "--issue", NEXT_ID], /Duplicate option --issue/],
       [["approval-link", "--approval", APPROVAL_ID, "--issue", ISSUE_ID, "--document", "qa-intake"], /Unknown option --document/],
       [["snapshot", "--issue", "--document", "qa-intake"], /--issue requires a value/],
+      [["snapshot", "--issue", "-h"], /--issue requires a value/],
+      [["snapshot", "--issue", "-x"], /--issue requires a value/],
+      [["verify", "--issue", ISSUE_ID, "--status", "-x"], /--status requires a value/],
+      [["approval-link", "--approval", "-x", "--issue", ISSUE_ID], /--approval requires a value/],
       [["put-document", "--issue", ISSUE_ID], /Unknown command: put-document/],
     ];
     for (const [args, pattern] of cases) {
@@ -137,7 +141,7 @@ test("unknown, duplicate, misplaced, and option-shaped arguments fail before net
   }
 });
 
-test("API URLs fail closed before credentials leave loopback", async () => {
+test("API URLs fail closed before credential lookup or network access", async () => {
   for (const url of [
     "http://example.com",
     "http://user:password@127.0.0.1:1",
@@ -145,7 +149,7 @@ test("API URLs fail closed before credentials leave loopback", async () => {
     "http://127.0.0.1:1/?token=secret",
     "http://127.0.0.1:1/#fragment",
   ]) {
-    const result = await run(["snapshot", "--issue", ISSUE_ID], url);
+    const result = await run(["snapshot", "--issue", ISSUE_ID], url, { env: { PAPERCLIP_API_KEY: "" } });
     assert.equal(result.status, 1, `${url}: ${result.stdout}`);
     assert.match(JSON.parse(result.stdout).error, /requires HTTPS|must not contain|without a path/);
   }

@@ -30,7 +30,7 @@ The following YAML is the canonical semantic route matrix. Repeated `qa-engineer
 
 <!-- workflow-routing-matrix -->
 ```yaml
-lightweight-training: [micronaut-engineer, qa-engineer, code-reviewer, micronaut-engineer-publication]
+lightweight-training: [micronaut-engineer, qa-engineer, code-reviewer]
 routine-bug: [qa-engineer, micronaut-engineer, qa-engineer, code-reviewer]
 architecture-sensitive-bug: [qa-engineer, architect, micronaut-engineer, qa-engineer, code-reviewer]
 routine-dependency-upgrade: [qa-engineer, micronaut-engineer, qa-engineer, code-reviewer]
@@ -45,6 +45,8 @@ workflow-authority-docs: [qa-engineer, architect, technical-writer, qa-engineer,
 security-sensitive-workflow-authority-docs: [qa-engineer, security-engineer, architect, technical-writer, qa-engineer, security-engineer, code-reviewer]
 feature: [qa-engineer, architect, micronaut-engineer, qa-engineer, code-reviewer]
 ```
+
+Every `stageSequence` entry is an imported agent slug that can be materialized as a Paperclip execution-policy participant. Publication is not a policy stage: after Code Reviewer completes the final stage, it creates the documented publication-only non-policy `TODO` handoff to `followThroughOwner`, and runtime dispatch wakes that owner.
 
 Security-sensitive means the change affects authentication, authorization, secrets, cryptography, untrusted input, serialization boundaries, filesystem access, process execution, network trust, a known or suspected dependency vulnerability, dependency provenance, CI permissions, release credentials, or secure defaults and security guidance. Merely changing executable code, build logic, dependencies, or examples is not by itself a Security trigger.
 

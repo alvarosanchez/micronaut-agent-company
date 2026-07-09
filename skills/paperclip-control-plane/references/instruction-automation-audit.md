@@ -1,6 +1,6 @@
 # Instruction Automation Audit
 
-Reviewed scope: all 8 `agents/*/AGENTS.md` files and all 25 package-owned Markdown files under `skills/` in PR #110 (33 instruction/skill Markdown files total, including linked references). The goal is to replace deterministic control-plane interpretation with executable, fail-closed evidence while preserving human/agent judgment where context matters. `scripts/paperclip-catalog-skills.test.mjs` derives and checks this corpus rather than trusting a hand-maintained role list.
+Reviewed complete shipped Markdown corpus: 49 tracked Markdown files: 3 root policy/documentation files, 8 agent instructions, 4 design documents, 1 project definition, 25 skill/reference files, 7 task definitions, and 1 team definition. The runtime-loaded subset is the 8 agent instructions plus their package-owned skill/reference files; the complete-corpus scan also covers root, design, project, task, and team surfaces. The goal is to replace deterministic control-plane interpretation with executable, fail-closed evidence while preserving human/agent judgment where context matters. `scripts/paperclip-catalog-skills.test.mjs` derives both inventories from tracked files rather than trusting a hand-maintained role list.
 
 ## Automated now
 
@@ -56,4 +56,4 @@ Scripts may gather and validate facts for these decisions, but must not silently
 
 ## Agent-instruction embedding decision
 
-Do not inline script source into `AGENTS.md`. Every role is granted the narrow `paperclip-control-plane` catalog skill directly. Agent instructions resolve that imported skill's directory from the runtime inventory, then name only the command and role-specific decision criteria. This avoids eight copies of executable text, works outside the package checkout, reduces prompt tokens, and gives tests one implementation surface.
+Do not inline script source into `AGENTS.md`. Every role is granted the package-local imported `paperclip-control-plane` skill directly. Agent instructions resolve that imported skill's directory from the runtime inventory, then name only the command and role-specific decision criteria. This avoids eight copies of executable text, works outside the package checkout, reduces prompt tokens, and gives tests one implementation surface.

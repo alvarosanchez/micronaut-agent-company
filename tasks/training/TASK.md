@@ -58,10 +58,11 @@ stageSequence:
   - micronaut-engineer
   - qa-engineer
   - code-reviewer
-  - micronaut-engineer-publication
 acceptanceCriteria:
   - <observable approved pass condition>
 ```
+
+Publication is outside this execution policy. After Code Reviewer approves the immutable SHA, it creates a separate non-policy `TODO` handoff assigned to `followThroughOwner`; Paperclip runtime dispatch then wakes Micronaut Engineer for publication.
 
 For an explicitly triggered path, create a QA-intake child instead. Do not add, install, update, or assign the skill in the Training run. If approval is pending, rejected, or requires revision, do not create implementation work; record the approval state and next step.
 

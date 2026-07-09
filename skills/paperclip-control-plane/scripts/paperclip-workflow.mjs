@@ -31,7 +31,7 @@ function parseArgs(argv) {
     if (!schema.singleton.has(key) && !schema.repeated.has(key)) throw new Error(`Unknown option --${key} for ${command}.`);
     if (schema.singleton.has(key) && seen.has(key)) throw new Error(`Duplicate option --${key}.`);
     const value = argv[index + 1];
-    if (!value || value.startsWith("--")) throw new Error(`${token} requires a value.`);
+    if (!value || value.startsWith("-")) throw new Error(`${token} requires a value.`);
     if (schema.repeated.has(key)) values[key].push(value);
     else values[key] = value;
     seen.add(key);
@@ -47,7 +47,6 @@ function required(value, name) {
 
 function config() {
   const baseUrl = required(process.env.PAPERCLIP_API_URL, "PAPERCLIP_API_URL");
-  const apiKey = required(process.env.PAPERCLIP_API_KEY, "PAPERCLIP_API_KEY");
   const configured = new URL(baseUrl);
   if (!["http:", "https:"].includes(configured.protocol)) throw new Error("PAPERCLIP_API_URL must use HTTP or HTTPS.");
   if (configured.username || configured.password || configured.search || configured.hash) {
@@ -57,6 +56,7 @@ function config() {
   const loopback = ["127.0.0.1", "[::1]", "localhost"].includes(configured.hostname);
   if (configured.protocol === "http:" && !loopback) throw new Error("PAPERCLIP_API_URL requires HTTPS outside loopback.");
   const origin = new URL(configured.origin);
+  const apiKey = required(process.env.PAPERCLIP_API_KEY, "PAPERCLIP_API_KEY");
   return {
     origin,
     apiKey,
