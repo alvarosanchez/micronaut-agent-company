@@ -33,73 +33,32 @@ test("CEO self-improvement routine runs monthly", async () => {
   assert.equal(frontmatter.name, "Monthly CEO Self-Improvement");
 });
 
-test("CEO self-improvement guidance requires action and respects bundled system skills", async () => {
+test("CEO self-improvement guidance requires a durable delegated action and respects bundled system skills", async () => {
   const requiredPaths = [
     "../agents/ceo/AGENTS.md",
     "../tasks/monthly-ceo-self-improvement/TASK.md",
     "../skills/company-package-evolution/SKILL.md",
-    "../README.md",
-    "../COMPANY.md",
   ];
 
   for (const relativePath of requiredPaths) {
     const markdown = await readFile(new URL(relativePath, import.meta.url), "utf8");
-
-    assert.match(
-      markdown,
-      /implement the change now|change implemented now|implemented change|linked board approval request.*(?:exact|specific) next action|(?:exact|specific) next action.*linked board approval request/i,
-      `${relativePath} must require an implemented change or a linked approval for the next action.`,
-    );
-    assert.match(
-      markdown,
-      /paperclip-create-agent|paperclip-create-plugin|para-memory-files|bundled system skills/i,
-      `${relativePath} must mention the bundled Paperclip system-skill boundary.`,
-    );
+    assert.match(markdown, /scoped[\s\S]{0,180}(?:child|delivery)[\s\S]{0,220}acceptance criteria|acceptance criteria[\s\S]{0,220}scoped[\s\S]{0,180}(?:child|delivery)/i);
+    assert.match(markdown, /Technical Writer|Writer/i);
+    assert.match(markdown, /Micronaut Engineer|Engineer/i);
+    assert.match(markdown, /paperclip-create-agent|paperclip-create-plugin|para-memory-files|bundled system skills/i);
   }
 });
 
-test("CEO self-improvement routine routes Paperclip-to-Hermes skill reconciliation to its maintenance reference", async () => {
-  const task = await readFile(
-    new URL("../tasks/monthly-ceo-self-improvement/TASK.md", import.meta.url),
-    "utf8",
-  );
-  const markdown = await readFile(
-    new URL("../skills/ceo-issue-history/references/maintenance-lanes.md", import.meta.url),
-    "utf8",
-  );
+test("CEO self-improvement routes Paperclip-to-Hermes skill reconciliation to Engineer", async () => {
+  const task = await readFile(new URL("../tasks/monthly-ceo-self-improvement/TASK.md", import.meta.url), "utf8");
+  const markdown = await readFile(new URL("../skills/ceo-issue-history/references/maintenance-lanes.md", import.meta.url), "utf8");
 
   assert.match(task, /maintenance-lanes\.md[\s\S]{0,80}ceo-issue-history|ceo-issue-history[\s\S]{0,80}maintenance-lanes\.md/i);
   assert.match(task, /Hermes Runtime Skill Sync/i);
-  assert.match(
-    markdown,
-    /Paperclip[\s\S]{0,180}runtime skill[\s\S]{0,260}Hermes[\s\S]{0,180}(?:local )?skill storage|Hermes[\s\S]{0,180}(?:local )?skill storage[\s\S]{0,260}Paperclip[\s\S]{0,180}runtime skill/i,
-    "Monthly CEO routine must connect Paperclip runtime skills to Hermes local skill storage.",
-  );
-  assert.match(
-    markdown,
-    /copy or update|copied, was updated|copied\/updated|copied or updated/i,
-    "Monthly CEO routine must require copying or updating missing Hermes-visible skills.",
-  );
-  assert.match(
-    markdown,
-    /skills_list[\s\S]{0,160}skill_view|skill_view[\s\S]{0,160}skills_list/i,
-    "Monthly CEO routine must verify copied skills through Hermes skill listing/viewing.",
-  );
-  assert.match(
-    markdown,
-    /PAPERCLIP_COMPANY_ID[\s\S]{0,260}__runtime__/i,
-    "Monthly CEO routine must identify the Paperclip runtime skill source directory.",
-  );
-  assert.match(
-    markdown,
-    /all company agents[\s\S]{0,260}not only the CEO[\s\S]{0,360}\/api\/companies\/\{companyId\}\/agents[\s\S]{0,260}\/api\/agents\/\{agentId\}\/skills/i,
-    "Monthly CEO routine must inspect Paperclip-managed company skills across all company agents, not only the CEO's selected skills.",
-  );
-  assert.match(
-    markdown,
-    /no runtime materialization[\s\S]{0,220}fall back[\s\S]{0,260}__catalog__/i,
-    "Monthly CEO routine must fall back to the Paperclip catalog materialization when a company skill has no runtime copy.",
-  );
+  assert.match(markdown, /Paperclip-managed skills[\s\S]{0,260}all company agents/i);
+  assert.match(markdown, /skills_list[\s\S]{0,160}skill_view|skill_view[\s\S]{0,160}skills_list/i);
+  assert.match(markdown, /executable reconciliation[\s\S]{0,180}Micronaut Engineer/i);
+  assert.match(markdown, /CEO does not mutate Hermes skill storage/i);
 });
 
 test("README and COMPANY explain .company-runtime overlays in plain language", async () => {
@@ -119,72 +78,36 @@ test("README and COMPANY explain .company-runtime overlays in plain language", a
   }
 });
 
-test("managed Micronaut repo AGENTS.md updates require a PR path", async () => {
+test("managed Micronaut repo AGENTS.md findings route to the writer with conditional gates", async () => {
   const requiredPaths = [
     "../agents/ceo/AGENTS.md",
     "../skills/ceo-issue-history/references/maintenance-lanes.md",
     "../skills/company-package-evolution/SKILL.md",
-    "../README.md",
-    "../COMPANY.md",
+    "../tasks/monthly-ceo-self-improvement/TASK.md",
   ];
 
   for (const relativePath of requiredPaths) {
     const markdown = await readFile(new URL(relativePath, import.meta.url), "utf8");
-
-    assert.match(
-      markdown,
-      /managed Micronaut repositor(?:y|ies)[\s\S]*AGENTS\.md[\s\S]*(?:PR|pull request)|(?:PR|pull request)[\s\S]*managed Micronaut repositor(?:y|ies)[\s\S]*AGENTS\.md/i,
-      `${relativePath} must require managed Micronaut repo AGENTS.md updates to use a PR path.`,
-    );
-    assert.match(
-      markdown,
-      /Managed Repository AGENTS\.md Audit/i,
-      `${relativePath} must require the daily CEO report to include an explicit managed repository AGENTS.md audit section.`,
-    );
-    assert.match(
-      markdown,
-      /root `?AGENTS\.md`? exists[\s\S]{0,260}(?:durable\/current|stale\/generated|missing)|(?:durable\/current|stale\/generated|missing)[\s\S]{0,260}root `?AGENTS\.md`? exists/i,
-      `${relativePath} must require the audit to classify root AGENTS.md as current, stale/generated, or missing.`,
-    );
-    assert.match(
-      markdown,
-      /no action needed[\s\S]{0,260}(?:repo-local PR|linked follow-up issue|linked approval|blocker named)|(?:repo-local PR|linked follow-up issue|linked approval|blocker named)[\s\S]{0,260}no action needed/i,
-      `${relativePath} must require a concrete action or no-action outcome for each managed repository.`,
-    );
+    assert.match(markdown, /Managed Repository AGENTS\.md Audit|managed[- ]repository `?AGENTS\.md`?/i);
+    assert.match(markdown, /durable\/current[\s\S]{0,220}stale\/generated[\s\S]{0,220}missing/i);
+    assert.match(markdown, /Technical Writer|Writer/i);
+    assert.match(markdown, /Architect/i);
+    assert.match(markdown, /Security/i);
   }
 });
 
-test("CEO-opened PRs require CI and review-thread follow-up from the monthly routine", async () => {
-  const requiredPaths = [
+test("CEO delegates repository and PR work to the durable implementation owner", async () => {
+  const [ceo, routine, maintenance, evolution] = await Promise.all([
     "../agents/ceo/AGENTS.md",
+    "../tasks/monthly-ceo-self-improvement/TASK.md",
     "../skills/ceo-issue-history/references/maintenance-lanes.md",
     "../skills/company-package-evolution/SKILL.md",
-    "../README.md",
-    "../COMPANY.md",
-  ];
+  ].map((relativePath) => readFile(new URL(relativePath, import.meta.url), "utf8")));
 
-  for (const relativePath of requiredPaths) {
-    const markdown = await readFile(new URL(relativePath, import.meta.url), "utf8");
-
-    assert.match(
-      markdown,
-      /CEO-opened PRs?|PRs? opened by (?:the )?CEO/i,
-      `${relativePath} must name CEO-opened PRs explicitly.`,
-    );
-    assert.match(
-      markdown,
-      /CI[\s\S]{0,220}(?:green|passing)|(?:green|passing)[\s\S]{0,220}(?:CI|checks?)/i,
-      `${relativePath} must require CEO-opened PRs to keep CI/checks green.`,
-    );
-    assert.match(
-      markdown,
-      /unresolved review threads?|review threads?[\s\S]{0,220}(?:unresolved|resolved)/i,
-      `${relativePath} must require review-thread follow-up for CEO-opened PRs.`,
-    );
-    assert.match(
-      markdown,
-      /monthly (?:CEO )?self-improvement routine[\s\S]{0,360}(?:follow up|rediscover|recheck|inspect)|(?:follow up|rediscover|recheck|inspect)[\s\S]{0,360}monthly (?:CEO )?self-improvement routine/i,
-      `${relativePath} must make the monthly CEO self-improvement routine the follow-up mechanism.`,
-    );
+  assert.match(ceo, /CEO never branches, edits, commits, pushes, creates or updates PRs, repairs CI, replies to review threads, or performs PR rediscovery/i);
+  assert.match(routine, /CEO never branches, edits, commits, pushes, creates or updates PRs, repairs CI, replies to review threads, or performs PR rediscovery/i);
+  for (const markdown of [ceo, routine, maintenance, evolution]) {
+    assert.match(markdown, /implementation owner|Technical Writer|Micronaut Engineer/i);
   }
+  assert.match(evolution, /implementation owner owns branch, commits, PR creation\/update, CI repair, review replies, and PR follow-through/i);
 });

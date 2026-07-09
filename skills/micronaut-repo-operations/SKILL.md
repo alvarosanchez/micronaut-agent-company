@@ -17,6 +17,8 @@ Use this skill whenever you act on synced GitHub issues or pull requests for thi
 
 Before mutating issue state, publishing to GitHub, opening or updating a PR, closing an issue, creating routine follow-up, or handling an uncommon release/approval case, load the matching reference.
 
+Use the separately assigned read-only `paperclip-control-plane` skill for deterministic issue/document snapshots, verification, and approval-link checks. This skill remains the Micronaut workflow policy layer; native Paperclip tools perform permitted mutations.
+
 ## Efficient Evidence Collection
 
 - For local repository preflight, run `node <skill-directory>/scripts/repo-evidence.mjs --base <ref>` once; omit `--base` until the approved target is known. Resolve `<skill-directory>` from this skill's inventory. The read-only script returns compact machine-readable JSON for repository root, branch, HEAD, upstream, worktree state, base divergence, changed files, build markers, and instruction files. Read raw git output only when `errors` is non-empty or the decision needs omitted evidence.
@@ -32,7 +34,7 @@ Before mutating issue state, publishing to GitHub, opening or updating a PR, clo
 - Paperclip execution policies own review routing. `executionState.currentParticipant` resolves the active stage; `executionState.returnAssignee` receives `changes_requested`; active review stays `in_review` until the configured route advances.
 - Every substantive stage produces one durable artifact. QA keeps `qa-intake` and `qa-verification` separate.
 - Approve an active stage with `status: done` and a decision comment. Request changes with a non-`done` status, preferably `in_progress`, and a precise decision comment. Manual `TODO` assignment is only for owner changes outside an active review policy.
-- Invoke the next heartbeat only after routing or assignment has advanced correctly. Do not use `@` mentions as the routing mechanism.
+- Let execution-policy advancement or assignment wake the next participant. Agent-authenticated callers must not invoke another agent's heartbeat or use `@` mentions as routing.
 - For synced GitHub delivery work, `approved` advances the workflow; it never authorizes an agent to mark the Paperclip item `DONE`. GitHub Sync closes or completes it after merge or an allowed GitHub closure.
 - Board governance uses a linked Paperclip approval. Non-governance input uses issue interactions such as `suggest_tasks`, `ask_user_questions`, or `request_confirmation`. Put the exact proposed public comment in `recommendedAction` when approval gates a maintainer-visible write.
 - Use standard work mode for delivery, routine project children, product proposals, and PR follow-through. Planning mode is only for explicit plan-only precursors; accepted plans create standard-mode children through accepted-plan decomposition.
@@ -41,9 +43,10 @@ Before mutating issue state, publishing to GitHub, opening or updating a PR, clo
 
 ## Route Summary
 
-- Bugs: QA intake/reproducer → Micronaut Engineer → QA verification → Security Engineer → Code Reviewer.
-- Docs: QA intake → Technical Writer → QA verification → Security Engineer → Code Reviewer.
-- Improvements, enhancements, breaking changes, and dependency upgrades: QA intake → Architect → implementation/docs → QA verification → Security Engineer → Code Reviewer.
+- The authoritative ordered `qa-intake.stageSequence` selected from `references/intake-routing-release.md` controls every handoff; issue type alone does not select the route.
+- Routine non-security bugs and compatible dependency upgrades skip Architect and Security; architecture or migration triggers add Architect before the implementation owner.
+- Defined Security triggers add pre-triage before implementation and final review after QA; pre-triage never replaces Architect, implementation, QA verification, or final Security review.
+- Routine prose and executable docs use Writer -> QA -> Code Reviewer; security-sensitive docs use both Security stages, and workflow/authority semantics add Architect.
 - Questions, clarification waits, unreproducible reports, duplicates, and already-implemented reports may use QA's evidence-backed direct disposition path.
 - Existing contributor PRs remain on normal gates when salvageable; replacement work does not require closing the contributor PR.
 

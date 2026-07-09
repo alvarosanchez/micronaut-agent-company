@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import {
+  mkdir,
   mkdtemp,
   readFile,
   readdir,
@@ -112,13 +113,17 @@ const RESUME_TRUE_PATTERN =
 const ENVIRONMENT_RUNTIME_PATTERN =
   /(?:Paperclip )?environments?[\s\S]{0,500}(?:local|SSH|sandbox)[\s\S]{0,500}(?:live|deployment|operator-owned)[\s\S]{0,500}(?:@paperclipai\/plugin-e2b|environment-driver|provider)|(?:@paperclipai\/plugin-e2b|environment-driver|provider)[\s\S]{0,500}(?:Paperclip )?environments?[\s\S]{0,500}(?:live|deployment|operator-owned)/i;
 const APPROVAL_LINKAGE_VERIFICATION_PATTERN =
-  /approvals\/\{approvalId\}\/issues[\s\S]{0,320}(?:issue\.linkedApprovalIds|linkedApprovalIds)|(?:issue\.linkedApprovalIds|linkedApprovalIds)[\s\S]{0,320}approvals\/\{approvalId\}\/issues/i;
+  /approval-link[\s\S]{0,320}(?:issue\.linkedApprovalIds|linkedApprovalIds)|(?:issue\.linkedApprovalIds|linkedApprovalIds)[\s\S]{0,320}approval-link/i;
+const APPROVAL_LINK_COMMAND_PATTERN = /paperclip-workflow\.mjs[\s\S]{0,160}approval-link/i;
+const APPROVAL_LINK_SCRIPT_ROUTE_PATTERN = /\/api\/approvals\/\$\{encodeURIComponent\(approvalId\)\}\/issues/;
 const ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN =
   /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}failing CI[\s\S]{0,500}unresolved review feedback[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}target branch[\s\S]{0,500}(?:Micronaut Engineer|make the PR mergeable)[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline|failing CI[\s\S]{0,500}target branch[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline/i;
+const SECURITY_THREAD_HANDOFF_PATTERN =
+  /Security[\s\S]{0,500}(?:inspect|read)[\s\S]{0,500}review threads[\s\S]{0,700}followThroughOwner[\s\S]{0,500}repl(?:y|ies)[\s\S]{0,500}resolv(?:e|es|ing)/i;
 const HEALTHY_PR_MAINTAINER_WAIT_PATTERN =
   /(?:open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing[\s\S]{0,320}no actionable unresolved internal review state[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,260}normal maintainer review)|(?:normal maintainer review[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,360}open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing)/i;
 const FINAL_REVIEW_MAINTAINER_WAIT_NORMALIZATION_PATTERN =
-  /intermediate `?status:\s*done`?[\s\S]{0,360}same uninterrupted run[\s\S]{0,300}`?status:\s*in_review`?[\s\S]{0,260}clear the internal assignee and execution policy\/state[\s\S]{0,220}request no agent wake[\s\S]{0,320}(?:Never wake or restart|never wake or restart)[\s\S]{0,100}QA[\s\S]{0,100}Security Engineer[\s\S]{0,100}Code Reviewer/i;
+  /final policy stage[\s\S]{0,320}publication-only[\s\S]{0,320}`?TODO`?[\s\S]{0,260}`?followThroughOwner`?[\s\S]{0,320}approved full SHA[\s\S]{0,260}prohibit all edits/i;
 const COMPANY_ATTACHMENT_LIMIT_PATTERN =
   /attachmentMaxBytes[\s\S]{0,260}10 MiB[\s\S]{0,260}process-level (?:attachment )?cap[\s\S]{0,260}(?:ceiling|final ceiling)|10 MiB[\s\S]{0,260}attachmentMaxBytes[\s\S]{0,260}(?:ceiling|final ceiling)/i;
 const NEW_HIRE_APPROVAL_POLICY_PATTERN =
@@ -155,8 +160,8 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "README.md",
-    pattern: /heartbeat\/invoke/,
-    message: "README.md must document explicit reviewer wakeups through the Paperclip heartbeat invoke API.",
+    pattern: /let Paperclip dispatch it; agent-authenticated callers cannot invoke another agent/i,
+    message: "README.md must assign reviewer wakeup dispatch to Paperclip and prohibit cross-agent invocation.",
   },
   {
     relativePath: "README.md",
@@ -278,7 +283,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "README.md",
     pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
     message:
-      "README.md must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+      "README.md must explain that approval linkage is verified through imported `approval-link` instead of only `issue.linkedApprovalIds`.",
   },
   {
     relativePath: "README.md",
@@ -365,9 +370,15 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
-    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    pattern: APPROVAL_LINK_COMMAND_PATTERN,
     message:
-      "QA instructions must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+      "QA instructions must use the deterministic approval-link command instead of interpreting `issue.linkedApprovalIds`.",
+  },
+  {
+    relativePath: "skills/paperclip-control-plane/scripts/paperclip-workflow.mjs",
+    pattern: APPROVAL_LINK_SCRIPT_ROUTE_PATTERN,
+    message:
+      "The approval-link command must verify linkage through `GET /api/approvals/{approvalId}/issues`.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -517,9 +528,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/architect/AGENTS.md",
-    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    pattern: APPROVAL_LINK_COMMAND_PATTERN,
     message:
-      "Architect instructions must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+      "Architect instructions must use the deterministic approval-link command.",
   },
   {
     relativePath: "agents/architect/AGENTS.md",
@@ -529,15 +540,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/ceo/AGENTS.md",
-    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    pattern: APPROVAL_LINK_COMMAND_PATTERN,
     message:
-      "CEO instructions must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
-  },
-  {
-    relativePath: "agents/ceo/AGENTS.md",
-    pattern: ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN,
-    message:
-      "CEO instructions must explain that failing PR CI or unresolved review feedback is actionable PR follow-through even when the failure also reproduces on the target branch.",
+      "CEO instructions must use the deterministic approval-link command.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -564,7 +569,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
     message:
-      "Shared repo operations guidance must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+      "Shared repo operations guidance must explain that approval linkage is verified through imported `approval-link` instead of only `issue.linkedApprovalIds`.",
   },
   {
     relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
@@ -782,7 +787,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "COMPANY.md",
     pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
     message:
-      "COMPANY.md must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+      "COMPANY.md must explain that approval linkage is verified through imported `approval-link` instead of only `issue.linkedApprovalIds`.",
   },
   {
     relativePath: "COMPANY.md",
@@ -800,7 +805,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "agents/code-reviewer/AGENTS.md",
     pattern: FINAL_REVIEW_MAINTAINER_WAIT_NORMALIZATION_PATTERN,
     message:
-      "Code Reviewer instructions must make final PR approval's intermediate `done` state an immediate, no-wake transition to unassigned `in_review` without restarting completed review stages.",
+      "Code Reviewer instructions must complete the final policy stage and create a publication-only owner handoff for the approved immutable SHA without restarting completed review stages.",
   },
   {
     relativePath: "agents/micronaut-engineer/AGENTS.md",
@@ -881,9 +886,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/security-engineer/AGENTS.md",
-    pattern: REVIEW_THREAD_REPLY_TOOLING_PATTERN,
+    pattern: SECURITY_THREAD_HANDOFF_PATTERN,
     message:
-      "Security Engineer instructions must explain that PR review threads get a decision-explaining reply before they are resolved.",
+      "Security Engineer instructions must inspect PR review threads and return required replies and resolution mutations to followThroughOwner.",
   },
   {
     relativePath: "README.md",
@@ -1232,6 +1237,16 @@ function normalizeSkillSourceMetadataEntry(source) {
   };
 }
 
+function normalizeSkillSourceIdentityEntry(source) {
+  return {
+    kind: source?.kind ?? null,
+    url: source?.url ?? null,
+    repo: source?.repo ?? null,
+    path: source?.path ?? null,
+    commit: source?.commit ?? null,
+  };
+}
+
 function normalizeSkillCatalogMetadata(catalog) {
   if (!isPlainObject(catalog)) {
     return null;
@@ -1402,6 +1417,10 @@ function assertPortableRuntimeFilesAvoidMissingRepoFiles(files, rootDir, relativ
       continue;
     }
 
+    const searchableContent = relativePath.endsWith(".md")
+      ? parseFrontmatterMarkdown(content).body
+      : content;
+
     for (const referencedPath of relativePaths) {
       const pattern = new RegExp(`\\b${referencedPath.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`, "g");
       const absoluteReferencedPath = path.join(rootDir, referencedPath);
@@ -1409,12 +1428,12 @@ function assertPortableRuntimeFilesAvoidMissingRepoFiles(files, rootDir, relativ
         continue;
       }
 
-      const matches = [...content.matchAll(pattern)].filter((match) => {
+      const matches = [...searchableContent.matchAll(pattern)].filter((match) => {
         const start = match.index ?? -1;
         if (start < 0) {
           return false;
         }
-        const prefix = content.slice(Math.max(0, start - 3), start);
+        const prefix = searchableContent.slice(Math.max(0, start - 3), start);
         return prefix !== "://";
       });
       if (matches.length === 0) {
@@ -1632,13 +1651,15 @@ async function loadSourceExpectations(rootDir) {
     if (relativePath.startsWith("skills/") && relativePath.endsWith("/SKILL.md")) {
       const slug = relativePath.split("/")[1];
       const { frontmatter, body } = parseFrontmatterMarkdown(content);
+      const metadataSources = frontmatter.metadata?.sources ?? [];
       skills.set(slug, {
         slug,
         name: frontmatter.name,
         description: frontmatter.description ?? null,
-        metadataSources: (frontmatter.metadata?.sources ?? []).map(
-          normalizeSkillSourceMetadataEntry,
-        ),
+        skillKey: frontmatter.metadata?.skillKey ?? null,
+        metadataSources: metadataSources.map(normalizeSkillSourceMetadataEntry),
+        metadataIdentitySources: metadataSources.map(normalizeSkillSourceIdentityEntry),
+        isReferenced: metadataSources.some((source) => source.usage === "referenced"),
         metadataCatalog: normalizeSkillCatalogMetadata(
           frontmatter.metadata?.paperclip?.catalog,
         ),
@@ -1822,6 +1843,25 @@ async function runCli(args, { env = {} } = {}) {
   });
 }
 
+async function runNodeScript(scriptPath, args, { cwd, env = {} }) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [scriptPath, ...args], {
+      cwd,
+      env: { ...process.env, ...env },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => { stdout += chunk.toString(); });
+    child.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+    child.once("error", reject);
+    child.once("close", (code) => {
+      if (code === 0) return resolve({ stdout, stderr });
+      reject(new Error(`node ${scriptPath} ${args.join(" ")} failed with exit code ${code}\n${stdout}\n${stderr}`));
+    });
+  });
+}
+
 async function waitForConfigFile(configPath, serverHandle, timeoutMs = 60_000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
@@ -1964,6 +2004,137 @@ function assertExportedBody(exportFiles, relativePath, expectedBody, expectedSlu
     actualBody,
     expectedBody,
     `Expected exported body for ${relativePath} to match the source package`,
+  );
+}
+
+function createLegacyGhCliFiles(files) {
+  const relativePath = "skills/gh-cli/SKILL.md";
+  const { frontmatter, body } = parseFrontmatterMarkdown(files[relativePath]);
+  const urlSource = (frontmatter.metadata?.sources ?? []).find(
+    (source) => source?.kind === "url" && source?.url,
+  );
+  assert.ok(urlSource, "Expected gh-cli to declare its migration-stable URL source");
+
+  const legacyFrontmatter = structuredClone(frontmatter);
+  delete legacyFrontmatter.metadata.skillKey;
+  legacyFrontmatter.metadata.sources = [{
+    kind: "url",
+    url: urlSource.url,
+    attribution: urlSource.attribution,
+    usage: "referenced",
+  }];
+
+  return {
+    ...files,
+    [relativePath]: `---\n${YAML.stringify(legacyFrontmatter).trimEnd()}\n---\n${body}`,
+  };
+}
+
+function desiredSkillKeys(agent) {
+  const desired = agent?.adapterConfig?.paperclipSkillSync?.desiredSkills ?? [];
+  return sortStrings(
+    desired.flatMap((entry) => {
+      if (typeof entry === "string") return entry.trim() ? [entry.trim()] : [];
+      const key = typeof entry?.key === "string" ? entry.key.trim() : "";
+      return key ? [key] : [];
+    }),
+  );
+}
+
+function agentSkillAssignmentSnapshot(agents) {
+  return Object.fromEntries(
+    [...agents]
+      .sort((left, right) => left.name.localeCompare(right.name))
+      .map((agent) => [agent.name, { id: agent.id, desiredSkills: desiredSkillKeys(agent) }]),
+  );
+}
+
+function findOnlySkillBySlug(skills, slug) {
+  const matches = skills.filter((skill) => skill.slug === slug);
+  assert.equal(matches.length, 1, `Expected exactly one ${slug} skill row`);
+  return matches[0];
+}
+
+async function verifyGhCliExistingCompanyMigration(baseUrl, expected) {
+  const expectedGhCli = expected.skills.get("gh-cli");
+  assert.ok(expectedGhCli?.skillKey, "Expected gh-cli to pin metadata.skillKey");
+  const legacyFiles = createLegacyGhCliFiles(expected.files);
+  const include = {
+    company: true,
+    agents: true,
+    projects: false,
+    issues: false,
+    skills: true,
+  };
+
+  console.log("Seeding a legacy URL-backed gh-cli identity for migration verification...");
+  const legacyImport = await apiJson(baseUrl, "/api/companies/import", {
+    method: "POST",
+    body: {
+      source: { type: "inline", rootPath: "micronaut-agent-company-legacy", files: legacyFiles },
+      include,
+      target: { mode: "new_company" },
+      agents: "all",
+      collisionStrategy: "rename",
+    },
+  });
+  const companyId = legacyImport?.company?.id;
+  assert.ok(companyId, "Legacy fixture import did not return a company id");
+
+  const legacySkills = await apiJson(baseUrl, `/api/companies/${companyId}/skills`);
+  const legacyGhCli = findOnlySkillBySlug(legacySkills, "gh-cli");
+  assert.equal(legacyGhCli.key, expectedGhCli.skillKey, "Legacy URL identity derived the wrong key");
+  const legacyAgents = await apiJson(baseUrl, `/api/companies/${companyId}/agents`);
+  const legacyAssignments = agentSkillAssignmentSnapshot(legacyAgents);
+  assert.ok(
+    Object.values(legacyAssignments).some(({ desiredSkills }) =>
+      desiredSkills.includes(expectedGhCli.skillKey)
+    ),
+    "Legacy fixture did not assign gh-cli to any imported agent",
+  );
+
+  const importCandidate = () => apiJson(baseUrl, "/api/companies/import", {
+    method: "POST",
+    body: {
+      source: { type: "inline", rootPath: "micronaut-agent-company", files: expected.files },
+      include,
+      target: { mode: "existing_company", companyId },
+      agents: "all",
+      collisionStrategy: "replace",
+    },
+  });
+
+  for (const pass of ["migration", "reimport"]) {
+    await importCandidate();
+    const skills = await apiJson(baseUrl, `/api/companies/${companyId}/skills`);
+    const ghCli = findOnlySkillBySlug(skills, "gh-cli");
+    assert.deepEqual(
+      { id: ghCli.id, key: ghCli.key, slug: ghCli.slug },
+      { id: legacyGhCli.id, key: legacyGhCli.key, slug: legacyGhCli.slug },
+      `gh-cli identity changed during ${pass}`,
+    );
+    const agents = await apiJson(baseUrl, `/api/companies/${companyId}/agents`);
+    assert.deepEqual(
+      agentSkillAssignmentSnapshot(agents),
+      legacyAssignments,
+      `Agent IDs or skill assignments changed during gh-cli ${pass}`,
+    );
+  }
+
+  const exportResult = await apiJson(baseUrl, `/api/companies/${companyId}/export`, {
+    method: "POST",
+    body: { include },
+  });
+  const exportedGhCli = exportResult.manifest.skills.filter((skill) => skill.slug === "gh-cli");
+  assert.equal(exportedGhCli.length, 1, "Migration export must contain exactly one gh-cli skill");
+  assert.equal(exportedGhCli[0].key, expectedGhCli.skillKey);
+  const exportedMarkdown = getTextFile(exportResult.files, exportedGhCli[0].path);
+  const { frontmatter } = parseFrontmatterMarkdown(exportedMarkdown);
+  assert.equal(frontmatter.key, expectedGhCli.skillKey);
+  assert.deepEqual(
+    (frontmatter.metadata?.sources ?? []).map(normalizeSkillSourceIdentityEntry),
+    expectedGhCli.metadataIdentitySources.slice(0, 1),
+    "Migration export did not preserve the URL identity source",
   );
 }
 
@@ -2280,6 +2451,11 @@ async function main() {
       exportResult.manifest.skills.length >= expected.skills.size,
       "Exported skills should include all custom Micronaut company skills",
     );
+    const runtimeSkillInventory = path.join(dataDir, "runtime-skill-inventory");
+    const unrelatedManagedWorkspace = path.join(dataDir, "managed-workspace");
+    let importedCeoCollector = null;
+    let importedControlPlane = null;
+    await mkdir(unrelatedManagedWorkspace, { recursive: true });
     for (const expectedSkill of expected.skills.values()) {
       const actualSkill = exportResult.manifest.skills.find(
         (skill) => skill.slug === expectedSkill.slug,
@@ -2296,12 +2472,33 @@ async function main() {
       const { frontmatter: exportedSkillFrontmatter } = parseFrontmatterMarkdown(
         exportedSkillMarkdown,
       );
+      if (expectedSkill.skillKey !== null) {
+        assert.equal(
+          actualSkill.key ?? null,
+          expectedSkill.skillKey,
+          `Manifest canonical key mismatch for skill ${expectedSkill.slug}`,
+        );
+        assert.equal(
+          exportedSkillFrontmatter.key ?? null,
+          expectedSkill.skillKey,
+          `Exported canonical key mismatch for skill ${expectedSkill.slug}`,
+        );
+      }
+      // Paperclip persists and exports every ordinary source entry. For gh-cli,
+      // the first URL is deliberately the migration-stable canonical identity;
+      // the second pinned GitHub tuple is package-only audit provenance and is
+      // separately enforced by the source policy suite.
+      const compareSourceIdentity = expectedSkill.slug === "gh-cli";
+      const expectedRoundTripSources = compareSourceIdentity
+        ? expectedSkill.metadataIdentitySources.slice(0, 1)
+        : expectedSkill.metadataSources;
+      const normalizeSource = compareSourceIdentity
+        ? normalizeSkillSourceIdentityEntry
+        : normalizeSkillSourceMetadataEntry;
       assert.deepEqual(
-        (exportedSkillFrontmatter.metadata?.sources ?? []).map(
-          normalizeSkillSourceMetadataEntry,
-        ),
-        expectedSkill.metadataSources,
-        `Source metadata mismatch for skill ${expectedSkill.slug}`,
+        (exportedSkillFrontmatter.metadata?.sources ?? []).map(normalizeSource),
+        expectedRoundTripSources,
+        `Source identity mismatch for skill ${expectedSkill.slug}`,
       );
       assert.deepEqual(
         normalizeSkillCatalogMetadata(exportedSkillFrontmatter.metadata?.paperclip?.catalog),
@@ -2309,6 +2506,19 @@ async function main() {
         `Paperclip catalog metadata mismatch for skill ${expectedSkill.slug}`,
       );
       assertExportedBody(exportResult.files, actualSkill.path, expectedSkill.body);
+      if (expectedSkill.isReferenced) {
+        const { body: exportedSkillBody } = parseFrontmatterMarkdown(exportedSkillMarkdown);
+        assert.equal(
+          expectedSkill.body.trim(),
+          "",
+          `Referenced skill ${expectedSkill.slug} must remain an explicit metadata-only local runtime stub`,
+        );
+        assert.equal(
+          exportedSkillBody.trim(),
+          "",
+          `Paperclip must not resolve or inject remote source content for referenced skill ${expectedSkill.slug}`,
+        );
+      }
       if (expectedSkill.slug === "ceo-issue-history") {
         const exportedScriptPath = path.posix.join(
           path.posix.dirname(actualSkill.path),
@@ -2318,13 +2528,54 @@ async function main() {
           path.join(repoRoot, "skills", expectedSkill.slug, "scripts", "issue-history-evidence.mjs"),
           "utf8",
         );
+        const exportedScript = getTextFile(exportResult.files, exportedScriptPath);
         assert.equal(
-          getTextFile(exportResult.files, exportedScriptPath),
+          exportedScript,
           expectedScript,
           "CEO issue-history collector must survive package import/export unchanged",
         );
+        const runtimeScriptPath = path.join(runtimeSkillInventory, ...exportedScriptPath.split("/"));
+        await mkdir(path.dirname(runtimeScriptPath), { recursive: true });
+        await writeFile(runtimeScriptPath, exportedScript, "utf8");
+        importedCeoCollector = runtimeScriptPath;
+      }
+      if (expectedSkill.slug === "paperclip-control-plane") {
+        const exportedScriptPath = path.posix.join(
+          path.posix.dirname(actualSkill.path),
+          "scripts/paperclip-workflow.mjs",
+        );
+        const expectedScript = await readFile(
+          path.join(repoRoot, "skills", expectedSkill.slug, "scripts", "paperclip-workflow.mjs"),
+          "utf8",
+        );
+        const exportedScript = getTextFile(exportResult.files, exportedScriptPath);
+        assert.equal(
+          exportedScript,
+          expectedScript,
+          "Paperclip control-plane CLI must survive package import/export unchanged",
+        );
+        const runtimeScriptPath = path.join(runtimeSkillInventory, ...exportedScriptPath.split("/"));
+        await mkdir(path.dirname(runtimeScriptPath), { recursive: true });
+        await writeFile(runtimeScriptPath, exportedScript, "utf8");
+        importedControlPlane = runtimeScriptPath;
       }
     }
+
+    assert.ok(importedCeoCollector, "Imported CEO collector path must resolve from the exported skill manifest");
+    assert.ok(importedControlPlane, "Imported control-plane path must resolve from the exported skill manifest");
+    const ceoHelp = await runNodeScript(importedCeoCollector, ["--help"], { cwd: unrelatedManagedWorkspace });
+    assert.match(ceoHelp.stdout, /--as-of/);
+    const controlPlaneHelp = await runNodeScript(importedControlPlane, ["--help"], { cwd: unrelatedManagedWorkspace });
+    assert.match(controlPlaneHelp.stdout, /snapshot --issue/);
+    const importedSnapshot = await runNodeScript(
+      importedControlPlane,
+      ["snapshot", "--issue", importedIssues[0].id],
+      {
+        cwd: unrelatedManagedWorkspace,
+        env: { PAPERCLIP_API_URL: baseUrl, PAPERCLIP_API_KEY: "import-verification-key" },
+      },
+    );
+    assert.equal(JSON.parse(importedSnapshot.stdout).issue.id, importedIssues[0].id);
 
     assert.equal(exportResult.manifest.projects.length, expected.projects.size);
     for (const expectedProject of expected.projects.values()) {
@@ -2392,9 +2643,10 @@ async function main() {
     for (const [agentSlug, expectedAgentConfig] of Object.entries(
       expected.extension?.agents ?? {},
     )) {
+      const expectedAdapterConfig = structuredClone(expectedAgentConfig?.adapter ?? null);
       assert.deepEqual(
         exportedExtension?.agents?.[agentSlug]?.adapter ?? null,
-        expectedAgentConfig?.adapter ?? null,
+        expectedAdapterConfig,
         `Adapter config was not preserved for ${agentSlug}`,
       );
       for (const [key, value] of Object.entries(
@@ -2422,7 +2674,9 @@ async function main() {
       );
     }
 
-    console.log("Paperclip import verification passed.");
+    await verifyGhCliExistingCompanyMigration(baseUrl, expected);
+
+    console.log("Paperclip import and gh-cli migration verification passed.");
   } finally {
     if (serverHandle) {
       await stopServer(serverHandle.child);

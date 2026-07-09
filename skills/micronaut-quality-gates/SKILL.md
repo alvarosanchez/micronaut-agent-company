@@ -20,7 +20,7 @@ Before any role resolves its stage:
 - for synced GitHub delivery work, `approved` advances the issue to the next stage or PR follow-through; it is not permission to mark the Paperclip item `DONE`
 - if a human governance decision is required, the role creates or updates a real Paperclip approval instead of treating a comment as approval
 - if non-governance board or user input is required, the role uses an issue-thread interaction instead of a loose comment: `suggest_tasks` for selectable task lists, `ask_user_questions` for bounded questions, and `request_confirmation` for explicit plan or proposal confirmation
-- if the next stage or next owner should run immediately, the role explicitly invokes the next heartbeat only after the stage or assignment has already advanced correctly
+- the role advances or assigns the issue correctly and lets Paperclip routing wake the next participant; an agent-authenticated caller must not attempt to invoke another agent's heartbeat
 - if Paperclip has opened a productivity review issue with `issue_productivity_review` for the source issue because of a no-comment streak, long-active duration, or high-churn loop, the manager or CEO records a queue-health manager decision on that review issue before the source work is forced to continue
 - the role re-opens the issue and verifies the execution state matches the intended outcome before finishing
 
@@ -43,7 +43,7 @@ Before an actionable issue moves out of QA intake:
 - duplicates use the documented `closed: duplicate` path with GitHub's native `Close as duplicate` reason and a link to the superseding GitHub issue
 - already-implemented closures cite the exact version, PR, release, or documentation evidence and use QA's direct closure path
 - closure comments contain detailed evidence, are not short generic close notes, and cite the exact facts that justify the closure
-- the downstream execution-policy stage sequence is correct for the issue type
+- the authoritative `qa-intake` booleans and ordered `stageSequence` encode the correct downstream route; issue type is only a surface label and does not select the route
 - required all-of gates are modeled as separate sequential stages instead of one multi-participant stage
 - if the issue needs a public answer or closure outside QA's direct GitHub authority, the board-approval path is explicit
 - if intake needs bounded maintainer input rather than open-ended discussion, QA uses `ask_user_questions` with clear options and a continuation policy so the issue resumes when answered
@@ -79,6 +79,7 @@ Before code or docs leave implementation:
 - git work used the local git CLI
 - hidden cleanup has not been bundled without approval
 - the next QA stage can verify the work without reconstructing intent from scratch
+- repository-changing work has one immutable full commit SHA and a `publication-manifest` containing the proposed base, title, body, linkage, labels, projects, reviewers, and PR-visible assets; no agent-owned PR is created before internal approval
 
 ## QA Gate
 
@@ -90,15 +91,15 @@ The QA Engineer verifies:
 - when a linked contributor PR exists, QA has correctly decided whether it remains the implementation vehicle or should be replaced
 - the original issue or PR concern is actually resolved
 - tests and documentation support the claimed change
-- PR-visible asset evidence has been captured or generated when the verified behavior is visual, browser-rendered, or file-based, and the Code Reviewer has enough context to upload it through GitHub Sync before the PR body is finalized
+- visual, browser-rendered, or file-based evidence has been captured locally and named in `publication-manifest`; the publication owner must upload and verify the same evidence after approval without changing the reviewed commit
 - no important acceptance criteria were silently dropped
 - public answers and closure paths use the correct GitHub labels when applicable, use GitHub's native `Close as not planned` or `Close as duplicate` reason as appropriate, include detailed evidence rather than short generic close notes, treat evidence-backed already-implemented issues as part of QA's direct closure authority, and only require Paperclip board approval when the path is outside QA's direct GitHub authority
 
 Work that passes QA moves into the next configured review stage or completes through the allowed direct GitHub answer or closure path. Inside an active execution-policy stage, QA should let Paperclip move the issue into the next `in_review` participant automatically. When QA is changing owners outside the active review chain, it should use a normal `TODO` assignment plus a clear next-action comment. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
 
-## Security Gate
+## Security Gates
 
-The Security Engineer checks for:
+Security participates only when the authoritative ordered `qa-intake.stageSequence` includes it. In either Security stage, the Security Engineer checks for:
 
 - source-code exploit paths and attack-surface changes
 - authentication, authorization, secret handling, serialization, filesystem, process, and network risk
@@ -106,7 +107,7 @@ The Security Engineer checks for:
 - insecure defaults or examples that would steer users into unsafe deployment or configuration choices
 - whether blocking findings are concrete enough to justify `changes_requested`
 
-If the work is approved, it moves to Code Reviewer. If not, it returns through the execution policy as `changes_requested`.
+Approved pre-triage advances only to the next entry in the authoritative ordered `qa-intake.stageSequence`, which is Architect when planning is required and otherwise the implementation owner. Pre-triage does not skip Architect, implementation, QA verification, or final Security review. Approved final Security review advances to Code Reviewer. A rejected Security stage returns through the execution policy as `changes_requested`.
 
 ## Code Review Gate
 
@@ -117,23 +118,23 @@ The Code Reviewer checks for:
 - performance and regression risk
 - API, config, and developer-experience quality
 - missing or weak tests
-- correct PR issue linkage, `type:` label, reviewer requests, and every live organization-project association chosen during QA intake
-- if `approved` is chosen, a non-draft GitHub PR exists by the end of the run in the correct repository and approved target branch, is readable from the synced GitHub context, and includes the correct issue linkage, closing keyword, and `type:` label; all selected organization projects should be linked when the chosen projects exist and GitHub tooling can apply them, and prose alone is not a substitute for those live associations, but missing organization-project linkage due to no matching project or tooling gaps alone does not block code review approval
+- for unpublished agent-owned work, exact-SHA diff quality and the complete `publication-manifest`; for an already-open surviving PR, live linkage, label, reviewers, and project associations
+- if `approved` is chosen for unpublished work, every applicable upstream gate names the same immutable SHA and the implementation owner is recorded for publication-only follow-through
 - if a human maintainer changed, rescheduled, or retargeted the PR organization project after PR creation, that maintainer project change is authoritative and must remain; code review must not restore, reapply, re-add, or reset the original QA-selected organization project set over the maintainer's choice
 - once the approved target branch is identified, the work branch is fetched and updated from the target branch before starting work, editing, committing, opening, creating, or updating a PR; target branch rebase or merge conflicts are recorded as blockers instead of publishing conflicting PRs
 
-If the work is approved, the Code Reviewer creates or verifies the PR. If not, it resolves as `changes_requested`.
+If unpublished work is approved, Code Reviewer returns a publication-only handoff to the durable implementation owner; Reviewer never publishes. If an acceptable PR already existed before internal review, Reviewer verifies it without mutation. Otherwise it resolves `changes_requested`. Routine prose and executable docs omit Security; security-sensitive work follows the configured Security stages.
 
 ## PR Gate
 
 Before a PR is considered healthy:
 
-- the Code Reviewer created the PR after QA and Security Engineer stages approved, or verified an acceptable already-open contributor PR after those stages approved
+- every applicable internal gate approved the same immutable SHA before the implementation owner created the PR; publication read-back proves the remote SHA and metadata match `publication-manifest`
 - the synced Paperclip delivery item remains open until GitHub merge or an approved GitHub closure path syncs back
 - the summary and rationale are coherent
 - linked issue context is accurate and uses a closing keyword
 - the PR carries exactly one `type:` label
-- the PR should be linked to all selected Micronaut organization projects chosen during QA intake when GitHub tooling can apply them; those projects represent Micronaut Platform BOM release boards, not repository module or project versions. If that choice carried ambiguity, the PR description repeats it; naming the boards in prose is not a substitute for the live associations; missing organization-project linkage due to no matching project or tooling gaps does not by itself block a healthy PR. For a GA release target with concurrent prerelease and release boards, link both the matching prerelease board and the GA release board, for example `5.0.0-M3` and `5.0.0 Release`. If a human maintainer changes, reschedules, or retargets the PR organization project after PR creation, preserve that maintainer project choice and do not restore, reapply, re-add, or reset the original QA-selected organization project links unless a later maintainer or board decision explicitly asks for it.
+- the PR should be linked to all selected Micronaut organization projects chosen during QA intake when GitHub tooling can apply them; those projects represent Micronaut Platform BOM release boards, not repository module or project versions. If that choice carried ambiguity, the PR description repeats it; prose alone is not a substitute for the live organization-project association; missing linkage due to no matching project or tooling gaps does not by itself block a healthy PR. For a GA release target with concurrent prerelease and release boards, link both the matching prerelease board and the GA release board, for example `5.0.0-M3` and `5.0.0 Release`. If a human maintainer changes, reschedules, or retargets the PR organization project after PR creation, preserve that maintainer project choice and do not restore, reapply, re-add, or reset the original QA-selected organization project links unless a later maintainer or board decision explicitly asks for it.
 - test evidence is ready to share
 - visual evidence and generated review artifacts are embedded in the PR body when the change affects rendered output or produces files such as PDFs, using `paperclip-github-plugin:upload_pull_request_asset`; if upload fails, the PR explains the concrete permission, size, MIME, or runtime blocker instead of saying assets are unavailable
 - documentation or migration notes are included when needed
@@ -141,7 +142,7 @@ Before a PR is considered healthy:
 - guide, docs, or documentation PRs whose CI is not needed because the changed docs are not exercised by the build use a skip-ci keyword in the commit message, such as `[skip ci]`
 - guide, docs, or documentation PR branches are updated from the target branch before opening or updating the PR; rebase or merge conflicts are recorded as blockers instead of publishing conflicting PRs
 - standalone `micronaut-guides` PRs created or updated by guide routines include the generated guide PDF as a PR-visible uploaded artifact or attachment link, and the PDF is not committed to the repository
-- security review comments are addressed
+- applicable security review comments are addressed; prose-only docs have no Security gate
 - CI is green
 - Sonar Quality Gate issues are addressed
 - all review threads are replied to with a decision explanation before they are resolved

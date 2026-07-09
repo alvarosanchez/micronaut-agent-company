@@ -20,4 +20,4 @@ tags:
   - maintenance
 ---
 
-The Engineering team maintains a bounded Micronaut repository cluster through proactive product discovery plus a strict `BACKLOG -> TODO -> QA -> implementation -> QA -> Security Engineer -> Code Reviewer -> PR cycle` workflow, with human board approvals and merges remaining outside the agent org.
+The Engineering team maintains a bounded Micronaut repository cluster through proactive Product Manager discovery and risk-classified delivery. QA is the authoritative classifier: routine non-security bugs and compatible dependency upgrades skip Architect and Security; architecture/migration triggers add Architect; defined Security triggers add pre-triage and final review; routine prose or executable docs use Writer -> QA -> Reviewer. Micronaut Engineer owns code/build/dependency/plugin implementation and PR follow-through. Technical Writer owns docs, repository `AGENTS.md`, company instructions, textual control-plane implementation, and PR follow-through. CEO governs and routes, then stops before repository or PR work. Human approvals and merges remain outside the agent org.

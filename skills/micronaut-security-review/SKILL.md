@@ -36,14 +36,14 @@ Before you review:
 
 ## Possible Outcomes
 
-- `approved`: the stage artifact explains why the work is safe enough for the next review stage to proceed.
+- `approved`: pre-triage advances exactly to the next entry in the authoritative ordered `qa-intake.stageSequence`; final Security review advances to Code Reviewer. The stage artifact explains why the work is safe enough to proceed.
 - `changes_requested`: the stage artifact identifies a concrete vulnerability, insecure default, leaked secret, excessive permission, or other plausible exploit path that must be fixed before the work can advance.
 
 ## Role Boundary
 
 - QA owns acceptance against the plan or reproducer.
-- Security Engineer owns the dedicated security gate.
-- Code Reviewer owns maintainability, performance, developer experience, and PR quality after security sign-off.
+- Security Engineer owns two distinct conditional gates: pre-triage before implementation and final review after QA. Pre-triage never skips Architect, implementation, QA verification, or final Security review.
+- Code Reviewer owns maintainability, performance, developer experience, and PR quality only after final Security sign-off when Security is required.
 
 ## Finish Verification
 
@@ -53,8 +53,8 @@ Before you stop:
 2. If you approved the stage, confirm the current stage participant is no longer you.
 3. If another execution-policy stage remains, confirm the issue is still in `in_review` and the next `currentParticipant` is correct.
 4. If you requested changes, confirm the issue execution state shows `changes_requested` and your artifact names the exact remediation or compensating control.
-5. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the stage or assignment is already correct instead of assuming the new reviewer was woken automatically.
-6. If you touched GitHub review threads, confirm the decision-explaining replies and thread state changes exist.
+5. Confirm routing is correct; do not attempt a cross-agent heartbeat invocation.
+6. Inspect relevant GitHub review threads, but do not mutate them. Record any required reply or resolution for `followThroughOwner`, then confirm that owner performs the thread mutation before you approve.
 
 ## Monthly Security Deep Scan Mode
 

@@ -2,13 +2,69 @@
 
 Detailed reference extracted from `micronaut-repo-operations` so the primary skill can stay a compact router. These rules remain runtime guidance when this reference is loaded for the matching work mode.
 
-## Recommended Stage Layouts
+## Authoritative QA Intake Artifact
 
-- `type: bug`: QA intake review -> Micronaut Engineer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
-- `type: docs`: QA intake review -> Technical Writer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
-- `type: improvement`, `type: enhancement`, `type: breaking`, `type: dependency-upgrade`: QA intake review -> Architect review -> Micronaut Engineer or Technical Writer review stage -> QA verification review -> Security Engineer review -> Code Reviewer review.
-- `type: question`, clarification wait paths, unreproducible bug closures, duplicate closures, and already-implemented closures: QA intake review, with QA publishing the GitHub answer, clarification request, or closure directly and waiting for sync.
-- Recurring internal routines stay as Paperclip company-operating work and may use a shorter stage sequence when no downstream review is required.
+The GitHub issue type is only the surface label. QA is the authoritative risk classifier and writes a stable `qa-intake` issue document before selecting a route. Keep these exact headings and fields so policies and later agents do not infer risk from the label alone. `planningRequired`, `securityPrecheckRequired`, and `securityFinalReviewRequired` are composable booleans. `planningRequired` is the sole authority for whether Architect appears: `true` requires Architect in `stageSequence`, while `false` forbids Architect. Defined Security triggers set both Security booleans to `true`. Behavior-changing executable instructions may set only `securityFinalReviewRequired: true` when final review of the completed examples is warranted but the evidence establishes no pre-triage trigger. `stageSequence` is the authoritative ordered route and must agree with all three booleans and the matrix below.
+
+<!-- qa-intake-schema -->
+```yaml
+deliveryClass: routine | architectural | security-sensitive | documentation
+planningRequired: true | false
+planningReason: <bounded evidence-based reason or "not required">
+securityPrecheckRequired: true | false
+securityFinalReviewRequired: true | false
+deliveryOwner: micronaut-engineer | technical-writer
+followThroughOwner: micronaut-engineer | technical-writer
+verificationProfile: source | dependency | docs-prose | docs-executable
+stageSequence:
+  - <ordered agent slug, including qa-engineer for intake and verification>
+evidenceReproduction: <reproducer, prior art, or documentation evidence>
+acceptanceCriteria: <observable pass conditions>
+```
+
+Also retain repository, release, target-branch, compatibility, project-board, linked-PR, and closure facts required elsewhere in this reference. `deliveryOwner` and `followThroughOwner` must be identical and agree with the artifact being changed: Engineer owns source, tests, dependencies, builds, package scripts, adapters, and plugins; Writer owns prose docs, guides, repository `AGENTS.md`, company role instructions, and textual control-plane changes. The delivery owner prepares the immutable commit, publishes that same SHA only after final internal approval, and remains its follow-through owner.
+
+## Risk-Classified Stage Layouts
+
+The following YAML is the canonical semantic route matrix. Repeated `qa-engineer` entries mean intake and post-implementation verification respectively. The `lightweight-training` route is the one explicit no-intake exception: its board-bound `training-route` document supplies the fixed classification before Engineer starts. Security is conditional: only security-sensitive routes use its pre-triage and final-review gates. Routine non-security executable work and prose-only docs omit Security.
+
+<!-- workflow-routing-matrix -->
+```yaml
+lightweight-training: [micronaut-engineer, qa-engineer, code-reviewer]
+routine-bug: [qa-engineer, micronaut-engineer, qa-engineer, code-reviewer]
+architecture-sensitive-bug: [qa-engineer, architect, micronaut-engineer, qa-engineer, code-reviewer]
+routine-dependency-upgrade: [qa-engineer, micronaut-engineer, qa-engineer, code-reviewer]
+migration-dependency-upgrade: [qa-engineer, architect, micronaut-engineer, qa-engineer, code-reviewer]
+security-sensitive-source: [qa-engineer, security-engineer, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
+security-sensitive-architectural-source: [qa-engineer, security-engineer, architect, micronaut-engineer, qa-engineer, security-engineer, code-reviewer]
+prose-docs: [qa-engineer, technical-writer, qa-engineer, code-reviewer]
+executable-docs: [qa-engineer, technical-writer, qa-engineer, code-reviewer]
+behavior-changing-executable-docs: [qa-engineer, technical-writer, qa-engineer, security-engineer, code-reviewer]
+security-sensitive-docs: [qa-engineer, security-engineer, technical-writer, qa-engineer, security-engineer, code-reviewer]
+workflow-authority-docs: [qa-engineer, architect, technical-writer, qa-engineer, code-reviewer]
+security-sensitive-workflow-authority-docs: [qa-engineer, security-engineer, architect, technical-writer, qa-engineer, security-engineer, code-reviewer]
+feature: [qa-engineer, architect, micronaut-engineer, qa-engineer, code-reviewer]
+```
+
+Every `stageSequence` entry is an imported agent slug that can be materialized as a Paperclip execution-policy participant. Publication is not a policy stage: after Code Reviewer completes the final stage, it creates the documented publication-only non-policy `TODO` handoff to `followThroughOwner`, and runtime dispatch wakes that owner.
+
+Security-sensitive means the change affects authentication, authorization, secrets, cryptography, untrusted input, serialization boundaries, filesystem access, process execution, network trust, a known or suspected dependency vulnerability, dependency provenance, CI permissions, release credentials, or secure defaults and security guidance. Merely changing executable code, build logic, dependencies, or examples is not by itself a Security trigger.
+
+- Routine localized bug: QA intake -> Micronaut Engineer -> QA verification -> Code Reviewer. It skips Architect and Security.
+- Lightweight board-approved referenced skill: CEO-authored `training-route` -> Micronaut Engineer -> QA verification -> Code Reviewer -> Micronaut Engineer publication. The artifact fixes `planningRequired: false`, both Security booleans false, the approved candidate URL, approval ID, owner, and exact stage sequence before assignment; any mismatch returns to CEO governance.
+- Architecture-sensitive bug: QA intake -> Architect -> Micronaut Engineer -> QA verification -> Code Reviewer. Require Architect for cross-module or cross-repository impact; public API, serialization, or protocol compatibility; concurrency, lifecycle, or transaction semantics; structural performance tradeoffs; build or native-image interactions; multiple materially different fixes; contradictory intended behavior; or a failed implementation that exposes a design gap. Add both Security stages only when a Security trigger also applies.
+- Routine compatible dependency upgrade: QA intake -> Micronaut Engineer -> QA verification -> Code Reviewer. It skips Architect and Security.
+- Architectural or migration dependency upgrade: QA intake -> Architect -> Micronaut Engineer -> QA verification -> Code Reviewer. Require Architect for a major upgrade; public API or configuration migration; BOM, platform, language, or build baseline movement; lifecycle, threading, native-image, or annotation-processing effects; multi-module impact; broad transitive replacement; a compatibility matrix; or disputed strategy. Add both Security stages only when a Security trigger also applies.
+- Security-sensitive bug or dependency upgrade: QA intake -> Security Engineer pre-triage -> Architect only when architecture or compatibility planning is needed -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer. Security pre-triage never replaces final security review.
+- Prose-only docs: QA intake -> Technical Writer -> QA verification -> Code Reviewer. This reduced route has no Security stage.
+- Routine executable docs: QA intake -> Technical Writer -> QA verification -> Code Reviewer. Executability selects `docs-executable` verification but does not itself trigger Security, so routine non-security examples omit Security.
+- Behavior-changing executable docs without a defined Security trigger: QA intake -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer. Set `securityPrecheckRequired: false` and `securityFinalReviewRequired: true`; do not invent a precheck when the authoritative intake evidence establishes only the need to review completed command or tool behavior.
+- Security-sensitive docs: QA intake -> Security Engineer pre-triage -> Technical Writer -> QA verification -> Security Engineer final review -> Code Reviewer. Add Architect after pre-triage only when `planningRequired` is true.
+- Mechanical or stale repository `AGENTS.md`: CEO finding -> QA intake -> Technical Writer -> QA verification -> Code Reviewer. Workflow or authority semantics set `planningRequired: true` and add Architect before Writer; security-triggering authority or tool changes add both Security stages.
+- Features and breaking changes: QA intake -> Architect -> implementation owner -> QA verification -> Code Reviewer. Add both Security stages only when a Security trigger applies.
+- `type: question`, clarification wait paths, unreproducible bug closures, duplicate closures, and already-implemented closures: QA intake, with QA publishing the evidence-backed disposition and waiting for sync.
+
+QA encodes the selected sequence in the issue execution policy and records why optional Architect and Security stages are present or absent. Implementation may escalate an exposed design gap back to Architect; unresolved behavior, compatibility, or security questions are escalations, never permission to improvise.
 
 ## Imported Issues With Existing PRs
 
@@ -33,9 +89,12 @@ Duplicate, stale, superseded, out-of-scope, and already-implemented issues are i
 
 ## Type Routing
 
-- `type: bug`: QA reproduces first. Reproduced bugs move into the Micronaut Engineer stage sequence. Unreproducible bugs may be closed directly by QA with `closed: cannot reproduce`, GitHub's native `Close as not planned` reason instead of `Close as completed`, and a detailed, evidence-rich closure comment with the exact non-reproducer steps, versions, and observed results.
-- `type: improvement`, `type: enhancement`, `type: breaking`, and `type: dependency-upgrade`: QA moves the item into the Architect planning stage.
-- `type: docs`: QA moves the item into the Technical Writer stage.
+Issue type identifies the surface; the stable `qa-intake` classification selects the route.
+
+- `type: bug`: QA reproduces first. Routine localized bugs skip Architect; architecture-sensitive bugs use the Architect triggers in **Risk-Classified Stage Layouts**. Unreproducible bugs may use the evidence-backed direct closure path.
+- `type: dependency-upgrade`: routine compatible upgrades skip Architect; architectural, migration-bearing, or security-sensitive upgrades use the corresponding route and triggers above.
+- `type: improvement`, `type: enhancement`, and `type: breaking`: QA routes through Architect before the selected implementation owner.
+- `type: docs`: QA selects `docs-prose` or `docs-executable`. Routine non-security routes use Writer -> QA -> Reviewer. Behavior-changing executable instructions may use Writer -> QA -> Security final -> Reviewer without pre-triage when no defined Security trigger is established. Security-sensitive docs add Security pre-triage before Writer and final Security review before Reviewer.
 - `type: question`: QA answers directly on GitHub with `type: question` and `closed: question` when confident, or posts a request-for-comments message with `status: awaiting feedback`; issues that remain awaiting feedback for more than 30 days may be closed with `closed: question` and GitHub's native `Close as not planned` reason instead of `Close as completed`.
 
 ## Closure Dispositions

@@ -13,7 +13,7 @@ const ROUTINE_MANAGED_REPO_QA_INTAKE_PATTERN =
 const ROUTINE_NO_DIRECT_ENGINEER_PATTERN =
   /routine[\s\S]{0,420}(?:must not|do not|instead of)[\s\S]{0,260}(?:directly )?(?:assign|assigned)[\s\S]{0,220}(?:Micronaut Engineer|Technical Writer|implementation owner)|(?:Micronaut Engineer|Technical Writer|implementation owner)[\s\S]{0,260}(?:must not|do not|instead of)[\s\S]{0,260}(?:directly )?(?:assign|assigned)/i;
 const ROUTINE_NORMAL_DELIVERY_PATH_PATTERN =
-  /QA[\s\S]{0,180}(?:planning when needed|planning)[\s\S]{0,180}implementation[\s\S]{0,180}QA verification[\s\S]{0,180}security[\s\S]{0,180}code-review|normal delivery path[\s\S]{0,360}(?:QA verification|security review|code review|PR creation)/i;
+  /QA[\s\S]{0,180}(?:planning when needed|planning)[\s\S]{0,180}implementation[\s\S]{0,180}QA verification[\s\S]{0,180}security[\s\S]{0,180}code-review|normal delivery path[\s\S]{0,360}(?:QA verification|security review|code review|PR creation)|(?:QA-selected route|QA classification)[\s\S]{0,520}(?:routine bugs|compatible dependency)[\s\S]{0,260}(?:skip|without) Architect[\s\S]{0,520}(?:architectural|migration)[\s\S]{0,220}Architect[\s\S]{0,520}Security/i;
 const ROUTINE_PR_OR_NO_PR_DECISION_PATTERN =
   /(?:not complete|complete)[\s\S]{0,420}(?:linked PR|PR exists|pull request)[\s\S]{0,420}(?:no-diff|no-PR|blocker)|(?:linked PR|PR exists|pull request)[\s\S]{0,420}(?:no-diff|no-PR|blocker)[\s\S]{0,420}(?:not complete|complete)/i;
 

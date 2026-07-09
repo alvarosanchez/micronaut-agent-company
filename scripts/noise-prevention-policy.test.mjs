@@ -27,9 +27,10 @@ test("pending human interactions suppress unrelated follow-up", () => {
   assert.match(workflow, /continuation policy/i);
 });
 
-test("explicit wakes are deduplicated against queued and running work", () => {
-  assert.match(workflow, /before (?:explicitly )?invoking[^.]{0,180}(?:queued|running)/i);
-  assert.match(workflow, /matching wake[^.]{0,180}(?:do not invoke|no-op|skip)/i);
+test("runtime dispatch owns wake deduplication and agents fail closed", () => {
+  assert.match(workflow, /assign the next owner[\s\S]{0,180}Paperclip owns dispatch/i);
+  assert.match(workflow, /Agent-authenticated callers cannot invoke another agent/i);
+  assert.match(workflow, /no matching run is queued[^.]+runtime wake blocker/i);
 });
 
 test("monthly guide coordinators reuse project children on retry", () => {

@@ -32,8 +32,8 @@ function assertContains(value, pattern, message) {
 
 const ACTUAL_PROJECT_ROUTINE_SUBTASK_PATTERN =
   /(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project|(?:actual|corresponding)[\s\S]{0,120}(?:Paperclip )?project[\s\S]{0,220}(?:sub-issue|child issue|subtask)/i;
-const ROUTINE_OWNER_ASSIGNEE_PATTERN =
-  /(?:sub-issue|child issue|subtask)[\s\S]{0,220}(?:assigned|assignee)[\s\S]{0,160}(?:Technical Writer|technical-writer|routine owner|self|yourself)|(?:assigned|assignee)[\s\S]{0,160}(?:Technical Writer|technical-writer|routine owner|self|yourself)[\s\S]{0,220}(?:sub-issue|child issue|subtask)/i;
+const ROUTINE_QA_INTAKE_PATTERN =
+  /(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:assigned|assignee)[\s\S]{0,160}(?:QA Engineer|qa-engineer)[\s\S]{0,500}qa-intake[\s\S]{0,500}technical-writer[\s\S]{0,200}qa-engineer[\s\S]{0,200}code-reviewer/i;
 const PROJECT_TEMPLATE_GUIDE_EXCLUSION_PATTERN =
   /micronaut-project-template[\s\S]{0,260}(?:not an actual Micronaut project|repository template|file sync|sync files)[\s\S]{0,260}(?:skip|exclude|not eligible|do not)[\s\S]{0,260}(?:user guide|guide topic|standalone guide|guide routines)|(?:skip|exclude|not eligible|do not)[\s\S]{0,260}micronaut-project-template[\s\S]{0,260}(?:user guide|guide topic|standalone guide|guide routines)/i;
 const MICRONAUT_BUILD_GUIDE_EXCLUSION_PATTERN =
@@ -49,9 +49,9 @@ const GUIDE_PR_TYPE_DOCS_PATTERN =
 const SKIP_CI_COMMIT_PATTERN =
   /(?:guide|docs|documentation)[\s\S]{0,220}(?:PR|pull request)[\s\S]{0,260}(?:CI (?:is )?not needed|CI is not required|not exercised by the build|build does not exercise)[\s\S]{0,260}(?:commit|commits|commit message)[\s\S]{0,180}(?:skip ci|\[skip ci\])|(?:commit|commits|commit message)[\s\S]{0,180}(?:skip ci|\[skip ci\])[\s\S]{0,260}(?:CI (?:is )?not needed|CI is not required|not exercised by the build|build does not exercise)[\s\S]{0,220}(?:guide|docs|documentation)[\s\S]{0,220}(?:PR|pull request)/i;
 const UPDATE_FROM_TARGET_BRANCH_PATTERN =
-  /(?:guide|docs|documentation)[\s\S]{0,220}(?:PR|pull request)[\s\S]{0,260}(?:before|prior to)[\s\S]{0,160}(?:open|create|update)[\s\S]{0,180}(?:update|rebase|merge|sync)[\s\S]{0,220}(?:target|base|default) branch|(?:update|rebase|merge|sync)[\s\S]{0,220}(?:target|base|default) branch[\s\S]{0,260}(?:before|prior to)[\s\S]{0,160}(?:open|create|update)[\s\S]{0,180}(?:guide|docs|documentation)[\s\S]{0,220}(?:PR|pull request)/i;
+  /before (?:preparing|publishing|opening|updating)[^\n]*(?:guide|documentation|docs)[^\n]*(?:candidate|PR|pull request)[^\n]*(?:update|rebase|merge|sync)[^\n]*(?:target|base|default) branch|(?:update|rebase|merge|sync)[^\n]*(?:target|base|default) branch[^\n]*before[^\n]*(?:preparing|publishing|opening|updating)[^\n]*(?:candidate|PR|pull request)/i;
 const CONFLICT_BLOCKER_PATTERN =
-  /(?:conflict|merge conflict|rebase conflict)[\s\S]{0,220}(?:blocker|blocked|do not open|do not update|must not open|must not update)|(?:do not open|do not update|must not open|must not update|blocker|blocked)[\s\S]{0,220}(?:conflict|merge conflict|rebase conflict)/i;
+  /(?:conflict|merge conflict|rebase conflict)[\s\S]{0,220}(?:blocker|blocked|do not (?:open|update|prepare|publish)|must not (?:open|update|prepare|publish))|(?:do not (?:open|update|prepare|publish)|must not (?:open|update|prepare|publish)|blocker|blocked)[\s\S]{0,220}(?:conflict|merge conflict|rebase conflict)/i;
 
 test("Technical Writer owns monthly guide review and topic discovery routines", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
@@ -88,7 +88,7 @@ test("Monthly User Guide Review task requires fact-checked guide validation", as
   assertContains(body, /first run[\s\S]{0,220}full guide review|full guide review[\s\S]{0,220}first run/i, "User guide review should do a full first pass.");
   assertContains(body, /prior routine report[\s\S]{0,260}(?:delta|diff|recent commits)|(?:delta|diff|recent commits)[\s\S]{0,260}prior routine report/i, "User guide review should use prior reports and deltas after the first run.");
   assertContains(body, ACTUAL_PROJECT_ROUTINE_SUBTASK_PATTERN, "User guide review should create project-specific subtasks in the actual project being reviewed.");
-  assertContains(body, ROUTINE_OWNER_ASSIGNEE_PATTERN, "User guide review should assign project-specific subtasks to the Technical Writer.");
+  assertContains(body, ROUTINE_QA_INTAKE_PATTERN, "User guide review should enter normal QA intake before Writer implementation.");
   assertContains(body, /PR/i, "User guide review project subtasks should be allowed to open or update PRs.");
 });
 
@@ -108,7 +108,7 @@ test("Monthly Guide Topic Discovery task uses the Micronaut Guides skill", async
   assertContains(body, /existing[\s\S]{0,180}(?:PR|pull request)[\s\S]{0,220}micronaut-guides|micronaut-guides[\s\S]{0,220}existing[\s\S]{0,180}(?:PR|pull request)/i, "Guide topic discovery should check existing micronaut-guides PRs.");
   assertContains(body, /assigned issue[\s\S]{0,220}(?:work in progress|avoid|do not create)|(?:work in progress|avoid|do not create)[\s\S]{0,220}assigned issue/i, "Guide topic discovery should treat assigned guide issues as work in progress.");
   assertContains(body, ACTUAL_PROJECT_ROUTINE_SUBTASK_PATTERN, "Guide topic discovery should create project-specific subtasks in the actual project being reviewed.");
-  assertContains(body, ROUTINE_OWNER_ASSIGNEE_PATTERN, "Guide topic discovery should assign project-specific subtasks to the Technical Writer.");
+  assertContains(body, ROUTINE_QA_INTAKE_PATTERN, "Guide topic discovery should enter normal QA intake before Writer implementation.");
   assertContains(body, /PR/i, "Guide topic discovery project subtasks should be allowed to open or update PRs.");
   assertContains(body, /PDF[\s\S]{0,160}(?:PR-visible|attachment|artifact)/i, "Guide topic discovery should require the generated PDF to be visible from the PR.");
   assertContains(body, /do not commit the PDF|PDF[\s\S]{0,120}not committed/i, "Guide topic discovery should keep generated PDFs out of repository commits.");
@@ -127,7 +127,7 @@ test("Technical Writer has guide-routine and CI-skip guidance", async () => {
   assertContains(body, /assigned issue[\s\S]{0,260}(?:work in progress|avoid|do not create)|(?:work in progress|avoid|do not create)[\s\S]{0,260}assigned issue/i, "Technical Writer should avoid duplicate guide work when assigned guide issues exist.");
   assertContains(body, /delta/i, "Technical Writer should mention delta review after the first run.");
   assertContains(body, ACTUAL_PROJECT_ROUTINE_SUBTASK_PATTERN, "Technical Writer should create weekly routine subtasks in the actual project being reviewed.");
-  assertContains(body, ROUTINE_OWNER_ASSIGNEE_PATTERN, "Technical Writer should assign weekly routine subtasks to Technical Writer.");
+  assertContains(body, ROUTINE_QA_INTAKE_PATTERN, "Technical Writer should create guide children through normal QA intake.");
   assertContains(body, /skip ci|\[skip ci\]/i, "Technical Writer should mention CI-skip guidance.");
   assertContains(body, /PDF[\s\S]{0,200}(?:PR-visible|attachment|artifact)/i, "Technical Writer should attach or link generated PDFs from standalone guide PRs.");
 
@@ -213,6 +213,29 @@ test("guide routine issues only coordinate project subtasks", async () => {
       NO_TOP_LEVEL_ROUTINE_FOLLOWUP_PATTERN,
       `${label} should prevent top-level project-specific issues for guide-routine follow-up.`,
     );
+  }
+});
+
+test("guide routine PRs publish only after exact-SHA QA and Code Reviewer approval", async () => {
+  const guideReview = await read("../tasks/monthly-user-guide-review/TASK.md");
+  const guideTopic = await read("../tasks/monthly-guide-topic-discovery/TASK.md");
+  const writer = await read("../agents/technical-writer/AGENTS.md");
+  const repoOperations = await readGuidePolicy();
+
+  for (const [label, markdown] of [
+    ["monthly-user-guide-review", guideReview],
+    ["monthly-guide-topic-discovery", guideTopic],
+    ["Technical Writer", writer],
+    ["repo operations", repoOperations],
+  ]) {
+    assertContains(markdown, ROUTINE_QA_INTAKE_PATTERN, `${label} must make qa-intake available before Writer implementation.`);
+    assertContains(markdown, /unpublished exact SHA|unpublished immutable SHA/i, `${label} must prepare an unpublished exact SHA.`);
+    assertContains(markdown, /publication-manifest/i, `${label} must bind publication metadata.`);
+    assertContains(markdown, /QA[\s\S]{0,120}Code Reviewer/i, `${label} must route through QA and Code Reviewer.`);
+    assertContains(markdown, /(?:only (?:Technical Writer )?publication mode|only that final handoff)[\s\S]{0,180}(?:open|create|publish)[\s\S]{0,80}(?:PR|pull request)/i, `${label} must delay PR creation until publication mode.`);
+    assertContains(markdown, /(?:approved SHA|same SHA)[\s\S]{0,100}(?:metadata|unchanged)|metadata unchanged/i, `${label} must publish the approved candidate unchanged.`);
+    assertContains(markdown, /publication[\s\S]{0,220}(?:non-policy|outside the execution policy)[\s\S]{0,220}(?:TODO|followThroughOwner)|(?:non-policy|outside the execution policy)[\s\S]{0,220}(?:TODO|followThroughOwner)[\s\S]{0,220}publication/i, `${label} must keep publication outside stageSequence.`);
+    assert.doesNotMatch(markdown, /(?:technical-writer|micronaut-engineer)-publication/, `${label} must not encode publication as an execution-stage pseudo-agent.`);
   }
 });
 

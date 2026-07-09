@@ -70,15 +70,12 @@ test("runtime instructions keep organization-project linkage best effort", async
     /keep the ambiguity note in the PR summary|make sure the PR description records it/i,
     "Code Reviewer guidance should preserve ambiguity notes instead of dropping the chosen project.",
   );
+  assert.doesNotMatch(codeReviewer, /paperclip-github-plugin:add_pull_request_to_project/i);
+  assert.match(codeReviewer, /return agent-caused drift to the follow-through owner/i);
   assert.match(
     codeReviewer,
-    /add_pull_request_to_project[\s\S]*(?:after PR creation|existing surviving PR|keeping an existing surviving PR|live PR-to-project association)|(?:live PR-to-project association)[\s\S]*add_pull_request_to_project/i,
-    "Code Reviewer guidance should require using GitHub Sync tooling for newly created and already-existing surviving PRs.",
-  );
-  assert.match(
-    codeReviewer,
-    /instead of only naming (?:it|them) in prose|not a substitute for applying (?:the live PR project link|every selected live PR project link)/i,
-    "Code Reviewer guidance should say prose-only organization-project notes are insufficient when the live link can be applied.",
+    /Naming the chosen organization project set in prose is not a substitute for live links/i,
+    "Code Reviewer guidance should say prose-only organization-project notes are insufficient when live links can be verified.",
   );
 
   assert.match(

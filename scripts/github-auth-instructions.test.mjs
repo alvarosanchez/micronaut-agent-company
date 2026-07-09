@@ -8,7 +8,6 @@ const GH_CLI_SKILL = "gh-cli";
 const SHARED_GITHUB_SKILL = "micronaut-github-operations";
 const GITHUB_AGENT_PATHS = [
   "agents/architect/AGENTS.md",
-  "agents/ceo/AGENTS.md",
   "agents/code-reviewer/AGENTS.md",
   "agents/micronaut-engineer/AGENTS.md",
   "agents/product-manager/AGENTS.md",
@@ -17,9 +16,9 @@ const GITHUB_AGENT_PATHS = [
   "agents/technical-writer/AGENTS.md",
 ];
 const ORGANIZATION_PROJECT_AGENT_PATHS = new Set([
-  "agents/code-reviewer/AGENTS.md",
   "agents/micronaut-engineer/AGENTS.md",
 ]);
+const ORGANIZATION_PROJECT_REVIEWER_PATH = "agents/code-reviewer/AGENTS.md";
 const NO_GH_FALLBACK_PATTERN =
   /do not use `?gh`? as (?:an API |a )?fallback|do not use \bgh\b as (?:an API |a )?fallback/i;
 const PLUGIN_TOOLS_REQUIRED_PATTERN =
@@ -32,6 +31,12 @@ const NO_FILESYSTEM_TOKEN_SEARCH_PATTERN =
   /do not search the filesystem, plugin config, or other files for a token|must not search the filesystem, plugin config, or other files for a token/i;
 const ATOMIC_CREATE_PULL_REQUEST_PATTERN =
   /create_pull_request[\s\S]{0,900}(?:headCommitSha|exact full (?:branch-tip )?(?:commit )?SHA)[\s\S]{0,900}(?:publishes|publish)[\s\S]{0,400}(?:creates|creating|PR)/i;
+const DURABLE_OWNER_ARGUMENT_PATTERN =
+  /(?:followThroughAssigneeAgentId[\s\S]{0,180}(?:Paperclip agent UUID|owner's Paperclip agent UUID)|Paperclip agent UUID[\s\S]{0,180}followThroughAssigneeAgentId)/i;
+const DURABLE_OWNER_LIFECYCLE_PATTERN =
+  /same UUID[\s\S]{0,120}idempotent[\s\S]{0,500}omitting `followThroughAssigneeAgentId`[\s\S]{0,240}preserves[\s\S]{0,240}explicit `null`[\s\S]{0,240}(?:removes|clear)/i;
+const DURABLE_OWNER_MAINTAINER_WAIT_PATTERN =
+  /do not clear the durable owner[\s\S]{0,260}(?:clean|green)[\s\S]{0,260}maintainer review/i;
 const NO_AGENT_GIT_PUSH_PATTERN =
   /do not[\s\S]{0,120}(?:run )?`?git push`?|must not[\s\S]{0,120}(?:run )?`?git push`?/i;
 const NO_CREDENTIAL_INSPECTION_PATTERN =
@@ -74,9 +79,9 @@ const GITHUB_SYNC_AGENT_UNLINK_FORBIDDEN_PATTERN =
   /GitHub Sync[\s\S]{0,240}(?:links|issue-link|pull-request-link)[\s\S]{0,240}durable[\s\S]{0,400}Agents[\s\S]{0,240}must not[\s\S]{0,240}(?:unlink|tombstone|delete|deactivate)/i;
 const GITHUB_SYNC_OPERATOR_UNLINK_PATTERN =
   /intentional unlinking[\s\S]{0,160}operator UI action|operator UI action[\s\S]{0,160}intentional unlinking/i;
-const KPI_API_ROUTE_AGENT_PATHS = [
-  "agents/ceo/AGENTS.md",
-  "agents/code-reviewer/AGENTS.md",
+const PR_CREATOR_AGENT_PATHS = [
+  "agents/micronaut-engineer/AGENTS.md",
+  "agents/technical-writer/AGENTS.md",
 ];
 
 function assertDirectGithubFooterPolicy(markdown, label) {
@@ -219,7 +224,9 @@ test("GitHub-capable agents include the exception-only gh CLI reference and atom
   assert.match(sharedSkillBody, /headCommitSha/);
   assert.doesNotMatch(sharedSkillBody, /GITHUB_TOKEN/);
 
-  for (const relativePath of GITHUB_AGENT_PATHS) {
+  for (const relativePath of GITHUB_AGENT_PATHS.filter((path) =>
+    !path.includes("code-reviewer") && !path.includes("security-engineer")
+  )) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { frontmatter, body } = parseFrontmatter(markdown);
 
@@ -263,6 +270,10 @@ test("GitHub-capable agents delegate common transport policy to the shared skill
         body,
         /list_organization_projects[\s\S]{0,520}add_pull_request_to_project|add_pull_request_to_project[\s\S]{0,520}list_organization_projects/i,
       );
+    }
+    if (relativePath === ORGANIZATION_PROJECT_REVIEWER_PATH) {
+      assert.match(body, /list_organization_projects[\s\S]{0,260}verify the selected project set/i);
+      assert.doesNotMatch(body, /paperclip-github-plugin:add_pull_request_to_project/i);
     }
   }
 });
@@ -339,16 +350,27 @@ test("GitHub Sync link policy forbids agent unlinking while preserving operator 
   assertGitHubSyncAgentUnlinkPolicy(body, "agents/ceo/AGENTS.md");
 });
 
-test("PR-creating agents explain the authenticated PR KPI API route rule", async () => {
-  for (const relativePath of KPI_API_ROUTE_AGENT_PATHS) {
+test("PR-creating agents use atomic plugin publication and delegate exception attribution", async () => {
+  for (const relativePath of PR_CREATOR_AGENT_PATHS) {
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { body } = parseFrontmatter(markdown);
-
-    assertPullRequestMetricApiRoutePolicy(body, relativePath);
+    assert.match(body, /paperclip-github-plugin:create_pull_request/);
+    assert.match(body, DURABLE_OWNER_ARGUMENT_PATTERN);
+    assert.match(body, /Apply the shared `micronaut-github-operations` skill/);
   }
+  const shared = await readFile(new URL("../skills/micronaut-github-operations/SKILL.md", import.meta.url), "utf8");
+  assert.match(shared, DURABLE_OWNER_ARGUMENT_PATTERN);
+  assert.match(shared, DURABLE_OWNER_LIFECYCLE_PATTERN);
+  assert.match(shared, DURABLE_OWNER_MAINTAINER_WAIT_PATTERN);
+  assert.match(
+    shared,
+    /link_github_item[\s\S]{0,500}followThroughAssigneeAgentId/,
+    "Out-of-pipeline PR links must persist the implementation owner.",
+  );
+  assertPullRequestMetricApiRoutePolicy(shared, "skills/micronaut-github-operations/SKILL.md");
 });
 
-test("Local gh-cli skill points to the requested upstream skill", async () => {
+test("Local gh-cli skill preserves its import identity and pins immutable upstream provenance", async () => {
   const markdown = await readFile(
     new URL("../skills/gh-cli/SKILL.md", import.meta.url),
     "utf8",
@@ -366,10 +388,20 @@ test("Local gh-cli skill points to the requested upstream skill", async () => {
   assert.match(frontmatter.description, HORIZONTAL_RULE_PATTERN);
   assert.match(frontmatter.description, AI_FOOTER_PATTERN);
   assert.doesNotMatch(frontmatter.description, /paperclipIssueId/i);
+  assert.equal(frontmatter.metadata?.skillKey, "url/skills-sh/98fe50cd5a/gh-cli");
   assert.deepEqual(frontmatter.metadata?.sources, [
     {
       kind: "url",
       url: "https://skills.sh/github/awesome-copilot/gh-cli",
+      attribution: "awesome-copilot",
+      usage: "identity",
+    },
+    {
+      kind: "github-file",
+      repo: "github/awesome-copilot",
+      path: "skills/gh-cli/SKILL.md",
+      commit: "e9a7805e2b1dbda5ad4d0cc9be1fc3ef6273e115",
+      sha256: "18e53a9f4c154406a072ed4cfbc524d40f9a4734ef25102086c1ef5e24113a76",
       attribution: "awesome-copilot",
       usage: "referenced",
     },

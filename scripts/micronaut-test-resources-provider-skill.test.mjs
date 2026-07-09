@@ -9,8 +9,6 @@ const TARGET_AGENT_FILES = [
   "architect",
   "micronaut-engineer",
   "qa-engineer",
-  "security-engineer",
-  "code-reviewer",
   "technical-writer",
 ];
 

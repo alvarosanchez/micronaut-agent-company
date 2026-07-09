@@ -9,10 +9,10 @@ Use this CEO-only skill before interpreting monthly self-improvement history. Do
 
 ## Collect
 
-Choose an explicit UTC `asOf` from the routine's scheduled boundary and run:
+Choose an explicit UTC `asOf` from the routine's scheduled boundary. Load the assigned issue-history evidence skill, locate its imported runtime directory, and execute the bundled collector:
 
 ```bash
-node skills/ceo-issue-history/scripts/issue-history-evidence.mjs --as-of <ISO-8601-UTC>
+node <ceo-issue-history-skill-directory>/scripts/issue-history-evidence.mjs --as-of <ISO-8601-UTC>
 ```
 
 The script uses `PAPERCLIP_API_URL`, `PAPERCLIP_API_KEY`, and `PAPERCLIP_COMPANY_ID`. It enumerates the canonical company issue and agent inventories, reads durable issue resources with bounded concurrency, and reads company-wide heartbeat activity from `GET /api/companies/:companyId/activity?entityType=heartbeat_run&limit=500`. Run-entity events are deduplicated by event ID against issue resources.
@@ -39,4 +39,4 @@ Terminal run token and USD-cost fields are parsed independently. Missing metrics
 
 ## Maintenance Lanes
 
-The evidence pass is the discovery lane. Broad runtime-skill reconciliation, managed-repository instruction audit, and prior CEO PR follow-up are separate bounded maintenance lanes; load [references/maintenance-lanes.md](references/maintenance-lanes.md) only when running this routine. Do not count those maintenance outcomes as new ranked candidates.
+The evidence pass is the discovery lane. Broad runtime-skill reconciliation and managed-repository instruction audit are separate bounded maintenance lanes; durable PR follow-through belongs to Writer or Engineer, never CEO. Load [references/maintenance-lanes.md](references/maintenance-lanes.md) only when running this routine. Do not count maintenance outcomes as new ranked candidates.

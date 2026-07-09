@@ -59,6 +59,7 @@ test("Product Manager agent is configured for product discovery", async () => {
   assert.equal(frontmatter.title, "Product Manager");
   assert.equal(frontmatter.reportsTo, "ceo");
   assert.deepEqual(frontmatter.skills, [
+    "paperclip-control-plane",
     "product-discovery",
     "micronaut-repo-operations",
     "micronaut-github-operations",
@@ -95,7 +96,7 @@ test("Monthly Product Discovery routine is active and owned by Product Manager",
   assert.equal(adapter?.config?.hermesCommand, HERMES_CHAT_COMMAND);
   assert.equal(adapter?.config?.provider, "openai-codex");
   assert.equal(adapter?.config?.model, "gpt-5.6-terra");
-  assert.equal(adapter?.config?.extraArgs, undefined);
+  assert.deepEqual(adapter?.config?.extraArgs, ["--reasoning-effort", "medium"]);
   assert.equal(adapter?.config?.timeoutSec, 7200);
   assert.equal(adapter?.config?.graceSec, 20);
 
