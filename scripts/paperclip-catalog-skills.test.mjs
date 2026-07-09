@@ -1,8 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import { access, readdir, readFile } from "node:fs/promises";
+import path from "node:path";
+import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
 
 import YAML from "yaml";
+
+const execFileAsync = promisify(execFile);
+const ROOT = fileURLToPath(new URL("../", import.meta.url));
 
 async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
@@ -178,6 +185,14 @@ test("all imported roles resolve the shared control-plane script from the skill 
   }
 });
 
+test("CEO collector callers resolve the imported skill directory", async () => {
+  for (const relativePath of ["../skills/ceo-issue-history/SKILL.md", "../tasks/monthly-ceo-self-improvement/TASK.md"]) {
+    const markdown = await read(relativePath);
+    assert.match(markdown, /<ceo-issue-history-skill-directory>\/scripts\/issue-history-evidence\.mjs/);
+    assert.doesNotMatch(markdown, /node skills\/ceo-issue-history\/scripts\/issue-history-evidence\.mjs/);
+  }
+});
+
 test("automation audit covers the derived Markdown corpus and exact CLI surface", async () => {
   const agentFiles = await markdownFiles(new URL("../agents/", import.meta.url));
   const skillFiles = await markdownFiles(new URL("../skills/", import.meta.url));
@@ -187,12 +202,25 @@ test("automation audit covers the derived Markdown corpus and exact CLI surface"
   assert.equal(agentFiles.filter((file) => file.pathname.endsWith("/AGENTS.md")).length, 8);
   assert.equal(skillFiles.length, 25);
   assert.match(audit, /all 8 `agents\/\*\/AGENTS\.md` files and all 25 package-owned Markdown files under `skills\/`[\s\S]{0,120}33 instruction\/skill Markdown files total/i);
-  for (const command of ["snapshot", "verify", "approval-link", "put-document"]) {
+  for (const command of ["snapshot", "verify", "approval-link"]) {
     assert.match(audit, new RegExp("\\| `" + command + "` \\|"));
     assert.match(script, new RegExp(`args\\.command === "${command}"`));
   }
   assert.doesNotMatch(audit, /\| `transition` \|/);
+  assert.doesNotMatch(audit, /\| `put-document` \|/);
   assert.doesNotMatch(script, /args\.command === "transition"/);
+  assert.doesNotMatch(script, /args\.command === "put-document"/);
+});
+
+test("all tracked normative Markdown uses the shared deterministic control-plane boundary", async () => {
+  const { stdout } = await execFileAsync("git", ["ls-files", "*.md"], { cwd: ROOT, encoding: "utf8" });
+  const forbidden = /GET \/api\/approvals\/\{approvalId\}\/issues|GET \/api\/issues\/\{issueId\}\/documents|PUT \/api\/issues\/\{issueId\}\/documents|\bput-document\b|guarded stage transitions?|stage REST operations/i;
+  const violations = [];
+  for (const relativePath of stdout.trim().split("\n").filter(Boolean)) {
+    const markdown = await readFile(path.join(ROOT, relativePath), "utf8");
+    if (forbidden.test(markdown)) violations.push(relativePath);
+  }
+  assert.deepEqual(violations, []);
 });
 
 test("README skill assignment tables match exact package agent frontmatter", async () => {

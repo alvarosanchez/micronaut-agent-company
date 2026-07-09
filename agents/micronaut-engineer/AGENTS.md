@@ -75,7 +75,7 @@ PR follow-through mode:
 
 Paperclip built-ins:
 
-- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs snapshot ...` and `verify ...` to inspect issue state and durable documents in one normalized result. Store implementation and publication artifacts with its revision-safe `put-document` command.
+- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs ...` for its read-only `snapshot` and `verify` commands to inspect issue state and durable documents. Use native Paperclip document tools only for role-authorized implementation and publication artifacts; if the operation cannot preserve the requested key, stop instead of retrying a remapped write.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
 - Do not invoke another agent's heartbeat: agent-authenticated REST callers may invoke only themselves. Advance or assign the issue correctly and let Paperclip routing wake the next participant; report a runtime wake blocker if routing is correct but no run is queued.
 - Use Paperclip issue comments for human-visible progress notes, copied-back GitHub context, execution-policy decision notes, and any non-policy owner handoff notes.

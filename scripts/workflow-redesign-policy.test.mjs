@@ -80,7 +80,7 @@ function unsafeMaintainerWaitMutations(bundle) {
 }
 
 function unsafeCrossAgentWakeInstructions(markdown) {
-  const wake = /heartbeat\/invoke|\b(?:invoke|trigger|start)\b[^\n]{0,100}\b(?:another agent|next (?:agent|participant|reviewer)|reviewer|assignee)[^\n]{0,100}\bheartbeat\b|\bheartbeat\b[^\n]{0,100}\b(?:another agent|next (?:agent|participant|reviewer)|reviewer|assignee)\b/i;
+  const wake = /heartbeat\/invoke|\bheartbeat invoke\b|\b(?:invoke|trigger|start)\b[^\n]{0,100}\b(?:another agent|next (?:agent|participant|reviewer)|reviewer|assignee)[^\n]{0,100}\bheartbeat\b|\bheartbeat\b[^\n]{0,100}\b(?:another agent|next (?:agent|participant|reviewer)|reviewer|assignee)\b/i;
   const prohibition = /\b(?:must not|do not|never|cannot|can't|may not|no cross-agent|permits an agent to invoke only itself)\b/i;
   return markdown.split("\n").filter((line) => wake.test(line) && !prohibition.test(line));
 }
@@ -491,12 +491,12 @@ test("every active routine has a complete pinned imported invocation bundle", as
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "7c5bb87b20a33e4789fa9512946fa87ecd41cc589b2bb0fa1cf62aadb4dd73dd",
-    "monthly-security-deep-scan": "ca09436c4a5d7af67099d2c17ee899257f15afc860ab6b6d02b26065dc3f6143",
-    "monthly-user-guide-review": "3edcacde99031ee2ab35576c8b65ce8385b54e34162bdcf5056308d3e24c6ec9",
-    "monthly-guide-topic-discovery": "06737f150bd8cd35d0e6a97a5f3be0f18672d573f41a7cdd512803fcc29cdae9",
-    "monthly-ceo-self-improvement": "10f140aa2e6106364a82a97629a6060ce10e8398bd55dba4b5649be36fe12cb1",
-    training: "aa0ad3f62f45e63c3114ae4422db8beae318aede5f02a467151378acb35f984b",
+    "monthly-product-discovery": "0547b5e175d0bb5faf37e76b18388ad6969ca6e985241d7c8ac5a77084ad2c98",
+    "monthly-security-deep-scan": "a191883fd225661b673eef9dda4d768c43dfa1643800fa03fbdbeda65ef3b05c",
+    "monthly-user-guide-review": "eb14d10f0fedbbc0d3f058e0452f4f5bcdc73b7c6d2a402a38e3f3e8535d390c",
+    "monthly-guide-topic-discovery": "7ef8e11ce2681bdd1c0925deb8bc74b90583a3971723c8bbb885907a9d3a3199",
+    "monthly-ceo-self-improvement": "1f45ef4bf80fe75289084eb68045f63c071363cc63d61522e465072aa5cc3854",
+    training: "71171ae9488ebab5bf0293702bc3ff068a4e5a51188467a53a4bdde1af62d5d9",
   });
 });
 
@@ -533,7 +533,7 @@ test("CEO effective bundle is governance-only", async () => {
   for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundles[0]), "10f140aa2e6106364a82a97629a6060ce10e8398bd55dba4b5649be36fe12cb1");
+  assert.equal(bundleDigest(bundles[0]), "1f45ef4bf80fe75289084eb68045f63c071363cc63d61522e465072aa5cc3854");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -672,7 +672,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "7b1473fbcdd0c26364d639d4b8627c1825ab5eb0d4983086645979a8183a8a19";
+  const reviewerDigest = "2522e05a910a4b1f2253ddde1477beaa9c33f4eb3faca95af60b56402f0ea11b";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -691,7 +691,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective invocation bundle must not assign repository or PR mutation authority to a governance or gate role",
   );
-  assert.equal(bundleDigest(securityBundle), "ca09436c4a5d7af67099d2c17ee899257f15afc860ab6b6d02b26065dc3f6143");
+  assert.equal(bundleDigest(securityBundle), "a191883fd225661b673eef9dda4d768c43dfa1643800fa03fbdbeda65ef3b05c");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {

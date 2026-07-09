@@ -1,30 +1,40 @@
 #!/usr/bin/env node
 
-import { readFile } from "node:fs/promises";
 import process from "node:process";
+
+const COMMAND_OPTIONS = {
+  snapshot: { singleton: new Set(["issue"]), repeated: new Set(["document"]) },
+  verify: { singleton: new Set(["issue", "status", "participant", "assignee", "outcome"]), repeated: new Set(["document"]) },
+  "approval-link": { singleton: new Set(["approval", "issue"]), repeated: new Set() },
+};
 
 function usage() {
   return `Usage:
   paperclip-workflow.mjs snapshot --issue <id> [--document <key>]...
   paperclip-workflow.mjs verify --issue <id> [--status <status>] [--participant <agent-id|none>] [--assignee <agent-id|none>] [--outcome <outcome|none>] [--document <key>]...
   paperclip-workflow.mjs approval-link --approval <id> --issue <id>
-  paperclip-workflow.mjs put-document --issue <id> --key <key> --file <path> [--title <title>] [--change-summary <text>]
 
-Environment: PAPERCLIP_API_URL, PAPERCLIP_API_KEY, and, for writes, PAPERCLIP_RUN_ID.`;
+Environment: PAPERCLIP_API_URL and PAPERCLIP_API_KEY.`;
 }
 
 function parseArgs(argv) {
   const command = argv.shift();
   if (!command || command === "--help" || command === "-h") return { command: "help" };
+  const schema = COMMAND_OPTIONS[command];
+  if (!schema) throw new Error(`Unknown command: ${command}`);
   const values = { document: [] };
+  const seen = new Set();
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (!token.startsWith("--")) throw new Error(`Unexpected argument: ${token}`);
     const key = token.slice(2);
+    if (!schema.singleton.has(key) && !schema.repeated.has(key)) throw new Error(`Unknown option --${key} for ${command}.`);
+    if (schema.singleton.has(key) && seen.has(key)) throw new Error(`Duplicate option --${key}.`);
     const value = argv[index + 1];
     if (!value || value.startsWith("--")) throw new Error(`${token} requires a value.`);
-    if (key === "document") values.document.push(value);
-    else values[key.replaceAll("-", "_")] = value;
+    if (schema.repeated.has(key)) values[key].push(value);
+    else values[key] = value;
+    seen.add(key);
     index += 1;
   }
   return { command, ...values };
@@ -35,7 +45,7 @@ function required(value, name) {
   return value;
 }
 
-function config({ write = false } = {}) {
+function config() {
   const baseUrl = required(process.env.PAPERCLIP_API_URL, "PAPERCLIP_API_URL");
   const apiKey = required(process.env.PAPERCLIP_API_KEY, "PAPERCLIP_API_KEY");
   const configured = new URL(baseUrl);
@@ -50,7 +60,6 @@ function config({ write = false } = {}) {
   return {
     origin,
     apiKey,
-    runId: write ? required(process.env.PAPERCLIP_RUN_ID, "PAPERCLIP_RUN_ID for writes") : process.env.PAPERCLIP_RUN_ID,
   };
 }
 
@@ -59,7 +68,7 @@ async function request(client, pathname, { method = "GET", body, allow404 = fals
   if (target.origin !== client.origin.origin) throw new Error("Refusing to send Paperclip credentials across origins.");
   const headers = { Authorization: `Bearer ${client.apiKey}`, Accept: "application/json" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  if (client.runId) headers["X-Paperclip-Run-Id"] = client.runId;
+
   const response = await fetch(target, {
     method,
     redirect: "error",
@@ -166,32 +175,6 @@ async function main() {
     if (!linked) process.exitCode = 2;
     return;
   }
-
-  if (args.command === "put-document") {
-    const issueId = required(args.issue, "--issue");
-    const key = required(args.key, "--key");
-    const file = required(args.file, "--file");
-    const client = config({ write: true });
-    const body = await readFile(file, "utf8");
-    const existing = await request(client, `/api/issues/${encodeURIComponent(issueId)}/documents/${encodeURIComponent(key)}`, { allow404: true });
-    if (existing?.lockedAt) throw new Error(`Document ${key} is locked; refusing a write that Paperclip would redirect to a new key.`);
-    const payload = {
-      title: args.title ?? existing?.title ?? null,
-      format: "markdown",
-      body,
-      changeSummary: args.change_summary ?? null,
-      baseRevisionId: existing?.latestRevisionId ?? null,
-    };
-    const written = await request(client, `/api/issues/${encodeURIComponent(issueId)}/documents/${encodeURIComponent(key)}`, { method: "PUT", body: payload });
-    if (written?.key && written.key !== key) throw new Error(`Paperclip returned unexpected document key ${written.key}.`);
-    if (written?.document?.key && written.document.key !== key) throw new Error(`Paperclip redirected the write to unexpected document key ${written.document.key}.`);
-    if (written?.redirectedFromLockedDocument) throw new Error("Paperclip redirected a locked-document write unexpectedly.");
-    const verified = await request(client, `/api/issues/${encodeURIComponent(issueId)}/documents/${encodeURIComponent(key)}`);
-    if (verified.key !== key || verified.body !== body) throw new Error("Document read-back identity or body did not match the requested write.");
-    process.stdout.write(`${JSON.stringify({ schemaVersion: 1, issueId, key, documentId: verified.id, revisionId: verified.latestRevisionId, created: existing === null, verified: true, response: written })}\n`);
-    return;
-  }
-
 
   throw new Error(`Unknown command: ${args.command}`);
 }

@@ -46,7 +46,7 @@ monthly-security-deep-scan mode:
 
 Paperclip built-ins:
 
-- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs snapshot ...` to inspect state and `put-document ... --key security-review` to publish security evidence safely.
+- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs ...` for its read-only `snapshot` command to inspect state. Use native Paperclip document tools only for the authorized `security-review`; if the operation cannot preserve that key, stop instead of retrying a remapped write.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
 - Do not invoke another agent's heartbeat; advance or assign correctly and let Paperclip routing wake the next participant.
 - Use Paperclip issue comments for human-visible audit notes, copied-back GitHub context, execution-policy decision notes, and any non-policy owner handoff notes.

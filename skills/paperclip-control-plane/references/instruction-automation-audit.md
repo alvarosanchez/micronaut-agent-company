@@ -4,16 +4,16 @@ Reviewed scope: all 8 `agents/*/AGENTS.md` files and all 25 package-owned Markdo
 
 ## Automated now
 
-The bundled `scripts/paperclip-workflow.mjs` provides four commands for four repeated control-plane operations:
+The bundled `scripts/paperclip-workflow.mjs` provides three read-only commands for repeated control-plane operations:
 
 | Former prose operation | Command | Safety property |
 | --- | --- | --- |
 | Fetch issue, heartbeat context, and selected durable documents | `snapshot` | One normalized JSON result; 404 documents are explicit `null` |
 | Re-open and verify status, assignee, current participant, last outcome, and required documents | `verify` | Exits 2 with field-level mismatches |
 | Verify approval-to-issue linkage | `approval-link` | Reads the authoritative approval issue list rather than trusting cached issue fields |
-| Create/update a durable issue document | `put-document` | Uses `baseRevisionId` and verifies the stored body byte-for-byte |
 
-The script requires the normal agent bearer token. Mutating commands also require `PAPERCLIP_RUN_ID`. It accepts only a bare HTTP(S) origin, rejects embedded credentials/query/fragment/path components, and permits plaintext HTTP only on loopback. It deliberately has **no stage-transition or cross-agent wake command**: the installed Paperclip build exposes no atomic client precondition that can fence a same-agent stage re-entry, and an agent-authenticated heartbeat caller may invoke only itself. Native issue tools own stage advancement; correct stage advancement or assignment is the routing mechanism.
+
+The script requires the normal agent bearer token. It accepts only a bare HTTP(S) origin, rejects embedded credentials/query/fragment/path components, and permits plaintext HTTP only on loopback. It deliberately has **no document-mutation, stage-transition, or cross-agent wake command**: the installed Paperclip build exposes no atomic client precondition for keyed-document replacement or same-agent stage re-entry, and an agent-authenticated heartbeat caller may invoke only itself. Native Paperclip tools own permitted document and stage operations; correct stage advancement or assignment is the routing mechanism.
 
 ## Already executable; do not wrap again
 

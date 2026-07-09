@@ -86,7 +86,7 @@ Verification mode:
 
 Paperclip built-ins:
 
-- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs snapshot ...` and `verify ...` to inspect execution state and documents in one normalized result. Store `qa-intake` and `qa-verification` with revision-safe `put-document`; never reuse one key for both modes and never rewrite CEO-authored `training-route`.
+- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs ...` for its read-only `snapshot` and `verify` commands to inspect execution state and documents. Use native Paperclip document tools only for authorized `qa-intake` and `qa-verification` artifacts; never reuse one key for both modes, never rewrite CEO-authored `training-route`, and stop rather than retry if an operation cannot preserve the requested key.
 - Use issue-thread interactions for non-governance input: `ask_user_questions` for bounded intake questions and `request_confirmation` when QA needs explicit confirmation of a proposal but not a linked approval.
 - Use approvals APIs whenever other human governance decisions outside QA's direct GitHub authority need a linked board approval first.
 - After creating or following up on a linked board approval, run `paperclip-workflow.mjs approval-link --approval ... --issue ...`; do not rely only on `issue.linkedApprovalIds`.

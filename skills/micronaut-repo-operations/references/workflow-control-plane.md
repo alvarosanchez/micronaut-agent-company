@@ -56,13 +56,13 @@ These are built into Paperclip itself. Use them even when no plugin-specific too
 
 - identity and inbox: `GET /api/agents/me`, `GET /api/agents/me/inbox-lite`, fallback `GET /api/companies/{companyId}/issues?assigneeAgentId={yourId}&status=todo,in_progress,in_review,blocked`
 - execution lock: `POST /api/issues/{issueId}/checkout`, `POST /api/issues/{issueId}/release`
-- issue context: `GET /api/issues/{issueId}`, `GET /api/issues/{issueId}/heartbeat-context`, `GET /api/issues/{issueId}/comments` for assignee, status, execution state, dependency context, liveness and continuation context, and any exposed `parentId`, `blockedByIssueIds`, `checkoutRunId`, or `executionRunId`
+- issue context: resolve the imported `paperclip-control-plane` skill and use `snapshot` for normalized issue, heartbeat, and selected-document evidence; use native Paperclip comments when the audit thread is also needed
 - state updates: `PATCH /api/issues/{issueId}` with the run-id header when you need to change issue status, change assignee, update `executionPolicy`, or append a Paperclip comment in the same call
-- durable stage artifacts: `GET /api/issues/{issueId}/documents`, `GET /api/issues/{issueId}/documents/{key}`, `PUT /api/issues/{issueId}/documents/{key}`, `GET /api/issues/{issueId}/documents/{key}/revisions`
+- durable stage artifacts: use the imported control-plane `snapshot` and `verify` commands for deterministic reads. Use native Paperclip document tools for role-authorized writes, and stop rather than retry if the runtime cannot preserve the requested key
 - attachments when a file artifact matters: `POST /api/companies/{companyId}/issues/{issueId}/attachments`, `GET /api/issues/{issueId}/attachments`, `GET /api/attachments/{attachmentId}/content`; this package imports `attachmentMaxBytes: 10485760` (10 MiB), and the process-level attachment cap remains the final ceiling
 - subtask or escalation creation: `POST /api/companies/{companyId}/issues`; use `parentId` for structure, `blockParentUntilDone` for known child work that should hold the parent checklist, and `blockedByIssueIds` when the new issue is a real blocker
 - issue-thread interactions: `POST /api/issues/{issueId}/interactions` with `kind: suggest_tasks`, `kind: ask_user_questions`, or `kind: request_confirmation`; use idempotency keys and a continuation policy when the assignee should resume after the board/user response
-- approvals: `GET /api/companies/{companyId}/approvals?status=pending`, `POST /api/companies/{companyId}/approvals`, `GET /api/approvals/{approvalId}`, `GET /api/approvals/{approvalId}/issues`, `POST /api/approvals/{approvalId}/comments`, `POST /api/approvals/{approvalId}/resubmit`
+- approvals: use native Paperclip approval tools to list, create, inspect, comment on, or resubmit approvals; use imported control-plane `approval-link` for deterministic issue-link verification
 - runtime dispatch evidence: inspect the issue execution state and queued/running work after correct stage advancement or assignment; agent-authenticated callers do not perform cross-agent wakeups
 
 Default artifact policy for this package:
@@ -71,13 +71,13 @@ Default artifact policy for this package:
 - use Paperclip issue comments for human-visible progress notes, GitHub-facing explanations copied back for audit, execution-policy decision notes, and any non-policy owner handoff notes
 - use issue-thread interactions instead of comment-only proposal lists when the board/user needs to choose tasks, answer structured questions, or confirm a plan
 - use linked approvals for board governance instead of treating comments as approvals
-- after creating or following up on a linked approval, verify the linkage with `GET /api/approvals/{approvalId}/issues` instead of relying only on `issue.linkedApprovalIds`, because some runtimes may leave that issue field empty even when the approval is actually linked
+- after creating or following up on a linked approval, use imported control-plane `approval-link` instead of relying only on `issue.linkedApprovalIds`, because some runtimes may leave that issue field empty even when the approval is actually linked
 
-Example keyed-document flow:
+Keyed-document flow:
 
-1. Read the current artifact with `GET /api/issues/{issueId}/documents/ceo` (or another stable key such as `qa-intake`, `qa-verification`, `plan`, or `security-review`).
-2. Write the updated artifact with `PUT /api/issues/{issueId}/documents/ceo` so the stage output stays anchored to the same durable key.
-3. Use `GET /api/issues/{issueId}/documents/ceo/revisions` when you need the audit trail for an earlier version.
+1. Use imported control-plane `snapshot --document <key>` to read the current artifact.
+2. Use a native Paperclip document tool for the role-authorized update. If it cannot guarantee the requested key or reports a remap, stop and record the authoritative result; do not retry.
+3. Use the native revision-history view when you need the audit trail, then re-run `snapshot` or `verify` for the current key.
 
 Plan-confirmation and decomposition flow:
 

@@ -56,7 +56,7 @@ Use `agent-browser` only for bounded read-only validation of rendered behavior a
 
 Paperclip built-ins:
 
-- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs snapshot ...`, `verify ...`, and `approval-link ...` for normalized issue/document state and linked-approval checks. Store `code-review` with revision-safe `put-document`.
+- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs ...` for its read-only `snapshot`, `verify`, and `approval-link` commands for normalized issue/document state and linked-approval checks. Use native Paperclip document tools only for the authorized `code-review`; if the operation cannot preserve that key, stop instead of retrying a remapped write.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. For final PR approval, immediately apply the maintainer-wait normalization above. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
 - Do not invoke another agent's heartbeat; agent-authenticated REST callers may invoke only themselves. Correct routing and let Paperclip wake the assignee.
 - Use Paperclip issue comments for human-visible audit notes, execution-policy decision notes, and any non-policy owner handoff notes.

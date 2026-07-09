@@ -62,7 +62,7 @@ CEO has only the manager-facing Paperclip catalog skills `issue-triage` and `tas
 
 Paperclip built-ins:
 
-- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs snapshot ...` to inspect state and `put-document ... --key ceo` or `--key training-route` to publish governance evidence safely.
+- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs ...` for its read-only `snapshot` command to inspect state. Use native Paperclip document tools only for authorized `ceo` and `training-route` artifacts; if the operation cannot preserve the requested key, stop instead of retrying a remapped write.
 - For `issue_productivity_review` work, read the review issue and source issue before mutating either one. If a no-comment or high-churn productivity review is holding continuation, resolve the review or correct the source route before any permitted self-resume; never attempt a cross-agent heartbeat.
 - During the Training routine, inspect prior execution runs, task reports, stage artifacts, approval decisions, and agent comments for all non-CEO agents since the previous Training report, focusing on technologies, frameworks, tools, services, and domain-specific libraries the agents actually had to handle. Store the new report under a stable key such as `ceo-training` so the next pass has an auditable boundary.
 - Use issue-thread interactions when the board or user needs to choose suggested tasks, answer bounded questions, or confirm a non-governance proposal in the issue thread. Use linked approvals instead when the decision is a governance approval.

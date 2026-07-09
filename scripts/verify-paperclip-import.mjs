@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import {
+  mkdir,
   mkdtemp,
   readFile,
   readdir,
@@ -112,7 +113,7 @@ const RESUME_TRUE_PATTERN =
 const ENVIRONMENT_RUNTIME_PATTERN =
   /(?:Paperclip )?environments?[\s\S]{0,500}(?:local|SSH|sandbox)[\s\S]{0,500}(?:live|deployment|operator-owned)[\s\S]{0,500}(?:@paperclipai\/plugin-e2b|environment-driver|provider)|(?:@paperclipai\/plugin-e2b|environment-driver|provider)[\s\S]{0,500}(?:Paperclip )?environments?[\s\S]{0,500}(?:live|deployment|operator-owned)/i;
 const APPROVAL_LINKAGE_VERIFICATION_PATTERN =
-  /approvals\/\{approvalId\}\/issues[\s\S]{0,320}(?:issue\.linkedApprovalIds|linkedApprovalIds)|(?:issue\.linkedApprovalIds|linkedApprovalIds)[\s\S]{0,320}approvals\/\{approvalId\}\/issues/i;
+  /approval-link[\s\S]{0,320}(?:issue\.linkedApprovalIds|linkedApprovalIds)|(?:issue\.linkedApprovalIds|linkedApprovalIds)[\s\S]{0,320}approval-link/i;
 const APPROVAL_LINK_COMMAND_PATTERN = /paperclip-workflow\.mjs[\s\S]{0,160}approval-link/i;
 const APPROVAL_LINK_SCRIPT_ROUTE_PATTERN = /\/api\/approvals\/\$\{encodeURIComponent\(approvalId\)\}\/issues/;
 const ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN =
@@ -282,7 +283,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "README.md",
     pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
     message:
-      "README.md must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+      "README.md must explain that approval linkage is verified through imported `approval-link` instead of only `issue.linkedApprovalIds`.",
   },
   {
     relativePath: "README.md",
@@ -568,7 +569,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
     pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
     message:
-      "Shared repo operations guidance must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+      "Shared repo operations guidance must explain that approval linkage is verified through imported `approval-link` instead of only `issue.linkedApprovalIds`.",
   },
   {
     relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
@@ -786,7 +787,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "COMPANY.md",
     pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
     message:
-      "COMPANY.md must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+      "COMPANY.md must explain that approval linkage is verified through imported `approval-link` instead of only `issue.linkedApprovalIds`.",
   },
   {
     relativePath: "COMPANY.md",
@@ -1842,6 +1843,25 @@ async function runCli(args, { env = {} } = {}) {
   });
 }
 
+async function runNodeScript(scriptPath, args, { cwd, env = {} }) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [scriptPath, ...args], {
+      cwd,
+      env: { ...process.env, ...env },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => { stdout += chunk.toString(); });
+    child.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+    child.once("error", reject);
+    child.once("close", (code) => {
+      if (code === 0) return resolve({ stdout, stderr });
+      reject(new Error(`node ${scriptPath} ${args.join(" ")} failed with exit code ${code}\n${stdout}\n${stderr}`));
+    });
+  });
+}
+
 async function waitForConfigFile(configPath, serverHandle, timeoutMs = 60_000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
@@ -2431,6 +2451,11 @@ async function main() {
       exportResult.manifest.skills.length >= expected.skills.size,
       "Exported skills should include all custom Micronaut company skills",
     );
+    const runtimeSkillInventory = path.join(dataDir, "runtime-skill-inventory");
+    const unrelatedManagedWorkspace = path.join(dataDir, "managed-workspace");
+    let importedCeoCollector = null;
+    let importedControlPlane = null;
+    await mkdir(unrelatedManagedWorkspace, { recursive: true });
     for (const expectedSkill of expected.skills.values()) {
       const actualSkill = exportResult.manifest.skills.find(
         (skill) => skill.slug === expectedSkill.slug,
@@ -2503,13 +2528,54 @@ async function main() {
           path.join(repoRoot, "skills", expectedSkill.slug, "scripts", "issue-history-evidence.mjs"),
           "utf8",
         );
+        const exportedScript = getTextFile(exportResult.files, exportedScriptPath);
         assert.equal(
-          getTextFile(exportResult.files, exportedScriptPath),
+          exportedScript,
           expectedScript,
           "CEO issue-history collector must survive package import/export unchanged",
         );
+        const runtimeScriptPath = path.join(runtimeSkillInventory, ...exportedScriptPath.split("/"));
+        await mkdir(path.dirname(runtimeScriptPath), { recursive: true });
+        await writeFile(runtimeScriptPath, exportedScript, "utf8");
+        importedCeoCollector = runtimeScriptPath;
+      }
+      if (expectedSkill.slug === "paperclip-control-plane") {
+        const exportedScriptPath = path.posix.join(
+          path.posix.dirname(actualSkill.path),
+          "scripts/paperclip-workflow.mjs",
+        );
+        const expectedScript = await readFile(
+          path.join(repoRoot, "skills", expectedSkill.slug, "scripts", "paperclip-workflow.mjs"),
+          "utf8",
+        );
+        const exportedScript = getTextFile(exportResult.files, exportedScriptPath);
+        assert.equal(
+          exportedScript,
+          expectedScript,
+          "Paperclip control-plane CLI must survive package import/export unchanged",
+        );
+        const runtimeScriptPath = path.join(runtimeSkillInventory, ...exportedScriptPath.split("/"));
+        await mkdir(path.dirname(runtimeScriptPath), { recursive: true });
+        await writeFile(runtimeScriptPath, exportedScript, "utf8");
+        importedControlPlane = runtimeScriptPath;
       }
     }
+
+    assert.ok(importedCeoCollector, "Imported CEO collector path must resolve from the exported skill manifest");
+    assert.ok(importedControlPlane, "Imported control-plane path must resolve from the exported skill manifest");
+    const ceoHelp = await runNodeScript(importedCeoCollector, ["--help"], { cwd: unrelatedManagedWorkspace });
+    assert.match(ceoHelp.stdout, /--as-of/);
+    const controlPlaneHelp = await runNodeScript(importedControlPlane, ["--help"], { cwd: unrelatedManagedWorkspace });
+    assert.match(controlPlaneHelp.stdout, /snapshot --issue/);
+    const importedSnapshot = await runNodeScript(
+      importedControlPlane,
+      ["snapshot", "--issue", importedIssues[0].id],
+      {
+        cwd: unrelatedManagedWorkspace,
+        env: { PAPERCLIP_API_URL: baseUrl, PAPERCLIP_API_KEY: "import-verification-key" },
+      },
+    );
+    assert.equal(JSON.parse(importedSnapshot.stdout).issue.id, importedIssues[0].id);
 
     assert.equal(exportResult.manifest.projects.length, expected.projects.size);
     for (const expectedProject of expected.projects.values()) {

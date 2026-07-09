@@ -9,10 +9,10 @@ Run one evidence-first monthly operating-system review. Keep new-improvement dis
 
 ## 1. Deterministic discovery
 
-Choose the routine's explicit scheduled UTC boundary as `asOf`; do not infer the current time. Load `ceo-issue-history` and run:
+Choose the routine's explicit scheduled UTC boundary as `asOf`; do not infer the current time. Load the assigned issue-history evidence skill, locate its imported runtime directory, and execute:
 
 ```bash
-node skills/ceo-issue-history/scripts/issue-history-evidence.mjs --as-of <ISO-8601-UTC>
+node <ceo-issue-history-skill-directory>/scripts/issue-history-evidence.mjs --as-of <ISO-8601-UTC>
 ```
 
 The collector analyzes every issue and canonical agent over `[asOf-30d,asOf)` using issue-level evidence, controlled reason codes, stable fingerprints, and explicit coverage. For a ranked GitHub Sync issue, call `paperclip-github-plugin:get_issue_interaction_summary` for the same interval as supplementary evidence. Record its post-instrumentation coverage separately; it is not complete Paperclip history.

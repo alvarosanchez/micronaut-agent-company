@@ -17,7 +17,7 @@ Use this skill whenever you act on synced GitHub issues or pull requests for thi
 
 Before mutating issue state, publishing to GitHub, opening or updating a PR, closing an issue, creating routine follow-up, or handling an uncommon release/approval case, load the matching reference.
 
-Use the separately assigned `paperclip-control-plane` skill for deterministic issue, document, approval-link, and stage REST operations. This skill remains the Micronaut workflow policy layer.
+Use the separately assigned read-only `paperclip-control-plane` skill for deterministic issue/document snapshots, verification, and approval-link checks. This skill remains the Micronaut workflow policy layer; native Paperclip tools perform permitted mutations.
 
 ## Efficient Evidence Collection
 
