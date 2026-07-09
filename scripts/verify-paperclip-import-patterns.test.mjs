@@ -102,7 +102,7 @@ test("verification rules require decision-explaining replies on review threads",
   );
   assert.match(
     source,
-    /Code Reviewer instructions must make final PR approval's intermediate `done` state an immediate, no-wake transition to unassigned `in_review` without restarting completed review stages\./,
+    /Code Reviewer instructions must complete the final policy stage and create a publication-only owner handoff for the approved immutable SHA without restarting completed review stages\./,
   );
   assert.match(
     source,

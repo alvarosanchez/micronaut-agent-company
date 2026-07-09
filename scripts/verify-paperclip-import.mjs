@@ -113,6 +113,8 @@ const ENVIRONMENT_RUNTIME_PATTERN =
   /(?:Paperclip )?environments?[\s\S]{0,500}(?:local|SSH|sandbox)[\s\S]{0,500}(?:live|deployment|operator-owned)[\s\S]{0,500}(?:@paperclipai\/plugin-e2b|environment-driver|provider)|(?:@paperclipai\/plugin-e2b|environment-driver|provider)[\s\S]{0,500}(?:Paperclip )?environments?[\s\S]{0,500}(?:live|deployment|operator-owned)/i;
 const APPROVAL_LINKAGE_VERIFICATION_PATTERN =
   /approvals\/\{approvalId\}\/issues[\s\S]{0,320}(?:issue\.linkedApprovalIds|linkedApprovalIds)|(?:issue\.linkedApprovalIds|linkedApprovalIds)[\s\S]{0,320}approvals\/\{approvalId\}\/issues/i;
+const APPROVAL_LINK_COMMAND_PATTERN = /paperclip-workflow\.mjs[\s\S]{0,160}approval-link/i;
+const APPROVAL_LINK_SCRIPT_ROUTE_PATTERN = /\/api\/approvals\/\$\{encodeURIComponent\(approvalId\)\}\/issues/;
 const ACTIONABLE_PR_FOLLOW_THROUGH_PATTERN =
   /GitHub Sync[\s\S]{0,500}(?:reopen|reopens|reopened)[\s\S]{0,500}failing CI[\s\S]{0,500}unresolved review feedback[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}target branch[\s\S]{0,500}(?:Micronaut Engineer|make the PR mergeable)[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline|failing CI[\s\S]{0,500}target branch[\s\S]{0,500}actionable PR follow-through[\s\S]{0,500}(?:do not restore\s+`?(?:blocked|BLOCKED)`?|instead of restoring\s+`?(?:blocked|BLOCKED)`?)[\s\S]{0,240}baseline/i;
 const SECURITY_THREAD_HANDOFF_PATTERN =
@@ -120,7 +122,7 @@ const SECURITY_THREAD_HANDOFF_PATTERN =
 const HEALTHY_PR_MAINTAINER_WAIT_PATTERN =
   /(?:open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing[\s\S]{0,320}no actionable unresolved internal review state[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,260}normal maintainer review)|(?:normal maintainer review[\s\S]{0,360}`?in_review`?[\s\S]{0,260}no internal assignee[\s\S]{0,360}open,?\s*non-draft[\s\S]{0,180}`?CLEAN`?[\s\S]{0,240}checks (?:are )?passing)/i;
 const FINAL_REVIEW_MAINTAINER_WAIT_NORMALIZATION_PATTERN =
-  /intermediate `?status:\s*done`?[\s\S]{0,360}same uninterrupted run[\s\S]{0,300}`?status:\s*in_review`?[\s\S]{0,260}clear the internal assignee and execution policy\/state[\s\S]{0,220}request no agent wake[\s\S]{0,320}(?:Never wake or restart|never wake or restart)[\s\S]{0,100}QA[\s\S]{0,100}Security Engineer[\s\S]{0,100}Code Reviewer/i;
+  /final policy stage[\s\S]{0,320}publication-only[\s\S]{0,320}`?TODO`?[\s\S]{0,260}`?followThroughOwner`?[\s\S]{0,320}approved full SHA[\s\S]{0,260}prohibit all edits/i;
 const COMPANY_ATTACHMENT_LIMIT_PATTERN =
   /attachmentMaxBytes[\s\S]{0,260}10 MiB[\s\S]{0,260}process-level (?:attachment )?cap[\s\S]{0,260}(?:ceiling|final ceiling)|10 MiB[\s\S]{0,260}attachmentMaxBytes[\s\S]{0,260}(?:ceiling|final ceiling)/i;
 const NEW_HIRE_APPROVAL_POLICY_PATTERN =
@@ -367,9 +369,15 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
-    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    pattern: APPROVAL_LINK_COMMAND_PATTERN,
     message:
-      "QA instructions must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+      "QA instructions must use the deterministic approval-link command instead of interpreting `issue.linkedApprovalIds`.",
+  },
+  {
+    relativePath: "skills/paperclip-control-plane/scripts/paperclip-workflow.mjs",
+    pattern: APPROVAL_LINK_SCRIPT_ROUTE_PATTERN,
+    message:
+      "The approval-link command must verify linkage through `GET /api/approvals/{approvalId}/issues`.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -519,9 +527,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/architect/AGENTS.md",
-    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    pattern: APPROVAL_LINK_COMMAND_PATTERN,
     message:
-      "Architect instructions must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+      "Architect instructions must use the deterministic approval-link command.",
   },
   {
     relativePath: "agents/architect/AGENTS.md",
@@ -531,9 +539,9 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "agents/ceo/AGENTS.md",
-    pattern: APPROVAL_LINKAGE_VERIFICATION_PATTERN,
+    pattern: APPROVAL_LINK_COMMAND_PATTERN,
     message:
-      "CEO instructions must explain that approval linkage is verified through `GET /api/approvals/{approvalId}/issues` instead of only `issue.linkedApprovalIds`.",
+      "CEO instructions must use the deterministic approval-link command.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -796,7 +804,7 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     relativePath: "agents/code-reviewer/AGENTS.md",
     pattern: FINAL_REVIEW_MAINTAINER_WAIT_NORMALIZATION_PATTERN,
     message:
-      "Code Reviewer instructions must make final PR approval's intermediate `done` state an immediate, no-wake transition to unassigned `in_review` without restarting completed review stages.",
+      "Code Reviewer instructions must complete the final policy stage and create a publication-only owner handoff for the approved immutable SHA without restarting completed review stages.",
   },
   {
     relativePath: "agents/micronaut-engineer/AGENTS.md",

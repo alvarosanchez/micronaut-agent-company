@@ -86,7 +86,10 @@ const CATALOG_SKILLS = [
 const keyBySlug = new Map(CATALOG_SKILLS.map((skill) => [skill.slug, skill.key]));
 
 const AGENT_ASSIGNMENTS = {
-  ceo: [],
+  ceo: [
+    "paperclipai/bundled/paperclip-operations/issue-triage",
+    "paperclipai/bundled/paperclip-operations/task-planning",
+  ],
   architect: [
     "paperclipai/bundled/paperclip-operations/task-planning",
     "paperclipai/bundled/quality/qa-acceptance",
@@ -106,7 +109,7 @@ const AGENT_ASSIGNMENTS = {
     "paperclipai/bundled/docs/doc-maintenance",
     "paperclipai/optional/browser/agent-browser",
   ],
-  "code-reviewer": [],
+  "code-reviewer": ["paperclipai/optional/browser/agent-browser"],
   "technical-writer": [
     "paperclipai/bundled/docs/doc-maintenance",
     "paperclipai/bundled/software-development/github-pr-workflow",
@@ -165,8 +168,8 @@ test("README skill assignment tables match exact package agent frontmatter", asy
 
   assertAssignmentParity(readme, frontmatterByAgent);
   const staleFixture = readme.replace(
-    "| `coding` | Architect, Micronaut Engineer |",
-    "| `coding` | Architect, CEO, Micronaut Engineer |",
+    "| `coding` | Architect, Code Reviewer, Micronaut Engineer, Security Engineer |",
+    "| `coding` | Architect, CEO, Code Reviewer, Micronaut Engineer, Security Engineer |",
   );
   assert.notEqual(staleFixture, readme, "negative assignment fixture must modify a documented row");
   assert.throws(() => assertAssignmentParity(staleFixture, frontmatterByAgent), /coding README assignments must match frontmatter/);

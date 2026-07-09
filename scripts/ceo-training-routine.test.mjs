@@ -36,7 +36,7 @@ test("CEO Training routine runs monthly", async () => {
   assert.match(body, /since the last (?:Training )?pass/i);
   assert.match(body, /skills\.sh/i);
   assert.match(body, /linked board approval request/i);
-  assert.match(body, /approved[\s\S]{0,240}(?:scoped )?QA-assigned[\s\S]{0,160}(?:child|implementation)/i);
+  assert.match(body, /approved[\s\S]{0,500}(?:Micronaut Engineer directly|QA for an explicitly triggered intake path)/i);
   assert.match(body, /target agent|target agents/i);
 });
 
@@ -73,7 +73,9 @@ test("CEO Training discovers technology skills from execution history and delega
       /(?:board proposal|linked board approval request|linked board approval)[\s\S]{0,420}(?:exact https:\/\/skills\.sh entry|skills\.sh|exact skill entry)[\s\S]{0,420}(?:target agent|target agents)/i,
       `${label} should route external candidates through board approval.`,
     );
-    assert.match(markdown, /(?:scoped )?QA-assigned[\s\S]{0,420}(?:child|implementation)/i, `${label} should route implementation through QA.`);
+    assert.match(markdown, /lightweight/i, `${label} should name the lightweight referenced-skill path.`);
+    assert.match(markdown, /Micronaut Engineer directly|Micronaut Engineer -> QA verification|scoped Micronaut Engineer child/i, `${label} should route lightweight references directly to Engineer.`);
+    assert.match(markdown, /QA intake|QA-assigned/i, `${label} should retain triggered/custom intake.`);
     assert.match(markdown, /textual[\s\S]{0,260}Technical Writer[\s\S]{0,360}executable[\s\S]{0,260}Micronaut Engineer/i, `${label} should split implementation by artifact type.`);
     assert.match(markdown, /(?:status `backlog`|in `backlog`|status: backlog)[\s\S]{0,240}(?:type: improvement|issue type `type: improvement`)|(?:type: improvement|issue type `type: improvement`)[\s\S]{0,240}(?:status `backlog`|in `backlog`|status: backlog)/i);
     assert.doesNotMatch(markdown, /assignee Architect|Architect subtask|Architect-authored company skill/i);
@@ -81,7 +83,7 @@ test("CEO Training discovers technology skills from execution history and delega
   }
 
   assert.match(readme, /Training[\s\S]{0,420}(?:technology|domain|stack|tool)[\s\S]{0,420}(?:skills\.sh|board approval)/i);
-  assert.match(company, /Training uses the local search-only `marketplace-skill-discovery` skill[\s\S]{0,600}scoped QA-assigned[\s\S]{0,600}Technical Writer[\s\S]{0,400}Micronaut Engineer/i);
+  assert.match(company, /Training uses local search-only `marketplace-skill-discovery`[\s\S]{0,600}Engineer -> QA -> Reviewer -> Engineer publication[\s\S]{0,600}QA intake/i);
   assert.ok(architectFrontmatter.skills.includes("skill-creator"));
   assert.ok(engineerFrontmatter.skills.includes("skill-creator"));
   assert.ok(writerFrontmatter.skills.includes("skill-creator"));

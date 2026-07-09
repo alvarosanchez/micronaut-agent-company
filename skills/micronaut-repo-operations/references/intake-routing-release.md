@@ -22,7 +22,7 @@ evidenceReproduction: <reproducer, prior art, or documentation evidence>
 acceptanceCriteria: <observable pass conditions>
 ```
 
-Also retain repository, release, target-branch, compatibility, project-board, linked-PR, and closure facts required elsewhere in this reference. `deliveryOwner` and `followThroughOwner` must be identical and agree with the artifact being changed: Engineer owns source, tests, dependencies, builds, package scripts, adapters, and plugins; Writer owns prose docs, guides, repository `AGENTS.md`, company role instructions, and textual control-plane changes. The delivery owner creates or updates the PR before QA verification and remains its follow-through owner.
+Also retain repository, release, target-branch, compatibility, project-board, linked-PR, and closure facts required elsewhere in this reference. `deliveryOwner` and `followThroughOwner` must be identical and agree with the artifact being changed: Engineer owns source, tests, dependencies, builds, package scripts, adapters, and plugins; Writer owns prose docs, guides, repository `AGENTS.md`, company role instructions, and textual control-plane changes. The delivery owner prepares the immutable commit, publishes that same SHA only after final internal approval, and remains its follow-through owner.
 
 ## Risk-Classified Stage Layouts
 

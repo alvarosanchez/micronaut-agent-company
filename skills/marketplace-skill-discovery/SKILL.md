@@ -20,5 +20,5 @@ Use this skill only during CEO Training to inspect the public catalog at https:/
 - Do not run `skills add`, install, update, check-for-update, remove, or similar package/skill-management commands.
 - Do not add or modify company skills, agent assignments, package files, repository branches, pull requests, CI, or review threads.
 - Do not execute commands or workflows copied from a candidate skill during discovery.
-- Approval does not transfer implementation authority to CEO. After approval, create a scoped QA-assigned child; QA chooses the required gates and assigns Technical Writer for purely textual skill content or Micronaut Engineer for executable scripts, tooling, configuration, or other behavioral content.
+- Approval does not transfer implementation authority to CEO. A pinned referenced candidate with no package-owned executable content and no security, authority, provenance, or integration trigger uses the lightweight Engineer -> QA -> Reviewer -> Engineer-publication route. Name any trigger that requires a QA-intake child instead of silently adding QA intake or Architect to every external skill.
 - If no marketplace candidate is suitable, create the same scoped QA-assigned child for a company-owned skill proposal. Architect participates only when QA identifies a real planning trigger; Writer or Engineer remains the implementation and PR owner.

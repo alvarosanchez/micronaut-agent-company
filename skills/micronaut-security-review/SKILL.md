@@ -53,7 +53,7 @@ Before you stop:
 2. If you approved the stage, confirm the current stage participant is no longer you.
 3. If another execution-policy stage remains, confirm the issue is still in `in_review` and the next `currentParticipant` is correct.
 4. If you requested changes, confirm the issue execution state shows `changes_requested` and your artifact names the exact remediation or compensating control.
-5. If the next stage or next owner should start immediately, explicitly invoke the next heartbeat only after the stage or assignment is already correct instead of assuming the new reviewer was woken automatically.
+5. Confirm routing is correct; do not attempt a cross-agent heartbeat invocation.
 6. Inspect relevant GitHub review threads, but do not mutate them. Record any required reply or resolution for `followThroughOwner`, then confirm that owner performs the thread mutation before you approve.
 
 ## Monthly Security Deep Scan Mode

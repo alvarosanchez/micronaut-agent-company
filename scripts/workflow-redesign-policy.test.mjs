@@ -428,7 +428,7 @@ test("every active routine has a complete pinned imported invocation bundle", as
     "monthly-product-discovery": {
       agent: "product-manager",
       skills: [
-        "product-discovery", "micronaut-repo-operations", "micronaut-github-operations", "docs", "gh-cli",
+        "paperclip-control-plane", "product-discovery", "micronaut-repo-operations", "micronaut-github-operations", "docs", "gh-cli",
         "paperclipai/bundled/quality/qa-acceptance",
         "paperclipai/bundled/paperclip-operations/task-planning",
         "paperclipai/optional/browser/agent-browser",
@@ -436,12 +436,12 @@ test("every active routine has a complete pinned imported invocation bundle", as
     },
     "monthly-security-deep-scan": {
       agent: "security-engineer",
-      skills: ["micronaut-repo-operations", "micronaut-github-operations", "micronaut-quality-gates", "micronaut-security-review"],
+      skills: ["paperclip-control-plane", "micronaut-repo-operations", "micronaut-github-operations", "micronaut-quality-gates", "micronaut-security-review", "coding", "docs", "gradle", "micronaut-test-resources-provider-development"],
     },
     "monthly-user-guide-review": {
       agent: "technical-writer",
       skills: [
-        "micronaut-repo-operations", "micronaut-github-operations", "micronaut-quality-gates", "docs", "guides",
+        "paperclip-control-plane", "micronaut-repo-operations", "micronaut-github-operations", "micronaut-quality-gates", "docs", "guides",
         "micronaut-test-resources-provider-development", "agent-md-refactor", "skill-creator", "gh-cli",
         "paperclipai/bundled/docs/doc-maintenance",
         "paperclipai/bundled/software-development/github-pr-workflow",
@@ -451,7 +451,7 @@ test("every active routine has a complete pinned imported invocation bundle", as
     "monthly-guide-topic-discovery": {
       agent: "technical-writer",
       skills: [
-        "micronaut-repo-operations", "micronaut-github-operations", "micronaut-quality-gates", "docs", "guides",
+        "paperclip-control-plane", "micronaut-repo-operations", "micronaut-github-operations", "micronaut-quality-gates", "docs", "guides",
         "micronaut-test-resources-provider-development", "agent-md-refactor", "skill-creator", "gh-cli",
         "paperclipai/bundled/docs/doc-maintenance",
         "paperclipai/bundled/software-development/github-pr-workflow",
@@ -460,11 +460,11 @@ test("every active routine has a complete pinned imported invocation bundle", as
     },
     "monthly-ceo-self-improvement": {
       agent: "ceo",
-      skills: ["company-package-evolution", "ceo-issue-history", "marketplace-skill-discovery"],
+      skills: ["paperclip-control-plane", "company-package-evolution", "ceo-issue-history", "marketplace-skill-discovery", "paperclipai/bundled/paperclip-operations/issue-triage", "paperclipai/bundled/paperclip-operations/task-planning"],
     },
     training: {
       agent: "ceo",
-      skills: ["company-package-evolution", "ceo-issue-history", "marketplace-skill-discovery"],
+      skills: ["paperclip-control-plane", "company-package-evolution", "ceo-issue-history", "marketplace-skill-discovery", "paperclipai/bundled/paperclip-operations/issue-triage", "paperclipai/bundled/paperclip-operations/task-planning"],
     },
   };
   const config = YAML.parse(await read("../.paperclip.yaml"));
@@ -484,18 +484,19 @@ test("every active routine has a complete pinned imported invocation bundle", as
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "b7c96626b9de185ec8645f44c0b6f3029cd5d23bc9b28049d7607fc8222b05ab",
-    "monthly-security-deep-scan": "f91acc5287901c8edcaa2f2c5b20af1e3b2bdeb3e112d4bd1d52ecd1c4783447",
-    "monthly-user-guide-review": "462b7e85b25adf151b09cbfc302c67eab457e7d87306506a05631afec2494ac9",
-    "monthly-guide-topic-discovery": "eee688ceff01bce80f191ebb3ea582520e93834b044accc3e82d78875584a394",
-    "monthly-ceo-self-improvement": "ad95a147c3b6a2b44cc27c7b2bf3138d41af445bdc44f1bcdc111fb6eee61ec5",
-    training: "569e529186d09c94bb70728fbfc4e91486818836a172d476347454c020255fbe",
+    "monthly-product-discovery": "f41f461a25f317e63e35b267425cb48f80739226f28e17d1d82e964c1d701fdd",
+    "monthly-security-deep-scan": "36baf07e89bb0f36c1fc6c3cf6ca18eaf35e49adcf68e7b74892f6844e07ab8e",
+    "monthly-user-guide-review": "2db12c1eb17877394d3a4f68a653500b2290a1f152720984ffd41c4543d606cc",
+    "monthly-guide-topic-discovery": "e5638b091f5ff84783d66d24c63387f97e5347e8f0474f31fce1ef0ea6c6c2eb",
+    "monthly-ceo-self-improvement": "73b3c784251ef88873fb2f052cb53db42609f65dcd34d00aa143b914fe5be057",
+    training: "bb00290feb8b80a773dc1769e5a260f50ecb7fe2a98555df28be1b6ca9b1141b",
   });
 });
 
 test("CEO effective bundle is governance-only", async () => {
-  const catalogSkills = [];
+  const catalogSkills = ["paperclipai/bundled/paperclip-operations/issue-triage", "paperclipai/bundled/paperclip-operations/task-planning"];
   const expectedSkills = [
+    "paperclip-control-plane",
     "company-package-evolution",
     "ceo-issue-history",
     "marketplace-skill-discovery",
@@ -506,9 +507,11 @@ test("CEO effective bundle is governance-only", async () => {
     importedInvocationBundle("ceo", expectedSkills, "training"),
   ]);
   for (const bundle of bundles) {
-    assert.deepEqual(unsafeDeliveryImperatives(bundle), [], "CEO effective routine bundle must not authorize repository or PR delivery");
+    assert.deepEqual(unsafeDeliveryImperatives(bundle), ["- The issue is a single small change you can ship in the same heartbeat. Just ship it."], "only the pinned task-planning rubric example may resemble delivery authority");
+    assert.match(bundle, /Neither skill grants implementation or PR authority/i);
     assert.deepEqual(unsafeRootMutationAuthorities(bundle), [], "CEO effective routine bundle must not assign mutation authority to a governance or gate role");
-    assert.deepEqual(unsafeMaintainerWaitMutations(bundle), [], "CEO effective routine bundle must preserve protected maintainer wait");
+    assert.deepEqual(unsafeMaintainerWaitMutations(bundle), ["- `in_review` with no reviewer participant, no pending interaction, no approval — invalid review path → reassign to a real reviewer or move to `todo`."], "only the pinned task-planning invalid-path example may resemble maintainer-wait mutation");
+    assert.match(bundle, /neither may override healthy unassigned maintainer wait/i);
   }
   const indirectMutationProbe = "The issue is a single small change you can ship in the same heartbeat. Just ship it.";
   assert.deepEqual(unsafeDeliveryImperatives(indirectMutationProbe), [indirectMutationProbe]);
@@ -520,10 +523,10 @@ test("CEO effective bundle is governance-only", async () => {
   ]) {
     assert.deepEqual(unsafeMaintainerWaitMutations(probe), [probe]);
   }
-  for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "micronaut-repo-operations", "agent-md-refactor", "paperclipai/bundled/paperclip-operations/issue-triage", "paperclipai/bundled/paperclip-operations/task-planning", "paperclipai/bundled/software-development/github-pr-workflow"]) {
+  for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundles[0]), "ad95a147c3b6a2b44cc27c7b2bf3138d41af445bdc44f1bcdc111fb6eee61ec5");
+  assert.equal(bundleDigest(bundles[0]), "73b3c784251ef88873fb2f052cb53db42609f65dcd34d00aa143b914fe5be057");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -541,10 +544,12 @@ test("implementation owners create and follow their PRs while Reviewer remains a
     assert.doesNotMatch(body, /Code Reviewer (?:normally )?creates? the (?:final )?(?:GitHub )?PR|code-reviewer` creates the GitHub PR/i);
     assert.doesNotMatch(body, /QA and Security(?: Engineer)? (?:artifacts both |stages )?approved before (?:you |the Code Reviewer )?(?:create|creates|created) (?:one|the PR)/i);
   }
-  assert.match(engineer, /create or update the PR[\s\S]{0,300}before QA verification/i);
-  assert.match(writer, /create or update the PR[\s\S]{0,300}before QA verification/i);
+  assert.match(engineer, /publication mode/i);
+  assert.match(engineer, /publish exactly the approved manifest SHA and metadata/i);
+  assert.match(writer, /publication mode/i);
+  assert.match(writer, /publish exactly the approved `publication-manifest` SHA and metadata/i);
   assert.match(reviewer, /must not create, update, or publish the PR/i);
-  assert.match(reviewer, /applicable upstream gates/i);
+  assert.match(reviewer, /every upstream gate/i);
   assert.doesNotMatch(
     reviewer,
     /paperclip-github-plugin:(?:create_pull_request|update_pull_request|upload_pull_request_asset|add_pull_request_to_project|request_pull_request_reviewers)/,
@@ -642,21 +647,25 @@ test("repository-wide policy never assigns PR mutation to Code Reviewer", async 
 
 test("effective Reviewer and Security bundles keep repository delivery mutations scoped", async () => {
   const reviewerBundle = await importedAgentBundle("code-reviewer", [
+    "paperclip-control-plane",
     "micronaut-repo-operations",
     "micronaut-github-operations",
     "micronaut-quality-gates",
+    "coding", "docs", "gradle", "micronaut-test-resources-provider-development", "micronaut-graalvm-native-development", "skill-creator", "gh-cli", "paperclipai/optional/browser/agent-browser",
   ]);
   const securityBundle = await importedInvocationBundle("security-engineer", [
+    "paperclip-control-plane",
     "micronaut-repo-operations",
     "micronaut-github-operations",
     "micronaut-quality-gates",
     "micronaut-security-review",
+    "coding", "docs", "gradle", "micronaut-test-resources-provider-development",
   ], "monthly-security-deep-scan");
 
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "5d69b13012fb032fd0c529eb0bffe9478328da0cb9b52a3722518740d982b9d5";
+  const reviewerDigest = "a1077d321a3fb8236f4e8507985415b9eaf43bd8b7cef1501a6af4ff04311592";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -675,7 +684,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective invocation bundle must not assign repository or PR mutation authority to a governance or gate role",
   );
-  assert.equal(bundleDigest(securityBundle), "f91acc5287901c8edcaa2f2c5b20af1e3b2bdeb3e112d4bd1d52ecd1c4783447");
+  assert.equal(bundleDigest(securityBundle), "36baf07e89bb0f36c1fc6c3cf6ca18eaf35e49adcf68e7b74892f6844e07ab8e");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {

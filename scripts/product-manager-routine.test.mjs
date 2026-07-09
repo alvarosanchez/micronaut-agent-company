@@ -59,6 +59,7 @@ test("Product Manager agent is configured for product discovery", async () => {
   assert.equal(frontmatter.title, "Product Manager");
   assert.equal(frontmatter.reportsTo, "ceo");
   assert.deepEqual(frontmatter.skills, [
+    "paperclip-control-plane",
     "product-discovery",
     "micronaut-repo-operations",
     "micronaut-github-operations",
