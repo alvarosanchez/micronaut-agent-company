@@ -31,11 +31,11 @@ Use `agent-browser` only for bounded read-only validation of rendered behavior a
 
 ## Session Start
 
-1. Open the Paperclip issue, current execution state, `qa-intake`, every applicable upstream artifact, `publication-manifest`, and the exact local commit. If an external or already-open PR is the review vehicle, inspect that PR too.
+1. Open the Paperclip issue, current execution state, the authoritative route artifact (`qa-intake` normally or CEO-authored `training-route` for the approved lightweight Training path), every applicable upstream artifact, `publication-manifest`, and the exact local commit. If an external or already-open PR is the review vehicle, inspect that PR too.
 2. Continue only if you are the current stage participant for code review, or the issue returned `changes_requested` to code review. If another stage participant or a human approval is active, stop without changing routing.
 3. For agent-owned unpublished work, require one immutable full SHA approved by every upstream gate plus a complete `publication-manifest`; a PR must not exist yet. For an external or already-open surviving PR, require all gates to name its current head SHA.
 4. Confirm the target branch, release target, project set, `type:` label, closing keyword, intended title/body/assets, and linked issue creator before review.
-5. Verify the reviewed head SHA is current with the approved target branch without mutating it. If the comparison reports a conflict, record it and return to the implementation owner. Do not rebase, merge, edit, create, update, or publish during final review. Any changed head SHA must re-enter QA and every Security stage required by `qa-intake`; prose-only docs rerun QA without adding Security.
+5. Verify the reviewed head SHA is current with the approved target branch without mutating it. If the comparison reports a conflict, record it and return to the implementation owner. Do not rebase, merge, edit, create, update, or publish during final review. Any changed head SHA must re-enter QA and every Security stage required by the authoritative route artifact; prose-only docs rerun QA without adding Security. For `training-route`, verify its linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership; do not edit it, and return any mismatch to CEO governance.
 
 ## Review Checklist
 
@@ -56,7 +56,7 @@ Use `agent-browser` only for bounded read-only validation of rendered behavior a
 
 Paperclip built-ins:
 
-- Use `node skills/paperclip-control-plane/scripts/paperclip-workflow.mjs snapshot ...`, `verify ...`, and `approval-link ...` for normalized issue/document state and linked-approval checks. Store `code-review` with revision-safe `put-document`.
+- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs snapshot ...`, `verify ...`, and `approval-link ...` for normalized issue/document state and linked-approval checks. Store `code-review` with revision-safe `put-document`.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. For final PR approval, immediately apply the maintainer-wait normalization above. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
 - Do not invoke another agent's heartbeat; agent-authenticated REST callers may invoke only themselves. Correct routing and let Paperclip wake the assignee.
 - Use Paperclip issue comments for human-visible audit notes, execution-policy decision notes, and any non-policy owner handoff notes.

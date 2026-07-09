@@ -26,10 +26,11 @@ Also retain repository, release, target-branch, compatibility, project-board, li
 
 ## Risk-Classified Stage Layouts
 
-The following YAML is the canonical semantic route matrix. Repeated `qa-engineer` entries mean intake and post-implementation verification respectively. Security is conditional: only security-sensitive routes use its pre-triage and final-review gates. Routine non-security executable work and prose-only docs omit Security.
+The following YAML is the canonical semantic route matrix. Repeated `qa-engineer` entries mean intake and post-implementation verification respectively. The `lightweight-training` route is the one explicit no-intake exception: its board-bound `training-route` document supplies the fixed classification before Engineer starts. Security is conditional: only security-sensitive routes use its pre-triage and final-review gates. Routine non-security executable work and prose-only docs omit Security.
 
 <!-- workflow-routing-matrix -->
 ```yaml
+lightweight-training: [micronaut-engineer, qa-engineer, code-reviewer, micronaut-engineer-publication]
 routine-bug: [qa-engineer, micronaut-engineer, qa-engineer, code-reviewer]
 architecture-sensitive-bug: [qa-engineer, architect, micronaut-engineer, qa-engineer, code-reviewer]
 routine-dependency-upgrade: [qa-engineer, micronaut-engineer, qa-engineer, code-reviewer]
@@ -48,6 +49,7 @@ feature: [qa-engineer, architect, micronaut-engineer, qa-engineer, code-reviewer
 Security-sensitive means the change affects authentication, authorization, secrets, cryptography, untrusted input, serialization boundaries, filesystem access, process execution, network trust, a known or suspected dependency vulnerability, dependency provenance, CI permissions, release credentials, or secure defaults and security guidance. Merely changing executable code, build logic, dependencies, or examples is not by itself a Security trigger.
 
 - Routine localized bug: QA intake -> Micronaut Engineer -> QA verification -> Code Reviewer. It skips Architect and Security.
+- Lightweight board-approved referenced skill: CEO-authored `training-route` -> Micronaut Engineer -> QA verification -> Code Reviewer -> Micronaut Engineer publication. The artifact fixes `planningRequired: false`, both Security booleans false, the approved candidate URL, approval ID, owner, and exact stage sequence before assignment; any mismatch returns to CEO governance.
 - Architecture-sensitive bug: QA intake -> Architect -> Micronaut Engineer -> QA verification -> Code Reviewer. Require Architect for cross-module or cross-repository impact; public API, serialization, or protocol compatibility; concurrency, lifecycle, or transaction semantics; structural performance tradeoffs; build or native-image interactions; multiple materially different fixes; contradictory intended behavior; or a failed implementation that exposes a design gap. Add both Security stages only when a Security trigger also applies.
 - Routine compatible dependency upgrade: QA intake -> Micronaut Engineer -> QA verification -> Code Reviewer. It skips Architect and Security.
 - Architectural or migration dependency upgrade: QA intake -> Architect -> Micronaut Engineer -> QA verification -> Code Reviewer. Require Architect for a major upgrade; public API or configuration migration; BOM, platform, language, or build baseline movement; lifecycle, threading, native-image, or annotation-processing effects; multi-module impact; broad transitive replacement; a compatibility matrix; or disputed strategy. Add both Security stages only when a Security trigger also applies.

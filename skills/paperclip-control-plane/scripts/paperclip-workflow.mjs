@@ -9,10 +9,8 @@ function usage() {
   paperclip-workflow.mjs verify --issue <id> [--status <status>] [--participant <agent-id|none>] [--assignee <agent-id|none>] [--outcome <outcome|none>] [--document <key>]...
   paperclip-workflow.mjs approval-link --approval <id> --issue <id>
   paperclip-workflow.mjs put-document --issue <id> --key <key> --file <path> [--title <title>] [--change-summary <text>]
-  paperclip-workflow.mjs transition --issue <id> --status <done|in_progress> --comment-file <path> [--expect-participant <agent-id>]
 
-Environment: PAPERCLIP_API_URL, PAPERCLIP_API_KEY, and, for writes, PAPERCLIP_RUN_ID.
-PAPERCLIP_AGENT_ID supplies transition's default expected participant.`;
+Environment: PAPERCLIP_API_URL, PAPERCLIP_API_KEY, and, for writes, PAPERCLIP_RUN_ID.`;
 }
 
 function parseArgs(argv) {
@@ -40,8 +38,15 @@ function required(value, name) {
 function config({ write = false } = {}) {
   const baseUrl = required(process.env.PAPERCLIP_API_URL, "PAPERCLIP_API_URL");
   const apiKey = required(process.env.PAPERCLIP_API_KEY, "PAPERCLIP_API_KEY");
-  const origin = new URL(baseUrl);
-  if (!["http:", "https:"].includes(origin.protocol)) throw new Error("PAPERCLIP_API_URL must use HTTP or HTTPS.");
+  const configured = new URL(baseUrl);
+  if (!["http:", "https:"].includes(configured.protocol)) throw new Error("PAPERCLIP_API_URL must use HTTP or HTTPS.");
+  if (configured.username || configured.password || configured.search || configured.hash) {
+    throw new Error("PAPERCLIP_API_URL must not contain credentials, query parameters, or a fragment.");
+  }
+  if (configured.pathname !== "/") throw new Error("PAPERCLIP_API_URL must be an origin without a path.");
+  const loopback = ["127.0.0.1", "[::1]", "localhost"].includes(configured.hostname);
+  if (configured.protocol === "http:" && !loopback) throw new Error("PAPERCLIP_API_URL requires HTTPS outside loopback.");
+  const origin = new URL(configured.origin);
   return {
     origin,
     apiKey,
@@ -169,6 +174,7 @@ async function main() {
     const client = config({ write: true });
     const body = await readFile(file, "utf8");
     const existing = await request(client, `/api/issues/${encodeURIComponent(issueId)}/documents/${encodeURIComponent(key)}`, { allow404: true });
+    if (existing?.lockedAt) throw new Error(`Document ${key} is locked; refusing a write that Paperclip would redirect to a new key.`);
     const payload = {
       title: args.title ?? existing?.title ?? null,
       format: "markdown",
@@ -177,32 +183,15 @@ async function main() {
       baseRevisionId: existing?.latestRevisionId ?? null,
     };
     const written = await request(client, `/api/issues/${encodeURIComponent(issueId)}/documents/${encodeURIComponent(key)}`, { method: "PUT", body: payload });
+    if (written?.key && written.key !== key) throw new Error(`Paperclip returned unexpected document key ${written.key}.`);
+    if (written?.document?.key && written.document.key !== key) throw new Error(`Paperclip redirected the write to unexpected document key ${written.document.key}.`);
+    if (written?.redirectedFromLockedDocument) throw new Error("Paperclip redirected a locked-document write unexpectedly.");
     const verified = await request(client, `/api/issues/${encodeURIComponent(issueId)}/documents/${encodeURIComponent(key)}`);
-    if (verified.body !== body) throw new Error("Document read-back body did not match the input file.");
+    if (verified.key !== key || verified.body !== body) throw new Error("Document read-back identity or body did not match the requested write.");
     process.stdout.write(`${JSON.stringify({ schemaVersion: 1, issueId, key, documentId: verified.id, revisionId: verified.latestRevisionId, created: existing === null, verified: true, response: written })}\n`);
     return;
   }
 
-  if (args.command === "transition") {
-    const issueId = required(args.issue, "--issue");
-    const status = required(args.status, "--status");
-    if (!["done", "in_progress"].includes(status)) throw new Error("--status must be done or in_progress.");
-    const comment = await readFile(required(args.comment_file, "--comment-file"), "utf8");
-    if (!comment.trim()) throw new Error("--comment-file must not be empty.");
-    const expectedParticipant = args.expect_participant ?? required(process.env.PAPERCLIP_AGENT_ID, "--expect-participant or PAPERCLIP_AGENT_ID");
-    const client = config({ write: true });
-    const before = await request(client, `/api/issues/${encodeURIComponent(issueId)}`);
-    const actualParticipant = participantId(before);
-    if (actualParticipant !== expectedParticipant) {
-      process.stdout.write(`${JSON.stringify({ schemaVersion: 1, transitioned: false, mismatch: { field: "participant", expected: expectedParticipant, actual: actualParticipant } })}\n`);
-      process.exitCode = 2;
-      return;
-    }
-    await request(client, `/api/issues/${encodeURIComponent(issueId)}`, { method: "PATCH", body: { status, comment } });
-    const after = await request(client, `/api/issues/${encodeURIComponent(issueId)}`);
-    process.stdout.write(`${JSON.stringify({ schemaVersion: 1, transitioned: true, before: { status: before.status, participant: actualParticipant }, after: { status: after.status, participant: participantId(after), assigneeAgentId: after.assigneeAgentId ?? null, lastDecisionOutcome: after.executionState?.lastDecisionOutcome ?? null } })}\n`);
-    return;
-  }
 
   throw new Error(`Unknown command: ${args.command}`);
 }

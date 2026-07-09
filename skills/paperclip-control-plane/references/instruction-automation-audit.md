@@ -1,10 +1,10 @@
 # Instruction Automation Audit
 
-Reviewed scope: all 8 `agents/*/AGENTS.md` files and all 17 package-owned `skills/*/SKILL.md` files in PR #110. The goal is to replace deterministic control-plane interpretation with executable, fail-closed evidence while preserving human/agent judgment where context matters.
+Reviewed scope: all 8 `agents/*/AGENTS.md` files and all 25 package-owned Markdown files under `skills/` in PR #110 (33 instruction/skill Markdown files total, including linked references). The goal is to replace deterministic control-plane interpretation with executable, fail-closed evidence while preserving human/agent judgment where context matters. `scripts/paperclip-catalog-skills.test.mjs` derives and checks this corpus rather than trusting a hand-maintained role list.
 
 ## Automated now
 
-The bundled `scripts/paperclip-workflow.mjs` replaces these repeated instruction classes:
+The bundled `scripts/paperclip-workflow.mjs` provides four commands for four repeated control-plane operations:
 
 | Former prose operation | Command | Safety property |
 | --- | --- | --- |
@@ -12,9 +12,8 @@ The bundled `scripts/paperclip-workflow.mjs` replaces these repeated instruction
 | Re-open and verify status, assignee, current participant, last outcome, and required documents | `verify` | Exits 2 with field-level mismatches |
 | Verify approval-to-issue linkage | `approval-link` | Reads the authoritative approval issue list rather than trusting cached issue fields |
 | Create/update a durable issue document | `put-document` | Uses `baseRevisionId` and verifies the stored body byte-for-byte |
-| Resolve or reject an execution stage | `transition` | Requires the expected current participant before mutation and reads the issue back afterward |
 
-The script requires the normal agent bearer token. Mutating commands also require `PAPERCLIP_RUN_ID`. It refuses a non-HTTP(S) API origin. It deliberately has **no cross-agent wake command**: Paperclip's agent-authenticated heartbeat route permits an agent to invoke only itself. Correct stage advancement or assignment is the routing mechanism.
+The script requires the normal agent bearer token. Mutating commands also require `PAPERCLIP_RUN_ID`. It accepts only a bare HTTP(S) origin, rejects embedded credentials/query/fragment/path components, and permits plaintext HTTP only on loopback. It deliberately has **no stage-transition or cross-agent wake command**: the installed Paperclip build exposes no atomic client precondition that can fence a same-agent stage re-entry, and an agent-authenticated heartbeat caller may invoke only itself. Native issue tools own stage advancement; correct stage advancement or assignment is the routing mechanism.
 
 ## Already executable; do not wrap again
 
@@ -38,7 +37,8 @@ These are suitable for later script/plugin commands, but were not added to the f
 3. **Idempotent project-child coordinator** — list projects and existing children, reuse/reparent matching work, and create only missing project-scoped routine children.
 4. **Productivity-review recovery helper** — gather source/review state and compute a no-mutation report; a manager must still choose resume, reroute, block, or stop.
 5. **Publication-manifest validator** — compare local full SHA, target base, PR body file, labels, projects, reviewer eligibility, and asset hashes before the typed atomic PR tool runs.
-6. **Route-artifact validator** — validate `qa-intake` enums, booleans, owner equality, and canonical ordered `stageSequence` without deciding the risk classification itself.
+6. **Route-artifact validator** — validate `qa-intake` and `training-route` enums, booleans, owner equality, board-approval linkage, and canonical ordered `stageSequence` without deciding the risk classification itself.
+7. **Atomic stage decision helper** — add only after Paperclip exposes a server-enforced execution-stage/revision precondition. A client-side GET followed by PATCH is not sufficient and must not be wrapped as if it were atomic.
 
 ## Must remain judgment, not scripts
 
@@ -56,4 +56,4 @@ Scripts may gather and validate facts for these decisions, but must not silently
 
 ## Agent-instruction embedding decision
 
-Do not inline script source into `AGENTS.md`. Every role that needs Paperclip control-plane automation is granted `micronaut-repo-operations`, which packages the script and this reference. Agent instructions contain only the command to run and the role-specific decision criteria. This avoids eight copies of executable text, reduces prompt tokens, and gives tests one implementation surface.
+Do not inline script source into `AGENTS.md`. Every role is granted the narrow `paperclip-control-plane` catalog skill directly. Agent instructions resolve that imported skill's directory from the runtime inventory, then name only the command and role-specific decision criteria. This avoids eight copies of executable text, works outside the package checkout, reduces prompt tokens, and gives tests one implementation surface.

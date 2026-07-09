@@ -14,6 +14,16 @@ function parseFrontmatter(markdown) {
   };
 }
 
+function markedYaml(markdown, marker) {
+  const markerText = `<!-- ${marker} -->`;
+  const markerIndex = markdown.indexOf(markerText);
+  assert.notEqual(markerIndex, -1, `missing ${marker} marker`);
+  const remainder = markdown.slice(markerIndex + markerText.length).trimStart();
+  const fence = remainder.match(/^```yaml\n([\s\S]*?)\n```/);
+  assert.ok(fence, `${marker} must be followed by a YAML fence`);
+  return YAML.parse(fence[1]);
+}
+
 test("CEO Training routine runs monthly", async () => {
   const source = await readFile(new URL("../.paperclip.yaml", import.meta.url), "utf8");
   const config = YAML.parse(source);
@@ -89,6 +99,49 @@ test("CEO Training discovers technology skills from execution history and delega
   assert.ok(writerFrontmatter.skills.includes("skill-creator"));
   assert.match(architectBody, /company-skill child[\s\S]{0,320}only to plan[\s\S]{0,300}Do not author the skill or prepare its PR/i);
   assert.match(architectBody, /Architect never authors, branches, publishes, or follows through on the skill change/i);
+});
+
+test("lightweight Training has one board-bound route artifact consumed by every downstream gate", async () => {
+  const task = await readFile(new URL("../tasks/training/TASK.md", import.meta.url), "utf8");
+  const route = markedYaml(task, "lightweight-training-route-schema");
+  assert.deepEqual(route, {
+    deliveryClass: "lightweight-referenced-skill",
+    boardApprovalId: "<linked-approved-approval-id>",
+    candidateUrl: "<exact-approved-https://skills.sh-entry>",
+    source: {
+      repo: "<approved-source-repository>",
+      path: "<approved-skill-path>",
+      commit: "<approved-full-commit-sha>",
+      usage: "referenced",
+    },
+    targetAgents: ["<approved-agent-slug>"],
+    planningRequired: false,
+    securityPrecheckRequired: false,
+    securityFinalReviewRequired: false,
+    deliveryOwner: "micronaut-engineer",
+    followThroughOwner: "micronaut-engineer",
+    stageSequence: ["micronaut-engineer", "qa-engineer", "code-reviewer", "micronaut-engineer-publication"],
+    acceptanceCriteria: ["<observable approved pass condition>"],
+  });
+
+  const [ceo, engineer, qa, reviewer] = await Promise.all([
+    readFile(new URL("../agents/ceo/AGENTS.md", import.meta.url), "utf8"),
+    readFile(new URL("../agents/micronaut-engineer/AGENTS.md", import.meta.url), "utf8"),
+    readFile(new URL("../agents/qa-engineer/AGENTS.md", import.meta.url), "utf8"),
+    readFile(new URL("../agents/code-reviewer/AGENTS.md", import.meta.url), "utf8"),
+  ]);
+  assert.match(ceo, /Before assignment[^.]+configure sequential Engineer -> QA -> Code Reviewer stages[^.]+`training-route` document/i);
+  assert.match(engineer, /authoritative route artifact[^\n]+`training-route`/i);
+  assert.match(engineer, /For `training-route`, verify the linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership/i);
+  assert.match(qa, /`training-route`[\s\S]{0,220}lightweight/i);
+  assert.match(reviewer, /`training-route`[\s\S]{0,220}lightweight/i);
+  assert.match(task, /Micronaut Engineer -> QA verification -> Code Reviewer -> Micronaut Engineer publication/i);
+  assert.match(ceo, /configure sequential Engineer -> QA -> Code Reviewer stages/i);
+  assert.match(engineer, /publication mode: Code Reviewer approved the unpublished exact SHA/i);
+  assert.match(qa, /accept `training-route` only when[\s\S]{0,420}`stageSequence: \[micronaut-engineer, qa-engineer, code-reviewer, micronaut-engineer-publication\]`/i);
+  assert.match(qa, /`training-route`[^\n]+Code Reviewer/i);
+  assert.match(reviewer, /For `training-route`, verify its linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership/i);
+  assert.match(reviewer, /publication-only non-policy handoff[^\n]+`followThroughOwner`/i);
 });
 
 test("CEO has only the local search-only marketplace discovery skill", async () => {

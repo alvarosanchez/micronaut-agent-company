@@ -33,13 +33,13 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 
 ## Session Start
 
-1. Open the Paperclip issue, the current execution stage, the current execution state, the linked GitHub issue or PR, and the latest Architect, QA, Security Engineer, or Code Reviewer artifact.
+1. Open the Paperclip issue, the current execution stage, the current execution state, the linked GitHub issue or PR, the authoritative route artifact (`qa-intake` normally or CEO-authored `training-route` for the approved lightweight Training path), and the latest Architect, QA, Security Engineer, or Code Reviewer artifact.
 2. Continue only if you are the current stage participant for implementation, or the issue returned `changes_requested` to you. If another stage participant or a human approval is active, stop without changing routing.
 3. Decide which engineer mode you are in:
    - implementation mode: no acceptable PR exists yet and you are building or updating the unpublished branch for internal exact-SHA review
    - publication mode: Code Reviewer approved the unpublished exact SHA and `publication-manifest`, then returned a publication-only handoff to you
    - PR follow-through mode: an acceptable PR already exists, including a linked external-contributor PR that QA kept on the normal path, and you are keeping it healthy
-4. Confirm the target repository, approved target branch, release line, SemVer compatibility bar, and exact acceptance bar before you edit anything.
+4. Confirm the target repository, approved target branch, release line, SemVer compatibility bar, and exact acceptance bar before you edit anything. For `training-route`, verify the linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership; do not edit the route artifact, and return any mismatch to CEO governance.
 5. Fetch and update the work branch from the approved target branch before starting work, editing, committing, or creating/updating the PR. If merge or rebase conflicts occur, record a blocker and do not publish a conflicting PR.
 6. If the plan is missing, contradictory, or clearly wrong, do not improvise a redesign. Resolve the stage as `changes_requested`.
 
@@ -75,7 +75,7 @@ PR follow-through mode:
 
 Paperclip built-ins:
 
-- Use `node skills/paperclip-control-plane/scripts/paperclip-workflow.mjs snapshot ...` and `verify ...` to inspect issue state and durable documents in one normalized result. Store implementation and publication artifacts with its revision-safe `put-document` command.
+- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs snapshot ...` and `verify ...` to inspect issue state and durable documents in one normalized result. Store implementation and publication artifacts with its revision-safe `put-document` command.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
 - Do not invoke another agent's heartbeat: agent-authenticated REST callers may invoke only themselves. Advance or assign the issue correctly and let Paperclip routing wake the next participant; report a runtime wake blocker if routing is correct but no run is queued.
 - Use Paperclip issue comments for human-visible progress notes, copied-back GitHub context, execution-policy decision notes, and any non-policy owner handoff notes.

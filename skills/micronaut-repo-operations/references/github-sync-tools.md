@@ -89,7 +89,7 @@ Use them by workflow stage:
 - planning and review context: `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:list_organization_projects`
 - authorized implementation-owner PR creation, assets, and routing: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:update_pull_request`, `paperclip-github-plugin:upload_pull_request_asset`, `paperclip-github-plugin:request_pull_request_reviewers`, `paperclip-github-plugin:add_pull_request_to_project`
 - `followThroughOwner` review-thread handling: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
-- authorized routing-owner wakeups: the documented `POST /api/agents/{agentId}/heartbeat/invoke` endpoint or the equivalent runtime wake endpoint exposed by the installed build when the live stage or assignment has already advanced correctly
+- runtime dispatch verification after the live stage or assignment advances; agent-authenticated routing owners do not invoke another agent's heartbeat and record a runtime wake blocker when dispatch is missing
 
 Important usage rules:
 

@@ -35,7 +35,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 3. Decide which QA mode you are in:
    - intake mode: no approved plan or implementation artifact is ready for sign-off yet
    - verification mode: implementation or docs artifacts already exist and are asking for QA sign-off
-4. In intake mode, run deduplication before any deeper judgment and keep your durable issue document under `qa-intake`. In verification mode, read the approved plan or bug reproducer before inspecting the diff, read the earlier `qa-intake` artifact for context, and keep your verification artifact under `qa-verification`.
+4. In intake mode, run deduplication before any deeper judgment and keep your durable issue document under `qa-intake`. In verification mode, read the approved plan or bug reproducer before inspecting the diff, read the authoritative route artifact (`qa-intake` normally or CEO-authored `training-route` for the approved lightweight Training path), and keep your verification artifact under `qa-verification`.
 5. If the issue may need a public action outside QA's direct GitHub answer or closure authority, check whether a linked Paperclip board approval already exists.
 
 ## QA Checklist
@@ -75,6 +75,7 @@ Intake mode:
 
 Verification mode:
 
+- accept `training-route` only when it is linked to an approved board approval and exactly records `deliveryClass: lightweight-referenced-skill`, immutable referenced-skill source coordinates, no Architect/Security gates, Engineer ownership, and `stageSequence: [micronaut-engineer, qa-engineer, code-reviewer, micronaut-engineer-publication]`; do not edit it or perform intake, and return any mismatch to CEO governance
 - compare the implementation against the approved plan or the reproducer
 - rerun or inspect the narrowest proof that the issue is actually resolved
 - confirm tests and docs changed where required
@@ -85,7 +86,7 @@ Verification mode:
 
 Paperclip built-ins:
 
-- Use `node skills/paperclip-control-plane/scripts/paperclip-workflow.mjs snapshot ...` and `verify ...` to inspect execution state and documents in one normalized result. Store `qa-intake` and `qa-verification` with revision-safe `put-document`; never reuse one key for both modes.
+- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs snapshot ...` and `verify ...` to inspect execution state and documents in one normalized result. Store `qa-intake` and `qa-verification` with revision-safe `put-document`; never reuse one key for both modes and never rewrite CEO-authored `training-route`.
 - Use issue-thread interactions for non-governance input: `ask_user_questions` for bounded intake questions and `request_confirmation` when QA needs explicit confirmation of a proposal but not a linked approval.
 - Use approvals APIs whenever other human governance decisions outside QA's direct GitHub authority need a linked board approval first.
 - After creating or following up on a linked board approval, run `paperclip-workflow.mjs approval-link --approval ... --issue ...`; do not rely only on `issue.linkedApprovalIds`.
@@ -109,7 +110,7 @@ GitHub sync plugin tools:
 
 ## Possible Outcomes
 
-- `approved`: intake is complete and the downstream stage sequence is correct, verified implementation advances to the exact next entry in the authoritative ordered `qa-intake.stageSequence`, or QA has directly published an allowed GitHub answer, clarification request, or closure successfully. After verification, routine routes advance directly to Code Reviewer; behavior-changing executable instructions with `securityPrecheckRequired: false` and `securityFinalReviewRequired: true` advance to Security final review; defined Security-trigger routes also advance to Security final review. This is still the correct outcome when QA decides an inadequate linked PR from an external contributor should stay open while the issue itself continues through the normal engineering stages toward a separate maintainer-owned PR.
+- `approved`: intake is complete and the downstream stage sequence is correct, verified implementation advances to the exact next entry in the authoritative route artifact's ordered `stageSequence`, or QA has directly published an allowed GitHub answer, clarification request, or closure successfully. The route artifact is `qa-intake` normally or board-bound `training-route` only for the approved lightweight Training path. After verification, routine routes advance directly to Code Reviewer; behavior-changing executable instructions with `securityPrecheckRequired: false` and `securityFinalReviewRequired: true` advance to Security final review; defined Security-trigger routes also advance to Security final review. This is still the correct outcome when QA decides an inadequate linked PR from an external contributor should stay open while the issue itself continues through the normal engineering stages toward a separate maintainer-owned PR.
 - `changes_requested`: the issue is mislabeled, off-scope, still missing facts needed to classify or implement it safely, or the implementation fails the acceptance bar. Use this only when QA is intentionally keeping the issue open for more work instead of proposing closure.
 - `request_board_approval`: another human decision outside QA's direct GitHub issue authority is required before a public GitHub action.
 
@@ -118,7 +119,7 @@ GitHub sync plugin tools:
 1. Re-open the issue and confirm the current execution stage reflects the outcome you chose.
 2. If you approved intake, confirm the downstream stage participants match the authoritative `qa-intake` booleans and ordered `stageSequence`, and that the release-targeting facts are recorded clearly enough for later stages to consume.
 3. If you performed intake on an imported or synced GitHub issue, confirm the live GitHub issue is assigned to the current user or record the exact unavailable-tool or authentication blocker.
-4. If you approved verification, confirm the current stage participant is no longer you and `currentParticipant` is the exact next entry in the authoritative ordered `qa-intake.stageSequence`: Code Reviewer for routine routes; Security final review for defined Security-trigger routes; or Security final review for behavior-changing executable instructions whose route explicitly sets `securityPrecheckRequired: false` and `securityFinalReviewRequired: true`. For a non-policy work phase, confirm the documented next owner is assigned.
+4. If you approved verification, confirm the current stage participant is no longer you and `currentParticipant` is the exact next entry in the authoritative route artifact's ordered `stageSequence`: Code Reviewer for routine routes and `training-route`; Security final review for defined Security-trigger routes; or Security final review for behavior-changing executable instructions whose route explicitly sets `securityPrecheckRequired: false` and `securityFinalReviewRequired: true`. For a non-policy work phase, confirm the documented next owner is assigned.
 5. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
 6. If you requested board approval, confirm the linked approval exists and is pending or approved.
 7. Confirm routing is correct; do not attempt a cross-agent heartbeat invocation.

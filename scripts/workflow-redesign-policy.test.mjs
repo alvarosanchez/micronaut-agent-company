@@ -79,6 +79,12 @@ function unsafeMaintainerWaitMutations(bundle) {
   return bundle.split("\n").filter((line) => protectedWait.test(line) && mutation.test(line) && !prohibition.test(line));
 }
 
+function unsafeCrossAgentWakeInstructions(markdown) {
+  const wake = /heartbeat\/invoke|\b(?:invoke|trigger|start)\b[^\n]{0,100}\b(?:another agent|next (?:agent|participant|reviewer)|reviewer|assignee)[^\n]{0,100}\bheartbeat\b|\bheartbeat\b[^\n]{0,100}\b(?:another agent|next (?:agent|participant|reviewer)|reviewer|assignee)\b/i;
+  const prohibition = /\b(?:must not|do not|never|cannot|can't|may not|no cross-agent|permits an agent to invoke only itself)\b/i;
+  return markdown.split("\n").filter((line) => wake.test(line) && !prohibition.test(line));
+}
+
 function unsafeRootMutationAuthorities(markdown) {
   const anyActor = /\b(?:CEO(?: routine)?|Architect|Security Engineer|Code Reviewer|QA Engineer|QA|Technical Writer|Micronaut Engineer|Writer|Engineer|(?:artifact-appropriate )?implementation owners?|delivery owners?|followThroughOwner)\b/gi;
   const restrictedActor = /^(?:CEO(?: routine)?|Architect|Security Engineer|Code Reviewer)$/i;
@@ -218,6 +224,7 @@ test("public operating roster has nine roles while package import has exactly ei
 test("machine-readable route matrix preserves every required and omitted gate", async () => {
   const matrix = markedYaml(await route(), "workflow-routing-matrix");
   assert.deepEqual(matrix, {
+    "lightweight-training": ["micronaut-engineer", "qa-engineer", "code-reviewer", "micronaut-engineer-publication"],
     "routine-bug": ["qa-engineer", "micronaut-engineer", "qa-engineer", "code-reviewer"],
     "architecture-sensitive-bug": ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "code-reviewer"],
     "routine-dependency-upgrade": ["qa-engineer", "micronaut-engineer", "qa-engineer", "code-reviewer"],
@@ -293,7 +300,7 @@ test("Security pre-triage and final approval follow their exact stageSequence su
 
 test("QA verification advances to the exact next stage, including routine direct review", async () => {
   const qa = await read("../agents/qa-engineer/AGENTS.md");
-  assert.match(qa, /approved[^\n]+exact next entry in (?:the )?authoritative ordered `qa-intake\.stageSequence`/i);
+  assert.match(qa, /approved[^\n]+exact next entry in (?:the )?authoritative route artifact's ordered `stageSequence`/i);
   assert.match(qa, /routine routes advance directly to Code Reviewer/i);
   assert.match(qa, /defined Security-trigger routes[^\n]+Security final review/i);
   assert.match(qa, /behavior-changing executable instructions[^\n]+securityPrecheckRequired: false[^\n]+securityFinalReviewRequired: true[^\n]+Security final review/i);
@@ -484,12 +491,12 @@ test("every active routine has a complete pinned imported invocation bundle", as
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "f41f461a25f317e63e35b267425cb48f80739226f28e17d1d82e964c1d701fdd",
-    "monthly-security-deep-scan": "36baf07e89bb0f36c1fc6c3cf6ca18eaf35e49adcf68e7b74892f6844e07ab8e",
-    "monthly-user-guide-review": "2db12c1eb17877394d3a4f68a653500b2290a1f152720984ffd41c4543d606cc",
-    "monthly-guide-topic-discovery": "e5638b091f5ff84783d66d24c63387f97e5347e8f0474f31fce1ef0ea6c6c2eb",
-    "monthly-ceo-self-improvement": "73b3c784251ef88873fb2f052cb53db42609f65dcd34d00aa143b914fe5be057",
-    training: "bb00290feb8b80a773dc1769e5a260f50ecb7fe2a98555df28be1b6ca9b1141b",
+    "monthly-product-discovery": "7c5bb87b20a33e4789fa9512946fa87ecd41cc589b2bb0fa1cf62aadb4dd73dd",
+    "monthly-security-deep-scan": "ca09436c4a5d7af67099d2c17ee899257f15afc860ab6b6d02b26065dc3f6143",
+    "monthly-user-guide-review": "3edcacde99031ee2ab35576c8b65ce8385b54e34162bdcf5056308d3e24c6ec9",
+    "monthly-guide-topic-discovery": "06737f150bd8cd35d0e6a97a5f3be0f18672d573f41a7cdd512803fcc29cdae9",
+    "monthly-ceo-self-improvement": "10f140aa2e6106364a82a97629a6060ce10e8398bd55dba4b5649be36fe12cb1",
+    training: "aa0ad3f62f45e63c3114ae4422db8beae318aede5f02a467151378acb35f984b",
   });
 });
 
@@ -526,7 +533,7 @@ test("CEO effective bundle is governance-only", async () => {
   for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundles[0]), "73b3c784251ef88873fb2f052cb53db42609f65dcd34d00aa143b914fe5be057");
+  assert.equal(bundleDigest(bundles[0]), "10f140aa2e6106364a82a97629a6060ce10e8398bd55dba4b5649be36fe12cb1");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -665,7 +672,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "a1077d321a3fb8236f4e8507985415b9eaf43bd8b7cef1501a6af4ff04311592";
+  const reviewerDigest = "7b1473fbcdd0c26364d639d4b8627c1825ab5eb0d4983086645979a8183a8a19";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -684,7 +691,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective invocation bundle must not assign repository or PR mutation authority to a governance or gate role",
   );
-  assert.equal(bundleDigest(securityBundle), "36baf07e89bb0f36c1fc6c3cf6ca18eaf35e49adcf68e7b74892f6844e07ab8e");
+  assert.equal(bundleDigest(securityBundle), "ca09436c4a5d7af67099d2c17ee899257f15afc860ab6b6d02b26065dc3f6143");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {
@@ -723,6 +730,15 @@ test("prose-only docs omit Security consistently and stale global routes are rej
   for (const body of [readme, company, writer, reviewer, quality]) {
     assert.match(body, /(?:routine )?prose(?:-only)?(?: and executable)? docs[^\n]+(?:omit|no|without) (?:the )?Security|(?:routine )?prose(?:-only)?(?: and executable)? docs[^\n]+Writer -> QA -> (?:Code )?Reviewer/i);
   }
+});
+
+test("tracked policy never tells an agent to invoke another agent's heartbeat", async () => {
+  const violations = [];
+  for (const file of await trackedPolicyFiles()) {
+    const markdown = await read(`../${file}`);
+    for (const line of unsafeCrossAgentWakeInstructions(markdown)) violations.push(`${file}: ${line.trim()}`);
+  }
+  assert.deepEqual(violations, []);
 });
 
 test("PR follow-through re-enters gates by actual change effect", async () => {

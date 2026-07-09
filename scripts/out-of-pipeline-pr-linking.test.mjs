@@ -9,7 +9,7 @@ async function read(relativePath) {
 const OUT_OF_PIPELINE_SCOPE_PATTERN =
   /(?:outside|out-of-pipeline|outside the normal)[\s\S]{0,240}(?:normal )?(?:delivery pipeline|synced GitHub issue pipeline)|(?:normal )?(?:delivery pipeline|synced GitHub issue pipeline)[\s\S]{0,240}(?:outside|out-of-pipeline)/i;
 const SUBTASK_BEFORE_PR_PATTERN =
-  /(?:Paperclip )?(?:child issue|subtask)[\s\S]{0,260}(?:before|first)[\s\S]{0,220}(?:PR|pull request)|(?:before|first)[\s\S]{0,220}(?:PR|pull request)[\s\S]{0,260}(?:Paperclip )?(?:child issue|subtask)/i;
+  /(?:Paperclip )?(?:child issue|subtask)[\s\S]{0,320}(?:before|first|prior to|only inside)[\s\S]{0,220}(?:PR|pull request)|(?:before|first|prior to|only inside)[\s\S]{0,220}(?:PR|pull request)[\s\S]{0,320}(?:Paperclip )?(?:child issue|subtask)/i;
 const LINK_PR_TO_ISSUE_PATTERN =
   /(?:link|linked|linking)[\s\S]{0,180}(?:PR|pull request)[\s\S]{0,220}(?:Paperclip )?(?:issue|subtask|child issue)|(?:Paperclip )?(?:issue|subtask|child issue)[\s\S]{0,220}(?:link|linked|linking)[\s\S]{0,180}(?:PR|pull request)/i;
 const SYNC_PLUGIN_EXCEPTION_PATTERN =
@@ -27,11 +27,11 @@ const LINK_TOOL_PATTERN =
 const REMOVED_ISSUE_LINK_REST_FALLBACK_PATTERN =
   /\/api\/plugins\/paperclip-github-plugin\/api\/issue-link|issue-link API route fallback|when plugin tools are unavailable, call|when plugin tools are unavailable[\s\S]{0,240}REST fallback/i;
 const SUBTASK_IN_REVIEW_AFTER_PR_PATTERN =
-  /(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:PR|pull request)[\s\S]{0,260}(?:in_review|in review)[\s\S]{0,260}(?:do not|must not|never)[\s\S]{0,160}(?:close|mark(?:ed)? done|status: done|DONE)|(?:do not|must not|never)[\s\S]{0,160}(?:close|mark(?:ed)? done|status: done|DONE)[\s\S]{0,260}(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:PR|pull request)[\s\S]{0,260}(?:in_review|in review)/i;
+  /(?:PR|pull request)[^\n]{0,320}(?:Paperclip )?(?:sub-issue|child issue|subtask)[^\n]{0,220}(?:in_review|in review)[^\n]{0,220}(?:do not|must not|never)[^\n]{0,160}(?:close|mark(?:ed)? done|status: done|DONE)|(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:PR|pull request)[\s\S]{0,260}(?:in_review|in review)[\s\S]{0,260}(?:do not|must not|never)[\s\S]{0,160}(?:close|mark(?:ed)? done|status: done|DONE)|(?:do not|must not|never)[\s\S]{0,160}(?:close|mark(?:ed)? done|status: done|DONE)[\s\S]{0,260}(?:Paperclip )?(?:sub-issue|child issue|subtask)[\s\S]{0,260}(?:PR|pull request)[\s\S]{0,260}(?:in_review|in review)/i;
 const TARGET_BRANCH_BEFORE_WORK_PATTERN =
-  /(?:target|base|default) branch[\s\S]{0,220}(?:fetch|update|rebase|merge|sync)[\s\S]{0,220}(?:before|prior to)[\s\S]{0,180}(?:start(?:ing)? work|edit(?:ing)?|commit(?:ting)?|open(?:ing)?|creat(?:ing)?|updat(?:ing)?)[\s\S]{0,160}(?:PR|pull request|branch)|(?:before|prior to)[\s\S]{0,180}(?:start(?:ing)? work|edit(?:ing)?|commit(?:ing)?|open(?:ing)?|creat(?:ing)?|updat(?:ing)?)[\s\S]{0,160}(?:PR|pull request|branch)[\s\S]{0,220}(?:fetch|update|rebase|merge|sync)[\s\S]{0,220}(?:target|base|default) branch/i;
+  /(?:target|base|default) branch[\s\S]{0,220}(?:fetch|update|rebase|merge|sync)[\s\S]{0,220}(?:before|prior to)[\s\S]{0,180}(?:start(?:ing)? work|edit(?:ing)?|commit(?:ting)?|open(?:ing)?|creat(?:ing)?|updat(?:ing)?|prepar(?:e|ing))[\s\S]{0,160}(?:PR|pull request|branch|candidate)|(?:before|prior to)[\s\S]{0,180}(?:start(?:ing)? work|edit(?:ing)?|commit(?:ing)?|open(?:ing)?|creat(?:ing)?|updat(?:ing)?|prepar(?:e|ing))[\s\S]{0,160}(?:PR|pull request|branch|candidate)[\s\S]{0,220}(?:fetch|update|rebase|merge|sync)[\s\S]{0,220}(?:target|base|default) branch/i;
 const TARGET_CONFLICT_BLOCKER_PATTERN =
-  /(?:target|base|default) branch[\s\S]{0,220}(?:conflict|merge conflict|rebase conflict)[\s\S]{0,220}(?:blocker|blocked|do not open|do not update|must not open|must not update)|(?:blocker|blocked|do not open|do not update|must not open|must not update)[\s\S]{0,220}(?:conflict|merge conflict|rebase conflict)[\s\S]{0,220}(?:target|base|default) branch/i;
+  /(?:target|base|default) branch[\s\S]{0,220}(?:conflict|merge conflict|rebase conflict)[\s\S]{0,220}(?:blocker|blocked|do not open|do not update|do not prepare|do not publish|must not open|must not update|must not prepare|must not publish)|(?:blocker|blocked|do not open|do not update|do not prepare|do not publish|must not open|must not update|must not prepare|must not publish)[\s\S]{0,220}(?:conflict|merge conflict|rebase conflict)[\s\S]{0,220}(?:target|base|default) branch/i;
 
 function assertOutOfPipelinePrPolicy(markdown, label) {
   assert.match(
@@ -105,7 +105,11 @@ test("routine PR surfaces require a Paperclip subtask and PR link", async () => 
   for (const relativePath of requiredPaths) {
     const markdown = await read(relativePath);
 
-    assertOutOfPipelinePrPolicy(markdown, relativePath);
+    assert.match(
+      markdown,
+      SUBTASK_BEFORE_PR_PATTERN,
+      `${relativePath} must require the project child or subtask before PR publication.`,
+    );
     assert.match(
       markdown,
       AFFECTED_PROJECT_SUBTASK_PATTERN,

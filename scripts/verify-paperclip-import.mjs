@@ -159,8 +159,8 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "README.md",
-    pattern: /heartbeat\/invoke/,
-    message: "README.md must document explicit reviewer wakeups through the Paperclip heartbeat invoke API.",
+    pattern: /let Paperclip dispatch it; agent-authenticated callers cannot invoke another agent/i,
+    message: "README.md must assign reviewer wakeup dispatch to Paperclip and prohibit cross-agent invocation.",
   },
   {
     relativePath: "README.md",

@@ -58,7 +58,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 
 Paperclip built-ins:
 
-- Use `node skills/paperclip-control-plane/scripts/paperclip-workflow.mjs snapshot ...` to inspect state and `put-document ... --key plan` to publish the plan revision safely.
+- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs snapshot ...` to inspect state and `put-document ... --key plan` to publish the plan revision safely.
 - Use issue-thread interactions for non-governance plan confirmation: `POST /api/issues/{issueId}/interactions` with `kind: request_confirmation`, an idempotency key like `confirmation:{issueId}:plan:{revisionId}`, target `key: plan`, and `continuationPolicy: wake_assignee_on_accept`.
 - For accepted planning-mode precursors, use `POST /api/issues/{issueId}/accepted-plan-decompositions` with the accepted `plan` revision and child drafts. Keep implementation children in `workMode: standard` unless a child is itself another explicit planning-only precursor.
 - Use approvals APIs when the plan needs a linked board approval for a breaking change, release-policy exception, or scope escalation.

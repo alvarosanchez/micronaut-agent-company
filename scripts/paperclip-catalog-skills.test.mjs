@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
 
 import YAML from "yaml";
 
@@ -15,6 +15,16 @@ async function pathExists(relativePath) {
   } catch {
     return false;
   }
+}
+
+async function markdownFiles(root) {
+  const files = [];
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    const url = new URL(`${entry.name}${entry.isDirectory() ? "/" : ""}`, root);
+    if (entry.isDirectory()) files.push(...await markdownFiles(url));
+    else if (entry.name.endsWith(".md")) files.push(url);
+  }
+  return files;
 }
 
 function parseFrontmatter(markdown) {
@@ -156,6 +166,33 @@ test("package agents reference the adopted Paperclip catalog skill keys", async 
       assert.match(body, /## Catalog Skill Guardrails/, `${agentSlug} should keep Micronaut-specific catalog-skill corrections in agent instructions.`);
     }
   }
+});
+
+test("all imported roles resolve the shared control-plane script from the skill inventory", async () => {
+  for (const agentSlug of Object.keys(AGENT_DISPLAY_NAMES)) {
+    const markdown = await read(`../agents/${agentSlug}/AGENTS.md`);
+    const { frontmatter, body } = parseFrontmatter(markdown);
+    assert.ok(frontmatter.skills.includes("paperclip-control-plane"), `${agentSlug} must import the narrow control-plane skill`);
+    assert.match(body, /<paperclip-control-plane-skill-directory>\/scripts\/paperclip-workflow\.mjs/);
+    assert.doesNotMatch(body, /node skills\/paperclip-control-plane\/scripts\/paperclip-workflow\.mjs/);
+  }
+});
+
+test("automation audit covers the derived Markdown corpus and exact CLI surface", async () => {
+  const agentFiles = await markdownFiles(new URL("../agents/", import.meta.url));
+  const skillFiles = await markdownFiles(new URL("../skills/", import.meta.url));
+  const audit = await read("../skills/paperclip-control-plane/references/instruction-automation-audit.md");
+  const script = await read("../skills/paperclip-control-plane/scripts/paperclip-workflow.mjs");
+
+  assert.equal(agentFiles.filter((file) => file.pathname.endsWith("/AGENTS.md")).length, 8);
+  assert.equal(skillFiles.length, 25);
+  assert.match(audit, /all 8 `agents\/\*\/AGENTS\.md` files and all 25 package-owned Markdown files under `skills\/`[\s\S]{0,120}33 instruction\/skill Markdown files total/i);
+  for (const command of ["snapshot", "verify", "approval-link", "put-document"]) {
+    assert.match(audit, new RegExp("\\| `" + command + "` \\|"));
+    assert.match(script, new RegExp(`args\\.command === "${command}"`));
+  }
+  assert.doesNotMatch(audit, /\| `transition` \|/);
+  assert.doesNotMatch(script, /args\.command === "transition"/);
 });
 
 test("README skill assignment tables match exact package agent frontmatter", async () => {
