@@ -225,6 +225,83 @@ test("source verification enforces the attachment and productivity-review guidan
   assert.match(source, /README\.md must explain Paperclip productivity review issues\./);
 });
 
+const HOST_DEFAULT_DOC_PATHS = ["../README.md", "../COMPANY.md", "../tasks/verify-imported-company-instance/TASK.md"];
+
+test("docs treat the fail-closed tool gateway as a tool-access profile prerequisite", async () => {
+  for (const relativePath of HOST_DEFAULT_DOC_PATHS) {
+    const markdown = await read(relativePath);
+
+    assert.match(markdown, /fail-closed/i, `${relativePath} must say the 2026.831 tool gateway is fail-closed.`);
+    assert.match(
+      markdown,
+      /`tool_name` (?:include entries|includes)[\s\S]{0,200}paperclip-github-plugin/i,
+      `${relativePath} must require tool_name include entries for the paperclip-github-plugin tools.`,
+    );
+    assert.match(
+      markdown,
+      /(?:empty list|comes back empty|list is empty)[\s\S]{0,400}deny_default|deny_default[\s\S]{0,400}(?:empty list|comes back empty|list is empty)/i,
+      `${relativePath} must explain the empty tool list and deny_default rejection when no profile is bound.`,
+    );
+  }
+
+  const readme = await read("../README.md");
+  const company = await read("../COMPANY.md");
+  for (const markdown of [readme, company]) {
+    assert.match(markdown, /bind (?:that profile )?at company scope|bound (?:it )?at company scope|profile at company scope/i, "Docs must bind the tool-access profile at company scope.");
+  }
+
+  const verifyTask = await read("../tasks/verify-imported-company-instance/TASK.md");
+  assert.match(
+    verifyTask,
+    /GET \/api\/plugins\/tools[\s\S]{0,400}paperclip-github-plugin/,
+    "Bootstrap verification must check that GET /api/plugins/tools returns the GitHub plugin tools.",
+  );
+});
+
+test("docs require pauseAutomations on import and resume from the CEO bootstrap issue", async () => {
+  for (const relativePath of HOST_DEFAULT_DOC_PATHS) {
+    const markdown = await read(relativePath);
+
+    assert.match(markdown, /pauseAutomations: true/, `${relativePath} must require pauseAutomations: true on import or sync.`);
+    assert.match(markdown, /pauseReason: "import"/, `${relativePath} must name the import pause reason imported agents carry.`);
+    assert.match(
+      markdown,
+      /bootstrap (?:verification )?issue is the (?:single )?point where[\s\S]{0,160}resumed/i,
+      `${relativePath} must make the CEO bootstrap verification issue the resume point.`,
+    );
+  }
+});
+
+test("docs treat the execution-policy review-rounds cap as expected escalation", async () => {
+  for (const relativePath of HOST_DEFAULT_DOC_PATHS) {
+    const markdown = await read(relativePath);
+
+    assert.match(
+      markdown,
+      /maxReviewRounds[\s\S]{0,40}(?:host )?default(?:s to)? 3[\s\S]{0,700}responsibleUserId/i,
+      `${relativePath} must document the default cap of 3 agent review rounds and the responsibleUserId escalation.`,
+    );
+    assert.match(markdown, /not a stuck stage/i, `${relativePath} must say a capped-out stage is not a stuck stage.`);
+    assert.match(
+      markdown,
+      /(?:comment|comments|report)[\s\S]{0,300}(?:rounds (?:already )?spent|rounds spent)/i,
+      `${relativePath} must tell the capped-out agent how to report the cap.`,
+    );
+  }
+});
+
+test("docs record the deliberate non-use of Decisions, Cases, status cards, and summary slots", async () => {
+  for (const relativePath of HOST_DEFAULT_DOC_PATHS) {
+    const markdown = await read(relativePath);
+
+    assert.match(
+      markdown,
+      /Decisions[\s\S]{0,200}Cases[\s\S]{0,80}status cards[\s\S]{0,60}summary slots[\s\S]{0,80}deliberately (?:not used|unused)[\s\S]{0,120}`request_confirmation`/i,
+      `${relativePath} must record that Decisions, Cases, status cards, and summary slots are deliberately unused.`,
+    );
+  }
+});
+
 test("guidance covers Paperclip v2026.831.1 runtime surfaces without hard-coding deployment choices", async () => {
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
