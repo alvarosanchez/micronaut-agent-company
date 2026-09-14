@@ -504,7 +504,7 @@ test("docs adopt the 2026.831 recovery, run-output, and diagnostics contracts", 
 
   // Runtime Skill Sync consumes the host manifest instead of a hand inventory.
   assert.match(lanes, /deterministic manifest[\s\S]{0,400}materializ/i);
-  assert.match(lanes, /no reported failure is a no-op/i);
+  assert.match(lanes, /no-op only when[\s\S]{0,200}every package-declared grant is present/i);
   assert.match(ceoTask, /run-time skill manifest/i);
 
   // Experimental surfaces: unused by the package even where a deployment enables them.
