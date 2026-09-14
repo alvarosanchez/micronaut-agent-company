@@ -2,9 +2,9 @@
 
 These bounded lanes remain separate from 30-day discovery. CEO records and routes findings; delivery owners change repositories and follow PRs.
 
-## Hermes Runtime Skill Sync
+## Runtime Skill Sync
 
-Inspect Paperclip-managed skills for all company agents using `/api/companies/{companyId}/agents`, `/api/agents/{agentId}/skills`, runtime storage, and `__catalog__/`. Verify visibility with `skills_list`/`skill_view`. Report source, target, present/missing/blocked, and verification. If executable reconciliation is needed, create a scoped QA-assigned Micronaut Engineer child; CEO does not mutate Hermes skill storage.
+Inspect Paperclip-managed skills for all company agents using `/api/companies/{companyId}/agents`, `/api/companies/{companyId}/skills`, and each agent's desired-versus-configured skill state; catalog grants stay `missing` until the Skills Store entry is installed. Report source, target, present/missing/blocked, and verification. Skill sync and package reimport preserve operator selections unless an explicit replace merge mode is requested, so name the intended mode. If executable reconciliation is needed, create a scoped QA-assigned Micronaut Engineer child; CEO does not mutate runtime skill storage or adapter skill directories.
 
 ## Managed Repository AGENTS.md Audit
 

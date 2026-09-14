@@ -1,6 +1,6 @@
 ---
 name: gh-cli
-description: "Reference the upstream GitHub gh CLI skill only for explicit human/operator exceptions where a non-plugin GitHub client is authorized. Normal GitHub API operations must use the GitHub Sync plugin tools, including the Hermes MCP-bridged runtime names when present. Do not depend on a propagated GITHUB_TOKEN and do not search the filesystem, plugin config, or other files for a token. Any maintainer-visible non-plugin GitHub write still requires the manual GitHub-flavored Markdown footer: one blank line, `---` on its own line, then `###### \u2728 This message was AI-generated using <exact model id>`."
+description: "Reference the upstream GitHub gh CLI skill only for explicit human/operator exceptions where a non-plugin GitHub client is authorized. Normal GitHub API operations must use the GitHub Sync plugin tools reached through Paperclip's plugin tool API and tool gateway; a missing or denied tool is a policy blocker, not a reason to use gh. Do not depend on a propagated GITHUB_TOKEN and do not search the filesystem, plugin config, or other files for a token. Any maintainer-visible non-plugin GitHub write still requires the manual GitHub-flavored Markdown footer: one blank line, `---` on its own line, then `###### \u2728 This message was AI-generated using <exact model id>`."
 metadata:
   skillKey: url/skills-sh/98fe50cd5a/gh-cli
   sources:

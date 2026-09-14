@@ -22,6 +22,6 @@ All calls require `PAPERCLIP_API_URL` and `PAPERCLIP_API_KEY`. The URL must be a
 
 Do not attempt a cross-agent heartbeat invocation. Agent-authenticated callers may invoke only themselves; correct execution-policy routing or assignment must wake the next participant. If routing is correct but no run is queued, record a runtime wake blocker.
 
-This skill grants no document mutation, GitHub, repository, implementation, closure, or publication authority. Permitted document writes and stage decisions remain on native Paperclip tools because v2026.626 exposes no atomic client precondition that can safely fence keyed-document replacement or same-agent stage re-entry. If a native document operation cannot guarantee the requested key, stop instead of retrying a remapped write.
+This skill grants no document mutation, GitHub, repository, implementation, closure, or publication authority. Permitted document writes and stage decisions remain on native Paperclip tools because v2026.831.1 still exposes no server-enforced precondition for same-agent stage re-entry, and an agent write to a locked keyed document is redirected to a new document instead of failing. If a native document operation cannot guarantee the requested key, stop instead of retrying a remapped write.
 
 See `references/instruction-automation-audit.md` for automated and deferred candidates.

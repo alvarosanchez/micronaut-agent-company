@@ -13,7 +13,7 @@ The bundled `scripts/paperclip-workflow.mjs` provides three read-only commands f
 | Verify approval-to-issue linkage | `approval-link` | Reads the authoritative approval issue list rather than trusting cached issue fields |
 
 
-The script requires the normal agent bearer token. It accepts only a bare HTTP(S) origin, rejects embedded credentials/query/fragment/path components, and permits plaintext HTTP only on loopback. It deliberately has **no document-mutation, stage-transition, or cross-agent wake command**: the installed Paperclip build exposes no atomic client precondition for keyed-document replacement or same-agent stage re-entry, and an agent-authenticated heartbeat caller may invoke only itself. Native Paperclip tools own permitted document and stage operations; correct stage advancement or assignment is the routing mechanism.
+The script requires the normal agent bearer token. It accepts only a bare HTTP(S) origin, rejects embedded credentials/query/fragment/path components, and permits plaintext HTTP only on loopback. It deliberately has **no document-mutation, stage-transition, or cross-agent wake command**: the installed Paperclip build (2026.831.1) exposes no server-enforced precondition for same-agent stage re-entry and redirects agent writes to locked keyed documents instead of failing them, and an agent-authenticated heartbeat caller may invoke only itself. Native Paperclip tools own permitted document and stage operations; correct stage advancement or assignment is the routing mechanism.
 
 ## Already executable; do not wrap again
 

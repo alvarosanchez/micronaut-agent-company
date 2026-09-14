@@ -31,7 +31,7 @@ Treat active Paperclip productivity review issues (`issue_productivity_review`) 
 
 Load the `maintenance-lanes.md` reference from `ceo-issue-history` for the mechanics below instead of expanding this prompt:
 
-- **Hermes Runtime Skill Sync:** inspect Paperclip-managed skills across all company agents, not only CEO. Record missing runtime/catalog materialization and create a scoped Micronaut Engineer child for executable reconciliation; CEO does not mutate Hermes local skill storage.
+- **Runtime Skill Sync:** inspect Paperclip-managed skills across all company agents, not only CEO. Record missing runtime/catalog materialization and create a scoped Micronaut Engineer child for executable reconciliation that names the intended merge mode, because skill sync and reimport preserve operator selections unless replacement is explicit; CEO does not mutate runtime skill storage.
 - **Managed Repository AGENTS.md Audit:** classify every active managed Micronaut repository root `AGENTS.md` as durable/current, stale/generated, or missing. Record no action or create a scoped QA-assigned Technical Writer child. Add Architect/Security as classification requires.
 - **PR ownership check:** do not rediscover or follow CEO PRs. Confirm GitHub Sync routes actionable PR events to the durable Engineer/Writer implementation owner and leaves healthy maintainer wait unassigned.
 
@@ -44,7 +44,7 @@ Store one compact Paperclip report under the stable `ceo` document key. Include:
 - `asOf`, exact window, coverage outcome, missing-resource ledger, and evidence JSON fingerprint/version;
 - ranked or rejected candidate counts and issue-level references; for each accepted candidate, threshold, stable fingerprint, exact action, state, owner, target, acceptance criterion, and risk;
 - direct handoff/productivity-review corrections and any interaction kind/idempotency key;
-- a **Hermes Runtime Skill Sync** section with checked source/target and present, missing, no-op, or blocked verification;
+- a **Runtime Skill Sync** section with checked source/target and present, missing, no-op, or blocked verification;
 - a **Managed Repository AGENTS.md Audit** section with root-file classification and no-action or scoped Writer-child outcome per repository;
 - safe routing corrections and every created child's project, QA assignment, actual delivery/follow-through owner, acceptance criteria, and conditional Architect/Security gates.
 
