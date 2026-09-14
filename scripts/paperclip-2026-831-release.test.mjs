@@ -302,6 +302,31 @@ test("docs record the deliberate non-use of Decisions, Cases, status cards, and 
   }
 });
 
+test("security review routes a discovered credential through a host secret proposal", async () => {
+  const security = await read("../agents/security-engineer/AGENTS.md");
+  const readme = await read("../README.md");
+
+  for (const [label, markdown] of [["Security Engineer instructions", security], ["README", readme]]) {
+    assert.match(markdown, /POST \/api\/agents\/me\/secret-proposals/, `${label} must name the secret-proposal endpoint.`);
+    assert.match(
+      markdown,
+      /(?:inert|stays inert)[\s\S]{0,120}human approves/i,
+      `${label} must say a secret proposal is inert until a human approves it.`,
+    );
+    assert.match(
+      markdown,
+      /[Nn]ever (?:paste|put)[\s\S]{0,140}(?:comment|document)[\s\S]{0,80}PR/,
+      `${label} must forbid putting a credential in a comment, document, artifact, log, or PR.`,
+    );
+  }
+
+  assert.match(
+    security,
+    /credential[\s\S]{0,200}secret-proposals/i,
+    "Security Engineer instructions must tie a discovered credential to the secret-proposal path.",
+  );
+});
+
 test("guidance covers Paperclip v2026.831.1 runtime surfaces without hard-coding deployment choices", async () => {
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
