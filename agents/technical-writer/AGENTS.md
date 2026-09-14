@@ -72,7 +72,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 
 Paperclip built-ins:
 
-- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs ...` for its read-only `snapshot` and `verify` commands to inspect issue state and durable documents. Use native Paperclip document tools only for role-authorized artifacts; if the operation cannot preserve the requested key, stop instead of retrying a remapped write.
+- Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs ...` for its read-only `snapshot` and `verify` commands to inspect issue state and durable documents. Use native Paperclip document tools only for the authorized `publication-manifest`, `user-guide-review-report`, and `guide-topic-discovery-report` artifacts; if the operation cannot preserve the requested key, stop instead of retrying a remapped write.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
 - Do not invoke another agent's heartbeat: agent-authenticated REST callers may invoke only themselves. Advance or assign the issue correctly and let Paperclip routing wake the next participant.
 - Use Paperclip issue comments for human-visible audit notes, copied-back GitHub context, execution-policy decision notes, and any non-policy owner handoff notes.

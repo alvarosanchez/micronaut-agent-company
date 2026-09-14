@@ -513,6 +513,7 @@ test("docs adopt the 2026.831 recovery, run-output, and diagnostics contracts", 
 });
 
 test("routines adopt host watchdogs, isolated workspaces, external-object reads, and explicit report documents", async () => {
+  const REPORT_KEYS = { "guide-topic-discovery": "guide-topic-discovery-report", "user-guide-review": "user-guide-review-report", "product-discovery": "product-discovery" };
   const coordinators = {
     "guide-topic-discovery": await read("../tasks/monthly-guide-topic-discovery/TASK.md"),
     "user-guide-review": await read("../tasks/monthly-user-guide-review/TASK.md"),
@@ -521,7 +522,11 @@ test("routines adopt host watchdogs, isolated workspaces, external-object reads,
   for (const [name, task] of Object.entries(coordinators)) {
     assert.match(task, /PUT \/api\/issues\/\{routineIssueId\}\/watchdog/, `${name} must install a watchdog on the routine issue.`);
     assert.match(task, /never the watchdog configuration/i, `${name} must state the watchdog run cannot edit watchdog config.`);
-    assert.match(task, new RegExp(`keyed document \\x60${name}-report\\x60`), `${name} must name its report document key.`);
+    assert.match(task, /`agentId` = QA Engineer; idempotent, one watchdog per issue/, `${name} watchdog must be QA-owned and idempotent.`);
+    assert.match(task, /re-dispatch an assigned `todo` child that has no run/, `${name} watchdog must re-dispatch undispatched children.`);
+    assert.match(task, /leave any child that carries an open linked PR untouched/, `${name} watchdog must not touch children with open PRs.`);
+    assert.match(task, /never cancel, close, or reassign any child/, `${name} watchdog must never cancel, close, or reassign.`);
+    assert.match(task, new RegExp(`keyed document \\x60${REPORT_KEYS[name]}\\x60`), `${name} must name its authorized report document key.`);
     assert.match(task, /final output segment/i, `${name} must explain why the report is written explicitly.`);
   }
   for (const name of ["guide-topic-discovery", "user-guide-review"]) {
@@ -531,6 +536,17 @@ test("routines adopt host watchdogs, isolated workspaces, external-object reads,
   const security = await read("../tasks/monthly-security-deep-scan/TASK.md");
   assert.match(security, /external-object-summaries/);
   assert.match(security, /keyed document `security-deep-scan-report`/);
+  assert.match(security, /previous month's `security-deep-scan-report`[\s\S]{0,120}repeats as repeats with their first-seen date/);
+  const securityRole = await read("../agents/security-engineer/AGENTS.md");
+  assert.match(securityRole, /`security-deep-scan-report`/, "Security role must authorize the deep-scan report key.");
+  const writerRole = await read("../agents/technical-writer/AGENTS.md");
+  assert.match(writerRole, /`user-guide-review-report`[\s\S]{0,40}`guide-topic-discovery-report`/, "Writer role must authorize the routine report keys.");
+  const ceoRole = await read("../agents/ceo/AGENTS.md");
+  assert.match(ceoRole, /authorized `ceo`, `ceo-training`, and `training-route`/, "CEO role must authorize ceo-training.");
+  const pmRole = await read("../agents/product-manager/AGENTS.md");
+  assert.match(pmRole, /authorized `product-discovery` report/);
+  const overlays = await read("../skills/micronaut-repo-operations/references/internal-routines-overlays.md");
+  assert.doesNotMatch(overlays, /[a-z`] After creating or reusing/, "overlay watchdog sentences must start at a sentence boundary.");
   const training = await read("../tasks/training/TASK.md");
   assert.match(training, /`ceo-training` document key/);
   const ceo = await read("../tasks/monthly-ceo-self-improvement/TASK.md");
