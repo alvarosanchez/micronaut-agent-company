@@ -225,6 +225,166 @@ test("source verification enforces the attachment and productivity-review guidan
   assert.match(source, /README\.md must explain Paperclip productivity review issues\./);
 });
 
+const HOST_DEFAULT_DOC_PATHS = ["../README.md", "../COMPANY.md", "../tasks/verify-imported-company-instance/TASK.md"];
+
+test("docs treat the fail-closed tool gateway as a tool-access profile prerequisite", async () => {
+  for (const relativePath of HOST_DEFAULT_DOC_PATHS) {
+    const markdown = await read(relativePath);
+
+    assert.match(markdown, /fail-closed/i, `${relativePath} must say the 2026.831 tool gateway is fail-closed.`);
+    assert.match(
+      markdown,
+      /`tool_name` (?:include entries|includes)[\s\S]{0,200}paperclip-github-plugin/i,
+      `${relativePath} must require tool_name include entries for the paperclip-github-plugin tools.`,
+    );
+    assert.match(
+      markdown,
+      /(?:empty list|comes back empty|list is empty)[\s\S]{0,400}deny_default|deny_default[\s\S]{0,400}(?:empty list|comes back empty|list is empty)/i,
+      `${relativePath} must explain the empty tool list and deny_default rejection when no profile is bound.`,
+    );
+  }
+
+  const readme = await read("../README.md");
+  const company = await read("../COMPANY.md");
+  for (const markdown of [readme, company]) {
+    assert.match(
+      markdown,
+      /(?:read-only (?:set|baseline|inspection tools)|baseline)[\s\S]{0,60}(?:at )?company scope/i,
+      "Docs must bind only the read-only baseline at company scope.",
+    );
+    assert.match(
+      markdown,
+      /least privilege/i,
+      "Docs must model the tool-access profiles as least privilege rather than one blanket company grant.",
+    );
+    assert.match(
+      markdown,
+      /(?:agent: )?Micronaut Engineer[\s\S]{0,40}Technical Writer/,
+      "Docs must bind the PR and review-thread write tools to the implementation owners only.",
+    );
+    assert.match(
+      markdown,
+      /`exclude` entry only suppresses[\s\S]{0,120}own profile/i,
+      "Docs must warn that a broad company profile cannot be narrowed with per-agent excludes.",
+    );
+  }
+
+  const verifyTask = await read("../tasks/verify-imported-company-instance/TASK.md");
+  assert.match(
+    verifyTask,
+    /GET \/api\/plugins\/tools[\s\S]{0,400}paperclip-github-plugin/,
+    "Bootstrap verification must check that GET /api/plugins/tools returns the GitHub plugin tools.",
+  );
+});
+
+test("docs require pauseAutomations on import and resume from the CEO bootstrap issue", async () => {
+  for (const relativePath of HOST_DEFAULT_DOC_PATHS) {
+    const markdown = await read(relativePath);
+
+    assert.match(markdown, /pauseAutomations: true/, `${relativePath} must require pauseAutomations: true on import or sync.`);
+    assert.match(markdown, /pauseReason: "import"/, `${relativePath} must name the import pause reason imported agents carry.`);
+    assert.match(
+      markdown,
+      /bootstrap (?:verification )?issue is the (?:single )?point where[\s\S]{0,160}resumed/i,
+      `${relativePath} must make the CEO bootstrap verification issue the resume point.`,
+    );
+  }
+});
+
+test("docs name the import paths that do and do not set pauseAutomations", async () => {
+  const readme = await read("../README.md");
+
+  assert.match(readme, /Import page[\s\S]{0,160}(?:checkbox is on by default|checks (?:that option|it) by default|default)/i, "README must say the app Import page pauses automations by default.");
+  assert.match(
+    readme,
+    /npx paperclipai company import[\s\S]{0,240}no `--pause-automations` flag|no `--pause-automations` flag/i,
+    "README must say the CLI import command has no pause flag at the pinned Paperclip release.",
+  );
+  assert.match(
+    readme,
+    /setup-local-paperclip-instance\.mjs[\s\S]{0,120}verify-paperclip-import\.mjs[\s\S]{0,240}(?:deliberately|intentionally)/i,
+    "README must document the local helper scripts as intentional exceptions to the pause default.",
+  );
+});
+
+test("docs treat the execution-policy review-rounds cap as expected escalation", async () => {
+  for (const relativePath of HOST_DEFAULT_DOC_PATHS) {
+    const markdown = await read(relativePath);
+
+    assert.match(
+      markdown,
+      /maxReviewRounds[\s\S]{0,40}(?:host )?default(?:s to)? 3[\s\S]{0,700}responsibleUserId/i,
+      `${relativePath} must document the default cap of 3 agent review rounds and the responsibleUserId escalation.`,
+    );
+    assert.match(markdown, /not a stuck stage/i, `${relativePath} must say a capped-out stage is not a stuck stage.`);
+    assert.match(
+      markdown,
+      /(?:comment|comments|report)[\s\S]{0,300}(?:rounds (?:already )?spent|rounds spent)/i,
+      `${relativePath} must tell the capped-out agent how to report the cap.`,
+    );
+  }
+});
+
+test("docs record the deliberate non-use of Decisions, Cases, status cards, and summary slots", async () => {
+  for (const relativePath of HOST_DEFAULT_DOC_PATHS) {
+    const markdown = await read(relativePath);
+
+    assert.match(
+      markdown,
+      /Decisions[\s\S]{0,200}Cases[\s\S]{0,80}status cards[\s\S]{0,60}summary slots[\s\S]{0,80}deliberately (?:not used|unused)[\s\S]{0,120}`request_confirmation`/i,
+      `${relativePath} must record that Decisions, Cases, status cards, and summary slots are deliberately unused.`,
+    );
+  }
+});
+
+test("security review routes a discovered credential through a host secret proposal", async () => {
+  const security = await read("../agents/security-engineer/AGENTS.md");
+  const readme = await read("../README.md");
+
+  for (const [label, markdown] of [["Security Engineer instructions", security], ["README", readme]]) {
+    assert.match(markdown, /POST \/api\/agents\/me\/secret-proposals/, `${label} must name the secret-proposal endpoint.`);
+    assert.match(
+      markdown,
+      /(?:inert|stays inert)[\s\S]{0,120}human approves/i,
+      `${label} must say a secret proposal is inert until a human approves it.`,
+    );
+    assert.match(
+      markdown,
+      /[Nn]ever (?:paste|put)[\s\S]{0,140}(?:comment|document)[\s\S]{0,80}PR/,
+      `${label} must forbid putting a credential in a comment, document, artifact, log, or PR.`,
+    );
+  }
+
+  assert.match(
+    security,
+    /credential[\s\S]{0,200}secret-proposals/i,
+    "Security Engineer instructions must tie a discovered credential to the secret-proposal path.",
+  );
+});
+
+test("routine activity gating is documented as a live-company setting, not a package default", async () => {
+  const readme = await read("../README.md");
+  const extension = YAML.parse(await read("../.paperclip.yaml"));
+
+  assert.match(readme, /activityGatePolicy[\s\S]{0,200}require_external_activity/, "README must name the activity gate policy values.");
+  assert.match(readme, /activityGateScope[\s\S]{0,120}`?company`?[\s\S]{0,60}`?project`?/, "README must name the activity gate scope values.");
+  assert.match(
+    readme,
+    /portability manifest does not carry them|concurrencyPolicy`, `catchUpPolicy`, `variables`, and `triggers`/,
+    "README must explain why the activity gate cannot live in .paperclip.yaml.",
+  );
+  assert.match(
+    readme,
+    /PATCH \/api\/routines\/\{routineId\}|routine settings UI/,
+    "README must say where to set the activity gate in the live company.",
+  );
+
+  for (const [slug, routine] of Object.entries(extension.routines ?? {})) {
+    assert.equal(routine.activityGatePolicy, undefined, `${slug} must not declare a non-portable activityGatePolicy.`);
+    assert.equal(routine.activityGateScope, undefined, `${slug} must not declare a non-portable activityGateScope.`);
+  }
+});
+
 test("guidance covers Paperclip v2026.831.1 runtime surfaces without hard-coding deployment choices", async () => {
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
