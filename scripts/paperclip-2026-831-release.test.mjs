@@ -456,7 +456,7 @@ test("guidance covers Paperclip v2026.831.1 runtime surfaces without hard-coding
   assert.match(readme, /explicit merge mode[\s\S]{0,200}collisionStrategy: replace/);
   assert.match(verifyTask, /explicit replace merge mode/i);
   assert.match(verifyTask, /claude_local[\s\S]{0,600}codex_local[\s\S]{0,300}gpt-6-astra/);
-  assert.match(verifyTask, /task watchdogs are limited to non-GitHub waits/i);
+  assert.match(verifyTask, /task watchdogs guard routine subtrees/i);
   assert.match(readme, /task watchdog/i);
   assert.match(readme, /ask work mode|question-and-answer/i);
   assert.match(readme, /routine date variables|date variable/i);
@@ -510,4 +510,32 @@ test("docs adopt the 2026.831 recovery, run-output, and diagnostics contracts", 
   // Experimental surfaces: unused by the package even where a deployment enables them.
   assert.doesNotMatch(readme, /flag-off by default/i);
   assert.doesNotMatch(company, /flag-off by default/i);
+});
+
+test("routines adopt host watchdogs, isolated workspaces, external-object reads, and explicit report documents", async () => {
+  const coordinators = {
+    "guide-topic-discovery": await read("../tasks/monthly-guide-topic-discovery/TASK.md"),
+    "user-guide-review": await read("../tasks/monthly-user-guide-review/TASK.md"),
+    "product-discovery": await read("../tasks/monthly-product-discovery/TASK.md"),
+  };
+  for (const [name, task] of Object.entries(coordinators)) {
+    assert.match(task, /PUT \/api\/issues\/\{routineIssueId\}\/watchdog/, `${name} must install a watchdog on the routine issue.`);
+    assert.match(task, /never the watchdog configuration/i, `${name} must state the watchdog run cannot edit watchdog config.`);
+    assert.match(task, new RegExp(`keyed document \\x60${name}-report\\x60`), `${name} must name its report document key.`);
+    assert.match(task, /final output segment/i, `${name} must explain why the report is written explicitly.`);
+  }
+  for (const name of ["guide-topic-discovery", "user-guide-review"]) {
+    assert.match(coordinators[name], /executionWorkspacePreference: isolated_workspace/, `${name} must request isolated worktrees for children.`);
+    assert.match(coordinators[name], /external-object-summary/, `${name} must read the host PR state on re-entry.`);
+  }
+  const security = await read("../tasks/monthly-security-deep-scan/TASK.md");
+  assert.match(security, /external-object-summaries/);
+  assert.match(security, /keyed document `security-deep-scan-report`/);
+  const training = await read("../tasks/training/TASK.md");
+  assert.match(training, /`ceo-training` document key/);
+  const ceo = await read("../tasks/monthly-ceo-self-improvement/TASK.md");
+  assert.match(ceo, /diagnostics\/blockers[\s\S]{0,120}diagnostics\/wakes/);
+  const verifyTask = await read("../tasks/verify-imported-company-instance/TASK.md");
+  assert.match(verifyTask, /external-object-summary[\s\S]{0,400}GITHUB_TOKEN/);
+  assert.match(verifyTask, /`guide-topic-discovery-report`/);
 });

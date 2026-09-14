@@ -70,7 +70,7 @@ For an explicitly triggered path, create a QA-intake child instead. Do not add, 
 
 If no suitable existing https://skills.sh skill exists, but the same technology or domain gap is recurring enough to justify company-owned guidance, create one scoped QA-assigned Paperclip child issue or subtask with status `backlog` and issue type `type: improvement`. Include the target agents, execution evidence, why no existing external skill was suitable, expected skill slug and scope, and observable acceptance evidence. QA records the plan depth (Architect plans every Micronaut Engineer-owned skill child; Technical Writer-owned textual content adds Architect only for a real planning trigger), then routes purely textual skill content to Technical Writer or executable scripts, tooling, configuration, and other behavioral content to Micronaut Engineer. The implementation owner authors the skill, creates and links any company-package PR, and owns CI, review threads, and follow-through. Do not draft the custom skill in the Training routine itself.
 
-Produce one Paperclip report that includes:
+Write one Paperclip report explicitly under the stable `ceo-training` document key (the host keeps agent reasoning out of automatic comments and summarizes only the final output segment) and include:
 
 - the last-pass boundary used for this analysis
 - the agents and executions inspected
