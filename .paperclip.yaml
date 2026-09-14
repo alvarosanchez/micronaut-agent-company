@@ -1,20 +1,17 @@
 schema: paperclip/v1
+schemaVersion: 7
 company:
   attachmentMaxBytes: 10485760
   requireBoardApprovalForNewAgents: false
 agents:
   ceo:
     adapter:
-      type: hermes_local
+      type: claude_local
       config:
-        hermesCommand: /usr/local/bin/hermes-paperclip
-        provider: openai-codex
-        model: gpt-5.6-terra
-        extraArgs:
-          - --reasoning-effort
-          - medium
-        persistSession: true
-        quiet: true
+        engine: auto
+        model: claude-opus-5
+        effort: medium
+        dangerouslySkipPermissions: true
         timeoutSec: 7200
         graceSec: 20
     runtime:
@@ -23,22 +20,18 @@ agents:
       modelProfiles:
         cheap:
           enabled: true
-          label: GPT-5.4 mini
+          label: Claude Haiku 4.5
           adapterConfig:
-            provider: openai-codex
-            model: gpt-5.4-mini
+            model: claude-haiku-4-5
+            effort: low
   product-manager:
     adapter:
-      type: hermes_local
+      type: claude_local
       config:
-        hermesCommand: /usr/local/bin/hermes-paperclip
-        provider: openai-codex
-        model: gpt-5.6-terra
-        extraArgs:
-          - --reasoning-effort
-          - medium
-        persistSession: true
-        quiet: true
+        engine: auto
+        model: claude-opus-5
+        effort: medium
+        dangerouslySkipPermissions: true
         timeoutSec: 7200
         graceSec: 20
     runtime:
@@ -47,22 +40,18 @@ agents:
       modelProfiles:
         cheap:
           enabled: true
-          label: GPT-5.4 mini
+          label: Claude Haiku 4.5
           adapterConfig:
-            provider: openai-codex
-            model: gpt-5.4-mini
+            model: claude-haiku-4-5
+            effort: low
   architect:
     adapter:
-      type: hermes_local
+      type: claude_local
       config:
-        hermesCommand: /usr/local/bin/hermes-paperclip
-        provider: openai-codex
-        model: gpt-5.6-sol
-        extraArgs:
-          - --reasoning-effort
-          - high
-        persistSession: true
-        quiet: true
+        engine: auto
+        model: claude-fable-5-1
+        effort: high
+        dangerouslySkipPermissions: true
         timeoutSec: 7200
         graceSec: 20
     runtime:
@@ -71,22 +60,18 @@ agents:
       modelProfiles:
         cheap:
           enabled: true
-          label: GPT-5.4 mini
+          label: Claude Haiku 4.5
           adapterConfig:
-            provider: openai-codex
-            model: gpt-5.4-mini
+            model: claude-haiku-4-5
+            effort: low
   qa-engineer:
     adapter:
-      type: hermes_local
+      type: claude_local
       config:
-        hermesCommand: /usr/local/bin/hermes-paperclip
-        provider: openai-codex
-        model: gpt-5.6-sol
-        extraArgs:
-          - --reasoning-effort
-          - high
-        persistSession: true
-        quiet: true
+        engine: auto
+        model: claude-opus-5
+        effort: high
+        dangerouslySkipPermissions: true
         timeoutSec: 7200
         graceSec: 20
     runtime:
@@ -95,22 +80,18 @@ agents:
       modelProfiles:
         cheap:
           enabled: true
-          label: GPT-5.4 mini
+          label: Claude Haiku 4.5
           adapterConfig:
-            provider: openai-codex
-            model: gpt-5.4-mini
+            model: claude-haiku-4-5
+            effort: low
   security-engineer:
     adapter:
-      type: hermes_local
+      type: claude_local
       config:
-        hermesCommand: /usr/local/bin/hermes-paperclip
-        provider: openai-codex
-        model: gpt-5.6-sol
-        extraArgs:
-          - --reasoning-effort
-          - high
-        persistSession: true
-        quiet: true
+        engine: auto
+        model: claude-opus-5
+        effort: high
+        dangerouslySkipPermissions: true
         timeoutSec: 7200
         graceSec: 20
     runtime:
@@ -119,22 +100,18 @@ agents:
       modelProfiles:
         cheap:
           enabled: true
-          label: GPT-5.4 mini
+          label: Claude Haiku 4.5
           adapterConfig:
-            provider: openai-codex
-            model: gpt-5.4-mini
+            model: claude-haiku-4-5
+            effort: low
   micronaut-engineer:
     adapter:
-      type: hermes_local
+      type: claude_local
       config:
-        hermesCommand: /usr/local/bin/hermes-paperclip
-        provider: openai-codex
-        model: gpt-5.6-terra
-        extraArgs:
-          - --reasoning-effort
-          - high
-        persistSession: true
-        quiet: true
+        engine: auto
+        model: claude-fable-5-1
+        effort: high
+        dangerouslySkipPermissions: true
         timeoutSec: 7200
         graceSec: 20
     runtime:
@@ -143,22 +120,18 @@ agents:
       modelProfiles:
         cheap:
           enabled: true
-          label: GPT-5.4 mini
+          label: Claude Haiku 4.5
           adapterConfig:
-            provider: openai-codex
-            model: gpt-5.4-mini
+            model: claude-haiku-4-5
+            effort: low
   code-reviewer:
     adapter:
-      type: hermes_local
+      type: codex_local
       config:
-        hermesCommand: /usr/local/bin/hermes-paperclip
-        provider: openai-codex
-        model: gpt-5.6-sol
-        extraArgs:
-          - --reasoning-effort
-          - high
-        persistSession: true
-        quiet: true
+        engine: auto
+        model: gpt-6-astra
+        modelReasoningEffort: high
+        dangerouslyBypassApprovalsAndSandbox: true
         timeoutSec: 7200
         graceSec: 20
     runtime:
@@ -167,22 +140,18 @@ agents:
       modelProfiles:
         cheap:
           enabled: true
-          label: GPT-5.4 mini
+          label: GPT-5.6 Luna
           adapterConfig:
-            provider: openai-codex
-            model: gpt-5.4-mini
+            model: gpt-5.6-luna
+            modelReasoningEffort: low
   technical-writer:
     adapter:
-      type: hermes_local
+      type: claude_local
       config:
-        hermesCommand: /usr/local/bin/hermes-paperclip
-        provider: openai-codex
-        model: gpt-5.6-terra
-        extraArgs:
-          - --reasoning-effort
-          - high
-        persistSession: true
-        quiet: true
+        engine: auto
+        model: claude-sonnet-5
+        effort: medium
+        dangerouslySkipPermissions: true
         timeoutSec: 7200
         graceSec: 20
     runtime:
@@ -191,10 +160,10 @@ agents:
       modelProfiles:
         cheap:
           enabled: true
-          label: GPT-5.4 mini
+          label: Claude Haiku 4.5
           adapterConfig:
-            provider: openai-codex
-            model: gpt-5.4-mini
+            model: claude-haiku-4-5
+            effort: low
 routines:
   monthly-product-discovery:
     status: active

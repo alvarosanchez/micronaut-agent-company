@@ -49,16 +49,20 @@ test("CEO self-improvement guidance requires a durable delegated action and resp
   }
 });
 
-test("CEO self-improvement routes Paperclip-to-Hermes skill reconciliation to Engineer", async () => {
+test("CEO self-improvement routes runtime skill reconciliation to Engineer", async () => {
   const task = await readFile(new URL("../tasks/monthly-ceo-self-improvement/TASK.md", import.meta.url), "utf8");
   const markdown = await readFile(new URL("../skills/ceo-issue-history/references/maintenance-lanes.md", import.meta.url), "utf8");
 
   assert.match(task, /maintenance-lanes\.md[\s\S]{0,80}ceo-issue-history|ceo-issue-history[\s\S]{0,80}maintenance-lanes\.md/i);
-  assert.match(task, /Hermes Runtime Skill Sync/i);
+  assert.match(task, /\*\*Runtime Skill Sync/i);
+  assert.doesNotMatch(task, /Hermes/i);
+  assert.match(task, /merge mode/i);
   assert.match(markdown, /Paperclip-managed skills[\s\S]{0,260}all company agents/i);
-  assert.match(markdown, /skills_list[\s\S]{0,160}skill_view|skill_view[\s\S]{0,160}skills_list/i);
+  assert.match(markdown, /\/api\/companies\/\{companyId\}\/skills/);
+  assert.match(markdown, /explicit replace merge mode/i);
   assert.match(markdown, /executable reconciliation[\s\S]{0,180}Micronaut Engineer/i);
-  assert.match(markdown, /CEO does not mutate Hermes skill storage/i);
+  assert.match(markdown, /CEO does not mutate runtime skill storage/i);
+  assert.doesNotMatch(markdown, /Hermes/i);
 });
 
 test("README and COMPANY explain .company-runtime overlays in plain language", async () => {

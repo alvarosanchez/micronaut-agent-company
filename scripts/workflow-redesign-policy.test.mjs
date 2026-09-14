@@ -206,8 +206,9 @@ test("public operating roster has nine roles while package import has exactly ei
     slug: "ui-ux-designer",
     name: "UI/UX Designer",
     source: "live-only",
-    model: "gpt-5.6-sol",
-    reasoningEffort: "high",
+    adapter: "claude_local",
+    model: "claude-opus-5",
+    effort: "medium",
   });
 
   const packageAgents = YAML.parse(packageYaml).agents;
@@ -500,12 +501,12 @@ test("every active routine has a complete pinned imported invocation bundle", as
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "01c65b5871d9d0d0968d787bc1984a487ac5d770c538098e9db4fa7a4d0c73ae",
-    "monthly-security-deep-scan": "3f3ef4745019d7189a8c9831116da14fe4bb791d75f5219801adab8edb1d8167",
-    "monthly-user-guide-review": "1aab9d947a3f467eeb001b11b03d0f3328ed71a850b81cdef44b1a5a3069a8e4",
-    "monthly-guide-topic-discovery": "3bd060fa8b2dce1066ed09c62f803dea1d515260668a90975861410763d555b6",
-    "monthly-ceo-self-improvement": "0fcd70dfc7cedf88a41ea1601625da912234505cc2124dc04f5a3cd02c15c19a",
-    training: "429e2bd7179082d91e7e4876c6d37b6c8fa22c3119e559eeb75bc9d73f767322",
+    "monthly-product-discovery": "1e176122aae051fe6d08a56a1e6f84c966f2d1e09d31b0e15e90de296a7b8af7",
+    "monthly-security-deep-scan": "824fa60c3e35046e0f0663c7988974b0ec86ab0f3fddc8c783e0aab57b8737d3",
+    "monthly-user-guide-review": "3580012128cf501c85015d66b9ca2d48a8405b5037656be316acceec71e37580",
+    "monthly-guide-topic-discovery": "0f0b75b3180860058d5cb9067cbc1334119622f707d0d67593ae6adb6b6824e0",
+    "monthly-ceo-self-improvement": "877ff30462ad314e9d17fd19743fe364f0e20f7b99586d1f2dc8ab017d13e05a",
+    training: "2a1c8eaf92322b53128e8b74e926d8c3bc5d18122300824c18bdf7ee7fe6d771",
   });
 });
 
@@ -542,7 +543,7 @@ test("CEO effective bundle is governance-only", async () => {
   for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundles[0]), "0fcd70dfc7cedf88a41ea1601625da912234505cc2124dc04f5a3cd02c15c19a");
+  assert.equal(bundleDigest(bundles[0]), "877ff30462ad314e9d17fd19743fe364f0e20f7b99586d1f2dc8ab017d13e05a");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -681,7 +682,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "0bb7429b7efbeac1e0dea03b63f57b08f346f1637ca6509d9fd5c1de05587d9b";
+  const reviewerDigest = "c62a7b0f3982c278c8e6cb924d3f015247228723b3b348c07cec10a9cec58ecb";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -700,7 +701,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective invocation bundle must not assign repository or PR mutation authority to a governance or gate role",
   );
-  assert.equal(bundleDigest(securityBundle), "3f3ef4745019d7189a8c9831116da14fe4bb791d75f5219801adab8edb1d8167");
+  assert.equal(bundleDigest(securityBundle), "824fa60c3e35046e0f0663c7988974b0ec86ab0f3fddc8c783e0aab57b8737d3");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {

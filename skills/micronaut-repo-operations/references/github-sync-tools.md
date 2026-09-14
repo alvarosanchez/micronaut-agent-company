@@ -14,7 +14,7 @@ These are provided by `alvarosanchez/paperclip-github-plugin` via the plugin cap
 
 GitHub API access rule:
 
-- Use the agent tools below for GitHub API reads they cover. Only authorized implementation owners may use their write operations, including organization-project association. In Hermes deployments, those tools may appear with MCP-bridged runtime names prefixed with `mcp_paperclip_plugin_tools_`; use the exact runtime schema name while following the same contract.
+- Use the agent tools below for GitHub API reads they cover. Only authorized implementation owners may use their write operations, including organization-project association. Discover and call them through `GET /api/plugins/tools` and `POST /api/plugins/tools/execute` with the run token; the tool gateway applies the company tool-access policy, so a missing or denied tool is a policy blocker to record.
 - Do not use `gh` as a fallback for GitHub API reads or writes, inspect credentials, publish a branch outside the atomic PR tool, or search for a GitHub token.
 - For an authorized implementation owner, `create_pull_request` publishes the local branch and creates the PR atomically from the agent's perspective. Pass `paperclipIssueId`, the plain local `head` branch, its exact full `headCommitSha`, `base`, `title`, and any body/draft metadata in one call. The trusted plugin verifies the local and remote SHA before opening and linking the PR.
 - An authorized implementation owner prefers `paperclip-github-plugin:create_pull_request` for PR creation so GitHub Sync can link and attribute the PR automatically. If an explicit human/operator exception creates a PR with a non-plugin GitHub client in a repository mapped to the current company, that operator or the authorized owner immediately creates the durable PR-to-Paperclip link with `paperclip-github-plugin:link_github_item`, then separately records `pull_request_created` through the company metric route.
@@ -23,7 +23,7 @@ GitHub API access rule:
 - This metric endpoint is a native plugin JSON route with agent auth, not a plugin-tool call or webhook.
 - Do not send that route call when `paperclip-github-plugin:create_pull_request` created the PR; the plugin records `pull_request_created` automatically. Do not send it for PR edits, comments, review replies, or merges.
 - This route remains for explicit non-plugin PR creation exceptions, because GitHub alone cannot attribute those PRs to Paperclip work.
-- `PAPERCLIP_API_KEY` is already present in authenticated agent runs and is the credential for this route.
+- `PAPERCLIP_API_KEY` is the run-minted agent token Paperclip injects into every authenticated run (48h default TTL); it is the credential for this route and cannot be replaced by a static key.
 - When an explicit human/operator exception publishes maintainer-visible GitHub body text through a non-plugin write path, separate the footer from the previous sentence with one blank line, then append this exact GitHub-flavored Markdown footer: `---` on its own line, then `###### ✨ This message was AI-generated using <exact model id>` on the next line.
 - Do not add that footer manually when you use the GitHub sync plugin tools; they append the same footer automatically.
 - Treat the plugin tool list below as the required surface for normal GitHub API work. Non-plugin GitHub clients are explicit human/operator exceptions only.

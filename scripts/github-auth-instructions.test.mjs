@@ -23,8 +23,9 @@ const NO_GH_FALLBACK_PATTERN =
   /do not use `?gh`? as (?:an API |a )?fallback|do not use \bgh\b as (?:an API |a )?fallback/i;
 const PLUGIN_TOOLS_REQUIRED_PATTERN =
   /use (?:the )?(?:GitHub Sync plugin agent tools|GitHub Sync plugin tools|GitHub agent tools provided by the sync plugin)[\s\S]{0,240}(?:GitHub API|reads and writes|operations)/i;
-const MCP_BRIDGED_TOOL_PATTERN =
-  /mcp_paperclip_plugin_tools|MCP-bridged runtime names|Paperclip plugin-tools MCP bridge/i;
+const PLUGIN_TOOL_API_PATTERN =
+  /GET \/api\/plugins\/tools[\s\S]{0,200}POST \/api\/plugins\/tools\/execute[\s\S]{0,300}(?:tool-access policy|tool gateway)/i;
+const HERMES_ERA_TOOL_PATTERN = /mcp_paperclip_plugin_tools|MCP-bridged|Hermes/i;
 const NO_PROPAGATED_TOKEN_PATTERN =
   /do not depend on a propagated `?GITHUB_TOKEN`?|never depend on a propagated `?GITHUB_TOKEN`?/i;
 const NO_FILESYSTEM_TOKEN_SEARCH_PATTERN =
@@ -254,7 +255,8 @@ test("GitHub-capable agents delegate common transport policy to the shared skill
 
   assert.match(sharedMarkdown, NO_GH_FALLBACK_PATTERN);
   assert.match(sharedMarkdown, PLUGIN_TOOLS_REQUIRED_PATTERN);
-  assert.match(sharedMarkdown, MCP_BRIDGED_TOOL_PATTERN);
+  assert.match(sharedMarkdown, PLUGIN_TOOL_API_PATTERN);
+  assert.doesNotMatch(sharedMarkdown, HERMES_ERA_TOOL_PATTERN);
   assert.match(sharedMarkdown, ATOMIC_CREATE_PULL_REQUEST_PATTERN);
   assert.match(sharedMarkdown, NO_AGENT_GIT_PUSH_PATTERN);
   assert.match(sharedMarkdown, NO_CREDENTIAL_INSPECTION_PATTERN);
@@ -264,6 +266,7 @@ test("GitHub-capable agents delegate common transport policy to the shared skill
     const markdown = await readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
     const { body } = parseFrontmatter(markdown);
     assert.match(body, /Apply the shared `micronaut-github-operations` skill/);
+    assert.doesNotMatch(body, HERMES_ERA_TOOL_PATTERN, `${relativePath} must not name Hermes MCP-bridged tools.`);
     if (ORGANIZATION_PROJECT_AGENT_PATHS.has(relativePath)) {
       assert.match(body, /organization-project lookup|live PR association|project link/i);
       assert.match(
@@ -286,7 +289,7 @@ test("Shared Micronaut repo operations use atomic branch publication and PR crea
 
   assert.match(markdown, NO_GH_FALLBACK_PATTERN);
   assert.match(markdown, PLUGIN_TOOLS_REQUIRED_PATTERN);
-  assert.match(markdown, MCP_BRIDGED_TOOL_PATTERN);
+  assert.match(markdown, PLUGIN_TOOL_API_PATTERN);
   assert.match(markdown, ATOMIC_CREATE_PULL_REQUEST_PATTERN);
   assert.match(markdown, NO_AGENT_GIT_PUSH_PATTERN);
   assert.match(markdown, NO_CREDENTIAL_INSPECTION_PATTERN);
@@ -312,7 +315,8 @@ test("README documents the direct GitHub footer rule and GitHub Sync tool requir
 
   assert.match(markdown, NO_GH_FALLBACK_PATTERN);
   assert.match(markdown, PLUGIN_TOOLS_REQUIRED_PATTERN);
-  assert.match(markdown, MCP_BRIDGED_TOOL_PATTERN);
+  assert.match(markdown, PLUGIN_TOOL_API_PATTERN);
+  assert.doesNotMatch(markdown, HERMES_ERA_TOOL_PATTERN);
   assert.match(markdown, ATOMIC_CREATE_PULL_REQUEST_PATTERN);
   assert.match(markdown, NO_AGENT_GIT_PUSH_PATTERN);
   assert.match(markdown, NO_CREDENTIAL_INSPECTION_PATTERN);
@@ -381,7 +385,9 @@ test("Local gh-cli skill preserves its import identity and pins immutable upstre
   assert.match(frontmatter.description, /\bgh\b/i);
   assert.match(frontmatter.description, /explicit human\/operator exceptions/i);
   assert.match(frontmatter.description, /Normal GitHub API operations must use the GitHub Sync plugin tools/i);
-  assert.match(frontmatter.description, /MCP-bridged runtime names/i);
+  assert.match(frontmatter.description, /plugin tool API and tool gateway/i);
+  assert.match(frontmatter.description, /policy blocker/i);
+  assert.doesNotMatch(frontmatter.description, HERMES_ERA_TOOL_PATTERN);
   assert.match(frontmatter.description, NO_PROPAGATED_TOKEN_PATTERN);
   assert.match(frontmatter.description, NO_FILESYSTEM_TOKEN_SEARCH_PATTERN);
   assert.match(frontmatter.description, GFM_FOOTER_PATTERN);
