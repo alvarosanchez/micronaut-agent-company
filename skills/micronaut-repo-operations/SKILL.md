@@ -44,7 +44,7 @@ Use the separately assigned read-only `paperclip-control-plane` skill for determ
 ## Route Summary
 
 - The authoritative ordered `qa-intake.stageSequence` selected from `references/intake-routing-release.md` controls every handoff; issue type alone does not select the route.
-- Architect plans every Micronaut Engineer implementation: routine non-security bugs and compatible dependency upgrades get a lightweight plan and skip Security; architecture or migration triggers require a full plan before the implementation owner; PR re-entry repairs reuse the existing approved plan unless the request changes the design.
+- Architect plans every Micronaut Engineer implementation: routine non-security bugs and compatible dependency upgrades get a lightweight plan and skip Security; architecture or migration triggers require a full plan before the implementation owner; PR re-entry repairs reuse the existing approved plan (or the lightweight plan recorded in `qa-intake`/`training-route`), and only design changes return to Architect.
 - Defined Security triggers add pre-triage before implementation and final review after QA; pre-triage never replaces Architect, implementation, QA verification, or final Security review.
 - Routine prose and executable docs use Writer -> QA -> Code Reviewer; security-sensitive docs use both Security stages, and workflow/authority semantics add Architect.
 - Questions, clarification waits, unreproducible reports, duplicates, and already-implemented reports may use QA's evidence-backed direct disposition path.

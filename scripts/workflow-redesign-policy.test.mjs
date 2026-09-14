@@ -518,10 +518,10 @@ test("every active routine has a complete pinned imported invocation bundle", as
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "fddbdc78744cc7b52583ef034372d5e0b24ccfd6d18eeadbd4b9f21362459c10",
-    "monthly-security-deep-scan": "3c9a3f2491fb0b830974dd18ec981ed433f1d1b23f63a8c899fe1561f628c90a",
-    "monthly-user-guide-review": "e60efb306ac4fc731702e0ab4dbb61821943a07d8c58c8ee55c4e7ddfa73e41c",
-    "monthly-guide-topic-discovery": "dfd3cdd8f97141390c260cdee6acaff3a39dc65b3fc157aff27b88d3b130a1ce",
+    "monthly-product-discovery": "59e7ca068f0f14734c8ea4d8e7602a90529888860ba0ea15b7094171ceb6e37d",
+    "monthly-security-deep-scan": "d48b5056229aa243b8e6a78f27650166cfd321a23b7b311c7655c5bbc9c4f3ce",
+    "monthly-user-guide-review": "8022e9d50d2024a2acbbceae3a3f98259c05f9c3ea99e646ad2c0c210468e365",
+    "monthly-guide-topic-discovery": "bf64f884b405129ea5c6744691d39e29344637af64df5c37d3c91ddb78edc603",
     "monthly-ceo-self-improvement": "4e06d953ee44016da2fd828dc6bc161c19bda6d233ecd8fd8b06b2956bd02f4d",
     training: "42b9eed7870ccf612fdf09862fbacd7193da8b845af80b4f84e44ba2a6e7269c",
   });
@@ -699,7 +699,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "b5cfb9af6dd25a8f5f72b46b7f62083078e0de3dbee80791005b77c3ac553516";
+  const reviewerDigest = "710b1cda798e7735fb2da8086c3aa36b6ba96f78e8ac63b25512197dc8a20ca8";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -718,7 +718,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective invocation bundle must not assign repository or PR mutation authority to a governance or gate role",
   );
-  assert.equal(bundleDigest(securityBundle), "3c9a3f2491fb0b830974dd18ec981ed433f1d1b23f63a8c899fe1561f628c90a");
+  assert.equal(bundleDigest(securityBundle), "d48b5056229aa243b8e6a78f27650166cfd321a23b7b311c7655c5bbc9c4f3ce");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {
@@ -769,7 +769,7 @@ test("tracked policy never tells an agent to invoke another agent's heartbeat", 
 });
 
 test("PR follow-through re-enters gates by actual change effect", async () => {
-  const [control, qa, architect, company, readme, ceo, evolution] = await Promise.all([
+  const [control, qa, architect, company, readme, ceo, evolution, repoOperations] = await Promise.all([
     read("../skills/micronaut-repo-operations/references/workflow-control-plane.md"),
     read("../agents/qa-engineer/AGENTS.md"),
     read("../agents/architect/AGENTS.md"),
@@ -777,9 +777,10 @@ test("PR follow-through re-enters gates by actual change effect", async () => {
     read("../README.md"),
     read("../agents/ceo/AGENTS.md"),
     read("../skills/company-package-evolution/SKILL.md"),
+    read("../skills/micronaut-repo-operations/SKILL.md"),
   ]);
   assert.match(control, /routine source, test, dependency, or build changes go Micronaut Engineer -> QA -> Code Reviewer/i);
-  for (const [label, body] of [["control plane", control], ["README", readme], ["COMPANY", company], ["CEO", ceo], ["company-package-evolution", evolution]]) {
+  for (const [label, body] of [["control plane", control], ["README", readme], ["COMPANY", company], ["CEO", ceo], ["company-package-evolution", evolution], ["micronaut-repo-operations", repoOperations]]) {
     assert.match(body, /existing approved plan \(or the lightweight plan recorded in `qa-intake`\/`training-route`\)/, `${label} must document approved-plan reuse on PR re-entry`);
     assert.match(body, /only design(?:-changing)? (?:changes|requests)[^\n]+Architect/i, `${label} must send only design changes back through Architect on re-entry`);
   }
