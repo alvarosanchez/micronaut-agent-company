@@ -57,7 +57,8 @@ test("CEO self-improvement routes runtime skill reconciliation to Engineer", asy
   assert.match(task, /\*\*Runtime Skill Sync/i);
   assert.doesNotMatch(task, /Hermes/i);
   assert.match(task, /merge mode/i);
-  assert.match(markdown, /Paperclip-managed skills[\s\S]{0,260}all company agents/i);
+  assert.match(markdown, /deterministic manifest[\s\S]{0,400}materializ/i);
+  assert.match(markdown, /no reported failure is a no-op/i);
   assert.match(markdown, /\/api\/companies\/\{companyId\}\/skills/);
   assert.match(markdown, /explicit replace merge mode/i);
   assert.match(markdown, /executable reconciliation[\s\S]{0,180}Micronaut Engineer/i);

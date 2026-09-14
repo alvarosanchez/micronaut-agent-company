@@ -469,3 +469,45 @@ test("guidance covers Paperclip v2026.831.1 runtime surfaces without hard-coding
     assert.doesNotMatch(markdown, /hermes|mcp_paperclip_plugin_tools|MCP-bridged/i, `${label} must not carry Hermes-era guidance.`);
   }
 });
+
+test("docs adopt the 2026.831 recovery, run-output, and diagnostics contracts", async () => {
+  const readme = await read("../README.md");
+  const company = await read("../COMPANY.md");
+  const controlPlane = await read("../skills/micronaut-repo-operations/references/workflow-control-plane.md");
+  const repoOps = await read("../skills/micronaut-repo-operations/SKILL.md");
+  const lanes = await read("../skills/ceo-issue-history/references/maintenance-lanes.md");
+  const ceoTask = await read("../tasks/monthly-ceo-self-improvement/TASK.md");
+
+  // No automatic takeover: stranded work is repaired or escalated by the agent, never reassigned by the host.
+  for (const [label, markdown] of [["README", readme], ["COMPANY", company], ["control plane", controlPlane]]) {
+    assert.match(markdown, /does not take (?:stranded work )?over automatically|never takes work over automatically/i, `${label} must state that recovery no longer takes work over.`);
+    assert.match(markdown, /board-owned action/i, `${label} must route exhausted recovery to a board-owned action.`);
+    assert.match(markdown, /paused agent/i, `${label} must mention that agent-initiated assignment to a paused agent is refused.`);
+  }
+
+  // Read-only diagnostics endpoints, with the real 2026.831.1 paths.
+  for (const [label, markdown] of [["COMPANY", company], ["control plane", controlPlane]]) {
+    assert.match(markdown, /GET \/api\/issues\/\{issueId\}\/diagnostics\/subtree/, `${label} must cite the subtree diagnostics endpoint.`);
+    assert.match(markdown, /diagnostics\/blockers/, `${label} must cite the blockers diagnostics endpoint.`);
+    assert.match(markdown, /diagnostics\/wakes/, `${label} must cite the wakes diagnostics endpoint.`);
+    assert.doesNotMatch(markdown, /issues\/\{issueId\}\/(?:subtree|blockers)`/, `${label} must not cite the non-existent short diagnostics paths.`);
+  }
+  assert.match(controlPlane, /GET \/api\/companies\/\{companyId\}\/search\/extract/);
+  assert.match(readme, /updatedSince/);
+
+  // Run output: thought text is not posted; deliverables are explicit.
+  for (const [label, markdown] of [["COMPANY", company], ["control plane", controlPlane], ["repo operations", repoOps], ["README", readme]]) {
+    assert.match(markdown, /thought text|does not post your reasoning/i, `${label} must state that agent reasoning is not posted automatically.`);
+    assert.match(markdown, /final output segment/i, `${label} must state that automatic summaries cover only the final output segment.`);
+  }
+  assert.match(company, /ask_user_questions[\s\S]{0,200}expires/i);
+
+  // Runtime Skill Sync consumes the host manifest instead of a hand inventory.
+  assert.match(lanes, /deterministic manifest[\s\S]{0,400}materializ/i);
+  assert.match(lanes, /no reported failure is a no-op/i);
+  assert.match(ceoTask, /run-time skill manifest/i);
+
+  // Experimental surfaces: unused by the package even where a deployment enables them.
+  assert.doesNotMatch(readme, /flag-off by default/i);
+  assert.doesNotMatch(company, /flag-off by default/i);
+});
