@@ -141,7 +141,7 @@ test("lightweight Training has one board-bound route artifact consumed by every 
   assert.match(ceo, /configure sequential Architect -> Engineer -> QA -> Code Reviewer stages/i);
   assert.match(task, /sequential Architect -> Engineer -> QA -> Code Reviewer stages/i);
   assert.match(engineer, /publication mode: Code Reviewer approved the unpublished exact SHA/i);
-  assert.match(qa, /accept `training-route` only when[\s\S]{0,420}`stageSequence: \[architect, micronaut-engineer, qa-engineer, code-reviewer\]`/i);
+  assert.match(qa, /accept `training-route` only when[\s\S]{0,420}`planningRequired: true`, `planningDepth: lightweight`[\s\S]{0,300}`stageSequence: \[architect, micronaut-engineer, qa-engineer, code-reviewer\]`/i);
   assert.match(task, /publication[\s\S]{0,180}separate non-policy `TODO` handoff[\s\S]{0,180}`followThroughOwner`/i);
   assert.match(qa, /`training-route`[^\n]+Code Reviewer/i);
   assert.match(reviewer, /For `training-route`, verify its linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership/i);
