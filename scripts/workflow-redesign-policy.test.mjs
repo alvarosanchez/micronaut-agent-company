@@ -518,12 +518,12 @@ test("every active routine has a complete pinned imported invocation bundle", as
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "69a5aec9bb12426cc2dc0fb26fff56d2c3a5c5523fa223273df686b5e4f70f45",
-    "monthly-security-deep-scan": "aa68a5d5928c59b45c9568cf49ed625c88a69cab7bf01112200f197b9270c0c6",
-    "monthly-user-guide-review": "7f1f05c5f3a7d25ad069a61dd24cdf3f5b614ee5b09a4e6122967e1d0471409c",
-    "monthly-guide-topic-discovery": "7f0bf6ff4bee84c605fdba316a9ff1853323adb77ee14fc939713fc0491293fa",
-    "monthly-ceo-self-improvement": "cb9b6eb5fd11ec97ff60b7ffcf9c64e1ae0268dfcff7eae6c106f3a9e7a84729",
-    training: "230090bb04bd1fc5124203f87583f880c31396abca313a74609358870b640720",
+    "monthly-product-discovery": "14aa1c4fbca71db5d6065f5e294e17454443c6a17aa7bf0faaab72c41ee7947f",
+    "monthly-security-deep-scan": "b22c9b5fb7457eea9d323eda538dbc559dadc284177556b3236ab9edd6aa9b6a",
+    "monthly-user-guide-review": "8c52b6736b9cffa999e67c8c0b23fe035f7688ba187a895cbd992ebef6e7b195",
+    "monthly-guide-topic-discovery": "78234d3a5a5613dc24110ce41abc11754b00114ba83621c2229be5caf4d4a74d",
+    "monthly-ceo-self-improvement": "bea3f333cbbaf324e9b0879042133ae4ad36672f4bbae54936fdc4ce7b29d986",
+    training: "d7f861e6a7149cb0204a6a13fc453a4140cb3a3ae147f998cfc47d24714dba2b",
   });
 });
 
@@ -560,7 +560,7 @@ test("CEO effective bundle is governance-only", async () => {
   for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundles[0]), "cb9b6eb5fd11ec97ff60b7ffcf9c64e1ae0268dfcff7eae6c106f3a9e7a84729");
+  assert.equal(bundleDigest(bundles[0]), "bea3f333cbbaf324e9b0879042133ae4ad36672f4bbae54936fdc4ce7b29d986");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -699,7 +699,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "10b47f97f7f9aa1d29bc7b0196ef63670c34c3b260692e5636d5e28d13c2f036";
+  const reviewerDigest = "f31376a8f958d2f7376077aa82689872a6810d02a43b185e684f34f6427bed8d";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -718,7 +718,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective invocation bundle must not assign repository or PR mutation authority to a governance or gate role",
   );
-  assert.equal(bundleDigest(securityBundle), "aa68a5d5928c59b45c9568cf49ed625c88a69cab7bf01112200f197b9270c0c6");
+  assert.equal(bundleDigest(securityBundle), "b22c9b5fb7457eea9d323eda538dbc559dadc284177556b3236ab9edd6aa9b6a");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {
