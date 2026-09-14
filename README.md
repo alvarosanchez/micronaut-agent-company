@@ -72,15 +72,15 @@ GitHub Sync plugin tools reach agents through Paperclip's plugin tool API (`GET 
 
 That gateway is fail-closed from Paperclip 2026.831 onward, and this is the host default most likely to bite a fresh deployment. An agent sees a plugin tool only when an active tool-access profile bound to it includes that tool; with no effective profile the host answers `GET /api/plugins/tools` with an empty list and rejects `POST /api/plugins/tools/execute` with `deny_default`. Installing and configuring the GitHub sync plugin is therefore not sufficient. The deployment must also create active tool-access profiles whose entries are `tool_name` include entries for the `paperclip-github-plugin:*` tool ids listed under [GitHub Sync Agent Tools](#github-sync-agent-tools).
 
-Model those profiles as least privilege, because the gateway rather than the prose in `agents/*/AGENTS.md` is what actually enforces the read-only gates this workflow depends on. Bind only the read-only set at company scope and bind the write tools per agent:
+Model those profiles as least privilege, because the gateway rather than the prose in `agents/*/AGENTS.md` is what actually enforces the read-only gates this workflow depends on. `GET /api/companies/{companyId}/tools/profiles/effective/agents/{agentId}` resolves the effective profile as the single **narrowest** matching binding only, in scope order issue > routine > agent > project > company; an agent-scoped binding replaces the company-scoped one rather than unioning with it, verified live on Paperclip 2026.831.1. Every agent-scoped role profile below must therefore restate the read-only baseline entries itself, not just its role-specific additions. The plugin exposes 21 tools in total:
 
 | Profile | Binding scope | `tool_name` include entries |
 | --- | --- | --- |
-| Read-only baseline | company | `search_repository_items`, `get_issue`, `list_issue_comments`, `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `list_organization_projects` |
-| Issue mutation | agent: QA Engineer, Product Manager | `update_issue`, `add_issue_comment`, `assign_to_current_user` |
-| Delivery | agent: Micronaut Engineer, Technical Writer | `create_pull_request`, `update_pull_request`, `request_pull_request_reviewers`, `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`, `add_pull_request_to_project`, `link_github_item` |
+| `github-sync.read-baseline` | company | `search_repository_items`, `get_issue`, `list_issue_comments`, `get_issue_interaction_summary`, `get_pull_request`, `list_pull_request_files`, `get_pull_request_checks`, `list_pull_request_review_threads`, `list_organization_projects` (9 read tools) |
+| `github-sync.triage-role` | agent: QA Engineer, Product Manager | baseline + `update_issue`, `add_issue_comment`, `assign_to_current_user` (12 tools) |
+| `github-sync.delivery-role` | agent: Micronaut Engineer, Technical Writer | baseline + `create_pull_request`, `update_pull_request`, `request_pull_request_reviewers`, `reply_to_review_thread`, `resolve_review_thread`, `unresolve_review_thread`, `add_pull_request_to_project`, `link_github_item`, `upload_pull_request_asset` (18 tools) |
 
-CEO, Architect, Security Engineer, and Code Reviewer get the baseline only. CEO is read-only for GitHub Sync governance, and Security Engineer and Code Reviewer are read-only gates that must not create or update PRs, comments, links, project associations, or reviewer requests and must not reply to, resolve, or unresolve review threads. Do not put the write tools in the company-scoped profile and try to subtract them per agent: an `exclude` entry only suppresses matches inside its own profile, so a broader profile that includes a tool still allows the call.
+CEO, Architect, Security Engineer, and Code Reviewer get only `github-sync.read-baseline` at company scope, with no narrower binding, so their effective list is exactly those 9 tools. CEO is read-only for GitHub Sync governance, and Security Engineer and Code Reviewer are read-only gates that must not create or update PRs, comments, links, project associations, or reviewer requests and must not reply to, resolve, or unresolve review threads. Do not put the write tools in the company-scoped profile and try to subtract them per agent: an `exclude` entry only suppresses matches inside its own profile, so a broader profile that includes a tool still allows the call.
 
 A profile that only exists as a draft, or that uses `defaultAction: deny` with no matching include entries, leaves the tool list empty. An empty or short tool list on a fresh or re-imported company is a profile gap for the operator to fix, not a transient runtime error and not a reason to fall back to `gh`.
 
@@ -357,14 +357,15 @@ Before opening or updating a guide, docs, or documentation PR, update the work b
 The GitHub sync plugin exposes these GitHub workflow tools to agents. Use the exact runtime tool IDs below, not shorthand names. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`:
 
 - Intake and deduplication: `paperclip-github-plugin:search_repository_items`
-- Issue context: `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`
-- Issue mutation: `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`
+- Issue context: `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:get_issue_interaction_summary`
+- Issue mutation: `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`, `paperclip-github-plugin:assign_to_current_user`
 - PR creation and state: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:update_pull_request`
 - PR inspection: `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`
 - Review-thread actions: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
 - Reviewer routing: `paperclip-github-plugin:request_pull_request_reviewers`
 - Organization project lookup: `paperclip-github-plugin:list_organization_projects` against the open, public Micronaut organization projects (`is:open is:public`)
 - PR project association: `paperclip-github-plugin:add_pull_request_to_project`
+- PR assets and cross-linking: `paperclip-github-plugin:upload_pull_request_asset`, `paperclip-github-plugin:link_github_item`
 
 Do not use Paperclip issue monitors to poll GitHub-synced PR state. CI/check status, mergeability, PR file state, review threads, reviewer routing, and PR project links must be read or changed through GitHub Sync tools. Issue monitors remain valid only for non-GitHub waits or external conditions that GitHub Sync does not already own.
 
