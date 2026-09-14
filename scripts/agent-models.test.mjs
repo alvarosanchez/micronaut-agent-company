@@ -34,7 +34,7 @@ const PRIMARY_MODEL_CONFIG = {
   architect: { adapter: CLAUDE_ADAPTER, model: "claude-fable-5-1", effort: "high" },
   "qa-engineer": { adapter: CLAUDE_ADAPTER, model: "claude-opus-5", effort: "high" },
   "security-engineer": { adapter: CLAUDE_ADAPTER, model: "claude-opus-5", effort: "high" },
-  "micronaut-engineer": { adapter: CLAUDE_ADAPTER, model: "claude-fable-5-1", effort: "high" },
+  "micronaut-engineer": { adapter: CLAUDE_ADAPTER, model: "claude-opus-5", effort: "high" },
   "code-reviewer": { adapter: CODEX_ADAPTER, model: "gpt-6-astra", effort: "high" },
   "technical-writer": { adapter: CLAUDE_ADAPTER, model: "claude-sonnet-5", effort: "medium" },
 };

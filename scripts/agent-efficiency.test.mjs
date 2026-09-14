@@ -62,7 +62,7 @@ test("agent instructions include concise model-specific operating guidance", asy
     architect: /Claude Fable 5\.1 operating profile \(high effort\)[\s\S]{0,500}(hypoth|call path)/i,
     "qa-engineer": /Claude Opus 5 operating profile \(high effort\)[\s\S]{0,500}(batch|decision table|matrix)/i,
     "security-engineer": /Claude Opus 5 operating profile \(high effort\)[\s\S]{0,500}(exploit|hypoth|call path)/i,
-    "micronaut-engineer": /Claude Fable 5\.1 operating profile \(high effort\)[\s\S]{0,500}(call path|hypoth)/i,
+    "micronaut-engineer": /Claude Opus 5 operating profile \(high effort\)[\s\S]{0,500}(approved Architect plan|escalate)/i,
     "code-reviewer": /GPT-6 Astra operating profile \(high reasoning\)[\s\S]{0,600}(adversarial|independent model family)[\s\S]{0,600}(evidence you verified|complete review)/i,
     "technical-writer": /Claude Sonnet 5 operating profile \(medium effort\)[\s\S]{0,500}(verified|concise|bounded)/i,
   };

@@ -109,7 +109,7 @@ agents:
       type: claude_local
       config:
         engine: auto
-        model: claude-fable-5-1
+        model: claude-opus-5
         effort: high
         dangerouslySkipPermissions: true
         timeoutSec: 7200

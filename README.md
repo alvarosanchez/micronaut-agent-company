@@ -35,7 +35,7 @@ The operating roster has nine roles. Eight are portable package agents configure
 - { slug: architect, name: Architect, source: package, adapter: claude_local, model: claude-fable-5-1, effort: high }
 - { slug: qa-engineer, name: QA Engineer, source: package, adapter: claude_local, model: claude-opus-5, effort: high }
 - { slug: security-engineer, name: Security Engineer, source: package, adapter: claude_local, model: claude-opus-5, effort: high }
-- { slug: micronaut-engineer, name: Micronaut Engineer, source: package, adapter: claude_local, model: claude-fable-5-1, effort: high }
+- { slug: micronaut-engineer, name: Micronaut Engineer, source: package, adapter: claude_local, model: claude-opus-5, effort: high }
 - { slug: code-reviewer, name: Code Reviewer, source: package, adapter: codex_local, model: gpt-6-astra, effort: high }
 - { slug: technical-writer, name: Technical Writer, source: package, adapter: claude_local, model: claude-sonnet-5, effort: medium }
 - { slug: ui-ux-designer, name: UI/UX Designer, source: live-only, adapter: claude_local, model: claude-opus-5, effort: medium }
@@ -50,7 +50,7 @@ Package model matrix:
 - Architect: `claude_local`, `claude-fable-5-1`, `effort: high`
 - QA Engineer: `claude_local`, `claude-opus-5`, `effort: high`
 - Security Engineer: `claude_local`, `claude-opus-5`, `effort: high`
-- Micronaut Engineer: `claude_local`, `claude-fable-5-1`, `effort: high`
+- Micronaut Engineer: `claude_local`, `claude-opus-5`, `effort: high`
 - Code Reviewer: `codex_local`, `gpt-6-astra`, `modelReasoningEffort: high`
 - Technical Writer: `claude_local`, `claude-sonnet-5`, `effort: medium`
 
@@ -64,7 +64,7 @@ Every `claude_local` agent sets exactly `engine: auto`, `model`, `effort`, `dang
 
 Each agent also configures Paperclip's cheap model profile in `.paperclip.yaml` with `runtime.modelProfiles.cheap.enabled: true`: `claude_local` agents use `label: Claude Haiku 4.5` with `model: claude-haiku-4-5` and `effort: low`; the Code Reviewer uses `label: GPT-5.6 Luna` with `model: gpt-5.6-luna` and `modelReasoningEffort: low`. The `cheap` profile is bounded to classification, read-only inventory, adapter checks, and deterministic no-op detection. It cannot make stage decisions, security/release decisions, durable work, or external writes. Every GitHub plugin write sets `llmModel` to the actual role model above.
 
-Model selection follows role exposure: Fable 5.1/high for architecture and engineering; Opus 5/high for authoritative QA classification and security; Opus 5/medium for governance and product discovery; Sonnet 5/medium for textual delivery; GPT-6 Astra/high for the independent final review.
+Model selection follows role exposure: Fable 5.1/high is reserved for the Architect, because every Micronaut Engineer implementation follows an Architect plan and Fable 5.1 usage counts against a separate 50%-of-weekly cap on the Claude Max plan; Opus 5/high implements those plans and provides authoritative QA classification and security review; Opus 5/medium for governance and product discovery; Sonnet 5/medium for textual delivery; GPT-6 Astra/high for the independent final review.
 
 The always-loaded `micronaut-repo-operations` entrypoint centralizes workflow mechanics. Its `cheap` boundary limits the cheap profile to bounded read-only work. CodeGraph is optional: if the deployment exposes a CodeGraph MCP server to the agent runtime, it does not require agents to use it for every coding task; it remains useful for unfamiliar or large repositories, cross-module call paths, or repetitive symbol discovery, but is unnecessary for localized fixes and documentation/configuration work.
 
