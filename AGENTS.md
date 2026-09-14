@@ -20,7 +20,7 @@ Keep changes portable across Paperclip installations. Machine-local paths, token
 
 Do not repair a live Paperclip company by only editing DB rows, generated imported files, or live profile drift when the durable owner is this package. If a runtime behavior should survive Agent Companies reimport/sync, update the package source and tests here.
 
-Deployment-specific wiring belongs outside the portable package. For example, `.paperclip.yaml` may point agents at a stable command such as `/usr/local/bin/hermes-paperclip`, while the deployment provides that wrapper and sets environment such as `HERMES_HOME` or `HERMES_CODEX_BASE_URL`.
+Deployment-specific wiring belongs outside the portable package. For example, `.paperclip.yaml` names only the built-in adapter type, model, effort, engine, and timeouts, while the deployment provides the Claude Code and Codex CLIs plus their subscription credentials (`CLAUDE_CODE_OAUTH_TOKEN` or the server user's `~/.claude/.credentials.json`; `~/.codex/auth.json`) and any optional MCP servers such as CodeGraph.
 
 Before adding adapter config fields, verify that Paperclip import and export round-trip them. If a field is stripped during export, do not rely on it for durable sync behavior.
 
@@ -49,11 +49,13 @@ node scripts/verify-paperclip-import.mjs
 git diff --check
 ```
 
-For Node 22 compatibility or before release-sensitive changes, run:
+For Node 22 compatibility of the package scripts, run:
 
 ```bash
 npm run test:node22
 ```
+
+`paperclipai@2026.831.1` requires Node >= 24.11, so the import verifier only runs under Node 24.
 
 `node scripts/verify-paperclip-import.mjs` boots an isolated Paperclip instance, imports the package through the Paperclip API, checks created entities, exports the company, and verifies round-trip behavior. Use it for any change that affects `.paperclip.yaml`, agent metadata, routines, skills, projects, teams, or import/export assumptions.
 
@@ -67,7 +69,7 @@ npm run test:node22
 
 ## Runtime defaults to preserve
 
-The package currently uses Paperclip `hermes_local` agents that invoke the deployment Hermes CLI wrapper `/usr/local/bin/hermes-paperclip`. Keep README, `.paperclip.yaml`, and tests in sync when changing this contract.
+The package targets Paperclip 2026.831.1 built-in adapters: `claude_local` (`engine: auto`, `dangerouslySkipPermissions: true`) for every role except the Code Reviewer, which uses `codex_local` (`gpt-6-astra`, `dangerouslyBypassApprovalsAndSandbox: true`) so reviews come from an independent, metered model family. Do not add package roles to Codex casually. Keep README, `.paperclip.yaml`, agent operating profiles, `llmModel` literals, and tests in sync when changing this contract.
 
 The package intentionally caps package-owned agent heartbeat concurrency at one active run per agent via `.paperclip.yaml` while the workflow is tuned for one owned work item per role. Do not raise this casually.
 
