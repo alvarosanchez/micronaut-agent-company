@@ -1,4 +1,5 @@
 schema: paperclip/v1
+schemaVersion: 7
 company:
   attachmentMaxBytes: 10485760
   requireBoardApprovalForNewAgents: false
