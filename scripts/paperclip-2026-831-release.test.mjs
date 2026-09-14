@@ -277,6 +277,48 @@ test("docs treat the fail-closed tool gateway as a tool-access profile prerequis
   );
 });
 
+test("docs pin narrowest-binding tool-access resolution and full role-profile tool ids", async () => {
+  for (const relativePath of HOST_DEFAULT_DOC_PATHS) {
+    const markdown = await read(relativePath);
+
+    assert.match(
+      markdown,
+      /narrowest[\s\S]{0,120}(?:matching )?binding/i,
+      `${relativePath} must say Paperclip resolves the effective tool-access profile as the narrowest matching binding only.`,
+    );
+    assert.match(
+      markdown,
+      /replac\w*[\s\S]{0,200}union|union[\s\S]{0,200}replac\w*/i,
+      `${relativePath} must say an agent-scoped binding replaces the company-scoped one rather than unioning with it.`,
+    );
+    assert.match(
+      markdown,
+      /restate[\s\S]{0,60}baseline/i,
+      `${relativePath} must say each agent-scoped role profile restates the baseline entries itself.`,
+    );
+    assert.match(markdown, /\b9\b[\s\S]{0,20}(?:read )?tools?/i, `${relativePath} must state the 9-tool baseline count.`);
+    assert.match(markdown, /\b12\b[\s\S]{0,20}tools?/i, `${relativePath} must state the 12-tool triage/issue-mutation role count.`);
+    assert.match(markdown, /\b18\b[\s\S]{0,20}tools?/i, `${relativePath} must state the 18-tool delivery role count.`);
+    assert.match(markdown, /21 tools/i, `${relativePath} must state the plugin's total tool surface of 21 tools.`);
+  }
+
+  // Only README.md and TASK.md enumerate exact tool_name ids; COMPANY.md deliberately
+  // stays abstract like the rest of its tool-gateway paragraph.
+  for (const relativePath of ["../README.md", "../tasks/verify-imported-company-instance/TASK.md"]) {
+    const markdown = await read(relativePath);
+    assert.match(
+      markdown,
+      /get_issue_interaction_summary/,
+      `${relativePath} must include get_issue_interaction_summary in the read-only baseline.`,
+    );
+    assert.match(
+      markdown,
+      /upload_pull_request_asset/,
+      `${relativePath} must include upload_pull_request_asset in the delivery role profile.`,
+    );
+  }
+});
+
 test("docs require pauseAutomations on import and resume from the CEO bootstrap issue", async () => {
   for (const relativePath of HOST_DEFAULT_DOC_PATHS) {
     const markdown = await read(relativePath);

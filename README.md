@@ -357,14 +357,15 @@ Before opening or updating a guide, docs, or documentation PR, update the work b
 The GitHub sync plugin exposes these GitHub workflow tools to agents. Use the exact runtime tool IDs below, not shorthand names. Paperclip namespaces plugin tools as `<pluginId>:<toolName>`, and this plugin's manifest id is `paperclip-github-plugin`:
 
 - Intake and deduplication: `paperclip-github-plugin:search_repository_items`
-- Issue context: `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`
-- Issue mutation: `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`
+- Issue context: `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:get_issue_interaction_summary`
+- Issue mutation: `paperclip-github-plugin:update_issue`, `paperclip-github-plugin:add_issue_comment`, `paperclip-github-plugin:assign_to_current_user`
 - PR creation and state: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:update_pull_request`
 - PR inspection: `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`
 - Review-thread actions: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
 - Reviewer routing: `paperclip-github-plugin:request_pull_request_reviewers`
 - Organization project lookup: `paperclip-github-plugin:list_organization_projects` against the open, public Micronaut organization projects (`is:open is:public`)
 - PR project association: `paperclip-github-plugin:add_pull_request_to_project`
+- PR assets and cross-linking: `paperclip-github-plugin:upload_pull_request_asset`, `paperclip-github-plugin:link_github_item`
 
 Do not use Paperclip issue monitors to poll GitHub-synced PR state. CI/check status, mergeability, PR file state, review threads, reviewer routing, and PR project links must be read or changed through GitHub Sync tools. Issue monitors remain valid only for non-GitHub waits or external conditions that GitHub Sync does not already own.
 

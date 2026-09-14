@@ -64,8 +64,10 @@ The sync plugin currently exposes this GitHub tool surface for agents, using the
 - `paperclip-github-plugin:search_repository_items`
 - `paperclip-github-plugin:get_issue`
 - `paperclip-github-plugin:list_issue_comments`
+- `paperclip-github-plugin:get_issue_interaction_summary`
 - `paperclip-github-plugin:update_issue`
 - `paperclip-github-plugin:add_issue_comment`
+- `paperclip-github-plugin:assign_to_current_user`
 - `paperclip-github-plugin:create_pull_request`
 - `paperclip-github-plugin:get_pull_request`
 - `paperclip-github-plugin:update_pull_request`
@@ -85,7 +87,7 @@ Do not use Paperclip issue monitors to poll GitHub-synced PR state. Read CI/chec
 
 Use them by workflow stage:
 
-- intake and queue reads: `paperclip-github-plugin:search_repository_items`, `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`; an authorized issue owner may additionally use `paperclip-github-plugin:update_issue`
+- intake and queue reads: `paperclip-github-plugin:search_repository_items`, `paperclip-github-plugin:get_issue`, `paperclip-github-plugin:list_issue_comments`, `paperclip-github-plugin:get_issue_interaction_summary`; an authorized issue owner may additionally use `paperclip-github-plugin:update_issue` and `paperclip-github-plugin:assign_to_current_user`
 - planning and review context: `paperclip-github-plugin:get_pull_request`, `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, `paperclip-github-plugin:list_pull_request_review_threads`, `paperclip-github-plugin:list_organization_projects`
 - authorized implementation-owner PR creation, assets, and routing: `paperclip-github-plugin:create_pull_request`, `paperclip-github-plugin:update_pull_request`, `paperclip-github-plugin:upload_pull_request_asset`, `paperclip-github-plugin:request_pull_request_reviewers`, `paperclip-github-plugin:add_pull_request_to_project`
 - `followThroughOwner` review-thread handling: `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, `paperclip-github-plugin:unresolve_review_thread`
