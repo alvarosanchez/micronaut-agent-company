@@ -7,23 +7,26 @@ description: Decide when CEO self-improvement should stay in additive runtime gu
 
 Use this skill whenever the company learns something about its own operating system instead of a managed Micronaut repository.
 
-CEO classifies, governs, prioritizes, and creates/assigns scoped QA intake children with evidence and acceptance criteria, then stops. Technical Writer owns prose docs, guides, repository `AGENTS.md`, company role instructions, and textual control-plane delivery. Executable package scripts/tests/config behavior and plugin/adapter code route to Engineer. Executability alone does not require Architect: planning requires a named cross-module compatibility, materially different fixes, migration, compatibility-matrix, or design-ambiguity trigger. Every child states observable before/after behavior and regression or verification evidence for its artifact; only executable adapter/config findings must name that boundary. Security pre-triages security-sensitive work and performs final review. The implementation owner owns branch, commits, PR creation/update, CI repair, review replies, and PR follow-through; CEO owns none of those actions. For out-of-pipeline delivery, before opening the PR create one Paperclip child issue per affected project, place each child issue in the actual corresponding Paperclip project, assign it to the actual implementation owner, and ensure that child links any resulting PR. When a Paperclip child issue owns a PR, leave it `in_review` and do not close or mark it `DONE` until merge.
+CEO classifies, governs, prioritizes, and creates/assigns scoped QA intake children with evidence and acceptance criteria, then stops. Technical Writer owns prose docs, guides, repository `AGENTS.md`, company role instructions, and textual control-plane delivery. Executable package scripts/tests/config behavior and plugin/adapter code route to Engineer. Architect plans every Engineer-owned child. Executability alone does not require a full plan: a full plan requires a named cross-module compatibility, materially different fixes, migration, compatibility-matrix, or design-ambiguity trigger; otherwise Architect produces a lightweight plan. Every child states observable before/after behavior and regression or verification evidence for its artifact; only executable adapter/config findings must name that boundary. Security pre-triages security-sensitive work and performs final review. The implementation owner owns branch, commits, PR creation/update, CI repair, review replies, and PR follow-through; CEO owns none of those actions. For out-of-pipeline delivery, before opening the PR create one Paperclip child issue per affected project, place each child issue in the actual corresponding Paperclip project, assign it to the actual implementation owner, and ensure that child links any resulting PR. When a Paperclip child issue owns a PR, leave it `in_review` and do not close or mark it `DONE` until merge.
 
 <!-- ceo-self-improvement-routing -->
 ```yaml
 textual-finding:
   deliveryOwner: technical-writer
   planningRequired: false
+  planningDepth: none
   adapterBoundaryRequired: false
   acceptanceEvidence: exact stale wording and expected corrected wording
 executable-adapter-config-finding:
   deliveryOwner: micronaut-engineer
-  planningRequired: false
+  planningRequired: true
+  planningDepth: lightweight
   adapterBoundaryRequired: true
   acceptanceEvidence: observable adapter or configuration behavior plus regression assertions
 architectural-adapter-config-finding:
   deliveryOwner: micronaut-engineer
   planningRequired: true
+  planningDepth: full
   adapterBoundaryRequired: true
   architectureTriggers: [cross-module compatibility, materially different fixes, migration, compatibility matrix, design ambiguity]
   acceptanceEvidence: observable adapter or configuration behavior plus regression assertions
@@ -47,7 +50,7 @@ Portable package defaults should help most future imports, not just the current 
 When the change belongs in the package core:
 
 - create a QA-assigned child scoped to `alvarosanchez/micronaut-agent-company` and record the delivery owner
-- Technical Writer delivers textual package instructions; Micronaut Engineer delivers executable package scripts/tests/config behavior; QA adds Architect and/or Security from the intake classification
+- Technical Writer delivers textual package instructions; Micronaut Engineer delivers executable package scripts/tests/config behavior behind an Architect plan; QA records the plan depth, Architect for Writer-owned work, and Security from the intake classification
 - the delivery owner works only in a clone of `alvarosanchez/micronaut-agent-company`
 - once the target branch is identified, the delivery owner fetches and updates the work branch from the target branch before editing or PR work; conflicts become a named blocker
 - make the smallest portable diff across package-owned files such as `COMPANY.md`, `README.md`, `.paperclip.yaml`, `agents/`, `skills/`, `projects/`, `tasks/`, or `teams/`

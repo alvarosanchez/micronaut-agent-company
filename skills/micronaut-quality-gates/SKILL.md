@@ -61,6 +61,7 @@ Before implementation starts, the plan artifact must state:
 - test strategy
 - documentation impact
 - whether the change must remain non-breaking
+- the plan matches the recorded `planningDepth`: a `lightweight` plan (routine localized bugs, compatible dependency upgrades, `training-route` and skill-sync children) may state the items above briefly as a reproduction summary, root-cause hypothesis, exact change scope, and tests to add; a `full` plan expands every item
 - the QA-selected Micronaut organization project set, or the recorded ambiguity or tooling gap that explains why the live PR may not carry it yet
 - explicit human approval when the change needs one
 - when the plan needs confirmation but not governance approval, a `request_confirmation` interaction targets the latest `plan` document revision with a stable idempotency key and a continuation policy
@@ -107,7 +108,7 @@ Security participates only when the authoritative ordered `qa-intake.stageSequen
 - insecure defaults or examples that would steer users into unsafe deployment or configuration choices
 - whether blocking findings are concrete enough to justify `changes_requested`
 
-Approved pre-triage advances only to the next entry in the authoritative ordered `qa-intake.stageSequence`, which is Architect when planning is required and otherwise the implementation owner. Pre-triage does not skip Architect, implementation, QA verification, or final Security review. Approved final Security review advances to Code Reviewer. A rejected Security stage returns through the execution policy as `changes_requested`.
+Approved pre-triage advances only to the next entry in the authoritative ordered `qa-intake.stageSequence`, which is Architect for Micronaut Engineer-owned work and for Technical Writer-owned work with `planningRequired: true`, and otherwise Technical Writer. Pre-triage does not skip Architect, implementation, QA verification, or final Security review. Approved final Security review advances to Code Reviewer. A rejected Security stage returns through the execution policy as `changes_requested`.
 
 ## Code Review Gate
 

@@ -33,9 +33,9 @@ For every skill candidate, create one linked board approval request before chang
 - name the target agent or agents
 - cite the execution evidence since the last Training pass
 - explain why an external referenced skill is better than prose in an existing company instruction
-- state the exact implementation path after approval. A pinned referenced skill with no package-owned executable content and no security, authority, provenance, or integration trigger uses `Micronaut Engineer -> QA verification -> Code Reviewer -> Micronaut Engineer publication`; the final Engineer action may publish only the exact SHA approved by Reviewer. Any named trigger routes to QA intake instead, where QA selects the implementation owner and any Architect or Security gates.
+- state the exact implementation path after approval. A pinned referenced skill with no package-owned executable content and no security, authority, provenance, or integration trigger uses `Architect lightweight plan -> Micronaut Engineer -> QA verification -> Code Reviewer -> Micronaut Engineer publication`; the final Engineer action may publish only the exact SHA approved by Reviewer. Any named trigger routes to QA intake instead, where QA selects the implementation owner, the plan depth, and any Security gates.
 
-If the board approval is already approved during this run, create the correctly routed child. For the routine lightweight path, CEO must create the child with sequential Engineer -> QA -> Code Reviewer stages, write a board-bound `training-route` document before assignment, verify the approval link, then assign Micronaut Engineer directly. The document is the authoritative route artifact and must exactly follow this schema; the implementation and review roles may not edit it, and any mismatch returns to CEO governance.
+If the board approval is already approved during this run, create the correctly routed child. For the routine lightweight path, CEO must create the child with sequential Architect -> Engineer -> QA -> Code Reviewer stages, write a board-bound `training-route` document before assignment, verify the approval link, then assign the child to Architect for its lightweight plan; Architect hands the planned child to Micronaut Engineer through the normal planning-to-implementation `TODO` handoff. The document is the authoritative route artifact and must exactly follow this schema; the implementation and review roles may not edit it, and any mismatch returns to CEO governance.
 
 <!-- lightweight-training-route-schema -->
 ```yaml
@@ -49,12 +49,14 @@ source:
   usage: referenced
 targetAgents:
   - <approved-agent-slug>
-planningRequired: false
+planningRequired: true
+planningDepth: lightweight
 securityPrecheckRequired: false
 securityFinalReviewRequired: false
 deliveryOwner: micronaut-engineer
 followThroughOwner: micronaut-engineer
 stageSequence:
+  - architect
   - micronaut-engineer
   - qa-engineer
   - code-reviewer
@@ -66,7 +68,7 @@ Publication is outside this execution policy. After Code Reviewer approves the i
 
 For an explicitly triggered path, create a QA-intake child instead. Do not add, install, update, or assign the skill in the Training run. If approval is pending, rejected, or requires revision, do not create implementation work; record the approval state and next step.
 
-If no suitable existing https://skills.sh skill exists, but the same technology or domain gap is recurring enough to justify company-owned guidance, create one scoped QA-assigned Paperclip child issue or subtask with status `backlog` and issue type `type: improvement`. Include the target agents, execution evidence, why no existing external skill was suitable, expected skill slug and scope, and observable acceptance evidence. QA decides whether a real planning trigger requires Architect, then routes purely textual skill content to Technical Writer or executable scripts, tooling, configuration, and other behavioral content to Micronaut Engineer. The implementation owner authors the skill, creates and links any company-package PR, and owns CI, review threads, and follow-through. Do not draft the custom skill in the Training routine itself.
+If no suitable existing https://skills.sh skill exists, but the same technology or domain gap is recurring enough to justify company-owned guidance, create one scoped QA-assigned Paperclip child issue or subtask with status `backlog` and issue type `type: improvement`. Include the target agents, execution evidence, why no existing external skill was suitable, expected skill slug and scope, and observable acceptance evidence. QA records the plan depth (Architect plans every Micronaut Engineer-owned skill child; Technical Writer-owned textual content adds Architect only for a real planning trigger), then routes purely textual skill content to Technical Writer or executable scripts, tooling, configuration, and other behavioral content to Micronaut Engineer. The implementation owner authors the skill, creates and links any company-package PR, and owns CI, review threads, and follow-through. Do not draft the custom skill in the Training routine itself.
 
 Produce one Paperclip report that includes:
 
