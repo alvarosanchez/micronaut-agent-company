@@ -5,25 +5,25 @@ import { readFile } from "node:fs/promises";
 import YAML from "yaml";
 
 const TEN_MIB = 10 * 1024 * 1024;
-const PAPERCLIP_RELEASE_UNDER_TEST = "2026.626.0";
+const PAPERCLIP_RELEASE_UNDER_TEST = "2026.831.1";
 const PACKAGE_AGENT_MAX_CONCURRENT_RUNS = 1;
 
 async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("package pins the Paperclip v2026.626.0 runtime for local verification", async () => {
+test("package pins the Paperclip v2026.831.1 runtime for local verification", async () => {
   const packageJson = JSON.parse(await read("../package.json"));
   const setupScript = await read("./setup-local-paperclip-instance.mjs");
 
   assert.equal(packageJson.devDependencies.paperclipai, PAPERCLIP_RELEASE_UNDER_TEST);
   assert.match(
     setupScript,
-    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.626\.0"/,
+    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.831\.1"/,
   );
 });
 
-test("import verification fails fast when the Paperclip package is missing", async () => {
+test("import verification fails fast when the Paperclip package or Node runtime is unsupported", async () => {
   const source = await read("./verify-paperclip-import.mjs");
 
   assert.match(
@@ -38,14 +38,25 @@ test("import verification fails fast when the Paperclip package is missing", asy
   );
   assert.match(
     source,
-    /\^20\.19\.0[\s\S]{0,120}\^22\.12\.0[\s\S]{0,120}>=24\.0\.0/,
-    "verify-paperclip-import must enforce the pinned Paperclip runtime's Node engine floor.",
+    />=24\.11\.0/,
+    "verify-paperclip-import must enforce the pinned Paperclip runtime's Node >= 24.11 engine floor.",
   );
+  assert.doesNotMatch(source, /\^20\.19\.0|\^22\.12\.0/, "Node 20/22 are no longer supported by paperclipai@2026.831.1.");
 });
 
-test("package agents explicitly cap heartbeat concurrency to one run", async () => {
+test("import verification compares the built-in claude_local and codex_local adapter configs", async () => {
+  const source = await read("./verify-paperclip-import.mjs");
+
+  assert.match(source, /claude_local[\s\S]{0,400}"effort"[\s\S]{0,200}"dangerouslySkipPermissions"/);
+  assert.match(source, /codex_local[\s\S]{0,400}"modelReasoningEffort"[\s\S]{0,200}"dangerouslyBypassApprovalsAndSandbox"/);
+  assert.match(source, /--skip-git-repo-check/, "verify-paperclip-import must tolerate the codex_local arg Paperclip import appends.");
+  assert.match(source, /hermes_local/, "verify-paperclip-import keeps the legacy hermes_local comparison for older packages.");
+});
+
+test("package agents explicitly cap heartbeat concurrency below the runtime default of 20", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
   const readme = await read("../README.md");
+  const company = await read("../COMPANY.md");
   const agents = Object.entries(extension.agents ?? {});
 
   assert.ok(agents.length > 0, "Expected package agents in .paperclip.yaml.");
@@ -57,18 +68,33 @@ test("package agents explicitly cap heartbeat concurrency to one run", async () 
     );
   }
 
-  assert.match(
-    readme,
-    /Paperclip v2026\.609\.0[\s\S]{0,320}20[\s\S]{0,320}maxConcurrentRuns[\s\S]{0,320}1/i,
-    "README must document the explicit single-run heartbeat concurrency override.",
-  );
+  for (const markdown of [readme, company]) {
+    assert.match(
+      markdown,
+      /20 concurrent runs per agent[\s\S]{0,200}paperclipai@2026\.831\.1[\s\S]{0,400}maxConcurrentRuns: 1/i,
+      "Docs must document the 2026.831.1 concurrency default and the package override.",
+    );
+  }
 });
 
-test("Paperclip company extension declares v2026.428 company defaults explicitly", async () => {
+test("Paperclip company extension keeps the explicit company defaults", async () => {
   const extension = YAML.parse(await read("../.paperclip.yaml"));
 
+  assert.equal(extension.schema, "paperclip/v1");
+  assert.equal(extension.schemaVersion, 7, "package must declare the 2026.831.1 bundle schemaVersion so import does not warn about an unstamped bundle");
   assert.equal(extension.company?.requireBoardApprovalForNewAgents, false);
   assert.equal(extension.company?.attachmentMaxBytes, TEN_MIB);
+});
+
+test("docs explain that 2026.831.1 retired the per-company attachment cap", async () => {
+  for (const relativePath of ["../README.md", "../COMPANY.md", "../tasks/verify-imported-company-instance/TASK.md"]) {
+    const markdown = await read(relativePath);
+    assert.match(
+      markdown,
+      /attachmentMaxBytes[\s\S]{0,400}(?:retired|strips that key|ignored by)[\s\S]{0,300}process-level (?:attachment )?cap[\s\S]{0,120}(?:ceiling|final ceiling)/i,
+      `${relativePath} must explain that the attachment cap key is retired and the process-level cap is the ceiling.`,
+    );
+  }
 });
 
 test("guidance preserves normal delivery work as standard-mode issue work", async () => {
@@ -92,15 +118,20 @@ test("guidance preserves normal delivery work as standard-mode issue work", asyn
   }
 });
 
-test("guidance handles Paperclip v2026.512 issue defaults and planning mode", async () => {
-  for (const relativePath of ["../README.md", "../COMPANY.md"]) {
+test("guidance re-verifies the assigned-issue status default and planning mode against 2026.831.1", async () => {
+  for (const relativePath of ["../README.md", "../COMPANY.md", "../skills/micronaut-repo-operations/references/workflow-control-plane.md"]) {
     const markdown = await read(relativePath);
 
     assert.match(
       markdown,
-      /Paperclip (?:v|`?paperclipai@)2026\.512\.0[\s\S]{0,900}assigned[\s\S]{0,360}status[\s\S]{0,260}(?:todo|TODO)[\s\S]{0,360}(?:explicit|omitted)/i,
-      `${relativePath} must document the assigned-issue status default introduced in Paperclip v2026.512.0.`,
+      /Paperclip v2026\.512\.0, still true in (?:the current )?`paperclipai@2026\.831\.1`[\s\S]{0,400}assigned[\s\S]{0,360}(?:todo|TODO)[\s\S]{0,360}(?:explicit|omitted)/i,
+      `${relativePath} must document that assigned issues still default to todo in paperclipai@2026.831.1.`,
     );
+    assert.doesNotMatch(markdown, /paperclipai@2026\.626/, `${relativePath} must not cite the superseded 2026.626 runtime.`);
+  }
+
+  for (const relativePath of ["../README.md", "../COMPANY.md"]) {
+    const markdown = await read(relativePath);
     assert.match(
       markdown,
       /planning mode[\s\S]{0,700}(?:plan only|planning-only|do not write code|not start implementation)[\s\S]{0,700}(?:child implementation issues|standard delivery issue|standard work mode)|(?:child implementation issues|standard delivery issue|standard work mode)[\s\S]{0,700}planning mode[\s\S]{0,700}(?:plan only|planning-only|do not write code|not start implementation)/i,
@@ -109,14 +140,8 @@ test("guidance handles Paperclip v2026.512 issue defaults and planning mode", as
   }
 
   const source = await read("./verify-paperclip-import.mjs");
-  assert.match(
-    source,
-    /README\.md must explain Paperclip 2026\.512 planning-mode issue semantics\./,
-  );
-  assert.match(
-    source,
-    /README\.md must explain Paperclip 2026\.512 assigned-issue status defaults\./,
-  );
+  assert.match(source, /README\.md must explain Paperclip 2026\.512 planning-mode issue semantics\./);
+  assert.match(source, /README\.md must explain Paperclip 2026\.512 assigned-issue status defaults\./);
 });
 
 test("guidance uses Paperclip planning mode for explicit precursor issues", async () => {
@@ -130,16 +155,8 @@ test("guidance uses Paperclip planning mode for explicit precursor issues", asyn
 
   for (const relativePath of planningBoundaryPaths) {
     const markdown = await read(relativePath);
-    assert.match(
-      markdown,
-      /planning[- ]only precursor/i,
-      `${relativePath} must name explicit planning-only precursor issues.`,
-    );
-    assert.match(
-      markdown,
-      /workMode:\s*planning/i,
-      `${relativePath} must use workMode: planning only for the precursor case.`,
-    );
+    assert.match(markdown, /planning[- ]only precursor/i, `${relativePath} must name explicit planning-only precursor issues.`);
+    assert.match(markdown, /workMode:\s*planning/i, `${relativePath} must use workMode: planning only for the precursor case.`);
   }
 });
 
@@ -154,11 +171,7 @@ test("guidance converts accepted plans through Paperclip accepted-plan decomposi
 
   for (const relativePath of decompositionPaths) {
     const markdown = await read(relativePath);
-    assert.match(
-      markdown,
-      /accepted-plan-decompositions/i,
-      `${relativePath} must mention /accepted-plan-decompositions.`,
-    );
+    assert.match(markdown, /accepted-plan-decompositions/i, `${relativePath} must mention /accepted-plan-decompositions.`);
     assert.match(
       markdown,
       /standard[- ]mode child implementation issues|workMode:\s*standard/i,
@@ -167,24 +180,13 @@ test("guidance converts accepted plans through Paperclip accepted-plan decomposi
   }
 });
 
-test("docs explain v2026.428 company-level attachment and hiring semantics", async () => {
-  for (const relativePath of ["../README.md", "../COMPANY.md"]) {
+test("execution-stage guidance still treats approvalsNeeded as the literal 1", async () => {
+  for (const relativePath of ["../README.md", "../skills/micronaut-repo-operations/references/workflow-control-plane.md"]) {
     const markdown = await read(relativePath);
-
     assert.match(
       markdown,
-      /attachmentMaxBytes[\s\S]{0,260}10 MiB|10 MiB[\s\S]{0,260}attachmentMaxBytes/i,
-      `${relativePath} must document the explicit 10 MiB attachment cap.`,
-    );
-    assert.match(
-      markdown,
-      /process-level (?:attachment )?cap[\s\S]{0,260}(?:ceiling|final ceiling)|(?:ceiling|final ceiling)[\s\S]{0,260}process-level (?:attachment )?cap/i,
-      `${relativePath} must explain that the process-level cap remains the ceiling.`,
-    );
-    assert.match(
-      markdown,
-      /requireBoardApprovalForNewAgents[\s\S]{0,260}false|new-hire approval[\s\S]{0,260}(?:opt-in|explicit)/i,
-      `${relativePath} must document the explicit new-hire approval policy.`,
+      /paperclipai@2026\.831\.1[\s\S]{0,200}approvalsNeeded: 1[\s\S]{0,300}(?:separate sequential stages|single multi-participant stage)/i,
+      `${relativePath} must keep sequential stages because approvalsNeeded is still the literal 1.`,
     );
   }
 });
@@ -202,12 +204,7 @@ test("operating guidance handles productivity review issues as first-class queue
 
   for (const relativePath of requiredPaths) {
     const markdown = await read(relativePath);
-
-    assert.match(
-      markdown,
-      /productivity review/i,
-      `${relativePath} must mention Paperclip productivity reviews.`,
-    );
+    assert.match(markdown, /productivity review/i, `${relativePath} must mention Paperclip productivity reviews.`);
     assert.match(
       markdown,
       /issue_productivity_review|no-comment|long-active|high-churn|high churn|long active/i,
@@ -221,32 +218,52 @@ test("operating guidance handles productivity review issues as first-class queue
   }
 });
 
-test("source verification enforces the Paperclip v2026.428 migration guidance", async () => {
+test("source verification enforces the attachment and productivity-review guidance", async () => {
   const source = await read("./verify-paperclip-import.mjs");
 
-  assert.match(
-    source,
-    /README\.md must document the explicit Paperclip company attachment cap\./,
-  );
-  assert.match(
-    source,
-    /README\.md must explain Paperclip productivity review issues\./,
-  );
+  assert.match(source, /README\.md must document the explicit Paperclip company attachment cap\./);
+  assert.match(source, /README\.md must explain Paperclip productivity review issues\./);
 });
 
-
-test("guidance covers Paperclip v2026.626 runtime surfaces without hard-coding deployment choices", async () => {
+test("guidance covers Paperclip v2026.831.1 runtime surfaces without hard-coding deployment choices", async () => {
   const readme = await read("../README.md");
+  const company = await read("../COMPANY.md");
   const verifyTask = await read("../tasks/verify-imported-company-instance/TASK.md");
+  const githubOps = await read("../skills/micronaut-github-operations/SKILL.md");
+  const controlPlane = await read("../skills/micronaut-repo-operations/references/workflow-control-plane.md");
 
-  assert.match(readme, /Paperclip v2026\.626\.0[\s\S]{0,1200}Skills Store[\s\S]{0,1200}(?:company skills|runtime skills|skill inventory)/i);
-  assert.match(readme, /built-in Hermes|hermes_local|hermes_gateway/i);
-  assert.match(readme, /task watchdog|watchdog control plane/i);
+  // Adapters and engine.
+  assert.match(readme, /claude_local[\s\S]{0,400}codex_local[\s\S]{0,600}engine: auto/i);
+  assert.match(readme, /ACP[\s\S]{0,200}persistent[\s\S]{0,300}PAPERCLIP_WORKSPACE_\*/);
+  assert.match(company, /engine: auto[\s\S]{0,400}PAPERCLIP_WORKSPACE_\*/);
+  assert.match(readme, /--dangerously-skip-permissions[\s\S]{0,200}policy, not a runtime guard/i);
+
+  // Plugin tool access through the tool gateway.
+  for (const [label, markdown] of [["README", readme], ["COMPANY", company], ["github-operations", githubOps], ["verify task", verifyTask]]) {
+    assert.match(markdown, /GET \/api\/plugins\/tools[\s\S]{0,200}POST \/api\/plugins\/tools\/execute/, `${label} must name the plugin tool API.`);
+    assert.match(markdown, /tool-access policy|tool gateway/i, `${label} must mention the company tool-access policy.`);
+  }
+  assert.match(githubOps, /missing or denied[\s\S]{0,120}policy blocker/i);
+
+  // Run token, interactions, trust, import/export, skills.
+  assert.match(readme, /48h[\s\S]{0,200}PAPERCLIP_API_KEY/);
+  assert.match(readme, /resolver policy defaults to `anyone`[\s\S]{0,200}not_creator[\s\S]{0,60}human_only/);
+  assert.match(controlPlane, /resolver policy defaults to `anyone`/);
+  assert.match(readme, /standard-trust agents can write to company-visible issues/i);
+  assert.match(readme, /declares 7[\s\S]{0,200}async jobs?/i);
+  assert.match(readme, /explicit merge mode[\s\S]{0,200}collisionStrategy: replace/);
+  assert.match(verifyTask, /explicit replace merge mode/i);
+  assert.match(verifyTask, /claude_local[\s\S]{0,600}codex_local[\s\S]{0,300}gpt-6-astra/);
+  assert.match(verifyTask, /task watchdogs are limited to non-GitHub waits/i);
+  assert.match(readme, /task watchdog/i);
   assert.match(readme, /ask work mode|question-and-answer/i);
   assert.match(readme, /routine date variables|date variable/i);
-  assert.match(readme, /workspace file viewer|artifact links|PR-visible artifacts|workspace file downloads/i);
-  assert.match(readme, /Teams Catalog|teams catalog|catalog teams/i);
-  assert.match(verifyTask, /Skills Store|runtime skill/i);
-  assert.match(verifyTask, /built-in Hermes adapter migration is intentionally deferred/i);
-  assert.match(verifyTask, /task watchdogs are limited to non-GitHub waits/i);
+  assert.match(readme, /workspace file viewer|artifact links|PR-visible artifacts/i);
+  assert.match(readme, /Teams Catalog/i);
+  assert.match(readme, /Skills Store/i);
+
+  // No Hermes-era surfaces remain.
+  for (const [label, markdown] of [["README", readme], ["COMPANY", company], ["verify task", verifyTask], ["github-operations", githubOps]]) {
+    assert.doesNotMatch(markdown, /hermes|mcp_paperclip_plugin_tools|MCP-bridged/i, `${label} must not carry Hermes-era guidance.`);
+  }
 });

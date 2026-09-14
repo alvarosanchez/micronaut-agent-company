@@ -1151,13 +1151,31 @@ function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
     `Adapter type mismatch for imported agent ${agentSlug}`,
   );
 
-  if (!["opencode_local", "hermes_local", "acpx_local"].includes(expectedAdapter?.type)) {
+  if (!["claude_local", "codex_local", "opencode_local", "hermes_local", "acpx_local"].includes(expectedAdapter?.type)) {
     return;
   }
 
   const actualConfig = actualAgent?.adapterConfig ?? {};
   const expectedConfig = expectedAdapter?.config ?? {};
-  const comparedKeys = expectedAdapter?.type === "hermes_local"
+  const comparedKeys = expectedAdapter?.type === "claude_local"
+    ? [
+        "engine",
+        "model",
+        "effort",
+        "dangerouslySkipPermissions",
+        "timeoutSec",
+        "graceSec",
+      ]
+    : expectedAdapter?.type === "codex_local"
+    ? [
+        "engine",
+        "model",
+        "modelReasoningEffort",
+        "dangerouslyBypassApprovalsAndSandbox",
+        "timeoutSec",
+        "graceSec",
+      ]
+    : expectedAdapter?.type === "hermes_local"
     ? [
         "provider",
         "model",
@@ -1196,6 +1214,26 @@ function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
       `${expectedAdapter.type} ${key} mismatch for imported agent ${agentSlug}`,
     );
   }
+}
+
+// Paperclip import appends `--skip-git-repo-check` to codex_local extraArgs
+// (server/src/services/company-portability.ts applyImportAdapterRunDefaults at
+// v2026.831.1), so the exported extension legitimately carries that one arg the
+// package never declared. Strip it before comparing round-trip adapter configs.
+const CODEX_IMPORT_APPENDED_ARGS = new Set(["--skip-git-repo-check"]);
+
+function normalizeExportedAdapterForRoundTrip(adapter) {
+  if (!adapter || adapter.type !== "codex_local" || !Array.isArray(adapter.config?.extraArgs)) {
+    return adapter;
+  }
+  const extraArgs = adapter.config.extraArgs.filter((arg) => !CODEX_IMPORT_APPENDED_ARGS.has(arg));
+  const config = { ...adapter.config };
+  if (extraArgs.length > 0) {
+    config.extraArgs = extraArgs;
+  } else {
+    delete config.extraArgs;
+  }
+  return { ...adapter, config };
 }
 
 function assertImportedAgentRuntimeConfig(actualAgent, expectedRuntime, agentSlug) {
@@ -2141,13 +2179,11 @@ async function verifyGhCliExistingCompanyMigration(baseUrl, expected) {
 function isSupportedPaperclipNodeVersion(version = process.versions.node) {
   const [major = 0, minor = 0] = version.split(".").map((part) => Number(part));
 
-  if (major === 20) {
-    return minor >= 19;
+  // paperclipai@2026.831.1 declares engines.node >=24.11.0.
+  if (major === 24) {
+    return minor >= 11;
   }
-  if (major === 22) {
-    return minor >= 12;
-  }
-  return major >= 24;
+  return major > 24;
 }
 
 async function main() {
@@ -2162,7 +2198,7 @@ async function main() {
 
   assert.ok(
     isSupportedPaperclipNodeVersion(),
-    `Node ${process.version} is unsupported for Paperclip. Use Node ^20.19.0, ^22.12.0, or >=24.0.0.`,
+    `Node ${process.version} is unsupported for paperclipai@2026.831.1. Use Node >=24.11.0.`,
   );
 
   const expected = await loadSourceExpectations(repoRoot);
@@ -2567,12 +2603,23 @@ async function main() {
     assert.match(ceoHelp.stdout, /--as-of/);
     const controlPlaneHelp = await runNodeScript(importedControlPlane, ["--help"], { cwd: unrelatedManagedWorkspace });
     assert.match(controlPlaneHelp.stdout, /snapshot --issue/);
+    // paperclipai@2026.831.1 authenticates agent bearers as a stored agent API
+    // key or a server-minted run JWT; an arbitrary string is rejected with 401.
+    // Mint a real key for the imported CEO (the bootstrap issue assignee) so the
+    // control-plane smoke test exercises the same agent-auth path a run would.
+    const ceoAgentId = importedAgentIdBySlug.get("ceo");
+    assert.ok(ceoAgentId, "Imported CEO agent id is required to mint a verification agent key");
+    const ceoAgentKey = await apiJson(baseUrl, `/api/agents/${ceoAgentId}/keys`, {
+      method: "POST",
+      body: { name: "import-verification", scope: { kind: "standard" } },
+    });
+    assert.ok(typeof ceoAgentKey?.token === "string" && ceoAgentKey.token.length > 0, "Agent key creation did not return a token");
     const importedSnapshot = await runNodeScript(
       importedControlPlane,
       ["snapshot", "--issue", importedIssues[0].id],
       {
         cwd: unrelatedManagedWorkspace,
-        env: { PAPERCLIP_API_URL: baseUrl, PAPERCLIP_API_KEY: "import-verification-key" },
+        env: { PAPERCLIP_API_URL: baseUrl, PAPERCLIP_API_KEY: ceoAgentKey.token },
       },
     );
     assert.equal(JSON.parse(importedSnapshot.stdout).issue.id, importedIssues[0].id);
@@ -2645,7 +2692,7 @@ async function main() {
     )) {
       const expectedAdapterConfig = structuredClone(expectedAgentConfig?.adapter ?? null);
       assert.deepEqual(
-        exportedExtension?.agents?.[agentSlug]?.adapter ?? null,
+        normalizeExportedAdapterForRoundTrip(exportedExtension?.agents?.[agentSlug]?.adapter ?? null),
         expectedAdapterConfig,
         `Adapter config was not preserved for ${agentSlug}`,
       );
