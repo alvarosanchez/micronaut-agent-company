@@ -327,6 +327,29 @@ test("security review routes a discovered credential through a host secret propo
   );
 });
 
+test("routine activity gating is documented as a live-company setting, not a package default", async () => {
+  const readme = await read("../README.md");
+  const extension = YAML.parse(await read("../.paperclip.yaml"));
+
+  assert.match(readme, /activityGatePolicy[\s\S]{0,200}require_external_activity/, "README must name the activity gate policy values.");
+  assert.match(readme, /activityGateScope[\s\S]{0,120}`?company`?[\s\S]{0,60}`?project`?/, "README must name the activity gate scope values.");
+  assert.match(
+    readme,
+    /portability manifest does not carry them|concurrencyPolicy`, `catchUpPolicy`, `variables`, and `triggers`/,
+    "README must explain why the activity gate cannot live in .paperclip.yaml.",
+  );
+  assert.match(
+    readme,
+    /PATCH \/api\/routines\/\{routineId\}|routine settings UI/,
+    "README must say where to set the activity gate in the live company.",
+  );
+
+  for (const [slug, routine] of Object.entries(extension.routines ?? {})) {
+    assert.equal(routine.activityGatePolicy, undefined, `${slug} must not declare a non-portable activityGatePolicy.`);
+    assert.equal(routine.activityGateScope, undefined, `${slug} must not declare a non-portable activityGateScope.`);
+  }
+});
+
 test("guidance covers Paperclip v2026.831.1 runtime surfaces without hard-coding deployment choices", async () => {
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
