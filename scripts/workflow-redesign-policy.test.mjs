@@ -160,7 +160,7 @@ test("QA intake schema makes planningRequired authoritative with an explicit ord
   const [policy, qa] = await Promise.all([route(), read("../agents/qa-engineer/AGENTS.md")]);
   const schema = markedYaml(policy, "qa-intake-schema");
   const fields = [
-    "deliveryClass", "planningRequired", "planningReason",
+    "deliveryClass", "planningRequired", "planningDepth", "planningReason",
     "securityPrecheckRequired", "securityFinalReviewRequired", "deliveryOwner",
     "followThroughOwner", "verificationProfile", "stageSequence",
     "evidenceReproduction", "acceptanceCriteria",
@@ -173,6 +173,7 @@ test("QA intake schema makes planningRequired authoritative with an explicit ord
   }
   assert.equal(schema.deliveryClass, "routine | architectural | security-sensitive | documentation");
   assert.equal(schema.planningRequired, "true | false");
+  assert.equal(schema.planningDepth, "lightweight | full | none");
   assert.equal(schema.deliveryOwner, "micronaut-engineer | technical-writer");
   assert.equal(schema.verificationProfile, "source | dependency | docs-prose | docs-executable");
   assert.ok(Array.isArray(schema.stageSequence), "stageSequence must be represented as an ordered list");
@@ -225,12 +226,12 @@ test("public operating roster has nine roles while package import has exactly ei
 test("machine-readable route matrix preserves every required and omitted gate", async () => {
   const matrix = markedYaml(await route(), "workflow-routing-matrix");
   assert.deepEqual(matrix, {
-    "lightweight-training": ["micronaut-engineer", "qa-engineer", "code-reviewer"],
-    "routine-bug": ["qa-engineer", "micronaut-engineer", "qa-engineer", "code-reviewer"],
+    "lightweight-training": ["architect", "micronaut-engineer", "qa-engineer", "code-reviewer"],
+    "routine-bug": ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "code-reviewer"],
     "architecture-sensitive-bug": ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "code-reviewer"],
-    "routine-dependency-upgrade": ["qa-engineer", "micronaut-engineer", "qa-engineer", "code-reviewer"],
+    "routine-dependency-upgrade": ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "code-reviewer"],
     "migration-dependency-upgrade": ["qa-engineer", "architect", "micronaut-engineer", "qa-engineer", "code-reviewer"],
-    "security-sensitive-source": ["qa-engineer", "security-engineer", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
+    "security-sensitive-source": ["qa-engineer", "security-engineer", "architect", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
     "security-sensitive-architectural-source": ["qa-engineer", "security-engineer", "architect", "micronaut-engineer", "qa-engineer", "security-engineer", "code-reviewer"],
     "prose-docs": ["qa-engineer", "technical-writer", "qa-engineer", "code-reviewer"],
     "executable-docs": ["qa-engineer", "technical-writer", "qa-engineer", "code-reviewer"],
@@ -248,22 +249,32 @@ test("machine-readable route matrix preserves every required and omitted gate", 
       [],
       `${routeName} stageSequence must contain only imported agent slugs; publication is a separate non-policy handoff`,
     );
+    const engineerIndex = stageSequence.indexOf("micronaut-engineer");
+    if (engineerIndex !== -1) {
+      assert.equal(stageSequence[engineerIndex - 1], "architect", `${routeName} must place Architect immediately before micronaut-engineer`);
+    }
+  }
+  for (const routineRoute of ["lightweight-training", "routine-bug", "routine-dependency-upgrade"]) {
+    assert.ok(!matrix[routineRoute].includes("security-engineer"), `${routineRoute} must keep skipping Security`);
+  }
+  for (const securityRoute of ["security-sensitive-source", "security-sensitive-architectural-source"]) {
+    assert.ok(matrix[securityRoute].indexOf("security-engineer") < matrix[securityRoute].indexOf("architect"), `${securityRoute} must keep Security pre-triage before Architect`);
   }
 });
 
-test("routine and complex bugs have distinct architecture routing", async () => {
+test("routine and complex bugs have distinct plan depth behind the same Architect stage", async () => {
   const policy = await route();
-  assert.match(policy, /Routine localized bug:[^\n]+QA intake -> Micronaut Engineer -> QA verification -> Code Reviewer[^\n]+skips Architect and Security/i);
-  assert.match(policy, /Architecture-sensitive bug:[^\n]+QA intake -> Architect -> Micronaut Engineer -> QA verification -> Code Reviewer/i);
+  assert.match(policy, /Routine localized bug:[^\n]+QA intake -> Architect lightweight plan -> Micronaut Engineer -> QA verification -> Code Reviewer[^\n]+skips Security, not Architect[^\n]+reproduction summary, root-cause hypothesis, exact change scope, and tests to add/i);
+  assert.match(policy, /Architecture-sensitive bug:[^\n]+QA intake -> Architect full plan -> Micronaut Engineer -> QA verification -> Code Reviewer[^\n]+`planningDepth: full`/i);
   for (const trigger of ["cross-module", "public API", "concurrency", "structural performance", "native-image", "multiple materially different fixes", "contradictory intended behavior", "failed implementation"]) {
     assert.match(policy, new RegExp(trigger, "i"));
   }
 });
 
-test("routine and migration dependency upgrades have distinct architecture routing", async () => {
+test("routine and migration dependency upgrades have distinct plan depth behind the same Architect stage", async () => {
   const policy = await route();
-  assert.match(policy, /Routine compatible dependency upgrade:[^\n]+QA intake -> Micronaut Engineer -> QA verification -> Code Reviewer[^\n]+skips Architect and Security/i);
-  assert.match(policy, /Architectural or migration dependency upgrade:[^\n]+QA intake -> Architect -> Micronaut Engineer -> QA verification -> Code Reviewer/i);
+  assert.match(policy, /Routine compatible dependency upgrade:[^\n]+QA intake -> Architect lightweight plan -> Micronaut Engineer -> QA verification -> Code Reviewer[^\n]+skips Security, not Architect/i);
+  assert.match(policy, /Architectural or migration dependency upgrade:[^\n]+QA intake -> Architect full plan -> Micronaut Engineer -> QA verification -> Code Reviewer[^\n]+`planningDepth: full`/i);
   for (const trigger of ["major upgrade", "configuration migration", "BOM", "language", "annotation-processing", "multi-module", "transitive replacement", "compatibility matrix", "disputed strategy"]) {
     assert.match(policy, new RegExp(trigger, "i"));
   }
@@ -271,7 +282,8 @@ test("routine and migration dependency upgrades have distinct architecture routi
 
 test("security-sensitive work has pre-triage and final security stages", async () => {
   const [policy, security] = await Promise.all([route(), read("../agents/security-engineer/AGENTS.md")]);
-  assert.match(policy, /Security Engineer pre-triage -> Architect only when[^\n]+-> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer/i);
+  assert.match(policy, /Security Engineer pre-triage -> Architect -> Micronaut Engineer -> QA verification -> Security Engineer final review -> Code Reviewer/i);
+  assert.match(policy, /Architect plans after pre-triage[^\n]+lightweight unless an architecture or compatibility trigger requires a full plan/i);
   assert.match(policy, /pre-triage never replaces final security review/i);
   for (const trigger of ["authentication", "authorization", "secrets", "cryptography", "untrusted input", "serialization", "filesystem", "process execution", "network trust", "dependency vulnerability", "CI permissions", "release credentials", "secure defaults"]) {
     assert.match(policy, new RegExp(trigger, "i"));
@@ -283,7 +295,8 @@ test("always-loaded route summary defers to the authoritative conditional stageS
   const summary = await read("../skills/micronaut-repo-operations/SKILL.md");
   assert.match(summary, /authoritative ordered `qa-intake\.stageSequence`/i);
   assert.match(summary, /issue type alone does not select the route/i);
-  assert.match(summary, /routine non-security bugs and compatible dependency upgrades skip Architect and Security/i);
+  assert.match(summary, /Architect plans every Micronaut Engineer implementation[^\n]+routine non-security bugs and compatible dependency upgrades get a lightweight plan and skip Security/i);
+  assert.doesNotMatch(summary, /skips? Architect/i);
   assert.match(summary, /defined Security triggers add pre-triage before implementation and final review after QA/i);
   assert.match(summary, /routine prose and executable docs[^\n]+Writer -> QA -> (?:Code )?Reviewer/i);
   assert.doesNotMatch(summary, /Bugs: QA intake\/reproducer → Micronaut Engineer → QA verification → Security Engineer → Code Reviewer/);
@@ -365,19 +378,23 @@ test("effective CEO self-improvement policy uses bounded routing fixtures", asyn
   assert.deepEqual(fixtures["textual-finding"], {
     deliveryOwner: "technical-writer",
     planningRequired: false,
+    planningDepth: "none",
     adapterBoundaryRequired: false,
     acceptanceEvidence: "exact stale wording and expected corrected wording",
   });
   assert.deepEqual(fixtures["executable-adapter-config-finding"], {
     deliveryOwner: "micronaut-engineer",
-    planningRequired: false,
+    planningRequired: true,
+    planningDepth: "lightweight",
     adapterBoundaryRequired: true,
     acceptanceEvidence: "observable adapter or configuration behavior plus regression assertions",
   });
+  assert.equal(fixtures["architectural-adapter-config-finding"].planningRequired, true);
+  assert.equal(fixtures["architectural-adapter-config-finding"].planningDepth, "full");
   assert.deepEqual(fixtures["architectural-adapter-config-finding"].architectureTriggers, [
     "cross-module compatibility", "materially different fixes", "migration", "compatibility matrix", "design ambiguity",
   ]);
-  assert.match(effectivePolicy, /executable (?:behavior|impact)[^\n]+adapter\/config[^\n]+(?:alone|by itself)[^\n]+(?:does not|is not)[^\n]+Architect/i);
+  assert.match(effectivePolicy, /executable (?:behavior|impact)[^\n]+adapter\/config[^\n]+(?:alone|by itself)[^\n]+(?:does not|is not)[^\n]+full[- ]plan[^\n]+Architect[^\n]+lightweight plan/i);
   assert.match(effectivePolicy, /observable before\/after behavior[^\n]+(?:regression|verification) evidence/i);
   assert.match(effectivePolicy, /textual child[^\n]+exact stale\/current wording[^\n]+expected corrected wording[^\n]+without inventing an adapter boundary/i);
   assert.match(effectivePolicy, /only executable adapter\/config findings[^\n]+(?:name|must name)[^\n]+boundary/i);
@@ -501,12 +518,12 @@ test("every active routine has a complete pinned imported invocation bundle", as
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "1e176122aae051fe6d08a56a1e6f84c966f2d1e09d31b0e15e90de296a7b8af7",
-    "monthly-security-deep-scan": "824fa60c3e35046e0f0663c7988974b0ec86ab0f3fddc8c783e0aab57b8737d3",
-    "monthly-user-guide-review": "3580012128cf501c85015d66b9ca2d48a8405b5037656be316acceec71e37580",
-    "monthly-guide-topic-discovery": "0f0b75b3180860058d5cb9067cbc1334119622f707d0d67593ae6adb6b6824e0",
-    "monthly-ceo-self-improvement": "877ff30462ad314e9d17fd19743fe364f0e20f7b99586d1f2dc8ab017d13e05a",
-    training: "2a1c8eaf92322b53128e8b74e926d8c3bc5d18122300824c18bdf7ee7fe6d771",
+    "monthly-product-discovery": "9c22acee9d10938fbdeceee4c1cd459c9e3a52e2cb9ef5d19f4f008838f213d6",
+    "monthly-security-deep-scan": "fd4a1891445b2fc7140424f592684bb0d9ed1065cd6b349e4fc4327139f7edb9",
+    "monthly-user-guide-review": "97f8aa5ad95f971695992be0bd8f9d3d55aa9dcdaaa5c3a6149978105506b9c6",
+    "monthly-guide-topic-discovery": "51aaf0397a925edce53bf3296393f982224d10c74ae22ecdb6ed69452ec1af65",
+    "monthly-ceo-self-improvement": "bc8490d67b9265bf3ba3f9d4aa634a075b631ecbc900e139567f8da8ff70145f",
+    training: "75b8add2963bbdaf8b4e3457c58ad46a1c115135c1c53d6acfc64cc99dbaae7f",
   });
 });
 
@@ -543,7 +560,7 @@ test("CEO effective bundle is governance-only", async () => {
   for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundles[0]), "877ff30462ad314e9d17fd19743fe364f0e20f7b99586d1f2dc8ab017d13e05a");
+  assert.equal(bundleDigest(bundles[0]), "bc8490d67b9265bf3ba3f9d4aa634a075b631ecbc900e139567f8da8ff70145f");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -682,7 +699,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "c62a7b0f3982c278c8e6cb924d3f015247228723b3b348c07cec10a9cec58ecb";
+  const reviewerDigest = "218b128993aa2efbb85ae059d93734cf7c18a45638eb289933caa23ccc75ecd2";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -701,7 +718,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective invocation bundle must not assign repository or PR mutation authority to a governance or gate role",
   );
-  assert.equal(bundleDigest(securityBundle), "824fa60c3e35046e0f0663c7988974b0ec86ab0f3fddc8c783e0aab57b8737d3");
+  assert.equal(bundleDigest(securityBundle), "fd4a1891445b2fc7140424f592684bb0d9ed1065cd6b349e4fc4327139f7edb9");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {

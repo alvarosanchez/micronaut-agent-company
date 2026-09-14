@@ -46,7 +46,7 @@ test("CEO Training routine runs monthly", async () => {
   assert.match(body, /since the last (?:Training )?pass/i);
   assert.match(body, /skills\.sh/i);
   assert.match(body, /linked board approval request/i);
-  assert.match(body, /approved[\s\S]{0,500}(?:Micronaut Engineer directly|QA for an explicitly triggered intake path)/i);
+  assert.match(body, /approved[\s\S]{0,500}(?:Architect for its lightweight plan|QA for an explicitly triggered intake path)/i);
   assert.match(body, /target agent|target agents/i);
 });
 
@@ -84,7 +84,8 @@ test("CEO Training discovers technology skills from execution history and delega
       `${label} should route external candidates through board approval.`,
     );
     assert.match(markdown, /lightweight/i, `${label} should name the lightweight referenced-skill path.`);
-    assert.match(markdown, /Micronaut Engineer directly|Micronaut Engineer -> QA verification|scoped Micronaut Engineer child/i, `${label} should route lightweight references directly to Engineer.`);
+    assert.match(markdown, /Architect lightweight plan -> Micronaut Engineer|Architect -> Engineer -> QA -> Code Reviewer/i, `${label} should route lightweight references through an Architect lightweight plan to Engineer.`);
+    assert.doesNotMatch(markdown, /assign Micronaut Engineer directly|no-Architect/i, `${label} must not skip Architect on the lightweight route.`);
     assert.match(markdown, /QA intake|QA-assigned/i, `${label} should retain triggered/custom intake.`);
     assert.match(markdown, /textual[\s\S]{0,260}Technical Writer[\s\S]{0,360}executable[\s\S]{0,260}Micronaut Engineer/i, `${label} should split implementation by artifact type.`);
     assert.match(markdown, /(?:status `backlog`|in `backlog`|status: backlog)[\s\S]{0,240}(?:type: improvement|issue type `type: improvement`)|(?:type: improvement|issue type `type: improvement`)[\s\S]{0,240}(?:status `backlog`|in `backlog`|status: backlog)/i);
@@ -115,12 +116,13 @@ test("lightweight Training has one board-bound route artifact consumed by every 
       usage: "referenced",
     },
     targetAgents: ["<approved-agent-slug>"],
-    planningRequired: false,
+    planningRequired: true,
+    planningDepth: "lightweight",
     securityPrecheckRequired: false,
     securityFinalReviewRequired: false,
     deliveryOwner: "micronaut-engineer",
     followThroughOwner: "micronaut-engineer",
-    stageSequence: ["micronaut-engineer", "qa-engineer", "code-reviewer"],
+    stageSequence: ["architect", "micronaut-engineer", "qa-engineer", "code-reviewer"],
     acceptanceCriteria: ["<observable approved pass condition>"],
   });
 
@@ -130,15 +132,16 @@ test("lightweight Training has one board-bound route artifact consumed by every 
     readFile(new URL("../agents/qa-engineer/AGENTS.md", import.meta.url), "utf8"),
     readFile(new URL("../agents/code-reviewer/AGENTS.md", import.meta.url), "utf8"),
   ]);
-  assert.match(ceo, /Before assignment[^.]+configure sequential Engineer -> QA -> Code Reviewer stages[^.]+`training-route` document/i);
+  assert.match(ceo, /Before assignment[^.]+configure sequential Architect -> Engineer -> QA -> Code Reviewer stages[^.]+`training-route` document/i);
   assert.match(engineer, /authoritative route artifact[^\n]+`training-route`/i);
   assert.match(engineer, /For `training-route`, verify the linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership/i);
   assert.match(qa, /`training-route`[\s\S]{0,220}lightweight/i);
   assert.match(reviewer, /`training-route`[\s\S]{0,220}lightweight/i);
-  assert.match(task, /Micronaut Engineer -> QA verification -> Code Reviewer -> Micronaut Engineer publication/i);
-  assert.match(ceo, /configure sequential Engineer -> QA -> Code Reviewer stages/i);
+  assert.match(task, /Architect lightweight plan -> Micronaut Engineer -> QA verification -> Code Reviewer -> Micronaut Engineer publication/i);
+  assert.match(ceo, /configure sequential Architect -> Engineer -> QA -> Code Reviewer stages/i);
+  assert.match(task, /sequential Architect -> Engineer -> QA -> Code Reviewer stages/i);
   assert.match(engineer, /publication mode: Code Reviewer approved the unpublished exact SHA/i);
-  assert.match(qa, /accept `training-route` only when[\s\S]{0,420}`stageSequence: \[micronaut-engineer, qa-engineer, code-reviewer\]`/i);
+  assert.match(qa, /accept `training-route` only when[\s\S]{0,420}`stageSequence: \[architect, micronaut-engineer, qa-engineer, code-reviewer\]`/i);
   assert.match(task, /publication[\s\S]{0,180}separate non-policy `TODO` handoff[\s\S]{0,180}`followThroughOwner`/i);
   assert.match(qa, /`training-route`[^\n]+Code Reviewer/i);
   assert.match(reviewer, /For `training-route`, verify its linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership/i);

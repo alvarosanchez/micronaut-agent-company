@@ -4,7 +4,7 @@ These bounded lanes remain separate from 30-day discovery. CEO records and route
 
 ## Runtime Skill Sync
 
-Inspect Paperclip-managed skills for all company agents using `/api/companies/{companyId}/agents`, `/api/companies/{companyId}/skills`, and each agent's desired-versus-configured skill state; catalog grants stay `missing` until the Skills Store entry is installed. Report source, target, present/missing/blocked, and verification. Skill sync and package reimport preserve operator selections unless an explicit replace merge mode is requested, so name the intended mode. If executable reconciliation is needed, create a scoped QA-assigned Micronaut Engineer child; CEO does not mutate runtime skill storage or adapter skill directories.
+Inspect Paperclip-managed skills for all company agents using `/api/companies/{companyId}/agents`, `/api/companies/{companyId}/skills`, and each agent's desired-versus-configured skill state; catalog grants stay `missing` until the Skills Store entry is installed. Report source, target, present/missing/blocked, and verification. Skill sync and package reimport preserve operator selections unless an explicit replace merge mode is requested, so name the intended mode. If executable reconciliation is needed, create a scoped QA-assigned Micronaut Engineer child that receives an Architect lightweight plan before Engineer implements; CEO does not mutate runtime skill storage or adapter skill directories.
 
 ## Managed Repository AGENTS.md Audit
 
