@@ -518,12 +518,12 @@ test("every active routine has a complete pinned imported invocation bundle", as
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "9c22acee9d10938fbdeceee4c1cd459c9e3a52e2cb9ef5d19f4f008838f213d6",
-    "monthly-security-deep-scan": "fd4a1891445b2fc7140424f592684bb0d9ed1065cd6b349e4fc4327139f7edb9",
-    "monthly-user-guide-review": "97f8aa5ad95f971695992be0bd8f9d3d55aa9dcdaaa5c3a6149978105506b9c6",
-    "monthly-guide-topic-discovery": "51aaf0397a925edce53bf3296393f982224d10c74ae22ecdb6ed69452ec1af65",
-    "monthly-ceo-self-improvement": "bc8490d67b9265bf3ba3f9d4aa634a075b631ecbc900e139567f8da8ff70145f",
-    training: "75b8add2963bbdaf8b4e3457c58ad46a1c115135c1c53d6acfc64cc99dbaae7f",
+    "monthly-product-discovery": "fddbdc78744cc7b52583ef034372d5e0b24ccfd6d18eeadbd4b9f21362459c10",
+    "monthly-security-deep-scan": "3c9a3f2491fb0b830974dd18ec981ed433f1d1b23f63a8c899fe1561f628c90a",
+    "monthly-user-guide-review": "e60efb306ac4fc731702e0ab4dbb61821943a07d8c58c8ee55c4e7ddfa73e41c",
+    "monthly-guide-topic-discovery": "dfd3cdd8f97141390c260cdee6acaff3a39dc65b3fc157aff27b88d3b130a1ce",
+    "monthly-ceo-self-improvement": "4e06d953ee44016da2fd828dc6bc161c19bda6d233ecd8fd8b06b2956bd02f4d",
+    training: "42b9eed7870ccf612fdf09862fbacd7193da8b845af80b4f84e44ba2a6e7269c",
   });
 });
 
@@ -560,7 +560,7 @@ test("CEO effective bundle is governance-only", async () => {
   for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundles[0]), "bc8490d67b9265bf3ba3f9d4aa634a075b631ecbc900e139567f8da8ff70145f");
+  assert.equal(bundleDigest(bundles[0]), "4e06d953ee44016da2fd828dc6bc161c19bda6d233ecd8fd8b06b2956bd02f4d");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -699,7 +699,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "218b128993aa2efbb85ae059d93734cf7c18a45638eb289933caa23ccc75ecd2";
+  const reviewerDigest = "b5cfb9af6dd25a8f5f72b46b7f62083078e0de3dbee80791005b77c3ac553516";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -718,7 +718,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective invocation bundle must not assign repository or PR mutation authority to a governance or gate role",
   );
-  assert.equal(bundleDigest(securityBundle), "fd4a1891445b2fc7140424f592684bb0d9ed1065cd6b349e4fc4327139f7edb9");
+  assert.equal(bundleDigest(securityBundle), "3c9a3f2491fb0b830974dd18ec981ed433f1d1b23f63a8c899fe1561f628c90a");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {
@@ -769,14 +769,20 @@ test("tracked policy never tells an agent to invoke another agent's heartbeat", 
 });
 
 test("PR follow-through re-enters gates by actual change effect", async () => {
-  const [control, qa, architect, company, readme] = await Promise.all([
+  const [control, qa, architect, company, readme, ceo, evolution] = await Promise.all([
     read("../skills/micronaut-repo-operations/references/workflow-control-plane.md"),
     read("../agents/qa-engineer/AGENTS.md"),
     read("../agents/architect/AGENTS.md"),
     read("../COMPANY.md"),
     read("../README.md"),
+    read("../agents/ceo/AGENTS.md"),
+    read("../skills/company-package-evolution/SKILL.md"),
   ]);
   assert.match(control, /routine source, test, dependency, or build changes go Micronaut Engineer -> QA -> Code Reviewer/i);
+  for (const [label, body] of [["control plane", control], ["README", readme], ["COMPANY", company], ["CEO", ceo], ["company-package-evolution", evolution]]) {
+    assert.match(body, /existing approved plan \(or the lightweight plan recorded in `qa-intake`\/`training-route`\)/, `${label} must document approved-plan reuse on PR re-entry`);
+    assert.match(body, /only design(?:-changing)? (?:changes|requests)[^\n]+Architect/i, `${label} must send only design changes back through Architect on re-entry`);
+  }
   assert.match(control, /routine prose or executable docs go Technical Writer -> QA -> Code Reviewer/i);
   for (const [label, summary] of [["control plane", control], ["README", readme]]) {
     assert.match(summary, /behavior-changing executable instructions[^\n]+no established (?:Security )?pre-triage trigger/i, `${label} must omit pre-triage for S6`);

@@ -133,6 +133,7 @@ test("README roster and model matrix match the package adapter matrix", async ()
   assert.match(readme, /engine: auto/);
   assert.match(readme, /dangerouslySkipPermissions: true/);
   assert.match(readme, /dangerouslyBypassApprovalsAndSandbox: true/);
+  assert.match(readme, /Code Reviewer keeps `dangerouslyBypassApprovalsAndSandbox: true`[^\n]+read-only execution environment is the preferred future hardening/);
   assert.match(
     readme,
     /Paperclip project workspaces[\s\S]{0,260}do not set `cwd`/i,
