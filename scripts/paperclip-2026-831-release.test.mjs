@@ -247,7 +247,26 @@ test("docs treat the fail-closed tool gateway as a tool-access profile prerequis
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
   for (const markdown of [readme, company]) {
-    assert.match(markdown, /bind (?:that profile )?at company scope|bound (?:it )?at company scope|profile at company scope/i, "Docs must bind the tool-access profile at company scope.");
+    assert.match(
+      markdown,
+      /(?:read-only (?:set|baseline|inspection tools)|baseline)[\s\S]{0,60}(?:at )?company scope/i,
+      "Docs must bind only the read-only baseline at company scope.",
+    );
+    assert.match(
+      markdown,
+      /least privilege/i,
+      "Docs must model the tool-access profiles as least privilege rather than one blanket company grant.",
+    );
+    assert.match(
+      markdown,
+      /(?:agent: )?Micronaut Engineer[\s\S]{0,40}Technical Writer/,
+      "Docs must bind the PR and review-thread write tools to the implementation owners only.",
+    );
+    assert.match(
+      markdown,
+      /`exclude` entry only suppresses[\s\S]{0,120}own profile/i,
+      "Docs must warn that a broad company profile cannot be narrowed with per-agent excludes.",
+    );
   }
 
   const verifyTask = await read("../tasks/verify-imported-company-instance/TASK.md");
@@ -270,6 +289,22 @@ test("docs require pauseAutomations on import and resume from the CEO bootstrap 
       `${relativePath} must make the CEO bootstrap verification issue the resume point.`,
     );
   }
+});
+
+test("docs name the import paths that do and do not set pauseAutomations", async () => {
+  const readme = await read("../README.md");
+
+  assert.match(readme, /Import page[\s\S]{0,160}(?:checkbox is on by default|checks (?:that option|it) by default|default)/i, "README must say the app Import page pauses automations by default.");
+  assert.match(
+    readme,
+    /npx paperclipai company import[\s\S]{0,240}no `--pause-automations` flag|no `--pause-automations` flag/i,
+    "README must say the CLI import command has no pause flag at the pinned Paperclip release.",
+  );
+  assert.match(
+    readme,
+    /setup-local-paperclip-instance\.mjs[\s\S]{0,120}verify-paperclip-import\.mjs[\s\S]{0,240}(?:deliberately|intentionally)/i,
+    "README must document the local helper scripts as intentional exceptions to the pause default.",
+  );
 });
 
 test("docs treat the execution-policy review-rounds cap as expected escalation", async () => {
