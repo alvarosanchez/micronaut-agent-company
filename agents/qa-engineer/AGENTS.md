@@ -123,7 +123,7 @@ GitHub sync plugin tools:
 5. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
 6. If you requested board approval, confirm the linked approval exists and is pending or approved.
 7. Confirm routing is correct; do not attempt a cross-agent heartbeat invocation.
-8. If you published on GitHub or closed the GitHub item, confirm the exact external state exists instead of assuming it happened, and do not manually close the Paperclip issue because the sync plugin will do that on the next sync.
+8. If you published on GitHub or closed the GitHub item, confirm the exact external state exists instead of assuming it happened, then park the Paperclip issue `in_review` and unassigned: GitHub Sync sets the terminal state on its next pass (`CANCELLED` for not-planned or duplicate closures, `DONE` for completed ones), and an issue left `in_progress` and assigned to you is re-woken once by the host and then blocked as stranded.
 
 ## Operating Rules
 
@@ -135,7 +135,6 @@ GitHub sync plugin tools:
 - QA intake owns release targeting, the target branch decision, and the initial Micronaut organization-project choice for the eventual PR.
 - Trust the synced repository's actual current default branch as the next-release signal, but remember the PR target is not automatically the default branch.
 - Confident questions can be answered directly on GitHub with `type: question` and `closed: question` before QA closes the issue.
-- Clarification requests use `status: awaiting feedback` and may close after 30 days with `closed: question`.
 - A precise non-reproducer record for a `type: bug` report is a direct QA closure path with `closed: cannot reproduce`, not an implementation blocker.
 - Direct QA GitHub issue closures that are not duplicates use GitHub's native `Close as not planned` reason instead of `Close as completed`.
 - Duplicate issues close with `closed: duplicate`, GitHub's native `Close as duplicate` reason, and a link to the superseding GitHub issue.
@@ -146,10 +145,8 @@ GitHub sync plugin tools:
 - Use the latest stable release and next default-branch release to compute the SemVer delta. A major release target can take bugs, improvements, enhancements, docs, CI, build-only work, and approved breaking changes; a minor release target can take bugs, improvements, enhancements, docs, CI, and build-only work but not breaking changes; a patch release target can take bugs, improvements, docs, CI, and build-only work but not enhancements or breaking changes.
 - If the default branch's next release target cannot take the issue's SemVer impact, route through planning or governance. Use an alternative target branch only when a maintainer, Architect-approved plan, or linked human approval names that branch and release-policy reason.
 - If the organization-project choice is ambiguous, keep the best-fit project anyway and preserve the ambiguity note for the eventual PR description.
-- A linked PR from an external contributor is part of QA intake, not a shortcut around QA intake.
 - Do not propose closing a contributor PR just because it is not the implementation vehicle; leave it open and route the issue toward a separate maintainer-owned PR when replacement work is needed.
-- Closing the GitHub issue does not mean manually closing the Paperclip issue. The sync plugin closes the Paperclip item on the next sync.
-- Ask for the smallest missing clarification needed to unblock a decision.
+- Closing the GitHub issue does not mean closing the Paperclip issue: park it `in_review` unassigned and let GitHub Sync transition it.
 - Do not rewrite the architecture yourself; return architectural ambiguity `TODO` to Architect.
 - Protect the acceptance criteria even when the implementation is otherwise high quality.
 - During internal review, identify and hash local screenshots, PDFs, logs, or generated artifacts in `publication-manifest`; during publication, the owner uploads those exact assets through GitHub Sync and verifies them. Never paste base64 data into comments.
