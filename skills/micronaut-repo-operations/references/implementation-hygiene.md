@@ -11,10 +11,11 @@ Load before editing, building, or committing in a managed repository worktree. T
 
 ## Branch sync (before the first edit or commit)
 
-1. `git fetch origin --quiet`.
-2. If `git log origin/<target>..HEAD` is empty, the worktree has no own commits: `git reset --hard origin/<target>`. Paperclip cuts worktrees from the repository default branch, so a plan that targets another release line (for example `5.1.x` while the worktree came from `5.0.x`) always lands here; a rebase would replay the whole default-branch history and conflict.
-3. Only when own commits exist, `git rebase origin/<target>`; a conflict is a recorded blocker, never a conflicting PR.
-4. Record which of the two you did in the implementation artifact.
+1. `git fetch origin --quiet`, then `git status --short`: it must be empty. A dirty worktree (uncommitted edits from an interrupted run or an operator) is a recorded blocker naming the files; never reset or rebase over it.
+2. Determine whether you have own commits with `git log origin/HEAD..HEAD` (commits that are not on the branch Paperclip cut the worktree from). Do not use `origin/<target>..HEAD` for this: when the target is another release line it counts the inherited default-branch history as "own" commits.
+3. No own commits: `git reset --hard origin/<target>`. Paperclip cuts worktrees from the repository default branch, so a plan that targets another release line (for example `5.1.x` while the worktree came from `5.0.x`) lands here; a rebase would replay the whole default-branch history and conflict.
+4. Own commits exist: `git rebase origin/<target>`; a conflict is a recorded blocker, never a conflicting PR.
+5. Record which path you took, and the SHAs before and after, in the implementation artifact.
 
 ## Build and test
 

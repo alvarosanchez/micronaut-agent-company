@@ -180,7 +180,9 @@ async function main() {
     mkdirSync(dir, { recursive: true });
     const written = [];
     const missing = [];
+    const safeKey = /^[A-Za-z0-9_.:-]+$/;
     for (const key of wanted) {
+      if (!safeKey.test(key) || key === "." || key === "..") throw new Error(`Refusing to write document key "${key}": keys may only contain letters, digits, "_", ".", ":" and "-".`);
       const doc = await request(client, `/api/issues/${encodeURIComponent(issueId)}/documents/${encodeURIComponent(key)}`, { allow404: true });
       if (!doc) { missing.push(key); continue; }
       const body = doc.body ?? doc.latestBody ?? "";

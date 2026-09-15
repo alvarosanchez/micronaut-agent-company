@@ -120,6 +120,11 @@ test("docs writes each issue document to a file by key and reports missing keys"
     assert.equal(missing.status, 2);
     assert.deepEqual(JSON.parse(missing.stdout).missing, ["missing"]);
     assert.ok(f.requests.every((r) => r.method === "GET"), "docs must be read-only");
+    const before = f.requests.length;
+    const traversal = await run(["docs", "--issue", ISSUE_ID, "--dir", dir, "--document", "../escape"], f.baseUrl);
+    assert.equal(traversal.status, 1);
+    assert.match(traversal.stdout + traversal.stderr, /Refusing to write document key/);
+    assert.equal(f.requests.length, before + 1, "traversal keys are rejected before any document request");
   } finally { await f.close(); await rm(dir, { recursive: true, force: true }); }
 });
 

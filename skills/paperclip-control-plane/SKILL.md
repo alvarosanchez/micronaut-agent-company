@@ -38,10 +38,10 @@ Commands:
 
 Run environment you already have (no `env` dump is needed, and never paste the key into a command): `PAPERCLIP_API_URL`, `PAPERCLIP_API_KEY` (reference it as `$PAPERCLIP_API_KEY`), `PAPERCLIP_AGENT_ID`, `PAPERCLIP_RUN_ID`, `PAPERCLIP_COMPANY_ID`, `PAPERCLIP_PROJECT_ID`, `PAPERCLIP_TASK_ID` (the current issue id), `PAPERCLIP_RUN_SCRATCH_DIR` (per-run scratch, deleted after the run; draft artifacts here, never inside the repository worktree), and `PAPERCLIP_WORKSPACE_CWD` (the worktree). File tools cannot expand variables: `echo "$PAPERCLIP_RUN_SCRATCH_DIR"` once and use the literal path.
 
-Write endpoints this package's roles use (authority still comes from the role and stage, not from this list; always print the HTTP status and body of every write):
+Write endpoints this package's roles use (authority still comes from the role and stage, not from this list; send `X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID` on every write so the change is attributed to your run, and always print the HTTP status and body):
 
-- durable artifact: `PUT /api/issues/{id}/documents/{key}` with `{"title": "...", "format": "markdown", "body": "...", "changeSummary": "..."}`; an existing key additionally requires `"baseRevisionId"` (the latest revision id from `docs`/`snapshot`), and a locked key returns `409`, which means stop and record, not retry.
-- stage decision: `PATCH /api/issues/{id}` with `{"status": "done", "comment": "<decision>"}` approves your active execution-policy stage in one call; a non-`done` status (`in_progress`) with the same `comment` field requests changes. The path parameter is `{id}` (`/api/issues/{id}`), not `{issueId}`.
+- durable artifact: `PUT /api/issues/{id}/documents/{key}` with `{"title": "...", "format": "markdown", "body": "...", "changeSummary": "..."}`; an existing key additionally requires `"baseRevisionId"` (the latest revision id from `docs`/`snapshot`). On this raw endpoint a stale `baseRevisionId` or a locked key returns `409`; a native document tool may instead redirect the write to a new key (see below). Either way stop and record the outcome; do not retry or accept a remapped key.
+- stage decision: `PATCH /api/issues/{id}` (with the run-id header) and `{"status": "done", "comment": "<decision>"}` approves your active execution-policy stage in one call; a non-`done` status (`in_progress`) with the same `comment` field requests changes. The path parameter is `{id}` (`/api/issues/{id}`), not `{issueId}`.
 - plain progress comment: `POST /api/issues/{id}/comments` with `{"body": "..."}`.
 - plugin tools: `plugin-tool.mjs` above.
 

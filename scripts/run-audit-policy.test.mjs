@@ -12,7 +12,9 @@ test("control-plane skill documents the docs command, the run environment, and t
   assert.match(skill, /addressed by `key`[\s\S]{0,120}never by document id/);
   assert.match(skill, /never paste the key into a command/);
   assert.match(skill, /PUT \/api\/issues\/\{id\}\/documents\/\{key\}[\s\S]{0,400}baseRevisionId/);
-  assert.match(skill, /PATCH \/api\/issues\/\{id\}[\s\S]{0,80}"status": "done", "comment"/);
+  assert.match(skill, /X-Paperclip-Run-Id: \$PAPERCLIP_RUN_ID/);
+  assert.match(skill, /PATCH \/api\/issues\/\{id\}[\s\S]{0,120}"status": "done", "comment"/);
+  assert.match(skill, /native document tool may instead redirect the write to a new key/);
   assert.match(skill, /POST \/api\/issues\/\{id\}\/comments/);
   assert.match(skill, /draft artifacts here, never inside the repository worktree/i);
 });
@@ -21,7 +23,9 @@ test("implementation hygiene reference covers branch sync, build flags, commit h
   const hygiene = await read("../skills/micronaut-repo-operations/references/implementation-hygiene.md");
   const router = await read("../skills/micronaut-repo-operations/SKILL.md");
   assert.match(router, /references\/implementation-hygiene\.md/);
-  assert.match(hygiene, /git log origin\/<target>\.\.HEAD[\s\S]{0,120}git reset --hard origin\/<target>/);
+  assert.match(hygiene, /`git status --short`: it must be empty[\s\S]{0,200}never reset or rebase over it/);
+  assert.match(hygiene, /git log origin\/HEAD\.\.HEAD[\s\S]{0,600}git reset --hard origin\/<target>/);
+  assert.doesNotMatch(hygiene, /If `git log origin\/<target>\.\.HEAD` is empty/);
   assert.match(hygiene, /never `-o`/);
   assert.match(hygiene, /-Dsurefire\.failIfNoSpecifiedTests=false/);
   assert.match(hygiene, /never `git add -A` or `git add \.`/);
@@ -35,8 +39,8 @@ test("implementation hygiene reference covers branch sync, build flags, commit h
 test("engineer and delivery guidance prefer reset over rebase when the worktree has no own commits", async () => {
   const engineer = await read("../agents/micronaut-engineer/AGENTS.md");
   const delivery = await read("../skills/micronaut-repo-operations/references/pr-delivery-evidence.md");
-  assert.match(engineer, /with no own commits `git reset --hard origin\/<target>`, otherwise rebase/);
-  assert.match(delivery, /with no own commits `git reset --hard origin\/<target>`[\s\S]{0,200}otherwise rebase/);
+  assert.match(engineer, /From a clean `git status`[\s\S]{0,160}git log origin\/HEAD\.\.HEAD[\s\S]{0,80}git reset --hard origin\/<target>/);
+  assert.match(delivery, /only from a clean `git status --short`[\s\S]{0,300}git log origin\/HEAD\.\.HEAD[\s\S]{0,60}git reset --hard origin\/<target>/);
 });
 
 test("shared GitHub skill forbids direct api.github.com calls and names the default-branch recipe", async () => {
