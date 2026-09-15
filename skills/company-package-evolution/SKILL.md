@@ -32,6 +32,22 @@ architectural-adapter-config-finding:
   acceptanceEvidence: observable adapter or configuration behavior plus regression assertions
 ```
 
+## Route By The Nature Of The Rule
+
+Before choosing an owner, decide what kind of change the evidence supports; the surface decides the owner, not the other way round:
+
+- an agent-specific rule that is narrow and cheap to state (one sentence, one trigger) goes into that role's `AGENTS.md`;
+- a generalizable, multi-step procedure with its own when-to-use logic goes into a reusable skill (company-owned here, or a pinned referenced skill through the Training route), never into a role file;
+- when both apply, update or create the skill and add a one-line pointer in the role file so the agent knows when to reach for it;
+- a plugin tool description changes only when the failure was the agent not knowing when to use that tool, and the fix fits in the description; that is an upstream plugin change, not package prose;
+- an existing-but-unfollowed rule (`instruction-miss` in the evidence taxonomy) becomes a make-it-stick change: move it into the always-loaded entrypoint, add a negative example, or strengthen the trigger, instead of restating it.
+
+Sanity-check reuse honestly: a rule that applies to every delivery role belongs in a shared skill, and a "reusable skill" that only fits one role belongs in that role's file.
+
+Every proposal is bounded: a role `AGENTS.md` may grow by at most 20% per proposal and never past the package-wide agent instruction budget (`scripts/agent-efficiency.test.mjs`, currently 125,000 bytes across all role files, with almost no headroom), so a proposal that adds text names what it trims; a skill stays at or under 15 KB; a larger idea is split into several proposals rather than one rewrite.
+
+Every proposal is replay-gated: name three to five past issues from the evidence window that the new rule must still resolve, walk each one, and drop or reword any rule that would have blocked a past success without a clear reason. Record the walk as "expected still-passes" in the candidate.
+
 ## Choose The Right Surface
 
 Pick the smallest surface that solves the problem:
@@ -101,6 +117,8 @@ If you do not have a working copy of the package repo or cannot send a PR from t
 - use additive extension instructions or `.company-runtime/` overlays only for the local guidance that cannot wait for a published package update
 
 ## Reporting
+
+Every accepted candidate records: the one-sentence quotable pattern, the root-cause hypothesis, the evidence tuples (issue, comment or run, verbatim fragment), the target surface (role file, skill, both, tool description, managed repository, upstream, or local overlay), the minimal inline diff or exact wording change rather than prose about it, the expected still-passes replay set, and one or two sentences on why this change and not something bigger.
 
 When you propose or send a package-core change, explain:
 

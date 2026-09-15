@@ -19,7 +19,7 @@ The collector analyzes every issue and canonical agent over `[asOf-30d,asOf)` us
 
 - On `blocked_incomplete_evidence`, fail closed: create no discovery proposal, approval, PR, or interaction. Report the missing resources/pages.
 - On `no_change`, record a verified no-op. Complete evidence with no eligible candidate is successful completion.
-- On `ranked_candidates`, inspect only the cited evidence for up to three candidates. Require the named threshold, affected issues/events, owner and target surface, exact proposed change, measurable acceptance criterion, deduplication result, governance path, and compatibility/safety risk.
+- On `ranked_candidates`, inspect only the cited evidence for up to three candidates and name each candidate's behavioural cluster from the `ceo-issue-history` taxonomy (`verifier-miss`, `avoidable-rework`, `stale-context`, `instruction-miss`, `late-escalation`, `human-correction`, `tool-misuse`, `scope-creep`) with at least two evidence tuples. Require the named threshold, affected issues/events, the cluster and a one-sentence quotable pattern, a root-cause hypothesis, owner and target surface chosen by the nature of the rule (role file, skill, both, tool description, managed repository, upstream, or local overlay), the exact proposed change as a minimal inline diff or wording, the expected still-passes replay set of three to five past issues, measurable acceptance criterion, deduplication result (a pattern despite an existing rule is a make-it-stick proposal, not a restatement), governance path, size impact within the per-proposal and package-wide instruction caps, and compatibility/safety risk, plus why this change and not something bigger.
 
 The thresholds are two issues plus three events, a concentrated loop of three bad events across two runs, or a concrete critical one-off control failure. Do not promote generic dissatisfaction, duplicate events, ordinary isolated mistakes, or already-decided fingerprints.
 
@@ -42,7 +42,7 @@ These lanes preserve their prior capability but do not affect candidate ranking.
 Store one compact Paperclip report under the stable `ceo` document key. Include:
 
 - `asOf`, exact window, coverage outcome, missing-resource ledger, and evidence JSON fingerprint/version;
-- ranked or rejected candidate counts and issue-level references; for each accepted candidate, threshold, stable fingerprint, exact action, state, owner, target, acceptance criterion, and risk;
+- ranked or rejected candidate counts and issue-level references; for each accepted candidate, threshold, stable fingerprint, cluster and quotable pattern, root-cause hypothesis, exact action (minimal diff), expected still-passes replay set, state, owner, target surface, acceptance criterion, size impact, and risk;
 - direct handoff/productivity-review corrections and any interaction kind/idempotency key;
 - a **Runtime Skill Sync** section with checked source/target and present, missing, no-op, or blocked verification;
 - a **Managed Repository AGENTS.md Audit** section with root-file classification and no-action or scoped Writer-child outcome per repository;

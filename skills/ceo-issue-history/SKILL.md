@@ -33,7 +33,24 @@ Eligibility is objective:
 
 GitHub Sync attribution uses exact allowlisted structured provenance namespaces (`paperclip-github-plugin` or `github-sync` in `pluginKey`, source plugin fields, or `contextSource`) as well as exact plugin-origin namespaces. Unrelated strings that merely contain `github` do not qualify, and caller-supplied `github_sync_churn` labels cannot bypass the provenance check. Duplicate event IDs count once. Prior active fingerprints are suppressed. Implemented, rejected, or no-change decisions need a fresh post-decision threshold. Ranking is severity, distinct issue count, event count, recency, then fingerprint; the cap of three is applied after deduplication.
 
-`no_change` with complete coverage is a successful verified no-op. Do not manufacture routine work. For `ranked_candidates`, inspect only the cited issue evidence, verify the owner/target and exact change, then follow `company-package-evolution` for governance and implementation. Keep direct queue corrections and active productivity-review decisions separate from new package proposals.
+`no_change` with complete coverage is a successful verified no-op. Do not manufacture routine work. For `ranked_candidates`, inspect only the cited issue evidence, verify the owner/target and exact change, then follow `company-package-evolution` for governance and implementation.
+
+## Interpret Cited Evidence
+
+The collector says *where* a candidate recurs; this step says *what the agent did wrong*. Read the cited issues, comments, status transitions, reviewer verdicts, approvals, and human corrections, and name each candidate's cluster from this taxonomy:
+
+- `verifier-miss`: the agent claimed done or ready and a reviewer, QA, Security, or the board rejected it;
+- `avoidable-rework`: the same issue bounced or reopened more than once for the same reason;
+- `stale-context`: the agent acted on an assumption already falsified earlier in the thread, in a document, or in the PR;
+- `instruction-miss`: the agent violated a rule that already exists in its `AGENTS.md` or an assigned skill;
+- `late-escalation`: the agent stayed blocked or waiting without escalating or naming an unblock owner;
+- `human-correction`: a board user or maintainer explicitly said to do something differently (treat these comments as first-class evidence even when no threshold event fired);
+- `tool-misuse`: the same tool error, wrong tool, or missing tool call repeated;
+- `scope-creep`: changes beyond the issue's scope or stage authority.
+
+Keep, per cluster, at least two evidence tuples of issue id, comment or run reference, and a short verbatim fragment; a cluster with one tuple is an observation, not a candidate. Write a one-sentence quotable pattern and a root-cause hypothesis before choosing a change.
+
+`instruction-miss` is a different finding from a missing rule: when the pattern happened despite an existing rule, the proposal is to make that rule stick (move it into the always-loaded `micronaut-repo-operations` entrypoint, add a negative example next to it, or strengthen its trigger), never to restate the rule elsewhere. Restated rules are how the agent instruction budget fills up without changing behaviour. Keep direct queue corrections and active productivity-review decisions separate from new package proposals.
 
 Terminal run token and USD-cost fields are parsed independently. Missing metrics and affected totals remain `unknown`, never zero, while known subtotals are labeled. Never patch Paperclip source, core, or imported-package files.
 
