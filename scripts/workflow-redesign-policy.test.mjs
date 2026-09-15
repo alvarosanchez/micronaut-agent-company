@@ -181,7 +181,7 @@ test("QA intake schema makes planningRequired authoritative with an explicit ord
 
 test("Architect accepts every authoritative planning route regardless of issue type", async () => {
   const architect = await read("../agents/architect/AGENTS.md");
-  assert.match(architect, /`qa-intake`[^\n]+`planningRequired: true`[^\n]+current participant[^\n]+`stageSequence`/i);
+  assert.match(architect, /`qa-intake`[^\n]+`planningRequired: true`[^\n]+next handoff owner[^\n]+`stageSequence`/i);
   assert.match(architect, /Issue type is only a surface label[^\n]+must not override QA's route/i);
   assert.doesNotMatch(architect, /Confirm the issue type is one of/i);
   assert.doesNotMatch(architect, /delivery `type:` gate/i);
@@ -518,12 +518,12 @@ test("every active routine has a complete pinned imported invocation bundle", as
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "b0143cf4a30272a9f2daa56983d42542822d68166d719aac4388bc4558e45bd3",
-    "monthly-security-deep-scan": "749493b05a5b4ba1afe24b3d82999af0806076bf7087c45acbdb867ffbfef2b7",
-    "monthly-user-guide-review": "380d82bacbcdca22d5e4f3c103e395c47c1a4f10d4be7c8de18c4d877adf0a3c",
-    "monthly-guide-topic-discovery": "6b6b4054768ca3caeda4a881c59a4cdd23db3b81f51fe61830aa60b5bb141c24",
-    "monthly-ceo-self-improvement": "f02ba894617b46c5fab1a14c695a19f07631ed9023de44c762e39911a56c59b4",
-    training: "68616b50194021440ae1941b7c8861805772fbf7292fbf9c5c3cbafa659ffe0f",
+    "monthly-product-discovery": "a9d6028499a47e9ed1afbd1f764ef852f6b676065ee95c01ba212590e32ca632",
+    "monthly-security-deep-scan": "41bf9f3d0b3b0bff9b3d157cc8c2526a71996aad5ad987fc2798615870f3ebfd",
+    "monthly-user-guide-review": "3ba20e8ac6dcaff6db119cdc6d869ba450d29ae7f1bb49d8631a19c07d9ba1e8",
+    "monthly-guide-topic-discovery": "415c0dc0f5ff94e8379cdff930641eee879c22cd5df08e3a27933c56e1309bf0",
+    "monthly-ceo-self-improvement": "784fc7558769dd6d3e84870bafd8a4ef759ef22b0e15721967a3c79a357b070f",
+    training: "bdc9d69930e508c534e782488a0d2150cda68950072f4ca1df07d26337d97f41",
   });
 });
 
@@ -560,7 +560,7 @@ test("CEO effective bundle is governance-only", async () => {
   for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundles[0]), "f02ba894617b46c5fab1a14c695a19f07631ed9023de44c762e39911a56c59b4");
+  assert.equal(bundleDigest(bundles[0]), "784fc7558769dd6d3e84870bafd8a4ef759ef22b0e15721967a3c79a357b070f");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -699,7 +699,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "9411a60b59f215ca9125373bbe6c0d18f0588a082ff83339339c674b1e86c992";
+  const reviewerDigest = "b27d73e2545c5cc106b5f69f3aed775eec355113a88c986690c57d300daf4eb4";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -718,7 +718,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective invocation bundle must not assign repository or PR mutation authority to a governance or gate role",
   );
-  assert.equal(bundleDigest(securityBundle), "749493b05a5b4ba1afe24b3d82999af0806076bf7087c45acbdb867ffbfef2b7");
+  assert.equal(bundleDigest(securityBundle), "41bf9f3d0b3b0bff9b3d157cc8c2526a71996aad5ad987fc2798615870f3ebfd");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {

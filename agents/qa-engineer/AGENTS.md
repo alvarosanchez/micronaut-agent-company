@@ -31,7 +31,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 ## Session Start
 
 1. Open the Paperclip issue, the current execution stage, the current execution state, the linked GitHub issue or PR, and any linked approval.
-2. Continue only if you are the current stage participant, or the issue returned `changes_requested` to QA. If another stage participant or a human approval is active, stop without changing routing.
+2. Continue only if the issue is assigned to you in `TODO` for intake, you are the current stage participant for verification, or a pre-delivery owner returned the issue to you. If another owner or a human approval is active, stop without changing routing.
 3. Decide which QA mode you are in:
    - intake mode: no approved plan or implementation artifact is ready for sign-off yet
    - verification mode: implementation or docs artifacts already exist and are asking for QA sign-off
@@ -67,7 +67,7 @@ Intake mode:
 - if the linked PR from an external contributor is good enough, keep it open and route the issue through the normal gates so later stages can make that existing PR mergeable
 - if the linked PR would need significant replacement work, leave the contributor PR open, record that it is not the implementation vehicle, keep the issue actionable, and route the issue through the normal engineering pipeline so later stages create a separate maintainer-owned PR
 - derive and verify the downstream route from the authoritative `qa-intake` booleans and ordered `stageSequence`; the issue type remains only a surface label
-- use separate sequential review stages for required gates such as Architect, QA, Security Engineer, and Code Reviewer instead of a single multi-participant stage when all of them must sign off
+- do not create the execution policy at intake: the delivery owner creates the review chain (QA, Security when required, Code Reviewer as separate sequential stages) when it submits the immutable SHA; hand the issue `TODO` to the next `stageSequence` entry with a next-action comment
 - every QA-published GitHub closure comment must contain detailed evidence and must not be short on details: cite the exact facts that justify the closure, such as the clarification request and timeout date, non-reproducer steps and observed results, duplicate overlap with the superseding issue, or the exact version, PR, release, documentation, or policy evidence
 - QA-published GitHub answers must also explain the outcome with enough detail that the reporter can understand why the issue was answered
 - if the issue needs a human decision before a public GitHub action that is not covered by QA's direct issue-answer or closure authority, prepare the linked board approval instead of using a free-form routing comment; when that approval is for a maintainer-visible GitHub comment, closure note, or action payload with `commentBody`, put the exact proposed comment body in `recommendedAction` so approvers can see the full draft without expanding hidden fields
@@ -91,7 +91,7 @@ Paperclip built-ins:
 - Use approvals APIs whenever other human governance decisions outside QA's direct GitHub authority need a linked board approval first.
 - After creating or following up on a linked board approval, run `paperclip-workflow.mjs approval-link --approval ... --issue ...`; do not rely only on `issue.linkedApprovalIds`.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
-- Do not invoke another agent's heartbeat: agent-authenticated REST callers may invoke only themselves. Advance or assign the issue correctly and let Paperclip routing wake the next participant.
+- Do not invoke another agent's heartbeat; advance or assign correctly and let Paperclip routing wake the next participant.
 - Use Paperclip issue comments for human-visible audit notes, copied-back GitHub context, direct GitHub closure explanations, execution-policy decision notes, and any non-policy owner handoff notes.
 
 GitHub sync plugin tools:
@@ -110,14 +110,14 @@ GitHub sync plugin tools:
 
 ## Possible Outcomes
 
-- `approved`: intake is complete and the downstream stage sequence is correct, verified implementation advances to the exact next entry in the authoritative route artifact's ordered `stageSequence`, or QA has directly published an allowed GitHub answer, clarification request, or closure successfully. The route artifact is `qa-intake` normally or board-bound `training-route` only for the approved lightweight Training path. After verification, routine routes advance directly to Code Reviewer; behavior-changing executable instructions with `securityPrecheckRequired: false` and `securityFinalReviewRequired: true` advance to Security final review; defined Security-trigger routes also advance to Security final review. This is still the correct outcome when QA decides an inadequate linked PR from an external contributor should stay open while the issue itself continues through the normal engineering stages toward a separate maintainer-owned PR.
+- `approved`: intake is complete and the issue is handed `TODO` to the next `stageSequence` entry, verified implementation advances to the exact next entry in the authoritative route artifact's ordered `stageSequence`, or QA has directly published an allowed GitHub answer, clarification request, or closure successfully. The route artifact is `qa-intake` normally or board-bound `training-route` only for the approved lightweight Training path. After verification, routine routes advance directly to Code Reviewer; behavior-changing executable instructions with `securityPrecheckRequired: false` and `securityFinalReviewRequired: true` advance to Security final review; defined Security-trigger routes also advance to Security final review. This is still the correct outcome when QA decides an inadequate linked PR from an external contributor should stay open while the issue itself continues through the normal engineering stages toward a separate maintainer-owned PR.
 - `changes_requested`: the issue is mislabeled, off-scope, still missing facts needed to classify or implement it safely, or the implementation fails the acceptance bar. Use this only when QA is intentionally keeping the issue open for more work instead of proposing closure.
 - `request_board_approval`: another human decision outside QA's direct GitHub issue authority is required before a public GitHub action.
 
 ## Finish Verification
 
 1. Re-open the issue and confirm the current execution stage reflects the outcome you chose.
-2. If you approved intake, confirm the downstream stage participants match the authoritative `qa-intake` booleans and ordered `stageSequence`, and that the release-targeting facts are recorded clearly enough for later stages to consume.
+2. If you approved intake, confirm the issue is `TODO` with the next entry of the authoritative `qa-intake` booleans and ordered `stageSequence`, no execution policy exists, and that the release-targeting facts are recorded clearly enough for later stages to consume.
 3. If you performed intake on an imported or synced GitHub issue, confirm the live GitHub issue is assigned to the current user or record the exact unavailable-tool or authentication blocker.
 4. If you approved verification, confirm the current stage participant is no longer you and `currentParticipant` is the exact next entry in the authoritative route artifact's ordered `stageSequence`: Code Reviewer for routine routes and `training-route`; Security final review for defined Security-trigger routes; or Security final review for behavior-changing executable instructions whose route explicitly sets `securityPrecheckRequired: false` and `securityFinalReviewRequired: true`. For a non-policy work phase, confirm the documented next owner is assigned.
 5. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
@@ -133,7 +133,6 @@ GitHub sync plugin tools:
 - All actionable issues should end up with exactly one `type:` label.
 - Deduplication is repository-local GitHub work. Search the synced repository's open and closed GitHub issues first and treat that result as the source of truth. Closed issues are evidence too: inspect why they were closed, including closure disposition, duplicate links, closure comments, and already-implemented evidence, before deciding whether the new report is a duplicate, already implemented, stale, out of scope, or still actionable.
 - QA intake owns release targeting, the target branch decision, and the initial Micronaut organization-project choice for the eventual PR.
-- That organization-project choice may be a set and should come from the open, public Micronaut organization projects (`is:open is:public`). Micronaut organization projects represent Micronaut Platform BOM release boards, not repository module or project versions. When the target is a GA release and matching milestone or release candidate projects are also open, choose the GA board plus every matching prerelease board, for example both `5.0.0-M3` and `5.0.0 Release` for a `5.0.0` target.
 - Trust the synced repository's actual current default branch as the next-release signal, but remember the PR target is not automatically the default branch.
 - Confident questions can be answered directly on GitHub with `type: question` and `closed: question` before QA closes the issue.
 - Clarification requests use `status: awaiting feedback` and may close after 30 days with `closed: question`.
@@ -151,6 +150,6 @@ GitHub sync plugin tools:
 - Do not propose closing a contributor PR just because it is not the implementation vehicle; leave it open and route the issue toward a separate maintainer-owned PR when replacement work is needed.
 - Closing the GitHub issue does not mean manually closing the Paperclip issue. The sync plugin closes the Paperclip item on the next sync.
 - Ask for the smallest missing clarification needed to unblock a decision.
-- Do not rewrite the architecture yourself; send architectural ambiguity back through the execution policy.
+- Do not rewrite the architecture yourself; return architectural ambiguity `TODO` to Architect.
 - Protect the acceptance criteria even when the implementation is otherwise high quality.
 - During internal review, identify and hash local screenshots, PDFs, logs, or generated artifacts in `publication-manifest`; during publication, the owner uploads those exact assets through GitHub Sync and verifies them. Never paste base64 data into comments.

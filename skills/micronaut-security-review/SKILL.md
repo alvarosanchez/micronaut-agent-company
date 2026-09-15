@@ -12,7 +12,7 @@ Use this skill whenever work changes executable code, dependencies, build logic,
 Before you review:
 
 1. Open the Paperclip issue, current execution stage, latest linked GitHub context, and any prior QA or Architect artifact.
-2. Continue only if you are the current stage participant for security review, the issue returned `changes_requested` to security review, or the monthly-security-deep-scan routine invoked you.
+2. Continue only if the issue is assigned to you in `TODO` for pre-triage, you are the current stage participant for final security review, the issue returned `changes_requested` to final security review, or the monthly-security-deep-scan routine invoked you.
 3. If another stage participant or a human approval is active, stop and leave routing unchanged.
 4. Read `executionState.returnAssignee` before you decide whether a finding should return to the executor as `changes_requested`.
 5. Decide whether you are in issue-review mode or monthly-security-deep-scan mode before you inspect anything.
@@ -36,8 +36,8 @@ Before you review:
 
 ## Possible Outcomes
 
-- `approved`: pre-triage advances exactly to the next entry in the authoritative ordered `qa-intake.stageSequence`; final Security review advances to Code Reviewer. The stage artifact explains why the work is safe enough to proceed.
-- `changes_requested`: the stage artifact identifies a concrete vulnerability, insecure default, leaked secret, excessive permission, or other plausible exploit path that must be fixed before the work can advance.
+- `approved`: pre-triage hands the issue `TODO` exactly to the next entry in the authoritative ordered `qa-intake.stageSequence` with a next-action comment; final Security review approves the execution-policy stage and advances to Code Reviewer. The stage artifact explains why the work is safe enough to proceed.
+- `changes_requested`: the stage artifact identifies a concrete vulnerability, insecure default, leaked secret, excessive permission, or other plausible exploit path that must be fixed before the work can advance. Pre-triage returns `TODO` to QA naming the gap; final review uses `status: in_progress` so the host routes to `executionState.returnAssignee`.
 
 ## Role Boundary
 
@@ -50,8 +50,8 @@ Before you review:
 Before you stop:
 
 1. Re-open the issue and confirm the current execution state matches your chosen outcome.
-2. If you approved the stage, confirm the current stage participant is no longer you.
-3. If another execution-policy stage remains, confirm the issue is still in `in_review` and the next `currentParticipant` is correct.
+2. After pre-triage, confirm the issue is `TODO`, assigned to the next `stageSequence` entry, with no execution policy.
+3. If you approved the final review stage, confirm the current stage participant is no longer you, the issue is still in `in_review`, and the next `currentParticipant` is Code Reviewer.
 4. If you requested changes, confirm the issue execution state shows `changes_requested` and your artifact names the exact remediation or compensating control.
 5. Confirm routing is correct; do not attempt a cross-agent heartbeat invocation.
 6. Inspect relevant GitHub review threads, but do not mutate them. Record any required reply or resolution for `followThroughOwner`, then confirm that owner performs the thread mutation before you approve.

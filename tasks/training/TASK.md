@@ -37,7 +37,7 @@ For every skill candidate, create one linked board approval request before chang
 - explain why an external referenced skill is better than prose in an existing company instruction
 - state the exact implementation path after approval. A pinned referenced skill with no package-owned executable content and no security, authority, provenance, or integration trigger uses `Architect lightweight plan -> Micronaut Engineer -> QA verification -> Code Reviewer -> Micronaut Engineer publication`; the final Engineer action may publish only the exact SHA approved by Reviewer. Any named trigger routes to QA intake instead, where QA selects the implementation owner, the plan depth, and any Security gates.
 
-If the board approval is already approved during this run, create the correctly routed child. For the routine lightweight path, CEO must create the child with sequential Architect -> Engineer -> QA -> Code Reviewer stages, write a board-bound `training-route` document before assignment, verify the approval link, then assign the child to Architect for its lightweight plan; Architect hands the planned child to Micronaut Engineer through the normal planning-to-implementation `TODO` handoff. The document is the authoritative route artifact and must exactly follow this schema; the implementation and review roles may not edit it, and any mismatch returns to CEO governance.
+If the board approval is already approved during this run, create the correctly routed child. For the routine lightweight path, CEO must create the child on the sequential Architect -> Engineer -> QA -> Code Reviewer route without an execution policy (Engineer creates the QA -> Code Reviewer review chain when it submits the SHA), write a board-bound `training-route` document before assignment, verify the approval link, then assign the child to Architect for its lightweight plan; Architect hands the planned child to Micronaut Engineer through the normal planning-to-implementation `TODO` handoff. The document is the authoritative route artifact and must exactly follow this schema; the implementation and review roles may not edit it, and any mismatch returns to CEO governance.
 
 <!-- lightweight-training-route-schema -->
 ```yaml
@@ -66,7 +66,7 @@ acceptanceCriteria:
   - <observable approved pass condition>
 ```
 
-Publication is outside this execution policy. After Code Reviewer approves the immutable SHA, it creates a separate non-policy `TODO` handoff assigned to `followThroughOwner`; Paperclip runtime dispatch then wakes Micronaut Engineer for publication.
+Publication is outside the review chain. After Code Reviewer approves the immutable SHA, it creates a separate non-policy `TODO` handoff assigned to `followThroughOwner`; Paperclip runtime dispatch then wakes Micronaut Engineer for publication.
 
 For an explicitly triggered path, create a QA-intake child instead. Do not add, install, update, or assign the skill in the Training run. If approval is pending, rejected, or requires revision, do not create implementation work; record the approval state and next step.
 
