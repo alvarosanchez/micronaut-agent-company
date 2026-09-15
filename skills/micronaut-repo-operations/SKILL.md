@@ -14,6 +14,7 @@ Use this skill whenever you act on synced GitHub issues or pull requests for thi
 - GitHub Sync tool names, authentication boundaries, footer behavior, PR linking, KPI attribution, monitor ownership, link immutability, review threads, and assets: first follow `micronaut-github-operations`; load `references/github-sync-tools.md` only when an uncommon or legacy detail is still needed.
 - Internal routines, project children, no-diff outcomes, product discovery, guide work, package evolution, and `.company-runtime/` overlays: `references/internal-routines-overlays.md`.
 - PR creation/readiness, organization-project links, reviewer requests, follow-through, maintainer-wait state, and evidence: `references/pr-delivery-evidence.md`.
+- Before editing, building, or committing in a worktree (branch sync, build flags, commit hygiene, security-constraint mapping): `references/implementation-hygiene.md`.
 
 Before mutating issue state, publishing to GitHub, opening or updating a PR, closing an issue, creating routine follow-up, or handling an uncommon release/approval case, load the matching reference.
 

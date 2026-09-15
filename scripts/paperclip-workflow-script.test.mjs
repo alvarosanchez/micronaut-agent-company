@@ -104,6 +104,25 @@ test("snapshot and verify work from an unrelated managed-workspace directory", a
   }
 });
 
+test("docs writes each issue document to a file by key and reports missing keys", async () => {
+  const f = await fixture();
+  const dir = await mkdtemp(path.join(tmpdir(), "paperclip-docs-"));
+  try {
+    const all = await run(["docs", "--issue", ISSUE_ID, "--dir", dir], f.baseUrl);
+    assert.equal(all.status, 0, all.stderr);
+    const report = JSON.parse(all.stdout);
+    assert.deepEqual(report.written.map((w) => w.key), ["qa-intake"]);
+    assert.equal(report.written[0].path, path.join(dir, "qa-intake.md"));
+    assert.equal(report.written[0].latestRevisionId, "77777777-7777-4777-8777-777777777777");
+    const { readFile } = await import("node:fs/promises");
+    assert.equal(await readFile(path.join(dir, "qa-intake.md"), "utf8"), "old\n");
+    const missing = await run(["docs", "--issue", ISSUE_ID, "--dir", dir, "--document", "qa-intake", "--document", "missing"], f.baseUrl);
+    assert.equal(missing.status, 2);
+    assert.deepEqual(JSON.parse(missing.stdout).missing, ["missing"]);
+    assert.ok(f.requests.every((r) => r.method === "GET"), "docs must be read-only");
+  } finally { await f.close(); await rm(dir, { recursive: true, force: true }); }
+});
+
 test("approval linkage is read-only", async () => {
   const api = await fixture();
   try {
