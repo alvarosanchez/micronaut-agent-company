@@ -40,11 +40,11 @@ Before choosing an owner, decide what kind of change the evidence supports; the 
 - a generalizable, multi-step procedure with its own when-to-use logic goes into a reusable skill (company-owned here, or a pinned referenced skill through the Training route), never into a role file;
 - when both apply, update or create the skill and add a one-line pointer in the role file so the agent knows when to reach for it;
 - a plugin tool description changes only when the failure was the agent not knowing when to use that tool, and the fix fits in the description; that is an upstream plugin change, not package prose;
-- an existing-but-unfollowed rule (`instruction-miss` in the evidence taxonomy) becomes a make-it-stick change: move it into the always-loaded entrypoint, add a negative example, or strengthen the trigger, instead of restating it.
+- an existing-but-unfollowed rule (`instruction-miss` in the evidence taxonomy) becomes a make-it-stick change: move it into that role's own always-loaded surface (the `micronaut-repo-operations` entrypoint only for roles that load it; CEO does not, so a CEO rule stays in its `AGENTS.md` or `ceo-issue-history`), add a negative example, or strengthen the trigger, instead of restating it.
 
 Sanity-check reuse honestly: a rule that applies to every delivery role belongs in a shared skill, and a "reusable skill" that only fits one role belongs in that role's file.
 
-Every proposal is bounded: a role `AGENTS.md` may grow by at most 20% per proposal and never past the package-wide agent instruction budget (`scripts/agent-efficiency.test.mjs`, currently 125,000 bytes across all role files, with almost no headroom), so a proposal that adds text names what it trims; a skill stays at or under 15 KB; a larger idea is split into several proposals rather than one rewrite.
+Every proposal is bounded: a role `AGENTS.md` may grow by at most 20% per proposal and never past the package-wide agent instruction budget (`scripts/agent-efficiency.test.mjs`, currently 125,000 bytes across all role files, with almost no headroom), so a proposal that adds text names what it trims; the always-loaded `micronaut-repo-operations` entrypoint has a stricter 9,000-byte cap in the same test and any other skill stays at or under 15 KB; a larger idea is split into several proposals rather than one rewrite.
 
 Every proposal is replay-gated: name three to five past issues from the evidence window that the new rule must still resolve, walk each one, and drop or reword any rule that would have blocked a past success without a clear reason. Record the walk as "expected still-passes" in the candidate.
 

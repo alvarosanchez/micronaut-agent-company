@@ -42,7 +42,7 @@ These lanes preserve their prior capability but do not affect candidate ranking.
 Store one compact Paperclip report under the stable `ceo` document key. Include:
 
 - `asOf`, exact window, coverage outcome, missing-resource ledger, and evidence JSON fingerprint/version;
-- ranked or rejected candidate counts and issue-level references; for each accepted candidate, threshold, stable fingerprint, cluster and quotable pattern, root-cause hypothesis, exact action (minimal diff), expected still-passes replay set, state, owner, target surface, acceptance criterion, size impact, and risk;
+- ranked or rejected candidate counts and issue-level references; for each accepted candidate, threshold, stable fingerprint, cluster and quotable pattern, evidence tuples (issue, comment or run, verbatim fragment), root-cause hypothesis, exact action (minimal diff), expected still-passes replay set, why this change and not something bigger, deduplication result, governance path, state, owner, target surface, acceptance criterion, size impact, and risk;
 - direct handoff/productivity-review corrections and any interaction kind/idempotency key;
 - a **Runtime Skill Sync** section with checked source/target and present, missing, no-op, or blocked verification;
 - a **Managed Repository AGENTS.md Audit** section with root-file classification and no-action or scoped Writer-child outcome per repository;

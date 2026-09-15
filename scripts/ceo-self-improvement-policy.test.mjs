@@ -132,10 +132,12 @@ test("CEO self-improvement carries the reflection taxonomy, rule-nature routing,
   assert.match(history, /make that rule stick[\s\S]{0,300}never to restate/i);
   assert.match(evolution, /## Route By The Nature Of The Rule/);
   assert.match(evolution, /at most 20% per proposal[\s\S]{0,200}125,000 bytes/);
-  assert.match(evolution, /skill stays at or under 15 KB/);
+  assert.match(evolution, /9,000-byte cap[\s\S]{0,60}15 KB/);
+  assert.match(evolution, /CEO does not, so a CEO rule stays in its `AGENTS.md`/);
   assert.match(evolution, /replay-gated[\s\S]{0,120}three to five past issues[\s\S]{0,200}expected still-passes/);
   assert.match(evolution, /why this change and not something bigger/);
   assert.match(task, /root-cause hypothesis[\s\S]{0,600}expected still-passes replay set/);
   assert.match(task, /make-it-stick proposal, not a restatement/);
-  assert.match(training, /Route by the nature of the gap[\s\S]{0,400}three to five past executions/);
+  assert.match(training, /Route by the nature of the gap[\s\S]{0,400}three to five past executions[\s\S]{0,200}without a clear reason to retain it/);
+  assert.match(task, /evidence tuples \(issue, comment or run, verbatim fragment\)[\s\S]{0,300}why this change and not something bigger[\s\S]{0,60}deduplication result, governance path/);
 });
