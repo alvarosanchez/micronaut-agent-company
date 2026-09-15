@@ -20,7 +20,7 @@ const CODEX_ADAPTER = "codex_local";
 const CLAUDE_CHEAP_PROFILE = {
   enabled: true,
   label: "Claude Haiku 4.5",
-  adapterConfig: { model: "claude-haiku-4-5", effort: "low" },
+  adapterConfig: { model: "claude-haiku-4-5" },
 };
 const CODEX_CHEAP_PROFILE = {
   enabled: true,
@@ -201,4 +201,9 @@ test("package agents configure the cheap model profile for their adapter", async
     /cheap model profile[\s\S]{0,320}claude-haiku-4-5[\s\S]{0,320}gpt-5\.6-luna/i,
     "README must document both cheap model profiles.",
   );
+});
+
+test("Claude Haiku cheap profiles never set effort (ACP rejects it for Haiku 4.5)", async () => {
+  const yaml = await readFile(new URL("../.paperclip.yaml", import.meta.url), "utf8");
+  assert.doesNotMatch(yaml, /model: claude-haiku-4-5\n\s+effort:/, "a Haiku cheap profile must not carry an effort option");
 });
