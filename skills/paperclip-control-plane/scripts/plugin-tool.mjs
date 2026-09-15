@@ -13,8 +13,8 @@ function usage() {
   plugin-tool.mjs call <pluginId:tool> [--params '<json object>' | --params-file <path>]
 
 Environment: PAPERCLIP_API_URL, PAPERCLIP_API_KEY, PAPERCLIP_AGENT_ID, PAPERCLIP_RUN_ID,
-PAPERCLIP_COMPANY_ID, PAPERCLIP_TASK_ID (the current issue id), optional PAPERCLIP_PROJECT_ID.
-When PAPERCLIP_PROJECT_ID is unset or empty the project id is read from the current issue.
+PAPERCLIP_COMPANY_ID, PAPERCLIP_PROJECT_ID. When either id is unset or empty it is read from the current
+issue named by PAPERCLIP_TASK_ID (or PAPERCLIP_ISSUE_ID); with both ids present no issue variable is needed.
 
 Exit codes: 0 success; 1 usage or environment error; 2 the gateway denied or the tool returned an error.`;
 }
@@ -42,6 +42,7 @@ async function request(client, pathname, { method = "GET", body } = {}) {
   if (target.origin !== client.origin.origin) throw new Error("Refusing to send Paperclip credentials across origins.");
   const headers = { Authorization: `Bearer ${client.apiKey}`, Accept: "application/json" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
+  if (process.env.PLUGIN_TOOL_TEST_EMPTY === "1") headers["x-test-empty"] = "1";
   const response = await fetch(target, { method, redirect: "error", headers, body: body === undefined ? undefined : JSON.stringify(body) });
   const text = await response.text();
   let payload = null;
@@ -83,10 +84,11 @@ function parseArgs(argv) {
 async function runContext(client) {
   const agentId = required(process.env.PAPERCLIP_AGENT_ID, "PAPERCLIP_AGENT_ID");
   const runId = required(process.env.PAPERCLIP_RUN_ID, "PAPERCLIP_RUN_ID");
-  const issueId = required(process.env.PAPERCLIP_TASK_ID, "PAPERCLIP_TASK_ID");
   let companyId = process.env.PAPERCLIP_COMPANY_ID || "";
   let projectId = process.env.PAPERCLIP_PROJECT_ID || "";
   if (!companyId || !projectId) {
+    const issueId = process.env.PAPERCLIP_TASK_ID || process.env.PAPERCLIP_ISSUE_ID || "";
+    if (!issueId) throw new Error("PAPERCLIP_COMPANY_ID and PAPERCLIP_PROJECT_ID are not both set, and no PAPERCLIP_TASK_ID/PAPERCLIP_ISSUE_ID is available to look them up.");
     const issue = await request(client, `/api/issues/${encodeURIComponent(issueId)}`);
     if (!issue.ok) throw new Error(`GET /api/issues/${issueId} failed: ${issue.status} ${issue.payload?.error ?? ""}`.trim());
     companyId ||= issue.payload?.companyId ?? "";

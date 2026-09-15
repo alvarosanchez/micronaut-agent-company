@@ -35,6 +35,7 @@ async function fixture() {
     res.setHeader("content-type", "application/json");
     if (req.headers.authorization !== "Bearer test-agent-key") { res.statusCode = 401; res.end(JSON.stringify({ error: "unauthorized" })); return; }
     if (req.url === "/api/plugins/tools" && req.method === "GET") {
+      if (req.headers["x-test-empty"] === "1") { res.end(JSON.stringify([])); return; }
       res.end(JSON.stringify([{ name: "paperclip-github-plugin:get_issue", description: "Fetch a GitHub issue", parametersSchema: { type: "object" } }])); return;
     }
     if (req.url === `/api/issues/${ISSUE_ID}` && req.method === "GET") { res.end(JSON.stringify({ id: ISSUE_ID, companyId: COMPANY_ID, projectId: PROJECT_ID })); return; }
@@ -67,6 +68,42 @@ test("call sends parameters (not arguments) and the full run context from the en
   } finally { await f.close(); }
 });
 
+test("call needs no issue variable when the environment already carries both ids", async () => {
+  const f = await fixture();
+  try {
+    const result = await run(["call", "paperclip-github-plugin:get_issue", "--params", '{"issueNumber":1}'], f.baseUrl, { PAPERCLIP_TASK_ID: "", PAPERCLIP_ISSUE_ID: "" });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(f.requests.some((r) => r.url.startsWith("/api/issues/")), false);
+  } finally { await f.close(); }
+});
+
+test("call accepts PAPERCLIP_ISSUE_ID as the issue variable for the fallback lookup", async () => {
+  const f = await fixture();
+  try {
+    const result = await run(["call", "paperclip-github-plugin:get_issue", "--params", '{"issueNumber":1}'], f.baseUrl, { PAPERCLIP_TASK_ID: "", PAPERCLIP_ISSUE_ID: ISSUE_ID, PAPERCLIP_PROJECT_ID: "" });
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(f.requests.some((r) => r.url === `/api/issues/${ISSUE_ID}`));
+    const missing = await run(["call", "paperclip-github-plugin:get_issue", "--params", '{"issueNumber":1}'], f.baseUrl, { PAPERCLIP_TASK_ID: "", PAPERCLIP_ISSUE_ID: "", PAPERCLIP_PROJECT_ID: "" });
+    assert.equal(missing.status, 1);
+    assert.match(missing.stderr, /no PAPERCLIP_TASK_ID\/PAPERCLIP_ISSUE_ID/);
+  } finally { await f.close(); }
+});
+
+test("call reads parameters from --params-file", async () => {
+  const f = await fixture();
+  try {
+    const { writeFileSync, mkdtempSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const dir = mkdtempSync(join(tmpdir(), "plugin-tool-"));
+    const file = join(dir, "params.json");
+    writeFileSync(file, JSON.stringify({ issueNumber: 42 }));
+    const result = await run(["call", "paperclip-github-plugin:get_issue", "--params-file", file], f.baseUrl);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(f.requests.find((r) => r.url === "/api/plugins/tools/execute").body.parameters.issueNumber, 42);
+  } finally { await f.close(); }
+});
+
 test("call resolves a missing project id from the current issue", async () => {
   const f = await fixture();
   try {
@@ -89,13 +126,22 @@ test("gateway denials and tool-level errors exit 2 with the payload printed", as
   } finally { await f.close(); }
 });
 
-test("list prints the gateway tool inventory and exits 2 when it is empty", async () => {
+test("list prints the gateway tool inventory", async () => {
   const f = await fixture();
   try {
     const result = await run(["list"], f.baseUrl);
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /"count": 1/);
     assert.match(result.stdout, /paperclip-github-plugin:get_issue/);
+  } finally { await f.close(); }
+});
+
+test("list exits 2 on an empty inventory (fail-closed gateway with no bound profile)", async () => {
+  const f = await fixture();
+  try {
+    const result = await run(["list"], f.baseUrl, { PLUGIN_TOOL_TEST_EMPTY: "1" });
+    assert.equal(result.status, 2);
+    assert.match(result.stdout, /"count": 0/);
   } finally { await f.close(); }
 });
 
