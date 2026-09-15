@@ -168,3 +168,8 @@ test("runs never rely on monitors or background jobs surviving the run boundary"
   assert.match(controlPlane, /A run ends when you stop, and nothing you arm survives it[^\n]+bounded polling[^\n]+Never finish with "I'll continue when it reports"/);
   assert.match(hygiene, /poll the log inside the same run[^\n]+Do not end the run while the job is still running/);
 });
+
+test("commits never carry AI co-author or attribution trailers", async () => {
+  const hygiene = await read("skills/micronaut-repo-operations/references/implementation-hygiene.md");
+  assert.match(hygiene, /Never add AI co-author or attribution trailers such as `Co-Authored-By: Claude \.\.\.`[^\n]+CLA Assistant checks co-authors/);
+});
