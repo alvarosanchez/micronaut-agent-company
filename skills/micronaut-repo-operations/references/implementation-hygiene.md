@@ -21,6 +21,7 @@ Load before editing, building, or committing in a managed repository worktree. T
 
 - Maven: never `-o` (the cache is cold for freshly bumped dependencies); do not run `install`; run the changed module with `./mvnw -ntp -pl <module> -am -Dsurefire.failIfNoSpecifiedTests=false -Dtest=<Class> test`, then the module suite; `Picked up JAVA_TOOL_OPTIONS: -Dapi.version=...` is host environment, not an error.
 - Gradle: `./gradlew --no-daemon -q <task>`; never a bare `./gradlew build` on a multi-module repository when one module is in scope.
+- Commits carry only the configured git identity (the maintainer's). Never add AI co-author or attribution trailers such as `Co-Authored-By: Claude ...` or `Generated with ...` to commit messages or PR bodies: the Micronaut CLA Assistant checks co-authors, so such a trailer marks the whole PR as unsigned. If a harness adds one automatically, amend it out before pushing.
 - Integration tests that build Docker images or native images take minutes: start them in the background with output to `$PAPERCLIP_RUN_SCRATCH_DIR/<name>.log` and poll the log inside the same run (bounded sleep-and-check loops), instead of one synchronous call with a long timeout. Do not end the run while the job is still running: a monitor or timer does not survive the run, and the next wake starts without it.
 - Print exit codes and the last lines of every build log you rely on; a filtered grep that hides `BUILD SUCCESS`/`FAILURE` is not evidence.
 
