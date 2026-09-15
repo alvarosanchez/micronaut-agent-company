@@ -522,8 +522,8 @@ test("every active routine has a complete pinned imported invocation bundle", as
     "monthly-security-deep-scan": "b22c9b5fb7457eea9d323eda538dbc559dadc284177556b3236ab9edd6aa9b6a",
     "monthly-user-guide-review": "8c52b6736b9cffa999e67c8c0b23fe035f7688ba187a895cbd992ebef6e7b195",
     "monthly-guide-topic-discovery": "78234d3a5a5613dc24110ce41abc11754b00114ba83621c2229be5caf4d4a74d",
-    "monthly-ceo-self-improvement": "bea3f333cbbaf324e9b0879042133ae4ad36672f4bbae54936fdc4ce7b29d986",
-    training: "d7f861e6a7149cb0204a6a13fc453a4140cb3a3ae147f998cfc47d24714dba2b",
+    "monthly-ceo-self-improvement": "d24b57aba709ca3d717b0f4d3a46fbe1099d230b133c7adb54f90a2851e4920f",
+    training: "2f4ee9fd097262700d602e3531ea72065f14daa1f41a678fd8628eab5de8f5ef",
   });
 });
 
@@ -560,7 +560,7 @@ test("CEO effective bundle is governance-only", async () => {
   for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundles[0]), "bea3f333cbbaf324e9b0879042133ae4ad36672f4bbae54936fdc4ce7b29d986");
+  assert.equal(bundleDigest(bundles[0]), "d24b57aba709ca3d717b0f4d3a46fbe1099d230b133c7adb54f90a2851e4920f");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
