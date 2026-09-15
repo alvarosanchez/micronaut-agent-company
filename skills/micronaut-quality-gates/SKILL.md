@@ -96,7 +96,7 @@ The QA Engineer verifies:
 - no important acceptance criteria were silently dropped
 - public answers and closure paths use the correct GitHub labels when applicable, use GitHub's native `Close as not planned` or `Close as duplicate` reason as appropriate, include detailed evidence rather than short generic close notes, treat evidence-backed already-implemented issues as part of QA's direct closure authority, and only require Paperclip board approval when the path is outside QA's direct GitHub authority
 
-Work that passes QA intake is handed `TODO` to the next handoff-chain entry with a clear next-action comment, or completes through the allowed direct GitHub answer or closure path. Work that passes QA verification is approved inside the execution-policy stage, and QA lets Paperclip move the issue to the next `in_review` participant automatically. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
+Work that passes QA intake is handed `TODO` to the next handoff-chain entry with a clear next-action comment, or, after an allowed direct GitHub answer or closure, is parked `in_review` unassigned for GitHub Sync to transition (`CANCELLED` for not-planned or duplicate closures). Work that passes QA verification is approved inside the execution-policy stage, and QA lets Paperclip move the issue to the next `in_review` participant automatically. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
 
 ## Security Gates
 

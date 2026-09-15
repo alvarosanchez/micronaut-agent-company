@@ -140,3 +140,22 @@ test("the Training route and the company docs describe the same contract", async
   }
   assert.match(verifyTask, /no delivery issue carries an execution policy that names its `executionState\.returnAssignee`, Architect, or Security pre-triage as a stage participant, or that was created before the delivery owner submitted the SHA[^\n]+QA verification stage is the legitimate first stage of the review chain/);
 });
+
+test("direct GitHub closures are parked in_review unassigned and GitHub Sync owns the terminal state", async () => {
+  const [qa, readme, gates, controlPlane, repoOps] = await Promise.all([
+    read("agents/qa-engineer/AGENTS.md"),
+    read("README.md"),
+    read("skills/micronaut-quality-gates/SKILL.md"),
+    read("skills/micronaut-repo-operations/references/workflow-control-plane.md"),
+    read("skills/micronaut-repo-operations/SKILL.md"),
+  ]);
+  assert.match(qa, /park the Paperclip issue `in_review` and unassigned: GitHub Sync sets the terminal state on its next pass \(`CANCELLED` for not-planned or duplicate closures, `DONE` for completed ones\)/);
+  assert.match(qa, /re-woken once by the host and then blocked as stranded/);
+  assert.doesNotMatch(qa, /the sync plugin will do that on the next sync/);
+  assert.match(readme, /closed as completed \(a merged fix\) becomes `DONE`, while an issue closed as not planned or as a duplicate becomes `CANCELLED`/);
+  assert.match(readme, /IN_REVIEW --> CANCELLED: GitHub close sync \(not planned or duplicate\)/);
+  assert.doesNotMatch(readme, /already-implemented closure become `DONE`/);
+  assert.match(gates, /parked `in_review` unassigned for GitHub Sync to transition/);
+  assert.match(controlPlane, /issue\.productive_terminal_continuation_recovery[^\n]+blocks it as stranded/);
+  assert.match(repoOps, /GitHub Sync sets `DONE` after a merge and `CANCELLED` after a not-planned or duplicate closure/);
+});
