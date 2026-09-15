@@ -132,14 +132,14 @@ test("lightweight Training has one board-bound route artifact consumed by every 
     readFile(new URL("../agents/qa-engineer/AGENTS.md", import.meta.url), "utf8"),
     readFile(new URL("../agents/code-reviewer/AGENTS.md", import.meta.url), "utf8"),
   ]);
-  assert.match(ceo, /Before assignment[^.]+configure sequential Architect -> Engineer -> QA -> Code Reviewer stages[^.]+`training-route` document/i);
+  assert.match(ceo, /Before assignment[^.]+record the sequential Architect -> Engineer -> QA -> Code Reviewer route[^.]+`training-route` document/i);
   assert.match(engineer, /authoritative route artifact[^\n]+`training-route`/i);
   assert.match(engineer, /For `training-route`, verify the linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership/i);
   assert.match(qa, /`training-route`[\s\S]{0,220}lightweight/i);
   assert.match(reviewer, /`training-route`[\s\S]{0,220}lightweight/i);
   assert.match(task, /Architect lightweight plan -> Micronaut Engineer -> QA verification -> Code Reviewer -> Micronaut Engineer publication/i);
-  assert.match(ceo, /configure sequential Architect -> Engineer -> QA -> Code Reviewer stages/i);
-  assert.match(task, /sequential Architect -> Engineer -> QA -> Code Reviewer stages/i);
+  assert.match(ceo, /record the sequential Architect -> Engineer -> QA -> Code Reviewer route/i);
+  assert.match(task, /sequential Architect -> Engineer -> QA -> Code Reviewer route without an execution policy/i);
   assert.match(engineer, /publication mode: Code Reviewer approved the unpublished exact SHA/i);
   assert.match(qa, /accept `training-route` only when[\s\S]{0,420}`planningRequired: true`, `planningDepth: lightweight`[\s\S]{0,300}`stageSequence: \[architect, micronaut-engineer, qa-engineer, code-reviewer\]`/i);
   assert.match(task, /publication[\s\S]{0,180}separate non-policy `TODO` handoff[\s\S]{0,180}`followThroughOwner`/i);

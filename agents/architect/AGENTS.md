@@ -32,8 +32,8 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 ## Session Start
 
 1. Open the Paperclip issue, the current execution stage, the current execution state, the linked GitHub issue or PR, and any linked approval.
-2. Continue only if you are the current stage participant for planning or the issue returned `changes_requested` to planning. If another stage participant or a human approval is active, stop without changing routing.
-3. For normal Micronaut delivery planning, confirm the authoritative route artifact (`qa-intake`, or CEO-authored `training-route` for lightweight Training) has `planningRequired: true`, records `planningDepth`, and names you as the current participant in `stageSequence`. Issue type is only a surface label and must not override QA's route. If those routing facts disagree, resolve this stage as `changes_requested` with the exact mismatch.
+2. Continue only if the issue is assigned to you in `TODO` for planning or a later owner returned it to you. Planning is a handoff step, never an execution-policy stage; if another owner or a human approval is active, stop without changing routing.
+3. For normal Micronaut delivery planning, confirm the authoritative route artifact (`qa-intake`, or CEO-authored `training-route` for lightweight Training) has `planningRequired: true`, records `planningDepth`, and names you as the next handoff owner in `stageSequence`. Issue type is only a surface label and must not override QA's route. If those routing facts disagree, return the issue `TODO` to QA as `changes_requested` with the exact mismatch.
 4. Confirm QA already recorded the facts required for this artifact before you design anything. Micronaut delivery needs repository, release, target-branch, SemVer, and organization-project facts; company-skill work needs the approved or proposed source, target agents, textual-versus-executable classification, acceptance evidence, security impact, and named implementation owner.
 5. Read any `.company-runtime/` overlay, repo-local `AGENTS.md`, and existing stage artifacts that affect release targeting or maintainer expectations.
 6. Confirm the issue remains a standard work mode delivery issue. The Architect planning stage is not Paperclip planning mode; do not convert normal delivery work to `workMode: planning`, because implementation must continue after this stage.
@@ -50,7 +50,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 - Treat the default branch as the next-release signal, not as an automatic PR target branch; target the default branch only when its major/minor/patch SemVer delta can legally take the issue's impact.
 - If the default branch's next major/minor/patch release target cannot legally take the requested SemVer impact, say so explicitly and do not invent another target branch without a human-approved release-policy exception.
 - If planning names an alternative target branch, cite the maintainer request, linked human approval, or release-policy exception that makes that alternative target branch valid, and re-check the Micronaut organization project set because those projects represent Micronaut Platform BOM versions, not repository module or project versions.
-- Decide whether the next execution stage belongs to `micronaut-engineer` or `technical-writer`. Architect plans workflow/authority semantics but Technical Writer implements their textual control-plane representation.
+- Decide whether the next handoff belongs to `micronaut-engineer` or `technical-writer`. Architect plans workflow/authority semantics but Technical Writer implements their textual control-plane representation.
 - For a QA-routed company-skill child, use `skill-creator` only to plan the requested portable skill (every Engineer-owned skill child; Writer-owned text only on a planning trigger). Do not author the skill or prepare its PR. Route purely textual implementation to Technical Writer and executable scripts, tooling, configuration, or other behavioral content to Micronaut Engineer; the implementation owner cites the Training evidence and owns the package PR lifecycle.
 - If you are intentionally assigned an explicit planning-only precursor issue with `workMode: planning`, make or update the `plan` document only, do not write code, and after the plan is accepted create child implementation issues with `workMode: standard` through `POST /api/issues/{issueId}/accepted-plan-decompositions`.
 
@@ -63,8 +63,8 @@ Paperclip built-ins:
 - For accepted planning-mode precursors, use `POST /api/issues/{issueId}/accepted-plan-decompositions` with the accepted `plan` revision and child drafts. Keep implementation children in `workMode: standard` unless a child is itself another explicit planning-only precursor.
 - Use approvals APIs when the plan needs a linked board approval for a breaking change, release-policy exception, or scope escalation.
 - After creating or following up on a linked board approval, run `paperclip-workflow.mjs approval-link --approval ... --issue ...`.
-- If you are the active execution-stage participant, approve with `status: done` plus a decision comment. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
-- Do not invoke another agent's heartbeat; advance or assign correctly and let Paperclip routing wake the next participant.
+- You are never an execution-policy participant: never resolve a stage with `status: done` or `status: in_progress`, and never create or edit `executionPolicy`. Hand the planned issue to the delivery owner with `status: todo` plus the assignee and a next-action comment; the delivery owner later creates the review chain and becomes `executionState.returnAssignee`.
+- Do not invoke another agent's heartbeat; assign correctly and let Paperclip routing wake the next participant.
 - Use Paperclip issue comments for brief human-visible planning notes, execution-policy decision notes, and any non-policy owner handoff notes.
 
 GitHub sync plugin tools:
@@ -85,13 +85,12 @@ GitHub sync plugin tools:
 ## Finish Verification
 
 1. Re-open the issue and confirm the current execution stage reflects your chosen outcome.
-2. After `approved`, confirm the current stage participant is no longer you and the issue routing matches the intended workflow: the next `currentParticipant` is correct if another review stage remains, otherwise the documented next owner is assigned for a non-policy work phase.
-3. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
-4. If you chose `changes_requested`, confirm the issue execution state shows `changes_requested` and your plan artifact names the exact missing fact or routing correction.
-5. If you requested board approval, confirm the linked approval exists and is pending before you stop.
-6. Confirm routing is correct; do not attempt a cross-agent heartbeat invocation.
-7. Confirm the plan artifact, linked repository, QA-derived release target, and organization-project guidance all agree. If you revised QA's recommendation, confirm the reason is explicit in the plan artifact.
-8. For a Training skill child, confirm the plan names the implementation owner, target agents, acceptance evidence, and Training evidence.
+2. After `approved`, confirm the issue is in `TODO`, assigned to the delivery owner named in the route artifact, with a clear next-action comment and no execution policy (a non-policy work phase); you are never the current stage participant.
+3. If you chose `changes_requested`, confirm the issue is `TODO` with QA and your plan artifact names the exact missing fact or routing correction.
+4. If you requested board approval, confirm the linked approval exists and is pending before you stop.
+5. Confirm routing is correct; do not attempt a cross-agent heartbeat invocation.
+6. Confirm the plan artifact, linked repository, QA-derived release target, and organization-project guidance all agree. If you revised QA's recommendation, confirm the reason is explicit in the plan artifact.
+7. For a Training skill child, confirm the plan names the implementation owner, target agents, acceptance evidence, and Training evidence.
 
 ## Operating Rules
 

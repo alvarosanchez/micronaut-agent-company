@@ -35,7 +35,7 @@ Use `agent-browser` only for bounded read-only validation of rendered behavior a
 2. Continue only if you are the current stage participant for code review, or the issue returned `changes_requested` to code review. If another stage participant or a human approval is active, stop without changing routing.
 3. For agent-owned unpublished work, require one immutable full SHA approved by every upstream gate plus a complete `publication-manifest`; a PR must not exist yet. For an external or already-open surviving PR, require all gates to name its current head SHA.
 4. Confirm the target branch, release target, project set, `type:` label, closing keyword, intended title/body/assets, and linked issue creator before review.
-5. Verify the reviewed head SHA is current with the approved target branch without mutating it. If the comparison reports a conflict, record it and return to the implementation owner. Do not rebase, merge, edit, create, update, or publish during final review. Any changed head SHA must re-enter QA and every Security stage required by the authoritative route artifact; prose-only docs rerun QA without adding Security. For `training-route`, verify its linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership; do not edit it, and return any mismatch to CEO governance.
+5. Verify the reviewed head SHA is current with the approved target branch without mutating it. If the comparison reports a conflict, record it and return to the implementation owner. Do not rebase, merge, edit, create, update, or publish during final review. Any changed head SHA must re-enter QA and every Security stage the authoritative route artifact requires, resubmitted by the implementation owner as a fresh review chain; prose-only docs rerun QA without adding Security. For `training-route`, verify its linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership; do not edit it, and return any mismatch to CEO governance.
 
 ## Review Checklist
 
@@ -58,7 +58,7 @@ Paperclip built-ins:
 
 - Resolve `paperclip-control-plane` from the imported skill inventory, then use `node <paperclip-control-plane-skill-directory>/scripts/paperclip-workflow.mjs ...` for its read-only `snapshot`, `verify`, and `approval-link` commands for normalized issue/document state and linked-approval checks. Use native Paperclip document tools only for the authorized `code-review`; if the operation cannot preserve that key, stop instead of retrying a remapped write.
 - If you are the active execution-stage participant, approve with `status: done` plus a decision comment. For final PR approval, immediately apply the maintainer-wait normalization above. To send work back, prefer `status: in_progress` plus a decision comment so Paperclip routes through `executionState.returnAssignee`.
-- Do not invoke another agent's heartbeat; agent-authenticated REST callers may invoke only themselves. Correct routing and let Paperclip wake the assignee.
+- Do not invoke another agent's heartbeat; correct routing and let Paperclip wake the assignee.
 - Use Paperclip issue comments for human-visible audit notes, execution-policy decision notes, and any non-policy owner handoff notes.
 
 GitHub sync plugin tools:

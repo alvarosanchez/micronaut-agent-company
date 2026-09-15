@@ -5,7 +5,7 @@ description: Shared definition of done for Micronaut planning, implementation, Q
 
 # Micronaut Quality Gates
 
-This skill defines the minimum bar each role must protect before its execution-policy stage can resolve as `approved`.
+This skill defines the minimum bar each role must protect before its handoff step or execution-policy review stage can resolve as `approved`.
 
 ## Shared Stage Contract
 
@@ -16,7 +16,7 @@ Before any role resolves its stage:
 - the role has produced one durable stage artifact that explains the decision
 - QA does not collapse intake and verification into one artifact; use separate durable issue documents such as `qa-intake` and `qa-verification`
 - when the role is the active execution-stage participant, it resolves `approved` with `status: done` plus a decision comment and resolves `changes_requested` with a non-`done` status, preferably `in_progress`, so Paperclip routes automatically through `currentParticipant` and `returnAssignee`
-- manual `TODO` assignment is reserved for non-policy owner changes outside the active review chain
+- manual `TODO` assignment is the mechanism for every pre-delivery handoff (intake, Security pre-triage, Architect planning, implementation) and for publication; execution-policy stages exist only in the review chain the delivery owner creates when it submits the immutable SHA
 - for synced GitHub delivery work, `approved` advances the issue to the next stage or PR follow-through; it is not permission to mark the Paperclip item `DONE`
 - if a human governance decision is required, the role creates or updates a real Paperclip approval instead of treating a comment as approval
 - if non-governance board or user input is required, the role uses an issue-thread interaction instead of a loose comment: `suggest_tasks` for selectable task lists, `ask_user_questions` for bounded questions, and `request_confirmation` for explicit plan or proposal confirmation
@@ -44,7 +44,7 @@ Before an actionable issue moves out of QA intake:
 - already-implemented closures cite the exact version, PR, release, or documentation evidence and use QA's direct closure path
 - closure comments contain detailed evidence, are not short generic close notes, and cite the exact facts that justify the closure
 - the authoritative `qa-intake` booleans and ordered `stageSequence` encode the correct downstream route; issue type is only a surface label and does not select the route
-- required all-of gates are modeled as separate sequential stages instead of one multi-participant stage
+- required all-of review gates are modeled as separate sequential stages in the review chain instead of one multi-participant stage; QA does not create that policy at intake
 - if the issue needs a public answer or closure outside QA's direct GitHub authority, the board-approval path is explicit
 - if intake needs bounded maintainer input rather than open-ended discussion, QA uses `ask_user_questions` with clear options and a continuation policy so the issue resumes when answered
 
@@ -96,7 +96,7 @@ The QA Engineer verifies:
 - no important acceptance criteria were silently dropped
 - public answers and closure paths use the correct GitHub labels when applicable, use GitHub's native `Close as not planned` or `Close as duplicate` reason as appropriate, include detailed evidence rather than short generic close notes, treat evidence-backed already-implemented issues as part of QA's direct closure authority, and only require Paperclip board approval when the path is outside QA's direct GitHub authority
 
-Work that passes QA moves into the next configured review stage or completes through the allowed direct GitHub answer or closure path. Inside an active execution-policy stage, QA should let Paperclip move the issue into the next `in_review` participant automatically. When QA is changing owners outside the active review chain, it should use a normal `TODO` assignment plus a clear next-action comment. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
+Work that passes QA intake is handed `TODO` to the next handoff-chain entry with a clear next-action comment, or completes through the allowed direct GitHub answer or closure path. Work that passes QA verification is approved inside the execution-policy stage, and QA lets Paperclip move the issue to the next `in_review` participant automatically. Work that needs a board-approved public answer or closure resolves as `request_board_approval`. Work that fails QA resolves as `changes_requested`.
 
 ## Security Gates
 
@@ -108,7 +108,7 @@ Security participates only when the authoritative ordered `qa-intake.stageSequen
 - insecure defaults or examples that would steer users into unsafe deployment or configuration choices
 - whether blocking findings are concrete enough to justify `changes_requested`
 
-Approved pre-triage advances only to the next entry in the authoritative ordered `qa-intake.stageSequence`, which is Architect for Micronaut Engineer-owned work and for Technical Writer-owned work with `planningRequired: true`, and otherwise Technical Writer. Pre-triage does not skip Architect, implementation, QA verification, or final Security review. Approved final Security review advances to Code Reviewer. A rejected Security stage returns through the execution policy as `changes_requested`.
+Approved pre-triage hands the issue `TODO` only to the next entry in the authoritative ordered `qa-intake.stageSequence`, which is Architect for Micronaut Engineer-owned work and for Technical Writer-owned work with `planningRequired: true`, and otherwise Technical Writer. Pre-triage does not skip Architect, implementation, QA verification, or final Security review. Approved final Security review advances the execution policy to Code Reviewer. A rejected pre-triage returns `TODO` to QA naming the gap; a rejected final review returns through the execution policy as `changes_requested`.
 
 ## Code Review Gate
 
