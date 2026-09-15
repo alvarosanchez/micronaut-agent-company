@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
 import process from "node:process";
+import { mkdirSync, writeFileSync } from "node:fs";
+import path from "node:path";
 
 const COMMAND_OPTIONS = {
   snapshot: { singleton: new Set(["issue"]), repeated: new Set(["document"]) },
   verify: { singleton: new Set(["issue", "status", "participant", "assignee", "outcome"]), repeated: new Set(["document"]) },
   "approval-link": { singleton: new Set(["approval", "issue"]), repeated: new Set() },
+  docs: { singleton: new Set(["issue", "dir"]), repeated: new Set(["document"]) },
 };
 
 function usage() {
@@ -13,6 +16,7 @@ function usage() {
   paperclip-workflow.mjs snapshot --issue <id> [--document <key>]...
   paperclip-workflow.mjs verify --issue <id> [--status <status>] [--participant <agent-id|none>] [--assignee <agent-id|none>] [--outcome <outcome|none>] [--document <key>]...
   paperclip-workflow.mjs approval-link --approval <id> --issue <id>
+  paperclip-workflow.mjs docs --issue <id> --dir <directory> [--document <key>]...
 
 Environment: PAPERCLIP_API_URL and PAPERCLIP_API_KEY.`;
 }
@@ -163,6 +167,31 @@ async function main() {
     } else {
       process.stdout.write(`${JSON.stringify(report)}\n`);
     }
+    return;
+  }
+
+  if (args.command === "docs") {
+    const issueId = required(args.issue, "--issue");
+    const dir = required(args.dir, "--dir");
+    const client = config();
+    const listed = await request(client, `/api/issues/${encodeURIComponent(issueId)}/documents`);
+    const available = Array.isArray(listed) ? listed : [];
+    const wanted = args.document.length ? args.document : available.map((doc) => doc.key);
+    mkdirSync(dir, { recursive: true });
+    const written = [];
+    const missing = [];
+    const safeKey = /^[A-Za-z0-9_.:-]+$/;
+    for (const key of wanted) {
+      if (!safeKey.test(key) || key === "." || key === "..") throw new Error(`Refusing to write document key "${key}": keys may only contain letters, digits, "_", ".", ":" and "-".`);
+      const doc = await request(client, `/api/issues/${encodeURIComponent(issueId)}/documents/${encodeURIComponent(key)}`, { allow404: true });
+      if (!doc) { missing.push(key); continue; }
+      const body = doc.body ?? doc.latestBody ?? "";
+      const file = path.join(dir, `${key}.md`);
+      writeFileSync(file, body, "utf8");
+      written.push({ key, path: file, bytes: Buffer.byteLength(body, "utf8"), title: doc.title ?? null, latestRevisionId: doc.latestRevisionId ?? null, latestRevisionNumber: doc.latestRevisionNumber ?? null, lockedAt: doc.lockedAt ?? null });
+    }
+    process.stdout.write(`${JSON.stringify({ schemaVersion: 1, issueId, dir, written, missing, available: available.map((doc) => doc.key) })}\n`);
+    if (missing.length > 0) process.exitCode = 2;
     return;
   }
 

@@ -1,6 +1,6 @@
 # Instruction Automation Audit
 
-Reviewed complete shipped Markdown corpus: 49 tracked Markdown files: 3 root policy/documentation files, 8 agent instructions, 4 design documents, 1 project definition, 25 skill/reference files, 7 task definitions, and 1 team definition. The runtime-loaded subset is the 8 agent instructions plus their package-owned skill/reference files; the complete-corpus scan also covers root, design, project, task, and team surfaces. The goal is to replace deterministic control-plane interpretation with executable, fail-closed evidence while preserving human/agent judgment where context matters. `scripts/paperclip-catalog-skills.test.mjs` derives both inventories from tracked files rather than trusting a hand-maintained role list.
+Reviewed complete shipped Markdown corpus: 50 tracked Markdown files: 3 root policy/documentation files, 8 agent instructions, 4 design documents, 1 project definition, 26 skill/reference files, 7 task definitions, and 1 team definition. The runtime-loaded subset is the 8 agent instructions plus their package-owned skill/reference files; the complete-corpus scan also covers root, design, project, task, and team surfaces. The goal is to replace deterministic control-plane interpretation with executable, fail-closed evidence while preserving human/agent judgment where context matters. `scripts/paperclip-catalog-skills.test.mjs` derives both inventories from tracked files rather than trusting a hand-maintained role list.
 
 ## Automated now
 
@@ -11,6 +11,7 @@ The bundled `scripts/paperclip-workflow.mjs` provides three read-only commands f
 | Fetch issue, heartbeat context, and selected durable documents | `snapshot` | One normalized JSON result; 404 documents are explicit `null` |
 | Re-open and verify status, assignee, current participant, last outcome, and required documents | `verify` | Exits 2 with field-level mismatches |
 | Verify approval-to-issue linkage | `approval-link` | Reads the authoritative approval issue list rather than trusting cached issue fields |
+| Write every issue document to `<dir>/<key>.md` for full reads | `docs` | Read-only; documents are addressed by key, and agents no longer guess routes or parse the snapshot by hand |
 
 
 The script requires the normal agent bearer token. It accepts only a bare HTTP(S) origin, rejects embedded credentials/query/fragment/path components, and permits plaintext HTTP only on loopback. It deliberately has **no document-mutation, stage-transition, or cross-agent wake command**: the installed Paperclip build (2026.831.1) exposes no server-enforced precondition for same-agent stage re-entry and redirects agent writes to locked keyed documents instead of failing them, and an agent-authenticated heartbeat caller may invoke only itself. Native Paperclip tools own permitted document and stage operations; correct stage advancement or assignment is the routing mechanism.

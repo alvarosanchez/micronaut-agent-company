@@ -70,6 +70,7 @@ These are built into Paperclip itself. Use them even when no plugin-specific too
 Default artifact policy for this package:
 
 - store plans, QA intake records, QA verification records, security reviews, and review summaries in keyed issue documents such as `plan`, `qa-intake`, `qa-verification`, `security-review`, or `code-review`
+- keep the `plan` document at or under 12 KB even at full depth: open with an Engineer TL;DR of at most 15 lines (target branch, files, property or API names, tests to add, constraints to honour), reference `qa-intake` and `security-review` by section instead of restating them, and put the decision comment's summary in the document rather than the other way round
 - use Paperclip issue comments for human-visible progress notes, GitHub-facing explanations copied back for audit, execution-policy decision notes, and any non-policy owner handoff notes
 - use issue-thread interactions instead of comment-only proposal lists when the board/user needs to choose tasks, answer structured questions, or confirm a plan
 - use linked approvals for board governance instead of treating comments as approvals

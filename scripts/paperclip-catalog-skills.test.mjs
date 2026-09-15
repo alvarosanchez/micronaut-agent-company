@@ -202,13 +202,13 @@ test("automation audit covers the derived Markdown corpus and exact CLI surface"
   const script = await read("../skills/paperclip-control-plane/scripts/paperclip-workflow.mjs");
 
   assert.equal(agentFiles.filter((file) => file.pathname.endsWith("/AGENTS.md")).length, 8);
-  assert.equal(skillFiles.length, 25);
-  assert.equal(trackedMarkdown.length, 49);
-  assert.match(audit, /complete shipped Markdown corpus[\s\S]{0,220}49 tracked Markdown files/i);
-  assert.match(audit, /3 root[^\n]+8 agent[^\n]+4 design[^\n]+1 project[^\n]+25 skill[^\n]+7 task[^\n]+1 team/i);
+  assert.equal(skillFiles.length, 26);
+  assert.equal(trackedMarkdown.length, 50);
+  assert.match(audit, /complete shipped Markdown corpus[\s\S]{0,220}50 tracked Markdown files/i);
+  assert.match(audit, /3 root[^\n]+8 agent[^\n]+4 design[^\n]+1 project[^\n]+26 skill[^\n]+7 task[^\n]+1 team/i);
   assert.match(audit, /package-local imported `paperclip-control-plane` skill/i);
   assert.doesNotMatch(audit, /`paperclip-control-plane` catalog skill/i);
-  for (const command of ["snapshot", "verify", "approval-link"]) {
+  for (const command of ["snapshot", "verify", "approval-link", "docs"]) {
     assert.match(audit, new RegExp("\\| `" + command + "` \\|"));
     assert.match(script, new RegExp(`args\\.command === "${command}"`));
   }

@@ -40,7 +40,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
    - publication mode: Code Reviewer approved the unpublished exact SHA and `publication-manifest`, then returned a publication-only handoff to you
    - PR follow-through mode: an acceptable PR already exists, including a linked external-contributor PR that QA kept on the normal path, and you are keeping it healthy
 4. Confirm the target repository, approved target branch, release line, SemVer compatibility bar, and exact acceptance bar before you edit anything. For `training-route`, verify the linked approval, immutable source coordinates, fixed stage sequence, and Engineer ownership; do not edit the route artifact, and return any mismatch to CEO governance.
-5. Fetch and update the work branch from the approved target branch before starting work, editing, committing, or creating/updating the PR. If merge or rebase conflicts occur, record a blocker and do not publish a conflicting PR.
+5. From a clean `git status`, resolve the approved target branch and sync to it before any edit, commit, or PR: `git log origin/HEAD..HEAD` empty: `git reset --hard origin/<target>`; else rebase; a dirty tree or conflict is a blocker.
 6. If the Architect plan is missing, contradictory, or clearly wrong, do not improvise a redesign; resolve the stage as `changes_requested` so the gap returns to Architect.
 
 ## Implementation Checklist
