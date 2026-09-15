@@ -159,3 +159,12 @@ test("direct GitHub closures are parked in_review unassigned and GitHub Sync own
   assert.match(controlPlane, /issue\.productive_terminal_continuation_recovery[^\n]+blocks it as stranded/);
   assert.match(repoOps, /GitHub Sync sets `DONE` after a merge and `CANCELLED` after a not-planned or duplicate closure/);
 });
+
+test("runs never rely on monitors or background jobs surviving the run boundary", async () => {
+  const [controlPlane, hygiene] = await Promise.all([
+    read("skills/micronaut-repo-operations/references/workflow-control-plane.md"),
+    read("skills/micronaut-repo-operations/references/implementation-hygiene.md"),
+  ]);
+  assert.match(controlPlane, /A run ends when you stop, and nothing you arm survives it[^\n]+bounded polling[^\n]+Never finish with "I'll continue when it reports"/);
+  assert.match(hygiene, /poll the log inside the same run[^\n]+Do not end the run while the job is still running/);
+});
