@@ -51,7 +51,7 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 - add or update tests for the changed behavior whenever possible
 - update docs when behavior, configuration, defaults, migration paths, or examples change
 - preserve compatibility for the targeted release line unless an approved exception exists
-- after source-changing implementation and local validation, commit the smallest complete diff, write the exact full SHA plus proposed base/title/body/labels/projects in `publication-manifest`, then submit that unpublished immutable SHA: one `PATCH` sets `status: in_review` and the review-only execution policy derived from `qa-intake.stageSequence` (QA, Security when `securityFinalReviewRequired`, Code Reviewer), exactly as the control-plane reference shows, making you `executionState.returnAssignee`; do not create the PR before the internal QA, Security when configured, and Code Reviewer gates approve that same SHA
+- after source-changing implementation and local validation, commit the smallest complete diff, write the exact full SHA plus proposed base/title/body/labels/projects in `publication-manifest`, then submit that unpublished immutable SHA: one `PATCH` sets `status: in_review` and the review-only execution policy derived from the authoritative route artifact's `stageSequence` (`qa-intake`, or `training-route` for lightweight Training: QA, Security when `securityFinalReviewRequired`, Code Reviewer), exactly as the control-plane reference shows, making you `executionState.returnAssignee`; do not create the PR before the internal QA, Security when configured, and Code Reviewer gates approve that same SHA
 
 Publication mode:
 
@@ -83,7 +83,7 @@ Paperclip built-ins:
 GitHub sync plugin tools:
 
 - Apply the shared `micronaut-github-operations` skill as the authoritative GitHub access, publication, footer, monitoring, linking, review-thread, and asset protocol. The entries below are role-specific uses only.
-- Use `paperclip-github-plugin:list_organization_projects` to re-check the selected Micronaut organization-project set when the release target changes, and use `paperclip-github-plugin:add_pull_request_to_project` to repair live PR-to-project associations when they drift because of agent metadata drift. Micronaut organization projects represent Micronaut Platform BOM release boards, not repository module or project versions. Do not use this repair path to undo a maintainer project change.
+- Use `paperclip-github-plugin:list_organization_projects` to re-check the selected Micronaut organization-project set when the release target changes, and use `paperclip-github-plugin:add_pull_request_to_project` to repair live PR-to-project associations when they drift because of agent metadata drift. Micronaut organization projects represent Micronaut Platform BOM release boards, not repository module or project versions.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to keep the linked GitHub issue context accurate while you implement.
 - `paperclip-github-plugin:create_pull_request` only in publication mode after final internal approval; pass your Paperclip agent UUID as `followThroughAssigneeAgentId`, and publish exactly the approved manifest SHA and metadata.
 - `paperclip-github-plugin:request_pull_request_reviewers` after publication only when reviewer routing is useful; request the linked issue reporter only when eligible, non-bot, not the PR author, and not already requested. Treat ineligible or already-requested reporters as verified no-ops.

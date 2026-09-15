@@ -110,7 +110,7 @@ test("delivery owners submit the SHA with the review-only policy and resubmit th
   for (const slug of ["micronaut-engineer", "technical-writer"]) {
     const markdown = await read(`agents/${slug}/AGENTS.md`);
     assert.match(markdown, /a reviewer returned `changes_requested` to you as `executionState\.returnAssignee`/, slug);
-    assert.match(markdown, /one `PATCH`[^\n]+`status: in_review`[^\n]+review-only execution policy[^\n]+`qa-intake\.stageSequence`[^\n]+making you `executionState\.returnAssignee`/, slug);
+    assert.match(markdown, /one `PATCH`[^\n]+`status: in_review`[^\n]+review-only execution policy[^\n]+(?:route artifact's `stageSequence` \(`qa-intake`, or `training-route`|`qa-intake\.stageSequence`)[^\n]+making you `executionState\.returnAssignee`/, slug);
     assert.match(markdown, /You are never a review-stage participant, so never resolve a stage with `status: done`/, slug);
     assert.match(markdown, /an unchanged SHA re-pends the same stage, a changed SHA restarts the review chain \(`PATCH \{executionPolicy: null\}`, then the submission `PATCH` again\)/, slug);
     assert.match(markdown, /After submission, confirm the issue is `in_review`, the current stage participant is QA, and `executionState\.returnAssignee` is you/, slug);
@@ -138,5 +138,5 @@ test("the Training route and the company docs describe the same contract", async
     assert.match(markdown, /QA does not create the policy at intake/, label);
     assert.doesNotMatch(markdown, /Use normal `TODO` assignment only for non-policy owner changes/, label);
   }
-  assert.match(verifyTask, /no delivery issue carries an execution policy whose stage participants include its `executionState\.returnAssignee` or any pre-delivery role/);
+  assert.match(verifyTask, /no delivery issue carries an execution policy that names its `executionState\.returnAssignee`, Architect, or Security pre-triage as a stage participant, or that was created before the delivery owner submitted the SHA[^\n]+QA verification stage is the legitimate first stage of the review chain/);
 });
