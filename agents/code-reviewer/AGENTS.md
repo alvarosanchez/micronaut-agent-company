@@ -45,9 +45,8 @@ Use `agent-browser` only for bounded read-only validation of rendered behavior a
 - review test quality and missing edge cases
 - if QA kept an external contributor PR on the normal path, review it to the same standard and request metadata corrections from its follow-through owner instead of replacing it without cause
 - for unpublished agent-owned work, verify the exact commit diff and proposed PR metadata in `publication-manifest`; do not require or create a PR
-- verify that the follow-through owner requested the linked issue reporter (eligible, non-bot, not the PR author, not already requested) and that the PR carries the approved `type:` label; return missing requests or labels to that owner and treat ineligible reporters as verified no-ops
-- verify live organization-project associations and return agent-caused drift to the follow-through owner; preserve any authoritative human-maintainer project choice
-- all selected organization projects should be linked by the follow-through owner when those projects exist and tooling can apply them; missing linkage alone does not block approval, so record the gap and continue
+- for unpublished work, verify `publication-manifest` names the approved `type:` label and the intended reviewer (the linked issue reporter when eligible, non-bot, not the PR author); for a live PR, verify the label is applied and that reporter was requested (ineligible or already-requested reporters are verified no-ops); return gaps to the follow-through owner
+- verify live organization-project associations: return agent-caused drift to the follow-through owner, preserve any authoritative human-maintainer project choice, and record missing linkage as a gap without blocking approval
 - after approving unpublished agent-owned work, complete the final policy stage, then create a publication-only non-policy handoff in `TODO` to the `followThroughOwner`; name the approved full SHA and manifest revision and prohibit all edits. The owner creates and verifies the PR.
 - if the surviving PR was already open before internal review, leave it in healthy unassigned `in_review` maintainer wait after approval when checks and threads are clean
 
