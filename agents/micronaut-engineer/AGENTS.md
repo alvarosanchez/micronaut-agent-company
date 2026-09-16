@@ -51,13 +51,13 @@ The catalog skills granted to you are installed from the Paperclip Skills Store 
 - add or update tests for the changed behavior whenever possible
 - update docs when behavior, configuration, defaults, migration paths, or examples change
 - preserve compatibility for the targeted release line unless an approved exception exists
-- after source-changing implementation and local validation, commit the smallest complete diff, write the exact full SHA plus proposed base/title/body/labels/projects in `publication-manifest`, then submit that unpublished immutable SHA: one `PATCH` sets `status: in_review` and the review-only execution policy derived from the authoritative route artifact's `stageSequence` (`qa-intake`, or `training-route` for lightweight Training: QA, Security when `securityFinalReviewRequired`, Code Reviewer), exactly as the control-plane reference shows, making you `executionState.returnAssignee`; do not create the PR before the internal QA, Security when configured, and Code Reviewer gates approve that same SHA
+- after source-changing implementation and local validation, commit the smallest complete diff, write the exact full SHA plus proposed base/title/body/labels/projects and the intended reviewers (`get_issue` `reviewerCandidates`) in `publication-manifest`, then submit that unpublished immutable SHA: one `PATCH` sets `status: in_review` and the review-only execution policy derived from the authoritative route artifact's `stageSequence` (`qa-intake`, or `training-route` for lightweight Training: QA, Security when `securityFinalReviewRequired`, Code Reviewer), exactly as the control-plane reference shows, making you `executionState.returnAssignee`; do not create the PR before the internal QA, Security when configured, and Code Reviewer gates approve that same SHA
 
 Publication mode:
 
 - re-read the final Reviewer artifact and `publication-manifest`; fail closed if the local branch tip differs from the approved full SHA
 - make no source, test, documentation, commit, base, title, body, label, project, or asset change during publication
-- atomically publish and create the PR with `paperclip-github-plugin:create_pull_request`, then read it back and verify the remote head SHA and metadata match the approved manifest
+- atomically publish and create the PR with `paperclip-github-plugin:create_pull_request`, passing the approved `type:` label in `labels` and, in `userReviewers`, the `get_issue` `reviewerCandidates` when eligible, non-bot, and not the PR author; then read it back and verify the remote head SHA, metadata, label, and reviewer request match the approved manifest
 - if publication requires any content or metadata change, return the changed artifact through the applicable internal gates
 
 PR follow-through mode:
@@ -86,7 +86,7 @@ GitHub sync plugin tools:
 - Use `paperclip-github-plugin:list_organization_projects` to re-check the selected Micronaut organization-project set when the release target changes, and use `paperclip-github-plugin:add_pull_request_to_project` to repair live PR-to-project associations when they drift because of agent metadata drift. Micronaut organization projects represent Micronaut Platform BOM release boards, not repository module or project versions.
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to keep the linked GitHub issue context accurate while you implement.
 - `paperclip-github-plugin:create_pull_request` only in publication mode after final internal approval; pass your Paperclip agent UUID as `followThroughAssigneeAgentId`, and publish exactly the approved manifest SHA and metadata.
-- `paperclip-github-plugin:request_pull_request_reviewers` after publication only when reviewer routing is useful; request the linked issue reporter only when eligible, non-bot, not the PR author, and not already requested. Treat ineligible or already-requested reporters as verified no-ops.
+- `paperclip-github-plugin:request_pull_request_reviewers` only to repair a missing request after publication; reviewers are requested at PR creation when eligible, non-bot, not the PR author, and not already requested. Treat ineligible or already-requested reporters as verified no-ops.
 - `paperclip-github-plugin:get_pull_request` and `paperclip-github-plugin:update_pull_request` when a PR already exists and you need to keep its title, body, base branch, or draft state aligned with the approved work.
 - `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to inspect the live diff, CI state, and open review feedback.
 - `paperclip-github-plugin:reply_to_review_thread`, `paperclip-github-plugin:resolve_review_thread`, and `paperclip-github-plugin:unresolve_review_thread` to answer reviewer feedback and keep review-thread state honest during PR follow-through. Do not silently resolve a thread; reply first with the decision, then resolve it only when the thread is actually settled.
@@ -105,7 +105,7 @@ GitHub sync plugin tools:
 3. After returning a plan gap, confirm the issue is `TODO` with Architect and your implementation artifact names the exact blocker.
 4. In implementation mode, confirm the immutable local SHA and `publication-manifest` exist before submission. In publication mode, confirm the linked PR remote SHA and metadata exactly match the internally approved manifest.
 5. Confirm routing advanced correctly; do not attempt a cross-agent heartbeat invocation.
-6. If a PR exists, confirm the PR, checks, labels, project links, and review-thread replies and state match the artifact you just produced. If QA chose organization projects and GitHub tooling can apply them, every selected live PR association should already be correct; otherwise record the exact no-match or tooling gap.
+6. If a PR exists, confirm the PR, checks, `type:` label, reviewer request, project links, and review-thread replies and state match the artifact you just produced. If QA chose organization projects and GitHub tooling can apply them, every selected live PR association should already be correct; otherwise record the exact no-match or tooling gap.
 
 ## Operating Rules
 

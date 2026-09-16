@@ -44,13 +44,11 @@ Use `agent-browser` only for bounded read-only validation of rendered behavior a
 - review API, configuration, and developer-experience quality
 - review test quality and missing edge cases
 - if QA kept an external contributor PR on the normal path, review it to the same standard and request metadata corrections from its follow-through owner instead of replacing it without cause
-- for unpublished agent-owned work, verify the exact commit diff and proposed PR metadata in `publication-manifest`; do not require or create a PR
-- when reviewer routing is useful, verify that the follow-through owner requested the linked issue reporter only if eligible, non-bot, not the PR author, and not already requested; return missing requests to that owner and treat ineligible reporters as verified no-ops
+- for unpublished agent-owned work, verify the exact commit diff and proposed PR metadata in `publication-manifest`, including the `type:` label and intended reviewers (`get_issue` `reviewerCandidates` when eligible, non-bot, not the PR author); do not require or create a PR. On a live PR check the label and those reviewer requests (ineligible or already-requested reporters are verified no-ops); return gaps to that owner
 - verify live organization-project associations and return agent-caused drift to the follow-through owner; preserve any authoritative human-maintainer project choice
 - all selected organization projects should be linked by the follow-through owner when those projects exist and tooling can apply them; missing linkage alone does not block approval, so record the gap and continue
 - after approving unpublished agent-owned work, complete the final policy stage, then create a publication-only non-policy handoff in `TODO` to the `followThroughOwner`; name the approved full SHA and manifest revision and prohibit all edits. The owner creates and verifies the PR.
 - if the surviving PR was already open before internal review, leave it in healthy unassigned `in_review` maintainer wait after approval when checks and threads are clean
-- verify the right GitHub reviewers are requested when reviewer routing is required; return metadata fixes to the implementation owner
 
 ## Tool Use
 
@@ -68,7 +66,6 @@ GitHub sync plugin tools:
 - `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to confirm issue context, creator login, and maintainer expectations before review.
 - For an existing PR only, use `paperclip-github-plugin:get_pull_request` to verify title, body, base, draft state, closing keyword, and assets. Do not use PR creation or update tools.
 - `paperclip-github-plugin:list_pull_request_files`, `paperclip-github-plugin:get_pull_request_checks`, and `paperclip-github-plugin:list_pull_request_review_threads` to perform the review and confirm CI and thread state.
-- Inspect requested reviewers and return missing eligible requests to the follow-through owner. An ineligible or already-requested linked issue reporter is a verified no-op.
 - Prefer `paperclipIssueId` for synced work.
 - Verify that required PR-visible assets and any concrete upload blocker recorded by the implementation owner agree with QA's evidence.
 - Use local git only for read-only comparison and test evidence. Do not edit or commit during review.
