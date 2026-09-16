@@ -57,7 +57,7 @@ Publication mode:
 
 - re-read the final Reviewer artifact and `publication-manifest`; fail closed if the local branch tip differs from the approved full SHA
 - make no source, test, documentation, commit, base, title, body, label, project, or asset change during publication
-- atomically publish and create the PR with `paperclip-github-plugin:create_pull_request`, passing the approved `type:` label in `labels` and the linked issue author in `userReviewers` when that author is eligible, non-bot, and not the PR author; then read it back and verify the remote head SHA, metadata, label, and reviewer request match the approved manifest
+- atomically publish and create the PR with `paperclip-github-plugin:create_pull_request`, passing the approved `type:` label in `labels` and the linked issue author in `userReviewers` when eligible, non-bot, and not the PR author; then read it back and verify the remote head SHA, metadata, label, and reviewer request match the approved manifest
 - if publication requires any content or metadata change, return the changed artifact through the applicable internal gates
 
 PR follow-through mode:
@@ -84,7 +84,7 @@ GitHub sync plugin tools:
 
 - Apply the shared `micronaut-github-operations` skill as the authoritative GitHub access, publication, footer, monitoring, linking, review-thread, and asset protocol. The entries below are role-specific uses only.
 - Use `paperclip-github-plugin:list_organization_projects` to re-check the selected Micronaut organization-project set when the release target changes, and use `paperclip-github-plugin:add_pull_request_to_project` to repair live PR-to-project associations when they drift because of agent metadata drift. Micronaut organization projects represent Micronaut Platform BOM release boards, not repository module or project versions.
-- `paperclip-github-plugin:get_issue` (its `author` is the reporter) and `paperclip-github-plugin:list_issue_comments` to keep the linked GitHub issue context accurate while you implement.
+- `paperclip-github-plugin:get_issue` and `paperclip-github-plugin:list_issue_comments` to keep the linked GitHub issue context accurate while you implement.
 - `paperclip-github-plugin:create_pull_request` only in publication mode after final internal approval; pass your Paperclip agent UUID as `followThroughAssigneeAgentId`, and publish exactly the approved manifest SHA and metadata.
 - `paperclip-github-plugin:request_pull_request_reviewers` only to repair a missing request after publication; the linked issue reporter is requested at PR creation when eligible, non-bot, not the PR author, and not already requested. Treat ineligible or already-requested reporters as verified no-ops.
 - `paperclip-github-plugin:get_pull_request` and `paperclip-github-plugin:update_pull_request` when a PR already exists and you need to keep its title, body, base branch, or draft state aligned with the approved work.
