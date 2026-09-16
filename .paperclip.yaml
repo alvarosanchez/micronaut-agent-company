@@ -23,6 +23,7 @@ agents:
           label: Claude Haiku 4.5
           adapterConfig:
             model: claude-haiku-4-5
+            effort: ""
   product-manager:
     adapter:
       type: claude_local
@@ -42,6 +43,7 @@ agents:
           label: Claude Haiku 4.5
           adapterConfig:
             model: claude-haiku-4-5
+            effort: ""
   architect:
     adapter:
       type: claude_local
@@ -61,6 +63,7 @@ agents:
           label: Claude Haiku 4.5
           adapterConfig:
             model: claude-haiku-4-5
+            effort: ""
   qa-engineer:
     adapter:
       type: claude_local
@@ -80,6 +83,7 @@ agents:
           label: Claude Haiku 4.5
           adapterConfig:
             model: claude-haiku-4-5
+            effort: ""
   security-engineer:
     adapter:
       type: claude_local
@@ -99,6 +103,7 @@ agents:
           label: Claude Haiku 4.5
           adapterConfig:
             model: claude-haiku-4-5
+            effort: ""
   micronaut-engineer:
     adapter:
       type: claude_local
@@ -118,6 +123,7 @@ agents:
           label: Claude Haiku 4.5
           adapterConfig:
             model: claude-haiku-4-5
+            effort: ""
   code-reviewer:
     adapter:
       type: codex_local
@@ -157,6 +163,7 @@ agents:
           label: Claude Haiku 4.5
           adapterConfig:
             model: claude-haiku-4-5
+            effort: ""
 routines:
   monthly-product-discovery:
     status: active

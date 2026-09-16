@@ -20,7 +20,7 @@ const CODEX_ADAPTER = "codex_local";
 const CLAUDE_CHEAP_PROFILE = {
   enabled: true,
   label: "Claude Haiku 4.5",
-  adapterConfig: { model: "claude-haiku-4-5" },
+  adapterConfig: { model: "claude-haiku-4-5", effort: "" },
 };
 const CODEX_CHEAP_PROFILE = {
   enabled: true,
@@ -203,7 +203,15 @@ test("package agents configure the cheap model profile for their adapter", async
   );
 });
 
-test("Claude Haiku cheap profiles never set effort (ACP rejects it for Haiku 4.5)", async () => {
+test("Claude Haiku cheap profiles override the inherited effort with an empty string", async () => {
   const yaml = await readFile(new URL("../.paperclip.yaml", import.meta.url), "utf8");
-  assert.doesNotMatch(yaml, /model: claude-haiku-4-5\n\s+effort:/, "a Haiku cheap profile must not carry an effort option");
+  // The host merges the agent's base adapterConfig under the profile's adapterConfig, so a Haiku
+  // profile inherits the primary model's `effort` unless it overrides it. The Claude ACP lane
+  // rejects `effort` for Haiku 4.5 ("does not advertise config option 'effort'") but omits an
+  // empty string, so every Haiku profile must carry `effort: ""` explicitly.
+  const haikuProfiles = yaml.match(/model: claude-haiku-4-5\n(\s+)effort: ""/g) ?? [];
+  const haikuModels = yaml.match(/model: claude-haiku-4-5\n/g) ?? [];
+  assert.ok(haikuModels.length > 0, "expected Haiku cheap profiles");
+  assert.equal(haikuProfiles.length, haikuModels.length, "every Haiku cheap profile must set effort to an empty string");
+  assert.doesNotMatch(yaml, /model: claude-haiku-4-5\n\s+effort: "?(low|medium|high)"?/, "a Haiku cheap profile must not carry a real effort value");
 });
