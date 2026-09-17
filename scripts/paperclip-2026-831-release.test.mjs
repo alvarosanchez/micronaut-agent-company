@@ -72,7 +72,7 @@ test("package agents explicitly cap heartbeat concurrency below the runtime defa
     assert.match(
       markdown,
       /20 concurrent runs per agent[\s\S]{0,200}paperclipai@2026\.916\.0[\s\S]{0,400}maxConcurrentRuns: 1/i,
-      "Docs must document the 2026.831.1 concurrency default and the package override.",
+      "Docs must document the 2026.916.0 concurrency default and the package override.",
     );
   }
 });
@@ -125,7 +125,7 @@ test("guidance re-verifies the assigned-issue status default and planning mode a
     assert.match(
       markdown,
       /Paperclip v2026\.512\.0, still true in (?:the current )?`paperclipai@2026\.916\.0`[\s\S]{0,400}assigned[\s\S]{0,360}(?:todo|TODO)[\s\S]{0,360}(?:explicit|omitted)/i,
-      `${relativePath} must document that assigned issues still default to todo in paperclipai@2026.831.1.`,
+      `${relativePath} must document that assigned issues still default to todo in paperclipai@2026.916.0.`,
     );
     assert.doesNotMatch(markdown, /paperclipai@2026\.626/, `${relativePath} must not cite the superseded 2026.626 runtime.`);
   }

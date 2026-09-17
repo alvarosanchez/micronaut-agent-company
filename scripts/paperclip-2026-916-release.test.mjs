@@ -1,8 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 import YAML from "yaml";
+
+const REPO_ROOT = fileURLToPath(new URL("../", import.meta.url));
+
+async function trackedMarkdown() {
+  const result = spawnSync("git", ["ls-files", "*.md"], { cwd: REPO_ROOT, encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout.split("\n").filter(Boolean);
+}
 
 const PAPERCLIP_RELEASE_UNDER_TEST = "2026.916.0";
 
@@ -55,27 +65,32 @@ test("parking an issue in in_review always names a human review path", async () 
     "parking must be a silent PATCH so it does not wake anyone.",
   );
 
-  // No role or skill may still tell an agent to park an issue with nobody on it.
-  for (const relativePath of [
-    "../README.md",
-    "../COMPANY.md",
-    "../agents/qa-engineer/AGENTS.md",
-    "../agents/micronaut-engineer/AGENTS.md",
-    "../agents/technical-writer/AGENTS.md",
-    "../agents/code-reviewer/AGENTS.md",
-    "../agents/ceo/AGENTS.md",
-    "../skills/micronaut-repo-operations/SKILL.md",
-    "../skills/micronaut-repo-operations/references/workflow-control-plane.md",
-    "../skills/micronaut-repo-operations/references/pr-delivery-evidence.md",
-    "../skills/micronaut-quality-gates/SKILL.md",
-    "../skills/company-package-evolution/SKILL.md",
-    "../skills/ceo-issue-history/references/maintenance-lanes.md",
-  ]) {
-    assert.doesNotMatch(
-      await read(relativePath),
-      /unassigned (?:`?in_review`?|maintainer wait)|`?in_review`? (?:and |parked )?unassigned|remain unassigned/i,
-      `${relativePath} must not describe maintainer wait as an unassigned issue.`,
-    );
+  // No role, task, or skill may still tell an agent to park an issue with nobody on it.
+  // The check is deliberately blunt: any sentence that puts "maintainer wait" and
+  // "unassigned" near each other contradicts the parking contract, whatever its phrasing.
+  // `todo` legitimately may be unassigned, so only maintainer-wait prose is in scope.
+  const parkingSurfaces = (await trackedMarkdown()).filter(
+    (path) => !path.startsWith("docs/superpowers/"),
+  );
+  for (const relativePath of parkingSurfaces) {
+    const markdown = await read(`../${relativePath}`);
+    for (const line of markdown.split("\n")) {
+      // "`todo` may be assigned or unassigned" is still true and may share a line with
+      // `in_review`, so only flag "unassigned" tied to maintainer wait or to parking.
+      const contradictions = [
+        /maintainer wait[^.!?]{0,200}unassigned|unassigned[^.!?]{0,200}maintainer wait/i,
+        /`?in_review`?[^.!?]{0,40}unassigned|unassigned[^.!?]{0,40}`?in_review`?/i,
+        /`?IN_REVIEW`?[^.!?]{0,40}unassigned|unassigned[^.!?]{0,40}`?IN_REVIEW`?/,
+        /park(?:s|ed|ing)?[^.!?]{0,60}unassigned/i,
+      ];
+      for (const contradiction of contradictions) {
+        assert.doesNotMatch(
+          line,
+          contradiction,
+          `${relativePath} must not describe maintainer wait as an unassigned issue: ${line.slice(0, 200)}`,
+        );
+      }
+    }
   }
 });
 
