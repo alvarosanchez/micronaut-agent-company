@@ -7,7 +7,7 @@ recurring: true
 
 Analyze all other agents' past executions since the last Training pass, then propose improvements to their technology, domain, stack, tool, library, and external service coverage through approved reusable skills from https://skills.sh or company-owned skills when no suitable external skill exists. CEO discovers and governs. Routine approved referenced skills use the lightweight implementation route below; only risky, ambiguous, or company-authored skills start with QA intake. CEO never installs, assigns, authors, or publishes a skill.
 
-Training is not a generic Paperclip workflow-performance review. Queue health, handoff correctness, Paperclip usage patterns, and productivity-review findings belong to the monthly CEO self-improvement routine or `issue_productivity_review` handling unless they reveal a reusable technology or domain skill need.
+Training is not a generic Paperclip workflow-performance review. Queue health, handoff correctness, and Paperclip usage patterns belong to the monthly CEO self-improvement routine unless they reveal a reusable technology or domain skill need.
 
 Start by finding the previous Training report or routine run. Use that timestamp, report id, or run id as the boundary for this pass. If no previous pass exists, inspect the recent imported company history that is available in the current Paperclip instance and record the first-pass boundary you chose.
 

@@ -39,7 +39,15 @@ const PRIMARY_MODEL_CONFIG = {
   "technical-writer": { adapter: CLAUDE_ADAPTER, model: "claude-sonnet-5", effort: "medium" },
 };
 
-const CLAUDE_CONFIG_KEYS = ["engine", "model", "effort", "dangerouslySkipPermissions", "timeoutSec", "graceSec"];
+const CLAUDE_CONFIG_KEYS = [
+  "engine",
+  "model",
+  "effort",
+  "dangerouslySkipPermissions",
+  "permissionMode",
+  "timeoutSec",
+  "graceSec",
+];
 const CODEX_CONFIG_KEYS = [
   "engine",
   "model",
@@ -83,6 +91,11 @@ test("package adapter matrix pins the exact adapter, model, and effort per role"
     } else {
       assert.equal(config.effort, expected.effort, `${agentSlug} must pin Claude effort.`);
       assert.equal(config.dangerouslySkipPermissions, true, `${agentSlug} must run Claude Code without permission prompts.`);
+      assert.equal(
+        config.permissionMode,
+        "approve-all",
+        `${agentSlug} must state its ACP permission mode explicitly; the ACP lane ignores dangerouslySkipPermissions.`,
+      );
       assert.deepEqual(Object.keys(config).sort(), [...CLAUDE_CONFIG_KEYS].sort(), `${agentSlug} must carry only the approved claude_local keys.`);
     }
     for (const forbidden of ["cwd", "command", "env", "extraArgs", "toolsets", "hermesCommand", "provider"]) {
@@ -182,36 +195,29 @@ test("role guidance does not require CodeGraph on coding tasks", async () => {
   }
 });
 
-test("package agents configure the cheap model profile for their adapter", async () => {
-  const extension = YAML.parse(await read("../.paperclip.yaml"));
-  const readme = await read("../README.md");
+test("package agents keep the single-run heartbeat cap and carry no retired model profiles", async () => {
+  const yaml = await read("../.paperclip.yaml");
+  const extension = YAML.parse(yaml);
 
   for (const [agentSlug, agent] of Object.entries(extension.agents ?? {})) {
-    const expectedProfile = agent?.adapter?.type === CODEX_ADAPTER ? CODEX_CHEAP_PROFILE : CLAUDE_CHEAP_PROFILE;
-    assert.deepEqual(
-      agent?.runtime?.modelProfiles?.cheap,
-      expectedProfile,
-      `${agentSlug} must configure the Paperclip cheap model profile for its adapter.`,
-    );
     assert.equal(agent?.runtime?.heartbeat?.maxConcurrentRuns, 1, `${agentSlug} must keep the single-run heartbeat cap.`);
+    assert.equal(
+      agent?.runtime?.modelProfiles,
+      undefined,
+      `${agentSlug} must not carry runtime.modelProfiles; Paperclip removed model profiles in 2026.916.0.`,
+    );
   }
+
+  assert.doesNotMatch(yaml, /modelProfiles|claude-haiku-4-5|gpt-5\.6-luna/, "the package must not reference retired cheap model profiles.");
+});
+
+test("README documents the explicit ACP permission mode and no longer advertises cheap profiles", async () => {
+  const readme = await read("../README.md");
 
   assert.match(
     readme,
-    /cheap model profile[\s\S]{0,320}claude-haiku-4-5[\s\S]{0,320}gpt-5\.6-luna/i,
-    "README must document both cheap model profiles.",
+    /permissionMode: approve-all/,
+    "README must document the explicit ACP permission mode.",
   );
-});
-
-test("Claude Haiku cheap profiles override the inherited effort with an empty string", async () => {
-  const yaml = await readFile(new URL("../.paperclip.yaml", import.meta.url), "utf8");
-  // The host merges the agent's base adapterConfig under the profile's adapterConfig, so a Haiku
-  // profile inherits the primary model's `effort` unless it overrides it. The Claude ACP lane
-  // rejects `effort` for Haiku 4.5 ("does not advertise config option 'effort'") but omits an
-  // empty string, so every Haiku profile must carry `effort: ""` explicitly.
-  const haikuProfiles = yaml.match(/model: claude-haiku-4-5\n(\s+)effort: ""/g) ?? [];
-  const haikuModels = yaml.match(/model: claude-haiku-4-5\n/g) ?? [];
-  assert.ok(haikuModels.length > 0, "expected Haiku cheap profiles");
-  assert.equal(haikuProfiles.length, haikuModels.length, "every Haiku cheap profile must set effort to an empty string");
-  assert.doesNotMatch(yaml, /model: claude-haiku-4-5\n\s+effort: "?(low|medium|high)"?/, "a Haiku cheap profile must not carry a real effort value");
+  assert.doesNotMatch(readme, /cheap model profile|claude-haiku-4-5|gpt-5\.6-luna/i, "README must not advertise retired cheap model profiles.");
 });

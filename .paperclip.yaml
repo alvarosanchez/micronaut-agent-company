@@ -12,18 +12,12 @@ agents:
         model: claude-opus-5
         effort: medium
         dangerouslySkipPermissions: true
+        permissionMode: approve-all
         timeoutSec: 7200
         graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: Claude Haiku 4.5
-          adapterConfig:
-            model: claude-haiku-4-5
-            effort: ""
   product-manager:
     adapter:
       type: claude_local
@@ -32,18 +26,12 @@ agents:
         model: claude-opus-5
         effort: medium
         dangerouslySkipPermissions: true
+        permissionMode: approve-all
         timeoutSec: 7200
         graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: Claude Haiku 4.5
-          adapterConfig:
-            model: claude-haiku-4-5
-            effort: ""
   architect:
     adapter:
       type: claude_local
@@ -52,18 +40,12 @@ agents:
         model: claude-fable-5-1
         effort: high
         dangerouslySkipPermissions: true
+        permissionMode: approve-all
         timeoutSec: 7200
         graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: Claude Haiku 4.5
-          adapterConfig:
-            model: claude-haiku-4-5
-            effort: ""
   qa-engineer:
     adapter:
       type: claude_local
@@ -72,18 +54,12 @@ agents:
         model: claude-opus-5
         effort: high
         dangerouslySkipPermissions: true
+        permissionMode: approve-all
         timeoutSec: 7200
         graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: Claude Haiku 4.5
-          adapterConfig:
-            model: claude-haiku-4-5
-            effort: ""
   security-engineer:
     adapter:
       type: claude_local
@@ -92,18 +68,12 @@ agents:
         model: claude-opus-5
         effort: high
         dangerouslySkipPermissions: true
+        permissionMode: approve-all
         timeoutSec: 7200
         graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: Claude Haiku 4.5
-          adapterConfig:
-            model: claude-haiku-4-5
-            effort: ""
   micronaut-engineer:
     adapter:
       type: claude_local
@@ -112,18 +82,12 @@ agents:
         model: claude-opus-5
         effort: high
         dangerouslySkipPermissions: true
+        permissionMode: approve-all
         timeoutSec: 7200
         graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: Claude Haiku 4.5
-          adapterConfig:
-            model: claude-haiku-4-5
-            effort: ""
   code-reviewer:
     adapter:
       type: codex_local
@@ -137,13 +101,6 @@ agents:
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: GPT-5.6 Luna
-          adapterConfig:
-            model: gpt-5.6-luna
-            modelReasoningEffort: low
   technical-writer:
     adapter:
       type: claude_local
@@ -152,18 +109,12 @@ agents:
         model: claude-sonnet-5
         effort: medium
         dangerouslySkipPermissions: true
+        permissionMode: approve-all
         timeoutSec: 7200
         graceSec: 20
     runtime:
       heartbeat:
         maxConcurrentRuns: 1
-      modelProfiles:
-        cheap:
-          enabled: true
-          label: Claude Haiku 4.5
-          adapterConfig:
-            model: claude-haiku-4-5
-            effort: ""
 routines:
   monthly-product-discovery:
     status: active

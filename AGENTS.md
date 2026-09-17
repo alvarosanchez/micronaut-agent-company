@@ -55,7 +55,7 @@ For Node 22 compatibility of the package scripts, run:
 npm run test:node22
 ```
 
-`paperclipai@2026.831.1` requires Node >= 24.11, so the import verifier only runs under Node 24.
+`paperclipai@2026.916.0` requires Node >= 24.11, so the import verifier only runs under Node 24.
 
 `node scripts/verify-paperclip-import.mjs` boots an isolated Paperclip instance, imports the package through the Paperclip API, checks created entities, exports the company, and verifies round-trip behavior. Use it for any change that affects `.paperclip.yaml`, agent metadata, routines, skills, projects, teams, or import/export assumptions.
 
@@ -69,7 +69,7 @@ npm run test:node22
 
 ## Runtime defaults to preserve
 
-The package targets Paperclip 2026.831.1 built-in adapters: `claude_local` (`engine: auto`, `dangerouslySkipPermissions: true`) for every role except the Code Reviewer, which uses `codex_local` (`gpt-6-astra`, `dangerouslyBypassApprovalsAndSandbox: true`) so reviews come from an independent, metered model family. Do not add package roles to Codex casually. Keep README, `.paperclip.yaml`, agent operating profiles, `llmModel` literals, and tests in sync when changing this contract.
+The package targets Paperclip 2026.916.0 built-in adapters: `claude_local` (`engine: auto`, `permissionMode: approve-all`) for every role except the Code Reviewer, which uses `codex_local` (`gpt-6-astra`, `dangerouslyBypassApprovalsAndSandbox: true`) so reviews come from an independent, metered model family. Do not add package roles to Codex casually. Keep README, `.paperclip.yaml`, agent operating profiles, `llmModel` literals, and tests in sync when changing this contract.
 
 The package intentionally caps package-owned agent heartbeat concurrency at one active run per agent via `.paperclip.yaml` while the workflow is tuned for one owned work item per role. Do not raise this casually.
 

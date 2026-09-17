@@ -5,21 +5,21 @@ import { readFile } from "node:fs/promises";
 import YAML from "yaml";
 
 const TEN_MIB = 10 * 1024 * 1024;
-const PAPERCLIP_RELEASE_UNDER_TEST = "2026.831.1";
+const PAPERCLIP_RELEASE_UNDER_TEST = "2026.916.0";
 const PACKAGE_AGENT_MAX_CONCURRENT_RUNS = 1;
 
 async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("package pins the Paperclip v2026.831.1 runtime for local verification", async () => {
+test("package pins the Paperclip v2026.916.0 runtime for local verification", async () => {
   const packageJson = JSON.parse(await read("../package.json"));
   const setupScript = await read("./setup-local-paperclip-instance.mjs");
 
   assert.equal(packageJson.devDependencies.paperclipai, PAPERCLIP_RELEASE_UNDER_TEST);
   assert.match(
     setupScript,
-    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.831\.1"/,
+    /DEFAULT_PAPERCLIP_PACKAGE\s*=\s*"paperclipai@2026\.916\.0"/,
   );
 });
 
@@ -41,7 +41,7 @@ test("import verification fails fast when the Paperclip package or Node runtime 
     />=24\.11\.0/,
     "verify-paperclip-import must enforce the pinned Paperclip runtime's Node >= 24.11 engine floor.",
   );
-  assert.doesNotMatch(source, /\^20\.19\.0|\^22\.12\.0/, "Node 20/22 are no longer supported by paperclipai@2026.831.1.");
+  assert.doesNotMatch(source, /\^20\.19\.0|\^22\.12\.0/, "Node 20/22 are no longer supported by paperclipai@2026.916.0.");
 });
 
 test("import verification compares the built-in claude_local and codex_local adapter configs", async () => {
@@ -71,7 +71,7 @@ test("package agents explicitly cap heartbeat concurrency below the runtime defa
   for (const markdown of [readme, company]) {
     assert.match(
       markdown,
-      /20 concurrent runs per agent[\s\S]{0,200}paperclipai@2026\.831\.1[\s\S]{0,400}maxConcurrentRuns: 1/i,
+      /20 concurrent runs per agent[\s\S]{0,200}paperclipai@2026\.916\.0[\s\S]{0,400}maxConcurrentRuns: 1/i,
       "Docs must document the 2026.831.1 concurrency default and the package override.",
     );
   }
@@ -124,7 +124,7 @@ test("guidance re-verifies the assigned-issue status default and planning mode a
 
     assert.match(
       markdown,
-      /Paperclip v2026\.512\.0, still true in (?:the current )?`paperclipai@2026\.831\.1`[\s\S]{0,400}assigned[\s\S]{0,360}(?:todo|TODO)[\s\S]{0,360}(?:explicit|omitted)/i,
+      /Paperclip v2026\.512\.0, still true in (?:the current )?`paperclipai@2026\.916\.0`[\s\S]{0,400}assigned[\s\S]{0,360}(?:todo|TODO)[\s\S]{0,360}(?:explicit|omitted)/i,
       `${relativePath} must document that assigned issues still default to todo in paperclipai@2026.831.1.`,
     );
     assert.doesNotMatch(markdown, /paperclipai@2026\.626/, `${relativePath} must not cite the superseded 2026.626 runtime.`);
@@ -185,44 +185,41 @@ test("execution-stage guidance still treats approvalsNeeded as the literal 1", a
     const markdown = await read(relativePath);
     assert.match(
       markdown,
-      /paperclipai@2026\.831\.1[\s\S]{0,200}approvalsNeeded: 1[\s\S]{0,300}(?:separate sequential stages|single multi-participant stage)/i,
+      /paperclipai@2026\.916\.0[\s\S]{0,200}approvalsNeeded: 1[\s\S]{0,300}(?:separate sequential stages|single multi-participant stage)/i,
       `${relativePath} must keep sequential stages because approvalsNeeded is still the literal 1.`,
     );
   }
 });
 
-test("operating guidance handles productivity review issues as first-class queue-health work", async () => {
+test("operating guidance no longer carries automatic productivity reviews", async () => {
+  // Paperclip removed the productivity-review detector in 2026.916.0; the origin kind survives
+  // only as a legacy enum value, so instructions must not tell agents to expect those issues.
   const requiredPaths = [
     "../README.md",
     "../COMPANY.md",
     "../agents/ceo/AGENTS.md",
     "../tasks/monthly-ceo-self-improvement/TASK.md",
     "../tasks/verify-imported-company-instance/TASK.md",
+    "../tasks/training/TASK.md",
     "../skills/micronaut-repo-operations/references/workflow-control-plane.md",
     "../skills/micronaut-quality-gates/SKILL.md",
   ];
 
   for (const relativePath of requiredPaths) {
     const markdown = await read(relativePath);
-    assert.match(markdown, /productivity review/i, `${relativePath} must mention Paperclip productivity reviews.`);
-    assert.match(
+    assert.doesNotMatch(
       markdown,
-      /issue_productivity_review|no-comment|long-active|high-churn|high churn|long active/i,
-      `${relativePath} must name the productivity review origin or triggers.`,
-    );
-    assert.match(
-      markdown,
-      /source issue|source work|review issue|manager decision|queue-health|queue health/i,
-      `${relativePath} must explain how to route the review against the source work.`,
+      /productivity review|issue_productivity_review/i,
+      `${relativePath} must not instruct agents about retired Paperclip productivity reviews.`,
     );
   }
 });
 
-test("source verification enforces the attachment and productivity-review guidance", async () => {
+test("source verification enforces the attachment guidance", async () => {
   const source = await read("./verify-paperclip-import.mjs");
 
   assert.match(source, /README\.md must document the explicit Paperclip company attachment cap\./);
-  assert.match(source, /README\.md must explain Paperclip productivity review issues\./);
+  assert.doesNotMatch(source, /productivity review/i);
 });
 
 const HOST_DEFAULT_DOC_PATHS = ["../README.md", "../COMPANY.md", "../tasks/verify-imported-company-instance/TASK.md"];
@@ -427,7 +424,7 @@ test("routine activity gating is documented as a live-company setting, not a pac
   }
 });
 
-test("guidance covers Paperclip v2026.831.1 runtime surfaces without hard-coding deployment choices", async () => {
+test("guidance covers Paperclip v2026.916.0 runtime surfaces without hard-coding deployment choices", async () => {
   const readme = await read("../README.md");
   const company = await read("../COMPANY.md");
   const verifyTask = await read("../tasks/verify-imported-company-instance/TASK.md");
@@ -437,8 +434,8 @@ test("guidance covers Paperclip v2026.831.1 runtime surfaces without hard-coding
   // Adapters and engine.
   assert.match(readme, /claude_local[\s\S]{0,400}codex_local[\s\S]{0,600}engine: auto/i);
   assert.match(readme, /ACP[\s\S]{0,200}persistent[\s\S]{0,300}PAPERCLIP_WORKSPACE_\*/);
-  assert.match(company, /engine: auto[\s\S]{0,400}PAPERCLIP_WORKSPACE_\*/);
-  assert.match(readme, /--dangerously-skip-permissions[\s\S]{0,200}policy, not a runtime guard/i);
+  assert.match(company, /engine: auto[\s\S]{0,700}PAPERCLIP_WORKSPACE_\*/);
+  assert.match(readme, /permissionMode: approve-all[\s\S]{0,200}policy, not a runtime guard/i);
 
   // Plugin tool access through the tool gateway.
   for (const [label, markdown] of [["README", readme], ["COMPANY", company], ["github-operations", githubOps], ["verify task", verifyTask]]) {

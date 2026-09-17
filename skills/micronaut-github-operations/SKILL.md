@@ -63,7 +63,7 @@ Use this shared skill for repeated GitHub rules that apply across Micronaut comp
 
 ## Durable PR Follow-Through Ownership
 
-- Every role-authorized implementation owner must pass its own Paperclip agent UUID as `followThroughAssigneeAgentId` when creating a PR or first linking an out-of-pipeline PR. This durable owner is distinct from the issue's current assignee and survives a healthy unassigned maintainer wait.
+- Every role-authorized implementation owner must pass its own Paperclip agent UUID as `followThroughAssigneeAgentId` when creating a PR or first linking an out-of-pipeline PR. This durable owner is distinct from the issue's current assignee and survives a healthy maintainer wait.
 - To hand off an existing linked PR to another implementation owner, call `paperclip-github-plugin:link_github_item` again for the same Paperclip issue and PR with the new owner's UUID. Passing the same UUID is idempotent.
 - Omitting `followThroughAssigneeAgentId` on a later repair or relink preserves the recorded owner; omission never clears it. Pass explicit `null` only when an authorized board/workflow decision intentionally removes durable follow-through ownership, and record that reason in the Paperclip issue.
 - Do not clear the durable owner merely because the PR is currently clean, green, mergeable, or waiting unassigned for maintainer review. Later CI failures, conflicts, or review threads must return to the recorded implementation owner.

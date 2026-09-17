@@ -9,7 +9,7 @@ Use this skill whenever you act on synced GitHub issues or pull requests for thi
 
 ## Load The Right Reference
 
-- Stage routing, Paperclip APIs, interactions, approvals, planning confirmation, productivity reviews, environments, liveness recovery, dependencies, and final-state checks: `references/workflow-control-plane.md`.
+- Stage routing, Paperclip APIs, interactions, approvals, planning confirmation, environments, liveness recovery, dependencies, and final-state checks: `references/workflow-control-plane.md`.
 - QA intake, issue types, closure dispositions, release targeting, target branches, Micronaut organization projects, documentation policy, and imported issues with existing PRs: `references/intake-routing-release.md`.
 - GitHub Sync tool names, authentication boundaries, footer behavior, PR linking, KPI attribution, monitor ownership, link immutability, review threads, and assets: first follow `micronaut-github-operations`; load `references/github-sync-tools.md` only when an uncommon or legacy detail is still needed.
 - Internal routines, project children, no-diff outcomes, product discovery, guide work, package evolution, and `.company-runtime/` overlays: `references/internal-routines-overlays.md`.
@@ -36,7 +36,7 @@ Use the separately assigned read-only `paperclip-control-plane` skill for determ
 - Every substantive stage produces one durable artifact, written explicitly to a keyed document or comment: the host does not post your reasoning and summarizes only the final output segment. QA keeps `qa-intake` and `qa-verification` separate.
 - Approve an active stage with `status: done` and a decision comment. Request changes with a non-`done` status, preferably `in_progress`, and a precise decision comment. Manual `TODO` assignment is only for owner changes outside an active review policy.
 - Let execution-policy advancement or assignment wake the next participant. Agent-authenticated callers must not invoke another agent's heartbeat or use `@` mentions as routing.
-- For synced GitHub delivery work, `approved` advances the workflow; it never authorizes an agent to mark the Paperclip item `DONE`. GitHub Sync sets `DONE` after a merge and `CANCELLED` after a not-planned or duplicate closure; park closed items `in_review` unassigned.
+- For synced GitHub delivery work, `approved` advances the workflow; it never authorizes an agent to mark the Paperclip item `DONE`. GitHub Sync sets `DONE` after a merge and `CANCELLED` after a not-planned or duplicate closure; park closed items `in_review` on the issue's `responsibleUserId` (916 refuses an agent-authored `in_review` with no review path).
 - Board governance uses a linked Paperclip approval. Non-governance input uses issue interactions such as `suggest_tasks`, `ask_user_questions`, or `request_confirmation`. Put the exact proposed public comment in `recommendedAction` when approval gates a maintainer-visible write.
 - Use standard work mode for delivery, routine project children, product proposals, and PR follow-through. Planning mode is only for explicit plan-only precursors; accepted plans create standard-mode children through accepted-plan decomposition.
 - Work only in repositories configured by this company's GitHub Sync plugin. Read repo-local `AGENTS.md`, optional `.company-runtime/` overlays, and project docs for local facts; do not infer membership, branch strategy, release policy, docs layout, or tests from another repository.
@@ -50,10 +50,6 @@ Use the separately assigned read-only `paperclip-control-plane` skill for determ
 - Routine prose and executable docs use Writer -> QA -> Code Reviewer; security-sensitive docs use both Security stages, and workflow/authority semantics add Architect.
 - Questions, clarification waits, unreproducible reports, duplicates, and already-implemented reports may use QA's evidence-backed direct disposition path.
 - Existing contributor PRs remain on normal gates when salvageable; replacement work does not require closing the contributor PR.
-
-## Model Profile Boundary
-
-The `cheap` profile may classify wakeups, test adapter availability, read bounded inventory, and detect deterministic no-op states. It must not approve or reject a stage, close or mutate a GitHub issue, publish or update a PR, make security or release-target decisions, request governance approval, or create durable product work. Escalate substantive decisions and all external writes to the agent's configured primary model.
 
 ## Finish
 

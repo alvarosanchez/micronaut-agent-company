@@ -48,7 +48,7 @@ Use `agent-browser` only for bounded read-only validation of rendered behavior a
 - verify live organization-project associations and return agent-caused drift to the follow-through owner; preserve any authoritative human-maintainer project choice
 - all selected organization projects should be linked by the follow-through owner when those projects exist and tooling can apply them; missing linkage alone does not block approval, so record the gap and continue
 - after approving unpublished agent-owned work, complete the final policy stage, then create a publication-only non-policy handoff in `TODO` to the `followThroughOwner`; name the approved full SHA and manifest revision and prohibit all edits. The owner creates and verifies the PR.
-- if the surviving PR was already open before internal review, leave it in healthy unassigned `in_review` maintainer wait after approval when checks and threads are clean
+- if the surviving PR was already open before internal review, leave it in healthy `in_review` maintainer wait after approval when checks and threads are clean
 
 ## Tool Use
 

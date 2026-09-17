@@ -27,7 +27,7 @@ For each accepted candidate, use `company-package-evolution` and end in one stat
 
 ## 2. Separate operational lanes
 
-Treat active Paperclip productivity review issues (`issue_productivity_review`) as first-class queue-health work. Correct their actionable source routes and stale handoffs directly, but do not report those corrections as new proposals. Align status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, blocker/next-action comment, and wake only when ownership permits. Read `GET /api/issues/{issueId}/diagnostics/blockers` and `GET /api/issues/{issueId}/diagnostics/wakes` before correcting a route so the correction targets the real cause; since Paperclip 2026.831 the host does not take stranded work over on its own. Use issue-thread interactions (`suggest_tasks`, `ask_user_questions`, or `request_confirmation`) for bounded non-governance input and linked approvals for governance.
+Correct actionable source routes and stale handoffs directly, but do not report those corrections as new proposals. Align status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, blocker/next-action comment, and wake only when ownership permits. Read `GET /api/issues/{issueId}/diagnostics/blockers` and `GET /api/issues/{issueId}/diagnostics/wakes` before correcting a route so the correction targets the real cause; since Paperclip 2026.831 the host does not take stranded work over on its own. Use issue-thread interactions (`suggest_tasks`, `ask_user_questions`, or `request_confirmation`) for bounded non-governance input and linked approvals for governance.
 
 Load the `maintenance-lanes.md` reference from `ceo-issue-history` for the mechanics below instead of expanding this prompt:
 
@@ -43,7 +43,7 @@ Store one compact Paperclip report under the stable `ceo` document key. Include:
 
 - `asOf`, exact window, coverage outcome, missing-resource ledger, and evidence JSON fingerprint/version;
 - ranked or rejected candidate counts and issue-level references; for each accepted candidate, threshold, stable fingerprint, cluster and quotable pattern, evidence tuples (issue, comment or run, verbatim fragment), root-cause hypothesis, exact action (minimal diff), expected still-passes replay set, why this change and not something bigger, deduplication result, governance path, state, owner, target surface, acceptance criterion, size impact, and risk;
-- direct handoff/productivity-review corrections and any interaction kind/idempotency key;
+- direct handoff corrections and any interaction kind/idempotency key;
 - a **Runtime Skill Sync** section with checked source/target and present, missing, no-op, or blocked verification;
 - a **Managed Repository AGENTS.md Audit** section with root-file classification and no-action or scoped Writer-child outcome per repository;
 - safe routing corrections and every created child's project, QA assignment, actual delivery/follow-through owner, acceptance criteria, plan depth, and conditional Security gates.

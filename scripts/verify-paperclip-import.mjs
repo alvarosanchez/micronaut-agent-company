@@ -128,8 +128,6 @@ const COMPANY_ATTACHMENT_LIMIT_PATTERN =
   /attachmentMaxBytes[\s\S]{0,260}10 MiB[\s\S]{0,260}process-level (?:attachment )?cap[\s\S]{0,260}(?:ceiling|final ceiling)|10 MiB[\s\S]{0,260}attachmentMaxBytes[\s\S]{0,260}(?:ceiling|final ceiling)/i;
 const NEW_HIRE_APPROVAL_POLICY_PATTERN =
   /requireBoardApprovalForNewAgents[\s\S]{0,260}false[\s\S]{0,260}(?:new-hire approval|hire approval|future hires)|new-hire approval[\s\S]{0,260}(?:opt-in|explicit)[\s\S]{0,260}requireBoardApprovalForNewAgents/i;
-const PRODUCTIVITY_REVIEW_PATTERN =
-  /productivity review[\s\S]{0,420}(?:issue_productivity_review|no-comment|long-active|high-churn|high churn|long active)[\s\S]{0,620}(?:source issue|source work|review issue|manager decision|queue-health|queue health)/i;
 const PAPERCLIP_2026_512_ASSIGNED_STATUS_DEFAULT_PATTERN =
   /Paperclip (?:v|`?paperclipai@)2026\.512\.0[\s\S]{0,900}assigned[\s\S]{0,360}status[\s\S]{0,260}(?:todo|TODO)[\s\S]{0,360}(?:explicit|omitted)/i;
 const PAPERCLIP_2026_512_PLANNING_MODE_PATTERN =
@@ -186,12 +184,6 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: NEW_HIRE_APPROVAL_POLICY_PATTERN,
     message:
       "README.md must document the explicit Paperclip new-hire approval policy.",
-  },
-  {
-    relativePath: "README.md",
-    pattern: PRODUCTIVITY_REVIEW_PATTERN,
-    message:
-      "README.md must explain Paperclip productivity review issues.",
   },
   {
     relativePath: "README.md",
@@ -439,12 +431,6 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
   },
   {
     relativePath: "COMPANY.md",
-    pattern: PRODUCTIVITY_REVIEW_PATTERN,
-    message:
-      "COMPANY.md must explain Paperclip productivity review issues.",
-  },
-  {
-    relativePath: "COMPANY.md",
     pattern:
       /GitHub prereleases[\s\S]*milestones[\s\S]*release candidates[\s\S]*do not count as the default branch having already shipped/i,
     message:
@@ -461,36 +447,6 @@ const REQUIRED_WORKFLOW_DOC_PATTERNS = [
     pattern: SOURCE_PACKAGE_PAPERCLIP_YAML_PATTERN,
     message:
       "Bootstrap verification must explain that `.paperclip.yaml` references describe source-package defaults rather than required live-instance files.",
-  },
-  {
-    relativePath: "tasks/verify-imported-company-instance/TASK.md",
-    pattern: PRODUCTIVITY_REVIEW_PATTERN,
-    message:
-      "Bootstrap verification must explain Paperclip productivity review issues.",
-  },
-  {
-    relativePath: "agents/ceo/AGENTS.md",
-    pattern: PRODUCTIVITY_REVIEW_PATTERN,
-    message:
-      "CEO instructions must explain how to handle Paperclip productivity review issues.",
-  },
-  {
-    relativePath: "tasks/monthly-ceo-self-improvement/TASK.md",
-    pattern: PRODUCTIVITY_REVIEW_PATTERN,
-    message:
-      "Monthly CEO self-improvement task must include productivity review queue-health work.",
-  },
-  {
-    relativePath: "skills/micronaut-repo-operations/references/workflow-control-plane.md",
-    pattern: PRODUCTIVITY_REVIEW_PATTERN,
-    message:
-      "Repo operations must explain Paperclip productivity review issues.",
-  },
-  {
-    relativePath: "skills/micronaut-quality-gates/SKILL.md",
-    pattern: PRODUCTIVITY_REVIEW_PATTERN,
-    message:
-      "Quality gates must explain Paperclip productivity review issues.",
   },
   {
     relativePath: "agents/qa-engineer/AGENTS.md",
@@ -1163,6 +1119,7 @@ function assertImportedAdapterConfig(actualAgent, expectedAdapter, agentSlug) {
         "model",
         "effort",
         "dangerouslySkipPermissions",
+        "permissionMode",
         "timeoutSec",
         "graceSec",
       ]
@@ -1249,15 +1206,10 @@ function assertImportedAgentRuntimeConfig(actualAgent, expectedRuntime, agentSlu
     }
   }
 
-  const expectedCheapProfile = expectedRuntime?.modelProfiles?.cheap ?? null;
-  if (!expectedCheapProfile) {
-    return;
-  }
-
-  assert.deepEqual(
-    actualAgent?.runtimeConfig?.modelProfiles?.cheap ?? null,
-    expectedCheapProfile,
-    `Runtime cheap model profile config mismatch for imported agent ${agentSlug}`,
+  assert.equal(
+    actualAgent?.runtimeConfig?.modelProfiles ?? null,
+    null,
+    `Imported agent ${agentSlug} must carry no runtimeConfig.modelProfiles; Paperclip removed model profiles in 2026.916.0`,
   );
 }
 
@@ -2179,7 +2131,7 @@ async function verifyGhCliExistingCompanyMigration(baseUrl, expected) {
 function isSupportedPaperclipNodeVersion(version = process.versions.node) {
   const [major = 0, minor = 0] = version.split(".").map((part) => Number(part));
 
-  // paperclipai@2026.831.1 declares engines.node >=24.11.0.
+  // paperclipai@2026.916.0 declares engines.node >=24.11.0.
   if (major === 24) {
     return minor >= 11;
   }
@@ -2198,7 +2150,7 @@ async function main() {
 
   assert.ok(
     isSupportedPaperclipNodeVersion(),
-    `Node ${process.version} is unsupported for paperclipai@2026.831.1. Use Node >=24.11.0.`,
+    `Node ${process.version} is unsupported for paperclipai@2026.916.0. Use Node >=24.11.0.`,
   );
 
   const expected = await loadSourceExpectations(repoRoot);

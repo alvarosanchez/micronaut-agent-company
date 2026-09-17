@@ -518,12 +518,12 @@ test("every active routine has a complete pinned imported invocation bundle", as
   }
 
   assert.deepEqual(digests, {
-    "monthly-product-discovery": "c0436f880735cea61e52f22a7019609a3c43e19e59077e53e6655b9571feb51d",
-    "monthly-security-deep-scan": "5231622f5bdadc8283fbf4d8b9066dce587aae62741aa2414e5ea27a722dddca",
-    "monthly-user-guide-review": "e2f444930e0a461683c8c320e4a9bde939d95f8f2ed752755411acf9994a5a48",
-    "monthly-guide-topic-discovery": "0c74c60edf9283d83dac4137bad49a985671597edb72c4b91856110f0363ff79",
-    "monthly-ceo-self-improvement": "784fc7558769dd6d3e84870bafd8a4ef759ef22b0e15721967a3c79a357b070f",
-    training: "bdc9d69930e508c534e782488a0d2150cda68950072f4ca1df07d26337d97f41",
+    "monthly-product-discovery": "cc4fd4ecb48afd79e33653b80e274f2feac9ab41c0d8cea771085ace58456a7a",
+    "monthly-security-deep-scan": "440a275309f4bd2d51ddad0d4b187c75e9ac5dc117deb289c24e1768351bc0ef",
+    "monthly-user-guide-review": "ec92b4b510f2176fbb42b7ec42327d0adc09f799f27421fd96db4a9295b7702c",
+    "monthly-guide-topic-discovery": "d0f9ed5bca0f0dee6e35f827502f48eedc25e3ef5e36bbb57520d3fd4e54df93",
+    "monthly-ceo-self-improvement": "3085551f733b8bb975740c1b5c755513cc050c9e0bc16c121556978124aece75",
+    training: "fc426738de749d7a10ec26584a53591566837bddf3ef022f8a53c06618fabc38",
   });
 });
 
@@ -545,7 +545,7 @@ test("CEO effective bundle is governance-only", async () => {
     assert.match(bundle, /Neither skill grants implementation or PR authority/i);
     assert.deepEqual(unsafeRootMutationAuthorities(bundle), [], "CEO effective routine bundle must not assign mutation authority to a governance or gate role");
     assert.deepEqual(unsafeMaintainerWaitMutations(bundle), ["- `in_review` with no reviewer participant, no pending interaction, no approval — invalid review path → reassign to a real reviewer or move to `todo`."], "only the pinned task-planning invalid-path example may resemble maintainer-wait mutation");
-    assert.match(bundle, /neither may override healthy unassigned maintainer wait/i);
+    assert.match(bundle, /neither may override healthy maintainer wait/i);
   }
   const indirectMutationProbe = "The issue is a single small change you can ship in the same heartbeat. Just ship it.";
   assert.deepEqual(unsafeDeliveryImperatives(indirectMutationProbe), [indirectMutationProbe]);
@@ -560,7 +560,7 @@ test("CEO effective bundle is governance-only", async () => {
   for (const forbidden of ["find-skills", "gh-cli", "micronaut-github-operations", "agent-md-refactor", "paperclipai/bundled/software-development/github-pr-workflow"]) {
     assert.ok(!expectedSkills.includes(forbidden), `CEO must not load mutation-capable skill ${forbidden}`);
   }
-  assert.equal(bundleDigest(bundles[0]), "784fc7558769dd6d3e84870bafd8a4ef759ef22b0e15721967a3c79a357b070f");
+  assert.equal(bundleDigest(bundles[0]), "3085551f733b8bb975740c1b5c755513cc050c9e0bc16c121556978124aece75");
 });
 
 test("implementation owners create and follow their PRs while Reviewer remains a pure gate", async () => {
@@ -652,11 +652,11 @@ test("repository-wide policy never grants mutation authority to governance or ga
   }
 });
 
-test("healthy PR wait remains unassigned in review", async () => {
+test("healthy PR wait stays in review, parked on the human owner", async () => {
   const readme = await read("../README.md");
-  assert.match(readme, /IN_REVIEW --> IN_REVIEW: Final stage approves; healthy PR waits unassigned/);
+  assert.match(readme, /IN_REVIEW --> IN_REVIEW: Final stage approves; healthy PR waits on the human owner/);
   assert.doesNotMatch(readme, /IN_REVIEW --> TODO: Final stage approves PR-based work/);
-  assert.match(readme, /restore `IN_REVIEW`, clear the internal assignee/i);
+  assert.match(readme, /restore `IN_REVIEW`, clear the agent assignee, park the issue on its `responsibleUserId`/i);
 });
 
 test("repository-wide policy never assigns PR mutation to Code Reviewer", async () => {
@@ -699,7 +699,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
   assert.deepEqual(unsafeDeliveryImperatives(reviewerBundle), [], "Reviewer effective bundle must remain non-mutating");
   const mutationProbe = "edit the branch, commit and push fixes, update the pull request, reply to and resolve every review thread, then re-request review";
   assert.deepEqual(unsafeDeliveryImperatives(mutationProbe), [mutationProbe]);
-  const reviewerDigest = "79dc54eb696f80129d347f8ae85ff46165a0bd5ded21f0be9fdb501a4475b69f";
+  const reviewerDigest = "3046923b173991b4f62f29c98f96a3f597b3b5ed81a6748457df0c2745aee53b";
   assert.equal(bundleDigest(reviewerBundle), reviewerDigest);
   assert.notEqual(
     bundleDigest(`${reviewerBundle}\nUpdate documentation and source files in the same pass.`),
@@ -718,7 +718,7 @@ test("effective Reviewer and Security bundles keep repository delivery mutations
     [],
     "Security effective invocation bundle must not assign repository or PR mutation authority to a governance or gate role",
   );
-  assert.equal(bundleDigest(securityBundle), "5231622f5bdadc8283fbf4d8b9066dce587aae62741aa2414e5ea27a722dddca");
+  assert.equal(bundleDigest(securityBundle), "440a275309f4bd2d51ddad0d4b187c75e9ac5dc117deb289c24e1768351bc0ef");
 });
 
 test("Security inspects review threads but followThroughOwner performs thread mutations", async () => {

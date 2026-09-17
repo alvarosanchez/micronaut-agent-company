@@ -16,6 +16,6 @@ CEO may align safe Paperclip-only state: status, assignee, execution participant
 
 ## PR Ownership Check
 
-GitHub Sync routes actionable events to durable `followThroughOwner`: Engineer for source/test/dependency/build/package/plugin work and Writer for docs/`AGENTS.md`/instructions. Healthy green PRs without actionable feedback remain unassigned `in_review`. Re-entry reruns effect-based gates documented in workflow control plane.
+GitHub Sync routes actionable events to durable `followThroughOwner`: Engineer for source/test/dependency/build/package/plugin work and Writer for docs/`AGENTS.md`/instructions. Healthy green PRs without actionable feedback remain `in_review` parked on the human owner. Re-entry reruns effect-based gates documented in workflow control plane.
 
 Use `company-package-evolution` for target-surface selection, child scope, ownership, branch, PR-linking, and report details.
