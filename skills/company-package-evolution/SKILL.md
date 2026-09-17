@@ -100,7 +100,7 @@ When the change belongs in a company-owned upstream dependency:
 - Engineer creates/updates the upstream PR and owns follow-through
 - before an out-of-pipeline PR, create a child in the actual project, assign Engineer, and link the PR through GitHub Sync
 
-For all package-core, managed repository, upstream dependency, or other PRs created outside the normal synced GitHub issue delivery pipeline, create the Paperclip child first. If one routine can affect more than one project, create one child per affected project; each child belongs to the actual corresponding project and is assigned to the implementation owner. Synced GitHub issues are already linked. Use `paperclip-github-plugin:link_github_item` with `kind: "pull_request"`, `paperclipIssueId`, and `pullRequestUrl` or `reference`. PR children remain `in_review` until merge; healthy maintainer wait is unassigned. If durable linking is unavailable, record the blocker.
+For all package-core, managed repository, upstream dependency, or other PRs created outside the normal synced GitHub issue delivery pipeline, create the Paperclip child first. If one routine can affect more than one project, create one child per affected project; each child belongs to the actual corresponding project and is assigned to the implementation owner. Synced GitHub issues are already linked. Use `paperclip-github-plugin:link_github_item` with `kind: "pull_request"`, `paperclipIssueId`, and `pullRequestUrl` or `reference`. PR children remain `in_review` until merge; healthy maintainer wait carries no agent assignee and parks on the human owner. If durable linking is unavailable, record the blocker.
 
 ## PR Follow-Through Contract
 

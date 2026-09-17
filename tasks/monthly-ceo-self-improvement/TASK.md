@@ -27,13 +27,13 @@ For each accepted candidate, use `company-package-evolution` and end in one stat
 
 ## 2. Separate operational lanes
 
-Treat active Paperclip productivity review issues (`issue_productivity_review`) as first-class queue-health work. Correct their actionable source routes and stale handoffs directly, but do not report those corrections as new proposals. Align status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, blocker/next-action comment, and wake only when ownership permits. Read `GET /api/issues/{issueId}/diagnostics/blockers` and `GET /api/issues/{issueId}/diagnostics/wakes` before correcting a route so the correction targets the real cause; since Paperclip 2026.831 the host does not take stranded work over on its own. Use issue-thread interactions (`suggest_tasks`, `ask_user_questions`, or `request_confirmation`) for bounded non-governance input and linked approvals for governance.
+Correct actionable source routes and stale handoffs directly, but do not report those corrections as new proposals. Align status, assignee, `executionState.currentParticipant`, `executionState.returnAssignee`, blocker/next-action comment, and wake only when ownership permits. Read `GET /api/issues/{issueId}/diagnostics/blockers` and `GET /api/issues/{issueId}/diagnostics/wakes` before correcting a route so the correction targets the real cause; since Paperclip 2026.831 the host does not take stranded work over on its own. Use issue-thread interactions (`suggest_tasks`, `ask_user_questions`, or `request_confirmation`) for bounded non-governance input and linked approvals for governance.
 
 Load the `maintenance-lanes.md` reference from `ceo-issue-history` for the mechanics below instead of expanding this prompt:
 
 - **Runtime Skill Sync:** act on the run-time skill manifest and reported materialization failures rather than a hand inventory; it is a no-op only when no run reported a materialization failure and no package-declared grant is missing from the agents' configured skills. Record missing runtime/catalog materialization and create a scoped QA-assigned Micronaut Engineer child for executable reconciliation that names the intended merge mode and receives an Architect lightweight plan before Engineer implements, because skill sync and reimport preserve operator selections unless replacement is explicit; CEO does not mutate runtime skill storage.
 - **Managed Repository AGENTS.md Audit:** classify every active managed Micronaut repository root `AGENTS.md` as durable/current, stale/generated, or missing. Record no action or create a scoped QA-assigned Technical Writer child. Add Architect/Security as classification requires.
-- **PR ownership check:** do not rediscover or follow CEO PRs. Confirm GitHub Sync routes actionable PR events to the durable Engineer/Writer implementation owner and leaves healthy maintainer wait unassigned.
+- **PR ownership check:** do not rediscover or follow CEO PRs. Confirm GitHub Sync routes actionable PR events to the durable Engineer/Writer implementation owner and leaves healthy maintainer wait parked on the human owner.
 
 These lanes preserve their prior capability but do not affect candidate ranking.
 
@@ -43,7 +43,7 @@ Store one compact Paperclip report under the stable `ceo` document key. Include:
 
 - `asOf`, exact window, coverage outcome, missing-resource ledger, and evidence JSON fingerprint/version;
 - ranked or rejected candidate counts and issue-level references; for each accepted candidate, threshold, stable fingerprint, cluster and quotable pattern, evidence tuples (issue, comment or run, verbatim fragment), root-cause hypothesis, exact action (minimal diff), expected still-passes replay set, why this change and not something bigger, deduplication result, governance path, state, owner, target surface, acceptance criterion, size impact, and risk;
-- direct handoff/productivity-review corrections and any interaction kind/idempotency key;
+- direct handoff corrections and any interaction kind/idempotency key;
 - a **Runtime Skill Sync** section with checked source/target and present, missing, no-op, or blocked verification;
 - a **Managed Repository AGENTS.md Audit** section with root-file classification and no-action or scoped Writer-child outcome per repository;
 - safe routing corrections and every created child's project, QA assignment, actual delivery/follow-through owner, acceptance criteria, plan depth, and conditional Security gates.

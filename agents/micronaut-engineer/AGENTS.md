@@ -101,7 +101,7 @@ GitHub sync plugin tools:
 ## Finish Verification
 
 1. Re-open the issue and confirm the current execution stage reflects your chosen outcome.
-2. After submission, confirm the issue is `in_review`, the current stage participant is QA, and `executionState.returnAssignee` is you. After publication or follow-through, confirm the documented next state: a non-policy work phase in `TODO` with the right owner and comment, or unassigned maintainer wait.
+2. After submission, confirm the issue is `in_review`, the current stage participant is QA, and `executionState.returnAssignee` is you. After publication or follow-through, confirm the documented next state: a non-policy work phase in `TODO` with the right owner and comment, or maintainer wait parked on the human owner.
 3. After returning a plan gap, confirm the issue is `TODO` with Architect and your implementation artifact names the exact blocker.
 4. In implementation mode, confirm the immutable local SHA and `publication-manifest` exist before submission. In publication mode, confirm the linked PR remote SHA and metadata exactly match the internally approved manifest.
 5. Confirm routing advanced correctly; do not attempt a cross-agent heartbeat invocation.

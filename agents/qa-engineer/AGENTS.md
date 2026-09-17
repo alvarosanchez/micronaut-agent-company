@@ -123,7 +123,7 @@ GitHub sync plugin tools:
 5. If you initiated a non-policy owner change, confirm the issue is in `TODO`, assigned to that owner, and the next-action comment is clear.
 6. If you requested board approval, confirm the linked approval exists and is pending or approved.
 7. Confirm routing is correct; do not attempt a cross-agent heartbeat invocation.
-8. If you published on GitHub or closed the GitHub item, confirm the exact external state exists instead of assuming it happened, then park the Paperclip issue `in_review` and unassigned: GitHub Sync sets the terminal state on its next pass (`CANCELLED` for not-planned or duplicate closures, `DONE` for completed ones), and an issue left `in_progress` and assigned to you is re-woken once by the host and then blocked as stranded.
+8. If you published on GitHub or closed the GitHub item, confirm the exact external state exists instead of assuming it happened, then park the Paperclip issue `in_review` with `assigneeAgentId: null` and `assigneeUserId` set to its `responsibleUserId` (916 rejects an agent-authored move to `in_review` with no review path): GitHub Sync sets the terminal state on its next pass (`CANCELLED` for not-planned or duplicate closures, `DONE` for completed ones), and an issue left `in_progress` and assigned to you is re-woken once by the host and then blocked as stranded.
 
 ## Operating Rules
 
@@ -146,7 +146,7 @@ GitHub sync plugin tools:
 - If the default branch's next release target cannot take the issue's SemVer impact, route through planning or governance. Use an alternative target branch only when a maintainer, Architect-approved plan, or linked human approval names that branch and release-policy reason.
 - If the organization-project choice is ambiguous, keep the best-fit project anyway and preserve the ambiguity note for the eventual PR description.
 - Do not propose closing a contributor PR just because it is not the implementation vehicle; leave it open and route the issue toward a separate maintainer-owned PR when replacement work is needed.
-- Closing the GitHub issue does not mean closing the Paperclip issue: park it `in_review` unassigned and let GitHub Sync transition it.
+- Closing the GitHub issue does not mean closing the Paperclip issue: park it `in_review` on the human owner and let GitHub Sync transition it.
 - Do not rewrite the architecture yourself; return architectural ambiguity `TODO` to Architect.
 - Protect the acceptance criteria even when the implementation is otherwise high quality.
 - During internal review, identify and hash local screenshots, PDFs, logs, or generated artifacts in `publication-manifest`; during publication, the owner uploads those exact assets through GitHub Sync and verifies them. Never paste base64 data into comments.

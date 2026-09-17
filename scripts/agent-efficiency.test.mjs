@@ -74,10 +74,10 @@ test("agent instructions include concise model-specific operating guidance", asy
   }
 });
 
-test("shared repo operations stays compact and protects the cheap profile boundary", async () => {
+test("shared repo operations stays compact and carries no retired model-profile boundary", async () => {
   const skill = await read("skills/micronaut-repo-operations/SKILL.md");
   assert.ok(Buffer.byteLength(skill) <= 9_000, `Always-loaded repo operations skill is too large: ${Buffer.byteLength(skill)} bytes.`);
-  assert.match(skill, /The `cheap` profile[\s\S]{0,500}must not approve or reject a stage/i);
+  assert.doesNotMatch(skill, /cheap/i, "Paperclip removed model profiles in 2026.916.0; the cheap-profile boundary must not linger.");
   assert.match(skill, /load the matching reference/i);
 });
 
