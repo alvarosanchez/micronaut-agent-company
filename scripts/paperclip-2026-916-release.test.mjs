@@ -14,7 +14,7 @@ async function trackedMarkdown() {
   return result.stdout.split("\n").filter(Boolean);
 }
 
-const PAPERCLIP_RELEASE_UNDER_TEST = "2026.916.0";
+const PAPERCLIP_RELEASE_UNDER_TEST = "2026.916.1";
 
 async function read(relativePath) {
   return readFile(new URL(relativePath, import.meta.url), "utf8");

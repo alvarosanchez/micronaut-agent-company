@@ -93,7 +93,7 @@ test("Monthly Product Discovery routine is active and owned by Product Manager",
 
   assert.equal(adapter?.type, "claude_local");
   assert.equal(adapter?.config?.engine, "auto");
-  assert.equal(adapter?.config?.model, "claude-opus-5");
+  assert.equal(adapter?.config?.model, "claude-opus-5-5");
   assert.equal(adapter?.config?.effort, "medium");
   assert.equal(adapter?.config?.dangerouslySkipPermissions, true);
   assert.equal(adapter?.config?.timeoutSec, 7200);
@@ -133,7 +133,7 @@ test("Product Manager role and routine are documented", async () => {
   const company = await read("../COMPANY.md");
   const team = await read("../teams/engineering/TEAM.md");
 
-  assertContains(readme, /Product Manager: `claude_local`, `claude-opus-5`, `effort: medium`/, "README should document the Product Manager claude_local model and effort.");
+  assertContains(readme, /Product Manager: `claude_local`, `claude-opus-5-5`, `effort: medium`/, "README should document the Product Manager claude_local model and effort.");
   assertContains(readme, /\| Product Manager \| `radar` \|/, "README should document the Product Manager radar icon.");
   assertContains(readme, /\| Product Manager \| `pm` \|/, "README should document the Product Manager pm role.");
   assertContains(readme, /\| `Monthly Product Discovery` \| Product Manager \| 1st of each month at 01:00 `Europe\/Madrid` \|/, "README should document the Monthly Product Discovery schedule.");

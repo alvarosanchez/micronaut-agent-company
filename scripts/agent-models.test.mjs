@@ -29,12 +29,12 @@ const CODEX_CHEAP_PROFILE = {
 };
 
 const PRIMARY_MODEL_CONFIG = {
-  ceo: { adapter: CLAUDE_ADAPTER, model: "claude-opus-5", effort: "medium" },
-  "product-manager": { adapter: CLAUDE_ADAPTER, model: "claude-opus-5", effort: "medium" },
+  ceo: { adapter: CLAUDE_ADAPTER, model: "claude-opus-5-5", effort: "medium" },
+  "product-manager": { adapter: CLAUDE_ADAPTER, model: "claude-opus-5-5", effort: "medium" },
   architect: { adapter: CLAUDE_ADAPTER, model: "claude-fable-5-1", effort: "high" },
-  "qa-engineer": { adapter: CLAUDE_ADAPTER, model: "claude-opus-5", effort: "high" },
-  "security-engineer": { adapter: CLAUDE_ADAPTER, model: "claude-opus-5", effort: "high" },
-  "micronaut-engineer": { adapter: CLAUDE_ADAPTER, model: "claude-opus-5", effort: "high" },
+  "qa-engineer": { adapter: CLAUDE_ADAPTER, model: "claude-opus-5-5", effort: "medium" },
+  "security-engineer": { adapter: CLAUDE_ADAPTER, model: "claude-opus-5-5", effort: "high" },
+  "micronaut-engineer": { adapter: CLAUDE_ADAPTER, model: "claude-opus-5-5", effort: "medium" },
   "code-reviewer": { adapter: CODEX_ADAPTER, model: "gpt-6-astra", effort: "high" },
   "technical-writer": { adapter: CLAUDE_ADAPTER, model: "claude-sonnet-5", effort: "medium" },
 };
@@ -138,7 +138,7 @@ test("README roster and model matrix match the package adapter matrix", async ()
     name: "UI/UX Designer",
     source: "live-only",
     adapter: CLAUDE_ADAPTER,
-    model: "claude-opus-5",
+    model: "claude-opus-5-5",
     effort: "medium",
   });
   assert.match(readme, /timeoutSec: 7200/);
@@ -154,7 +154,7 @@ test("README roster and model matrix match the package adapter matrix", async ()
   );
   assert.match(
     readme,
-    /claude-fable-5-1[\s\S]{0,120}gpt-6-astra[\s\S]{0,260}manual model ids/i,
+    /claude-opus-5-5[\s\S]{0,120}gpt-6-astra[\s\S]{0,260}manual model ids/i,
     "README must note that the newer model ids pass through as manual ids.",
   );
   assert.match(
