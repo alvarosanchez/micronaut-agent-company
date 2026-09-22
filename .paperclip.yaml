@@ -9,7 +9,7 @@ agents:
       type: claude_local
       config:
         engine: auto
-        model: claude-opus-5
+        model: claude-opus-5-5
         effort: medium
         dangerouslySkipPermissions: true
         permissionMode: approve-all
@@ -23,7 +23,7 @@ agents:
       type: claude_local
       config:
         engine: auto
-        model: claude-opus-5
+        model: claude-opus-5-5
         effort: medium
         dangerouslySkipPermissions: true
         permissionMode: approve-all
@@ -51,8 +51,8 @@ agents:
       type: claude_local
       config:
         engine: auto
-        model: claude-opus-5
-        effort: high
+        model: claude-opus-5-5
+        effort: medium
         dangerouslySkipPermissions: true
         permissionMode: approve-all
         timeoutSec: 7200
@@ -65,7 +65,7 @@ agents:
       type: claude_local
       config:
         engine: auto
-        model: claude-opus-5
+        model: claude-opus-5-5
         effort: high
         dangerouslySkipPermissions: true
         permissionMode: approve-all
@@ -79,8 +79,8 @@ agents:
       type: claude_local
       config:
         engine: auto
-        model: claude-opus-5
-        effort: high
+        model: claude-opus-5-5
+        effort: medium
         dangerouslySkipPermissions: true
         permissionMode: approve-all
         timeoutSec: 7200

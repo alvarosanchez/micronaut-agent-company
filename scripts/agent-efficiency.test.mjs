@@ -57,12 +57,12 @@ test("agent instructions delegate shared GitHub policy instead of repeating it",
 
 test("agent instructions include concise model-specific operating guidance", async () => {
   const expected = {
-    ceo: /Claude Opus 5 operating profile \(medium effort\)[\s\S]{0,500}batch/i,
-    "product-manager": /Claude Opus 5 operating profile \(medium effort\)[\s\S]{0,500}(compare|evidence)/i,
+    ceo: /Claude Opus 5\.5 operating profile \(medium effort\)[\s\S]{0,500}batch/i,
+    "product-manager": /Claude Opus 5\.5 operating profile \(medium effort\)[\s\S]{0,500}(compare|evidence)/i,
     architect: /Claude Fable 5\.1 operating profile \(high effort\)[\s\S]{0,500}(hypoth|call path)/i,
-    "qa-engineer": /Claude Opus 5 operating profile \(high effort\)[\s\S]{0,500}(batch|decision table|matrix)/i,
-    "security-engineer": /Claude Opus 5 operating profile \(high effort\)[\s\S]{0,500}(exploit|hypoth|call path)/i,
-    "micronaut-engineer": /Claude Opus 5 operating profile \(high effort\)[\s\S]{0,500}(approved Architect plan|escalate)/i,
+    "qa-engineer": /Claude Opus 5\.5 operating profile \(medium effort\)[\s\S]{0,500}(batch|decision table|matrix)/i,
+    "security-engineer": /Claude Opus 5\.5 operating profile \(high effort\)[\s\S]{0,500}(exploit|hypoth|call path)/i,
+    "micronaut-engineer": /Claude Opus 5\.5 operating profile \(medium effort\)[\s\S]{0,500}(approved Architect plan|escalate)/i,
     "code-reviewer": /GPT-6 Astra operating profile \(high reasoning\)[\s\S]{0,600}(adversarial|independent model family)[\s\S]{0,600}(evidence you verified|complete review)/i,
     "technical-writer": /Claude Sonnet 5 operating profile \(medium effort\)[\s\S]{0,500}(verified|concise|bounded)/i,
   };

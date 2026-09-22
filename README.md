@@ -30,41 +30,43 @@ The operating roster has nine roles. Eight are portable package agents configure
 
 <!-- operating-role-roster -->
 ```yaml
-- { slug: ceo, name: CEO, source: package, adapter: claude_local, model: claude-opus-5, effort: medium }
-- { slug: product-manager, name: Product Manager, source: package, adapter: claude_local, model: claude-opus-5, effort: medium }
+- { slug: ceo, name: CEO, source: package, adapter: claude_local, model: claude-opus-5-5, effort: medium }
+- { slug: product-manager, name: Product Manager, source: package, adapter: claude_local, model: claude-opus-5-5, effort: medium }
 - { slug: architect, name: Architect, source: package, adapter: claude_local, model: claude-fable-5-1, effort: high }
-- { slug: qa-engineer, name: QA Engineer, source: package, adapter: claude_local, model: claude-opus-5, effort: high }
-- { slug: security-engineer, name: Security Engineer, source: package, adapter: claude_local, model: claude-opus-5, effort: high }
-- { slug: micronaut-engineer, name: Micronaut Engineer, source: package, adapter: claude_local, model: claude-opus-5, effort: high }
+- { slug: qa-engineer, name: QA Engineer, source: package, adapter: claude_local, model: claude-opus-5-5, effort: medium }
+- { slug: security-engineer, name: Security Engineer, source: package, adapter: claude_local, model: claude-opus-5-5, effort: high }
+- { slug: micronaut-engineer, name: Micronaut Engineer, source: package, adapter: claude_local, model: claude-opus-5-5, effort: medium }
 - { slug: code-reviewer, name: Code Reviewer, source: package, adapter: codex_local, model: gpt-6-astra, effort: high }
 - { slug: technical-writer, name: Technical Writer, source: package, adapter: claude_local, model: claude-sonnet-5, effort: medium }
-- { slug: ui-ux-designer, name: UI/UX Designer, source: live-only, adapter: claude_local, model: claude-opus-5, effort: medium }
+- { slug: ui-ux-designer, name: UI/UX Designer, source: live-only, adapter: claude_local, model: claude-opus-5-5, effort: medium }
 ```
 
 Package agents use Paperclip `2026.916.0`'s built-in adapters. Seven roles run on `claude_local` (Claude Code under a Claude Max subscription); only the Code Reviewer runs on `codex_local` (Codex CLI under a ChatGPT Enterprise subscription) so final review comes from an independent model family. Codex usage is metered, so no other package role is placed on it.
 
 Package model matrix:
 
-- CEO: `claude_local`, `claude-opus-5`, `effort: medium`
-- Product Manager: `claude_local`, `claude-opus-5`, `effort: medium`
+- CEO: `claude_local`, `claude-opus-5-5`, `effort: medium`
+- Product Manager: `claude_local`, `claude-opus-5-5`, `effort: medium`
 - Architect: `claude_local`, `claude-fable-5-1`, `effort: high`
-- QA Engineer: `claude_local`, `claude-opus-5`, `effort: high`
-- Security Engineer: `claude_local`, `claude-opus-5`, `effort: high`
-- Micronaut Engineer: `claude_local`, `claude-opus-5`, `effort: high`
+- QA Engineer: `claude_local`, `claude-opus-5-5`, `effort: medium`
+- Security Engineer: `claude_local`, `claude-opus-5-5`, `effort: high`
+- Micronaut Engineer: `claude_local`, `claude-opus-5-5`, `effort: medium`
 - Code Reviewer: `codex_local`, `gpt-6-astra`, `modelReasoningEffort: high`
 - Technical Writer: `claude_local`, `claude-sonnet-5`, `effort: medium`
 
 Live-only model matrix:
 
-- UI/UX Designer: deployment-provided `claude_local`, `claude-opus-5`, `effort: medium`; not package-imported
+- UI/UX Designer: deployment-provided `claude_local`, `claude-opus-5-5`, `effort: medium`; not package-imported
 
 Every `claude_local` agent's primary adapter config sets exactly `engine: auto`, `model`, `effort`, `dangerouslySkipPermissions: true`, `permissionMode: approve-all`, `timeoutSec: 7200`, and `graceSec: 20`. The Code Reviewer sets `engine: auto`, `model: gpt-6-astra`, `modelReasoningEffort: high`, `dangerouslyBypassApprovalsAndSandbox: true`, `timeoutSec: 7200`, and `graceSec: 20`. Package-owned agents rely on Paperclip project workspaces and Paperclip-injected runtime identity: do not set `cwd`, `command`, `env`, or `extraArgs`. `engine: auto` means the ACP lane. Up to `2026.831.1` it silently fell back to the CLI lane when Node >= 24.11 or the package-local ACP binary did not resolve; `2026.916.0` removed that fallback, so a broken ACP setup now fails the run with a repair hint instead of quietly changing the execution and permission contract. ACP sessions are persistent by default, so an agent may resume prior session state instead of starting from a fresh process. Instructions therefore read the current issue state and `PAPERCLIP_WORKSPACE_*` environment on every run instead of assuming a clean context or working directory. Since `2026.916.0` the `claude_local` adapter has only the ACP lane, which ignores `dangerouslySkipPermissions` and reads `permissionMode` instead; `approve-all` is both the adapter default and what these agents have always effectively run with, so the package states it explicitly rather than leaving it implicit. Because runs approve every tool call (`permissionMode: approve-all` / Codex bypass), the "confirm before destructive git operations" rules in the instructions are policy, not a runtime guard. The Code Reviewer keeps `dangerouslyBypassApprovalsAndSandbox: true` because it must run builds and tests to verify claims and this deployment offers no read-only sandbox lane; its read-only invariant is a prompt-level rule enforced by the reviewer instructions and by GitHub branch/PR permissions, and a read-only execution environment is the preferred future hardening.
 
-`claude-fable-5-1` and `gpt-6-astra` are newer than the adapters' built-in model pick-lists at `2026.916.0`; both adapters accept manual model ids, so the ids pass through unchanged. Paperclip import appends `--skip-git-repo-check` to the Code Reviewer's `codex_local` `extraArgs`; that is expected import behavior, not package configuration. Credentials are deployment-owned: Claude Code uses `CLAUDE_CODE_OAUTH_TOKEN` or the server user's `~/.claude/.credentials.json`, and Codex uses the server user's `~/.codex/auth.json`; hiring onto an adapter the instance cannot run is refused.
+`claude-opus-5-5` and `gpt-6-astra` are newer than the adapters' built-in model pick-lists at `2026.916.1`; both adapters accept manual model ids, so the ids pass through unchanged. `claude-opus-5-5` needs Claude Code 2.1.280 or newer on the ACP lane (older clients answer `claude_code_version_too_old`), i.e. `@agentclientprotocol/claude-agent-acp` 0.81.0 or newer in the adapter tree. Paperclip import appends `--skip-git-repo-check` to the Code Reviewer's `codex_local` `extraArgs`; that is expected import behavior, not package configuration. Credentials are deployment-owned: Claude Code uses `CLAUDE_CODE_OAUTH_TOKEN` or the server user's `~/.claude/.credentials.json`, and Codex uses the server user's `~/.codex/auth.json`; hiring onto an adapter the instance cannot run is refused.
 
 Paperclip retired per-agent secondary model profiles in `2026.916.0` (migration `0236` strips `runtimeConfig.modelProfiles`), so every run uses the role model above and the package declares no `runtime.modelProfiles`. Every GitHub plugin write sets `llmModel` to that role model.
 
-Model selection follows role exposure: Fable 5.1/high is reserved for the Architect, because every Micronaut Engineer implementation follows an Architect plan and Fable 5.1 usage counts against a separate 50%-of-weekly cap on the Claude Max plan; Opus 5/high implements those plans and provides authoritative QA classification and security review; Opus 5/medium for governance and product discovery; Sonnet 5/medium for textual delivery; GPT-6 Astra/high for the independent final review.
+Model selection follows role exposure: Fable 5.1/high is reserved for the Architect, because every Micronaut Engineer implementation follows an Architect plan and Fable 5.1 usage counts against a separate 50%-of-weekly cap on the Claude Max plan; Opus 5.5/medium implements those plans and provides authoritative QA classification; Opus 5.5/high for security review; Opus 5.5/medium for governance and product discovery; Sonnet 5/medium for textual delivery; GPT-6 Astra/high for the independent final review.
+
+Effort levels do not map one-to-one from Opus 5 to Opus 5.5. Opus 5.5 at `medium` matches or beats Opus 5 at `high` on agentic coding, code review and knowledge work in fewer steps, and at an equal level it thinks more per turn, so the implementation and QA roles moved from Opus 5/high to Opus 5.5/medium rather than keeping `high`. Security review stays at `high` because it is low-volume and recall-sensitive. `effort` is always set explicitly because Opus 5.5's own default is `medium`, one level below Opus 5's. Thinking cannot be disabled on Opus 5.5; `effort` is the only depth control. The Technical Writer stays on Sonnet 5 (bounded, evidence-driven writing at half the Opus 5.5 token price) and the Code Reviewer stays on GPT-6 Astra so final review keeps an independent model family.
 
 The always-loaded `micronaut-repo-operations` entrypoint centralizes workflow mechanics. CodeGraph is optional: if the deployment exposes a CodeGraph MCP server to the agent runtime, it does not require agents to use it for every coding task; it remains useful for unfamiliar or large repositories, cross-module call paths, or repetitive symbol discovery, but is unnecessary for localized fixes and documentation/configuration work.
 
@@ -413,7 +415,7 @@ flowchart TD
     Reviewer["Code Reviewer"]
     Engineer["Micronaut Engineer"]
     Writer["Technical Writer"]
-    UIUX["UI/UX Designer<br/>(live-only, Opus 5/medium)"]
+    UIUX["UI/UX Designer<br/>(live-only, Opus 5.5/medium)"]
 
     CEO --> PM
     CEO --> Architect
@@ -437,7 +439,7 @@ flowchart TD
 | Code Reviewer | Code Reviewer | `ceo` | Pure read-only structural and maintainer-facing quality/DX gate over an exact unpublished SHA and publication manifest, or a surviving existing PR |
 | Micronaut Engineer | Micronaut Engineer | `ceo` | Code implementation, reproducer fixes, asset/PR publication, and PR-cycle execution |
 | Technical Writer | Technical Writer | `ceo` | Docs-only implementation, migration notes, guide/reference quality, asset/PR publication, and proactive guide routines |
-| UI/UX Designer | UI/UX Designer (live-only, `claude_local` `claude-opus-5`/medium) | `ceo` in the live deployment | UI/UX design and visual-system guidance; intentionally not imported from this package |
+| UI/UX Designer | UI/UX Designer (live-only, `claude_local` `claude-opus-5-5`/medium) | `ceo` in the live deployment | UI/UX design and visual-system guidance; intentionally not imported from this package |
 
 ## Local Company Skills
 

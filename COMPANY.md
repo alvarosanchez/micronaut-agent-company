@@ -25,7 +25,7 @@ tags:
   - security
 ---
 
-Micronaut Agent Company is a lean maintenance company template for Micronaut open-source development. Its operating roster has nine roles: the eight package agents in `.paperclip.yaml` plus a live-deployment-only UI/UX Designer on `claude_local` with `claude-opus-5` at medium effort. The UI/UX Designer is intentionally absent from `.paperclip.yaml` and package `agents/*/AGENTS.md`, so package import does not create or overwrite it. The company is designed for Paperclip companies that own a bounded cluster of related repositories inside the `micronaut-projects` GitHub organization and assumes the GitHub sync plugin is responsible for syncing GitHub issues and PRs into Paperclip and exposing GitHub operations as agent tools.
+Micronaut Agent Company is a lean maintenance company template for Micronaut open-source development. Its operating roster has nine roles: the eight package agents in `.paperclip.yaml` plus a live-deployment-only UI/UX Designer on `claude_local` with `claude-opus-5-5` at medium effort. The UI/UX Designer is intentionally absent from `.paperclip.yaml` and package `agents/*/AGENTS.md`, so package import does not create or overwrite it. The company is designed for Paperclip companies that own a bounded cluster of related repositories inside the `micronaut-projects` GitHub organization and assumes the GitHub sync plugin is responsible for syncing GitHub issues and PRs into Paperclip and exposing GitHub operations as agent tools.
 
 ## Decision And Delivery Ownership
 
